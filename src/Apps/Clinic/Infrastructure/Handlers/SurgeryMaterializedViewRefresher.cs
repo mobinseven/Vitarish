@@ -27,9 +27,17 @@ internal sealed class SurgeryMaterializedViewRefresher(ClinicDbContext dbContext
 
         try
         {
-            await using DbCommand command = connection.CreateCommand();
-            command.CommandText = "REFRESH MATERIALIZED VIEW CONCURRENTLY \"Clinic\".\"mv_PatientSurgeries\";";
-            await command.ExecuteNonQueryAsync(cancellationToken);
+            await using (DbCommand command = connection.CreateCommand())
+            {
+                command.CommandText = "REFRESH MATERIALIZED VIEW CONCURRENTLY \"Clinic\".\"mv_PatientSurgeries\";";
+                await command.ExecuteNonQueryAsync(cancellationToken);
+            }
+
+            await using (DbCommand command = connection.CreateCommand())
+            {
+                command.CommandText = "REFRESH MATERIALIZED VIEW CONCURRENTLY \"Clinic\".\"mv_SurgerySuggestions\";";
+                await command.ExecuteNonQueryAsync(cancellationToken);
+            }
         }
         finally
         {

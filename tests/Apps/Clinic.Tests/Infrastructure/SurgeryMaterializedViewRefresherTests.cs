@@ -28,6 +28,7 @@ public sealed class SurgeryMaterializedViewRefresherTests
         {
             await ExecuteAsync(connection, """
                 CREATE SCHEMA IF NOT EXISTS "Clinic";
+                DROP MATERIALIZED VIEW IF EXISTS "Clinic"."mv_SurgerySuggestions";
                 DROP MATERIALIZED VIEW IF EXISTS "Clinic"."mv_PatientSurgeries";
                 DROP TABLE IF EXISTS "Clinic"."SurgeryRefreshSource";
                 CREATE TABLE "Clinic"."SurgeryRefreshSource" ("Id" uuid PRIMARY KEY, "TenantId" text NOT NULL);
@@ -35,6 +36,9 @@ public sealed class SurgeryMaterializedViewRefresherTests
                 CREATE MATERIALIZED VIEW "Clinic"."mv_PatientSurgeries" AS
                     SELECT "Id", "TenantId" FROM "Clinic"."SurgeryRefreshSource";
                 CREATE UNIQUE INDEX "IX_TestSurgeryRefresh_Id" ON "Clinic"."mv_PatientSurgeries" ("Id");
+                CREATE MATERIALIZED VIEW "Clinic"."mv_SurgerySuggestions" AS
+                    SELECT "Id", "TenantId" FROM "Clinic"."mv_PatientSurgeries";
+                CREATE UNIQUE INDEX "IX_TestSurgerySuggestions_Id" ON "Clinic"."mv_SurgerySuggestions" ("Id");
                 """);
 
             DbContextOptions<ClinicDbContext> options = new DbContextOptionsBuilder<ClinicDbContext>()
@@ -49,10 +53,12 @@ public sealed class SurgeryMaterializedViewRefresherTests
 
             object? count = await ScalarAsync(connection, "SELECT count(*) FROM \"Clinic\".\"mv_PatientSurgeries\";");
             Convert.ToInt64(count).Should().Be(2);
+            object? suggestionCount = await ScalarAsync(connection, "SELECT count(*) FROM \"Clinic\".\"mv_SurgerySuggestions\";");
+            Convert.ToInt64(suggestionCount).Should().Be(2);
         }
         finally
         {
-            await ExecuteAsync(connection, "DROP MATERIALIZED VIEW IF EXISTS \"Clinic\".\"mv_PatientSurgeries\"; DROP TABLE IF EXISTS \"Clinic\".\"SurgeryRefreshSource\";");
+            await ExecuteAsync(connection, "DROP MATERIALIZED VIEW IF EXISTS \"Clinic\".\"mv_SurgerySuggestions\"; DROP MATERIALIZED VIEW IF EXISTS \"Clinic\".\"mv_PatientSurgeries\"; DROP TABLE IF EXISTS \"Clinic\".\"SurgeryRefreshSource\";");
         }
     }
 

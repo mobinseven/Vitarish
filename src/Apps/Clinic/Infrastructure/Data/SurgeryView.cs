@@ -2,7 +2,7 @@ using System.Text.Json;
 
 namespace Vitarish.Clinic.Infrastructure.Data;
 
-internal sealed class SurgeryView
+public sealed class SurgeryView
 {
     public Guid Id { get; set; }
     public string TenantId { get; set; } = string.Empty;
@@ -12,6 +12,9 @@ internal sealed class SurgeryView
     public JsonDocument Data { get; set; } = null!;
     public string Status { get; set; } = string.Empty;
     public DateTimeOffset ScheduledAt { get; set; }
+    public int? DurationMinutes { get; set; }
+    public string? Location { get; set; }
+    public JsonDocument Team { get; set; } = null!;
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
 }

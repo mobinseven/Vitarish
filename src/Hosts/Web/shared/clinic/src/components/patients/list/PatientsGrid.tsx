@@ -65,8 +65,8 @@ export function PatientsGrid({
     if (field === "Name") return t("clinic.patient.fields.firstName");
     if (field === "IdentificationCode")
       return t("clinic.patient.fields.identificationCode");
-    if (field === "DateOfSurgery")
-      return t("clinic.patient.fields.dateOfSurgery");
+    if (field === "LastSurgery") return t("clinic.patient.sort.lastSurgery");
+    if (field === "NextSurgery") return t("clinic.patient.sort.nextSurgery");
     return t("clinic.patient.fields.dateOfBirth");
   };
 
@@ -145,7 +145,8 @@ export function PatientsGrid({
                       "Name",
                       "IdentificationCode",
                       "DateOfBirth",
-                      "DateOfSurgery",
+                      "LastSurgery",
+                      "NextSurgery",
                     ] as PatientSortBy[]
                   ).map((field) => (
                     <Dropdown.Item

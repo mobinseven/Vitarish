@@ -29,6 +29,7 @@ vi.mock("../components/patients/prescriptions/PatientPrescriptionDashboard", () 
 }));
 vi.mock("../components/patients/procedures/PatientVisitsPanel", () => ({ PatientVisitsPanel: () => null }));
 vi.mock("../components/patients/procedures/PatientProceduresPanel", () => ({ PatientProceduresPanel: () => null }));
+vi.mock("../components/surgeries/PatientSurgeriesPanel", () => ({ PatientSurgeriesPanel: () => null }));
 vi.mock("../components/patients/overview/PatientReservationsPanel", () => ({ PatientReservationsPanel: () => null }));
 vi.mock("../components/patients/overview/PatientProfileCard", () => ({ PatientProfileCard: () => null }));
 vi.mock("../components/patients/overview/PatientOverviewHeader", () => ({ PatientOverviewHeader: () => null }));

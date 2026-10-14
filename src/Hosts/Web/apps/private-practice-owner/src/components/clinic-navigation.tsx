@@ -70,6 +70,25 @@ export function useClinicNavigation() {
         case "prescriptionTemplateManagement":
           router.push(Routes.Clinic.Settings.PrescriptionTemplates);
           break;
+        case "surgeryIndex":
+          router.push(Routes.Clinic.Surgeries.Index);
+          break;
+        case "surgeryNew":
+          router.push(
+            intent.patientId
+              ? Routes.Clinic.Surgeries.NewForPatient(intent.patientId)
+              : Routes.Clinic.Surgeries.New,
+          );
+          break;
+        case "surgeryDetail":
+          router.push(Routes.Clinic.Surgeries.Detail(intent.surgeryId));
+          break;
+        case "surgeryEdit":
+          router.push(Routes.Clinic.Surgeries.Edit(intent.surgeryId));
+          break;
+        case "surgeryTypeManagement":
+          router.push(Routes.Clinic.Settings.SurgeryTypes);
+          break;
         case "reminders":
           router.push(Routes.Clinic.Reminders);
           break;

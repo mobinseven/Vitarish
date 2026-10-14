@@ -29,7 +29,6 @@ export function toPatientFindOrCreateRequest(
     phone: data.phone || null,
     email: data.email || null,
     dateOfBirth: optionalDateTime(data.dateOfBirth),
-    dateOfSurgery: optionalDateTime(data.dateOfSurgery),
     gender: data.gender as Gender,
     placeOfBirth: data.placeOfBirth || null,
     address: data.address || null,

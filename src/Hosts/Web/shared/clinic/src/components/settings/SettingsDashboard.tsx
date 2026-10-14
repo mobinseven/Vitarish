@@ -55,6 +55,12 @@ export function SettingsDashboard({ onNavigate }: SettingsDashboardProps) {
       icon: "folder-tree",
     },
     {
+      title: t("clinic.surgeries.types.title"),
+      description: t("clinic.surgeries.types.settingsDescription"),
+      intent: { kind: "surgeryTypeManagement" },
+      icon: "scissors",
+    },
+    {
       title: t("clinic.settings.sections.prescriptionTemplates.title"),
       description: t(
         "clinic.settings.sections.prescriptionTemplates.description",

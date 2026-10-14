@@ -71,6 +71,14 @@ export const Routes = {
       ProcedureEvent: (patientId: string, procedureId: string, eventId: string) =>
         `/patients/${patientId}/procedures/${procedureId}/events/${eventId}` as const,
     },
+    Surgeries: {
+      Index: "/surgeries",
+      New: "/surgeries/new",
+      NewForPatient: (patientId: string) =>
+        `/surgeries/new?${SurgeryPlanSearchParams.PatientId}=${encodeURIComponent(patientId)}` as const,
+      Detail: (surgeryId: string) => `/surgeries/${surgeryId}` as const,
+      Edit: (surgeryId: string) => `/surgeries/${surgeryId}/edit` as const,
+    },
     Settings: {
       Index: "/settings",
       Users: "/settings/users",
@@ -80,6 +88,7 @@ export const Routes = {
       Statistics: "/settings/statistics",
       ProcedureTemplates: "/settings/procedure-templates",
       PrescriptionTemplates: "/settings/prescription-templates",
+      SurgeryTypes: "/settings/surgery-types",
     },
     Reminders: "/reminders",
     Appointments: {
@@ -128,4 +137,10 @@ export const Routes = {
 export const PatientDetailSearchParams = {
   /** A patient quick action to open on arrival. */
   QuickAction: "action",
+} as const;
+
+/** Search parameters the surgery plan route understands. */
+export const SurgeryPlanSearchParams = {
+  /** The patient to preselect when planning a surgery. */
+  PatientId: "patientId",
 } as const;

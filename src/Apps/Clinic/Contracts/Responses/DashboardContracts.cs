@@ -15,11 +15,3 @@ public sealed record DashboardAppointmentResponse(
     string? TimeZone,
     ReservationStatus Status,
     IReadOnlyList<string> PatientTags);
-
-public sealed record DashboardSurgeryResponse(
-    Guid SurgeryId,
-    Guid PatientId,
-    string? PatientDisplayName,
-    string SurgeryName,
-    string Status,
-    DateTimeOffset ScheduledAt);

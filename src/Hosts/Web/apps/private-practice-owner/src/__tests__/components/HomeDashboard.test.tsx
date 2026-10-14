@@ -10,6 +10,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: mocks.push }) }));
+vi.mock("@/features/home/widgets/surgeries/SurgeriesWidget", () => ({ SurgeriesWidget: () => null }));
 vi.mock("@vitarish/clinic", async () => {
   const actual =
     await vi.importActual<typeof import("@vitarish/clinic")>(

@@ -15,7 +15,6 @@ export interface PatientProfileFormData {
   address: string;
   emergencyContactName: string;
   emergencyContactPhone: string;
-  dateOfSurgery: string;
   height: string;
   weight: string;
   allergies: string;
@@ -45,9 +44,6 @@ export function patientToFormData(patient: PatientViewDto): PatientProfileFormDa
     address: patient.address ?? "",
     emergencyContactName: patient.emergencyContactName ?? "",
     emergencyContactPhone: patient.emergencyContactPhone ?? "",
-    dateOfSurgery: patient.dateOfSurgery && !patient.dateOfSurgery.startsWith("0001-01-01")
-      ? patient.dateOfSurgery.split("T")[0]
-      : "",
     height: patient.height?.toString() ?? "",
     weight: patient.weight?.toString() ?? "",
     allergies: patient.allergies ?? "",
@@ -76,7 +72,6 @@ export function emptyFormData(): PatientProfileFormData {
     address: "",
     emergencyContactName: "",
     emergencyContactPhone: "",
-    dateOfSurgery: "",
     height: "",
     weight: "",
     allergies: "",
