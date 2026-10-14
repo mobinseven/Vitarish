@@ -18,7 +18,6 @@ import type { NavigationIntent } from "../../../navigation";
 import { PatientProcedureTemplateSelector } from "./PatientProcedureTemplateSelector";
 import { PatientProcedureFocusedLane } from "./PatientProcedureFocusedLane";
 import { PatientProcedureProgress } from "./PatientProcedureProgress";
-import { clinicOperationButtonClassName } from "../../operations/clinicOperation";
 
 interface PatientProceduresPanelProps {
   patientId: string;
@@ -55,8 +54,7 @@ export function PatientProceduresPanel({
         <Tooltip>
           <Button
             size="sm"
-            className={clinicOperationButtonClassName("procedure")}
-            variant="primary"
+            variant="tertiary"
             onPress={() => setShowTemplateSelector(true)}
           >
             <FaIcon icon="plus" aria-hidden="true" />

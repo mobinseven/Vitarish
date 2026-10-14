@@ -24,13 +24,15 @@ loud there as the clinical operations the page exists for.
 Each app has one small palette, used the same way on every page:
 
 - **Neutral** for surfaces, text, icons, and generic buttons.
-- **Accent** for the current navigation item, focus, and the save button of
-  forms that are not a clinical operation.
+- **Accent** for the current navigation item, focus, a page's one lead
+  action, and every form's commit button.
+- **Anchor**, a deep navy that grounds the accent: it fills the patient hero
+  band, lightly tints section header bands, and is the hue of light-mode
+  text.
 - **Six chroma colors** (`chroma-primary` to `chroma-senary`) that a
-  feature package gives a fixed meaning. `@vitarish/clinic` assigns one to
-  each clinical operation (visit and note, procedure, prescription,
-  appointment). An operation keeps its color on every page, on both the
-  button that starts it and its form's commit button.
+  feature package gives a fixed meaning on chips and tiles, such as status
+  chips, patient tags, and sign-in methods. Clinical operations take no
+  color: their buttons are told apart by icon and label.
 - **Status** (success, warning, danger) only where something has that status.
   Delete buttons are soft danger.
 
@@ -50,13 +52,14 @@ purposes separates them by layout: sections, headings, and panes.
 - Pages use only neutral, accent, the chroma colors, and status, and the
   palette can be retuned in one theme file. Four chroma colors are assigned;
   two stay free for future meanings.
-- Generic buttons become neutral, so the operations on hub pages stand out and
-  users learn them by color.
-- The owner app's chroma colors are deep tones at the accent's lightness with
-  white text, so operation buttons are filled like the accent button and one
-  value set reads in both modes. A first pastel set made filled buttons look
-  cheap and glared in dark mode; neutral buttons with only a colored icon tile
-  read as two separate controls.
+- Generic buttons and operation starters are neutral, so a page's one filled
+  accent action leads and nothing competes with it.
+- A first revision filled each operation button with its own chroma color.
+  On hub pages four unrelated hues sat in one row beside the accent, and the
+  owner judged the result colorless around the edges and loud without
+  harmony. The palette now follows one strong hue (magenta accent), one deep
+  ground (navy anchor), and white surfaces. A first pastel set had already
+  made filled buttons look cheap and glared in dark mode.
 - Chips of every kind (status, patient tag) use HeroUI's soft recipe, so
   elements of the same kind look alike whatever their source.
 - Header icons, sidebar icons, and avatars become neutral. Avatars show an
@@ -66,9 +69,15 @@ purposes separates them by layout: sections, headings, and panes.
 
 ## Alternatives Considered
 
-### Option 1: Neutral palette plus operation colors (chosen)
+### Option 1: Accent lead action, navy anchor, icon-identified operations (chosen)
 
-Keeps accent meaningful and gives hub pages a small, learnable set of colors.
+One filled action per page and a deep anchor give the page a focal point
+and a calm hierarchy; operations stay recognisable by icon.
+
+### Option 1a: Neutral palette plus a chroma fill per operation
+
+Used first. Users could learn operations by color, but several unrelated
+saturated fills on one page clashed with each other and with the accent.
 
 ### Option 2: A hue per business area
 
@@ -89,11 +98,10 @@ Accent keeps meaning everything, and each new color stays a one-off decision.
 - `npm run lint:layout` rejects Tailwind palette color utilities and color
   literals in the feature code of migrated packages. Correct use of accent and
   chroma classes is checked in review.
-- A contrast test checks every chroma color against its text color at WCAG
-  AA (4.5:1).
+- A contrast test checks every chroma color and the anchor against their
+  text colors at WCAG AA (4.5:1).
 - The owner screenshot suite captures `/color-legend`, which renders the
-  palette, button kinds, operation colors, status colors, and header icons in
-  both modes.
+  palette, button kinds, status colors, and header icons in both modes.
 - The Web `AGENTS.md` color and button sections point to the convention.
 
 ## Notes

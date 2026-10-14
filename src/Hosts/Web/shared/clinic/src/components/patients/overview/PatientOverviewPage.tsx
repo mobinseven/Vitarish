@@ -24,7 +24,6 @@ import { PatientProfileCard } from "./PatientProfileCard";
 import { PatientPrescriptionSubmissionSheet } from "../prescriptions/PatientPrescriptionSubmissionSheet";
 import { PatientPrescriptionDashboard, patientPrescriptionHistoryQueryKey } from "../prescriptions/PatientPrescriptionDashboard";
 import { useQueryClient } from "@tanstack/react-query";
-import { clinicOperationButtonClassName } from "../../operations/clinicOperation";
 
 /** Quick actions another page can ask the patient page to open on arrival. */
 export const patientQuickActions = ["prescription", "newVisit"] as const;
@@ -36,7 +35,6 @@ interface PatientQuickActionButton {
   labelKey: MessageKey;
   icon: string;
   variant: "outline" | "primary";
-  className?: string;
   onPress: () => void;
   isDisabled?: boolean;
 }
@@ -108,15 +106,13 @@ export function PatientOverviewPage({
       labelKey: "clinic.patient.quickActions.prescription",
       icon: "prescription-bottle-medical",
       variant: "primary",
-      className: clinicOperationButtonClassName("prescription"),
       onPress: () => setIsPrescriptionOpen(true),
     },
     {
       id: "newVisit",
       labelKey: "clinic.patient.quickActions.newVisit",
       icon: "calendar-plus",
-      variant: "primary",
-      className: clinicOperationButtonClassName("visit"),
+      variant: "outline",
       onPress: openNewVisit,
       isDisabled: !visitsProcedure,
     },
@@ -124,8 +120,7 @@ export function PatientOverviewPage({
       id: "checkIn",
       labelKey: "clinic.patient.quickActions.checkIn",
       icon: "calendar-check",
-      variant: "primary",
-      className: clinicOperationButtonClassName("appointment"),
+      variant: "outline",
       onPress: () => onNavigate({ kind: "checkIn" }),
     },
   ];
@@ -142,7 +137,6 @@ export function PatientOverviewPage({
             {quickActions.map((action) => (
               <Tooltip key={action.id}>
                 <Button
-                  className={action.className}
                   aria-label={t(action.labelKey)}
                   variant={action.variant}
                   onPress={action.onPress}

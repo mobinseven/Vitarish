@@ -9,7 +9,7 @@ import {
 import Image from "next/image";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useClinicListDashboardSurgeries, clinicOperationButtonClassName } from "@vitarish/clinic";
+import { useClinicListDashboardSurgeries } from "@vitarish/clinic";
 import { formatDate, formatDateTime, useLocalizedText } from "@/localization";
 import { Routes } from "@/app/routes";
 import { calendarMonthRange } from "../../calendarMonthRange";
@@ -164,8 +164,8 @@ export function SurgeriesWidget() {
             </Tooltip>
             <Tooltip>
               <Button
-                className={`${clinicOperationButtonClassName("procedure")} min-w-0 flex-1`}
-                variant="primary"
+                className="min-w-0 flex-1"
+                variant="tertiary"
                 onPress={() => router.push(Routes.Clinic.Patients.New)}
               >
                 <i aria-hidden="true" className="fa-light fa-plus" />

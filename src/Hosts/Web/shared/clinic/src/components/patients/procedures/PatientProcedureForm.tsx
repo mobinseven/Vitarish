@@ -7,7 +7,6 @@ import {
   useUpdatePatientProcedure,
 } from "../../../hooks/patients/procedures/usePatientProcedureMutations";
 import { useLocalizedText } from "../../../localization/index";
-import { clinicOperationButtonClassName } from "../../operations/clinicOperation";
 
 interface PatientProcedureFormProps {
   patientId: string;
@@ -110,7 +109,6 @@ export function PatientProcedureForm({
                 {t("common.actions.cancel")}
               </Button>
               <Button
-                className={clinicOperationButtonClassName("procedure")}
                 variant="primary"
                 onPress={handleSubmit}
                 isDisabled={!name.trim()}

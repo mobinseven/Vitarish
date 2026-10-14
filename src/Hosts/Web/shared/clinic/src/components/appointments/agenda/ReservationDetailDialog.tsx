@@ -23,7 +23,6 @@ import {
 } from "../../../hooks/appointments/reservations/useOwnerReservations";
 import { ReservationDeleteDialog } from "../reservations/ReservationDeleteDialog";
 import { reservationStatusChipProps } from "../reservations/reservationStatusChip";
-import { clinicOperationButtonClassName } from "../../operations/clinicOperation";
 
 const statusKeys: Record<number, MessageKey> = {
   0: "clinic.reservationStatus.pending",
@@ -240,7 +239,6 @@ export function ReservationDetailDialog({
                     <>
                       <div className="h-4 w-px bg-divider" />
                       <Button
-                        className={clinicOperationButtonClassName("appointment")}
                         variant="primary"
                         size="sm"
                         onPress={handleConfirm}
