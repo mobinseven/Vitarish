@@ -180,13 +180,14 @@ public static class UsersApi
         string userId,
         int page,
         int pageSize,
+        int? authenticationPage,
         ISender sender,
         CancellationToken cancellationToken)
     {
         UserSecurityDetailsQueryResult details;
         try
         {
-            details = await sender.Send(new GetUserSecurityDetailsQuery(userId, page, pageSize), cancellationToken);
+            details = await sender.Send(new GetUserSecurityDetailsQuery(userId, page, pageSize, authenticationPage), cancellationToken);
         }
         catch (UnauthorizedAccessException)
         {
