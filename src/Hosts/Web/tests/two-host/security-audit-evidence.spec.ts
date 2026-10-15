@@ -327,6 +327,10 @@ test("real actions create visible platform security-audit evidence", async ({ pa
   const administratorContext = await browser.newContext();
   const administratorPage = await administratorContext.newPage();
   const temporaryPassword = `E2E-Audit-${Date.now()}-Temporary!`;
+  // The session policy is one record for the whole host. Leaving the two-session limit
+  // in place would refuse later specs' sign-ins with 429, so the test puts it back last:
+  // restoring the one-session limit ends this administrator's session.
+  let restoreSessionPolicy: (() => Promise<void>) | undefined;
 
   try {
     await login(page, ownerUsername, ownerOrigin, "198.51.100.61");
@@ -407,12 +411,27 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     // the evaluated concurrent-session policy, so perform it after owner actions.
     await completeEmailOtp(request);
 
-    const currentPolicy = await administratorPage.evaluate(async (origin) => {
-      const response = await fetch(`${origin}/api/modules/authentication/security/session-policy`, { credentials: "include" });
+    const readSessionPolicy = () => administratorPage.evaluate(async (origin) => {
+      const response = await fetch(`${origin}/api/modules/authentication/security/session-policy`, { credentials: "include", cache: "no-store" });
       return { status: response.status, body: await response.json() as { maximumConcurrentSessions: number; concurrentSessionsFunctionallyRequired: boolean; defaultInactivityTimeoutMinutes: number; allowedSessionStartCidrs: string[] | null; version: number } };
     }, browserApiOrigin);
+    const currentPolicy = await readSessionPolicy();
     expect(currentPolicy.status).toBe(200);
     const policy = currentPolicy.body;
+    restoreSessionPolicy = async () => {
+      const changedPolicy = await readSessionPolicy();
+      expect(changedPolicy.status).toBe(200);
+      if (changedPolicy.body.maximumConcurrentSessions === policy.maximumConcurrentSessions
+        && changedPolicy.body.concurrentSessionsFunctionallyRequired === policy.concurrentSessionsFunctionallyRequired) return;
+      const restoredPolicy = await putJson(administratorPage, "/api/modules/authentication/security/session-policy", {
+        maximumConcurrentSessions: policy.maximumConcurrentSessions,
+        concurrentSessionsFunctionallyRequired: policy.concurrentSessionsFunctionallyRequired,
+        defaultInactivityTimeoutMinutes: policy.defaultInactivityTimeoutMinutes,
+        allowedSessionStartCidrs: policy.allowedSessionStartCidrs,
+        expectedVersion: changedPolicy.body.version,
+      });
+      expect(restoredPolicy.status).toBe(200);
+    };
     const rejectedPolicyUpdate = await putJson(administratorPage, "/api/modules/authentication/security/session-policy", {
       maximumConcurrentSessions: policy.maximumConcurrentSessions,
       concurrentSessionsFunctionallyRequired: policy.concurrentSessionsFunctionallyRequired,
@@ -522,10 +541,14 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     expect(failedIntegrityRecords.items.every((item) => item.redactedReason === "integrity_validation_failed")).toBe(true);
     await captureAuditEvidence(administratorPage, failedIntegrityEvent, "integrity-verification-failed.png");
   } finally {
-    await administratorPage.close();
-    await administratorContext.close();
-    await anonymousPage.close();
-    await anonymousContext.close();
+    try {
+      await restoreSessionPolicy?.();
+    } finally {
+      await administratorPage.close();
+      await administratorContext.close();
+      await anonymousPage.close();
+      await anonymousContext.close();
+    }
   }
 });
 
