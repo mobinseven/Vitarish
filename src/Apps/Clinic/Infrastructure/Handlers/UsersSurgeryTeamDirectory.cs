@@ -10,21 +10,20 @@ internal sealed class UsersSurgeryTeamDirectory(ISender sender) : ISurgeryTeamDi
         IReadOnlyCollection<string> userIds,
         CancellationToken cancellationToken)
     {
-        if (userIds.Count == 0) return [];
+        string[] requested = userIds.Where(id => !string.IsNullOrWhiteSpace(id)).Distinct(StringComparer.Ordinal).ToArray();
+        if (requested.Length == 0) return [];
 
         Dictionary<string, SurgeryTeamContact> members = new(StringComparer.Ordinal);
-        foreach (string userId in userIds)
+        // One query per chunk of IDs; the member list caps its result count, so a chunk never exceeds that cap.
+        foreach (string[] chunk in requested.Chunk(TenantMemberQueryDefaults.MaxResults))
         {
-            if (string.IsNullOrWhiteSpace(userId) || members.ContainsKey(userId)) continue;
-            // Search per id because the shared member list caps its result count and could otherwise drop a requested member.
             IReadOnlyList<TenantMemberSummary> found = await sender.Send(
-                new ListTenantMembersQuery(userId, TenantMemberQueryDefaults.MaxResults),
+                new ListTenantMembersQuery(null, chunk.Length, chunk),
                 cancellationToken);
             foreach (TenantMemberSummary summary in found)
             {
-                if (!string.Equals(summary.Id, userId, StringComparison.Ordinal)) continue;
-                members[userId] = new SurgeryTeamContact(summary.Id, DisplayName(summary), summary.Email, summary.PhoneNumber);
-                break;
+                if (chunk.Contains(summary.Id, StringComparer.Ordinal))
+                    members[summary.Id] = new SurgeryTeamContact(summary.Id, DisplayName(summary), summary.Email, summary.PhoneNumber);
             }
         }
 

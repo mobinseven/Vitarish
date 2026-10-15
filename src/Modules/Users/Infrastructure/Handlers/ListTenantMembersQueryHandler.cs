@@ -22,11 +22,15 @@ internal sealed class ListTenantMembersQueryHandler(
         string ownerRoleName = TenantRoleDefinitions.BuildRoleName(tenantId, IdentityDefinitions.TenantOwner);
         string userRoleName = TenantRoleDefinitions.BuildRoleName(tenantId, IdentityDefinitions.TenantUser);
         string search = request.Search?.Trim() ?? string.Empty;
+        string[]? userIds = request.UserIds?.Where(id => !string.IsNullOrWhiteSpace(id)).Distinct(StringComparer.Ordinal).ToArray();
+        if (userIds is { Length: 0 })
+            return [];
 
         var rows = await (from membership in dbContext.UserRoles.AsNoTracking()
                           join role in dbContext.Roles.AsNoTracking() on membership.RoleId equals role.Id
                           join user in dbContext.Users.AsNoTracking() on membership.UserId equals user.Id
                           where (role.Name == ownerRoleName || role.Name == userRoleName) &&
+                                (userIds == null || userIds.Contains(user.Id)) &&
                                 (search.Length == 0 ||
                                  (user.FirstName != null && user.FirstName.Contains(search)) ||
                                  (user.LastName != null && user.LastName.Contains(search)) ||
