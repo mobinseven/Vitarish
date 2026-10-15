@@ -288,6 +288,60 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
       if (activeScenario === "error") return unavailable();
       return HttpResponse.json(store.users);
     }),
+    http.get(/\/api\/modules\/authentication\/security\/users\/[^/]+\/inactivity-timeout(?:\?|$)/, async () => {
+      await withDelay();
+      if (activeScenario === "error") return unavailable();
+      return HttpResponse.json({ version: 1, inactivityTimeoutMinutes: null });
+    }),
+    // A user's security detail pages its security and sign-in histories independently.
+    http.get(/\/api\/modules\/users\/administration\/[^/]+\/security(?:\?|$)/, async ({ request }) => {
+      await withDelay();
+      if (activeScenario === "error") return unavailable();
+      const url = new URL(request.url);
+      const userId = decodeURIComponent(url.pathname.split("/").at(-2) ?? "mock-user");
+      const pageSize = Math.max(1, Number(url.searchParams.get("pageSize") ?? "25"));
+      const securityPage = Math.max(1, Number(url.searchParams.get("page") ?? "1"));
+      const authenticationPage = Math.max(1, Number(url.searchParams.get("authenticationPage") ?? String(securityPage)));
+      const history = (count: number, page: number, event: (index: number) => Record<string, unknown>) => ({
+        items: Array.from({ length: count }, (_, index) => event(index)).slice((page - 1) * pageSize, page * pageSize),
+        page,
+        pageSize,
+        totalCount: count,
+      });
+      const occurredAt = (index: number) => new Date(Date.UTC(2026, 9, 14, 12, 0) - index * 15 * 60_000).toISOString();
+      const securityCount = activeScenario === "empty" ? 0 : 60;
+      const authenticationCount = activeScenario === "empty" ? 0 : 40;
+      return HttpResponse.json({
+        user: { id: userId, userName: "mock.user", firstName: "Mock", lastName: "User", email: "mock.user@example.test", phoneNumber: null, fullName: "Mock User", revision: "mock-revision", isEnabled: true },
+        globalRoles: [],
+        permittedGlobalRoles: ["PlatformAdmin"],
+        tenantRoles: store.memberships.filter((membership) => membership.userId === "mock-user").map(({ userId: _userId, ...membership }) => membership),
+        securityHistory: history(securityCount, securityPage, (index) => ({
+          eventName: index % 2 === 0 ? "users.security-attributes.changed" : "users.account.edited",
+          eventCategory: "security-attributes",
+          outcome: index % 5 === 4 ? "denied" : "succeeded",
+          actorId: "mock-platform-admin",
+          operation: index % 2 === 0 ? "users.security-attributes.change" : "users.account.edit",
+          occurredAt: occurredAt(index),
+          clientInterfaceHost: "admin.localhost",
+          isAuthenticationEvent: false,
+          redactedReason: index % 5 === 4 ? "mutation_rejected" : null,
+        })),
+        authenticationHistory: history(authenticationCount, authenticationPage, (index) => ({
+          eventName: "authentication.password.login",
+          eventCategory: "authentication",
+          outcome: index % 3 === 2 ? "denied" : "succeeded",
+          actorId: index % 3 === 2 ? null : userId,
+          operation: "password.login",
+          occurredAt: occurredAt(index),
+          clientInterfaceHost: "app.localhost",
+          isAuthenticationEvent: true,
+          redactedReason: index % 3 === 2 ? "authentication_failed" : null,
+        })),
+        securityHistoryAvailable: true,
+        authenticationHistoryAvailable: true,
+      });
+    }),
     http.all(/\/api\/modules\/(?:parties\/administration|users\/administration)\/.+/, async ({ request }) => {
       await withDelay();
       if (activeScenario === "error") return unavailable();

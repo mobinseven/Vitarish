@@ -903,6 +903,18 @@
               ],
               "format": "int32"
             }
+          },
+          {
+            "name": "authenticationPage",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
           }
         ],
         "responses": {

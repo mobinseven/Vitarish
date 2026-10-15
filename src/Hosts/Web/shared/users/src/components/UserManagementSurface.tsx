@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, type ComponentProps, type FormEvent } from "react";
-import { Alert, Button, Modal, Surface, Tooltip } from "@heroui/react";
+import { Alert, Button, Chip, Modal, Pagination, Surface, Table, Tooltip } from "@heroui/react";
 import {
   useAuthSession,
   useAuthenticationUserInactivityPolicyGet,
@@ -28,6 +28,7 @@ import type { TenantRoleMembershipResponse, UserSecurityDetailsResponse, UserSec
 import { tenantRoleSuffixes, UsersCommandErrorKind } from "@vitarish/auth/users";
 import type { TenantRoleSuffix } from "@vitarish/auth/users";
 import { formatDateTime, formatNumber, useLocalizedText } from "@vitarish/localization";
+import { auditOutcomeColor } from "@vitarish/security";
 import { localizePlatformAuditEvent, localizeSecurityAuditOutcome } from "@vitarish/security/localization";
 import { HeaderIcon, MobileNumberField } from "@vitarish/ui";
 
@@ -399,7 +400,8 @@ function PlatformUserDetail({ title, userId, memberships, t }: { title: string; 
   const enableUser = useUsersEnableUser();
   const [confirmEndSessions, setConfirmEndSessions] = useState(false);
   const [confirmAccountStatus, setConfirmAccountStatus] = useState<"disable" | "enable" | null>(null);
-  const [page, setPage] = useState(1);
+  const [securityPage, setSecurityPage] = useState(1);
+  const [authenticationPage, setAuthenticationPage] = useState(1);
   const [tenantId, setTenantId] = useState("");
   const [roleSuffix, setRoleSuffix] = useState<TenantRoleSuffix>(tenantRoleSuffixes.user);
   const [message, setMessage] = useState("");
@@ -415,7 +417,7 @@ function PlatformUserDetail({ title, userId, memberships, t }: { title: string; 
   const pageSize = 25;
   const securityQuery = useUsersAdministrationGetUserSecurity(
     userId,
-    { page, pageSize },
+    { page: securityPage, authenticationPage, pageSize },
     { query: { enabled: userId.length > 0 } },
   );
   const partialSecurityDetails = readUnavailableSecurityDetails(securityQuery.error, userId);
@@ -426,14 +428,10 @@ function PlatformUserDetail({ title, userId, memberships, t }: { title: string; 
   const historyUnavailable = !securityHistoryAvailable || !authenticationHistoryAvailable || securityQuery.isError;
   const securityHistory = securityDetails?.securityHistory ?? undefined;
   const authenticationHistory = securityDetails?.authenticationHistory ?? undefined;
-  const totalPages = Math.max(
-    1,
-    Math.ceil(Number(securityHistory?.totalCount ?? 0) / pageSize),
-    Math.ceil(Number(authenticationHistory?.totalCount ?? 0) / pageSize),
-  );
 
   useEffect(() => {
-    setPage(1);
+    setSecurityPage(1);
+    setAuthenticationPage(1);
     setGlobalRole("");
     setInactivityConflict(false);
   }, [userId]);
@@ -743,7 +741,7 @@ function PlatformUserDetail({ title, userId, memberships, t }: { title: string; 
         </div>
       </div>
       <div className="space-y-4">
-      <UserSecurityHistoryList history={authenticationHistory} available={authenticationHistoryAvailable} emptyMessage={t("users.management.authenticationHistoryEmpty")} t={t} locale={locale} />
+      <UserSecurityHistoryTable history={authenticationHistory} available={authenticationHistoryAvailable} emptyMessage={t("users.management.authenticationHistoryEmpty")} label={t("users.management.authenticationHistory")} page={authenticationPage} onPageChange={setAuthenticationPage} isFetching={securityQuery.isFetching} t={t} />
       </div>
     </Surface>
     <Surface className="flex flex-col gap-6 rounded-3xl p-6" render={renderSection}>
@@ -756,17 +754,10 @@ function PlatformUserDetail({ title, userId, memberships, t }: { title: string; 
         </div>
       </div>
       <div className="space-y-4">
-      <UserSecurityHistoryList history={securityHistory} available={securityHistoryAvailable} emptyMessage={t("users.management.securityHistoryEmpty")} t={t} locale={locale} />
+      <UserSecurityHistoryTable history={securityHistory} available={securityHistoryAvailable} emptyMessage={t("users.management.securityHistoryEmpty")} label={t("users.management.securityHistory")} page={securityPage} onPageChange={setSecurityPage} isFetching={securityQuery.isFetching} t={t} />
       </div>
     </Surface>
 
-    {totalPages > 1 && <nav className="flex flex-wrap items-center justify-between gap-3" aria-label={t("users.management.securityHistory")}>
-      <p className="text-sm text-muted">{t("users.management.pageSummary", { page: formatNumber(page, locale), totalPages: formatNumber(totalPages, locale) })}</p>
-      <div className="flex gap-3">
-        {page > 1 && <button className={nativeSecondaryButtonClassName} onClick={() => setPage(1)} title={t("users.management.newestEvents")}><Icon name="arrow-up" />{t("users.management.newestEvents")}</button>}
-        {page < totalPages && <button className={nativeSecondaryButtonClassName} onClick={() => setPage((current) => current + 1)} title={t("users.management.loadOlderEvents")}><Icon name="arrow-down" />{t("users.management.loadOlderEvents")}</button>}
-      </div>
-    </nav>}
     {message && <p role="status" aria-live="polite">{message}</p>}
   </main>;
 }
@@ -887,35 +878,91 @@ function AccountStatusDialog({ action, isPending, onCancel, onConfirm, t }: {
   );
 }
 
-function UserSecurityHistoryList({ history, available, emptyMessage, t, locale }: {
+/** A machine identifier shown left-to-right in monospace; the localized fallback keeps the page's own script. */
+function HistoryIdentifier({ value, fallback }: { value: string | null | undefined; fallback: string }) {
+  return value
+    ? <span className="whitespace-nowrap font-mono text-sm" dir="ltr">{value}</span>
+    : <span className="whitespace-nowrap text-muted">{fallback}</span>;
+}
+
+/** One server-paged history as a table, with its own pager so each history pages independently. */
+function UserSecurityHistoryTable({ history, available, emptyMessage, label, page, onPageChange, isFetching, t }: {
   history: UserSecurityHistoryResponse | undefined;
   available: boolean;
   emptyMessage: string;
+  label: string;
+  page: number;
+  onPageChange: (page: number) => void;
+  isFetching: boolean;
   t: Translate;
-  locale: ReturnType<typeof useLocalizedText>["locale"];
 }) {
+  const { locale, direction } = useLocalizedText();
   if (!history) {
     return available
       ? <p className="text-muted">{emptyMessage}</p>
       : null;
   }
 
+  const totalPages = Math.max(1, Math.ceil(Number(history.totalCount) / Math.max(1, Number(history.pageSize))));
+  const pager = totalPages > 1 && (
+    <Pagination className="w-full" aria-label={label}>
+      <Pagination.Summary>{t("users.management.pageSummary", { page: formatNumber(page, locale), totalPages: formatNumber(totalPages, locale) })}</Pagination.Summary>
+      <Pagination.Content>
+        <Pagination.Item>
+          <Tooltip>
+            <Pagination.Previous isDisabled={page <= 1 || isFetching} onPress={() => onPageChange(Math.max(1, page - 1))}>
+              <Pagination.PreviousIcon><Icon name={direction === "rtl" ? "arrow-right" : "arrow-left"} /></Pagination.PreviousIcon>
+              <span>{t("users.management.newerEvents")}</span>
+            </Pagination.Previous>
+            <Tooltip.Content>{t("users.management.newerEvents")}</Tooltip.Content>
+          </Tooltip>
+        </Pagination.Item>
+        <Pagination.Item>
+          <Tooltip>
+            <Pagination.Next isDisabled={page >= totalPages || isFetching} onPress={() => onPageChange(Math.min(totalPages, page + 1))}>
+              <span>{t("users.management.olderEvents")}</span>
+              <Pagination.NextIcon><Icon name={direction === "rtl" ? "arrow-left" : "arrow-right"} /></Pagination.NextIcon>
+            </Pagination.Next>
+            <Tooltip.Content>{t("users.management.olderEvents")}</Tooltip.Content>
+          </Tooltip>
+        </Pagination.Item>
+      </Pagination.Content>
+    </Pagination>
+  );
+
   if (history.items.length === 0) {
-    return <p className="text-muted">{history.totalCount === 0 ? emptyMessage : t("users.management.noEventsOnPage")}</p>;
+    return <div className="space-y-4"><p className="text-muted">{history.totalCount === 0 ? emptyMessage : t("users.management.noEventsOnPage")}</p>{pager}</div>;
   }
 
-  return <ol className="space-y-3">{history.items.map((item, index) => <li className="rounded-2xl bg-surface-secondary p-3" key={`${item.occurredAt}:${item.operation}:${index}`}>
-    <div className="flex flex-wrap items-start justify-between gap-2">
-      <p className="font-medium">{localizePlatformAuditEvent(locale, item.eventName, item.eventName)}</p>
-      <span className="rounded-full bg-accent-soft px-2 py-1 text-sm text-accent-soft-foreground">{localizeSecurityAuditOutcome(locale, item.outcome, item.outcome)}</span>
-    </div>
-    <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
-      <div><dt className="text-muted">{t("users.management.eventTimeUtc")}</dt><dd>{formatDateTime(item.occurredAt, locale, { timeZone: "UTC" })}</dd></div>
-      <div><dt className="text-muted">{t("users.management.clientInterfaceHost")}</dt><dd className="break-all">{item.clientInterfaceHost ?? t("users.management.notAvailable")}</dd></div>
-      <div><dt className="text-muted">{t("users.management.eventActor")}</dt><dd className="break-all">{item.actorId ?? t("users.management.notAvailable")}</dd></div>
-      {item.redactedReason && <div><dt className="text-muted">{t("users.management.eventReason")}</dt><dd>{item.redactedReason}</dd></div>}
-    </dl>
-  </li>)}</ol>;
+  return <Table>
+    <Table.ScrollContainer>
+      <Table.Content aria-label={label} className="min-w-[760px]">
+        <Table.Header>
+          <Table.Column isRowHeader>{t("users.management.eventTimeUtc")}</Table.Column>
+          <Table.Column>{t("users.management.eventName")}</Table.Column>
+          <Table.Column>{t("users.management.eventOutcome")}</Table.Column>
+          <Table.Column>{t("users.management.eventActor")}</Table.Column>
+          <Table.Column>{t("users.management.clientInterfaceHost")}</Table.Column>
+          <Table.Column>{t("users.management.eventReason")}</Table.Column>
+        </Table.Header>
+        <Table.Body>
+          {history.items.map((item, index) => <Table.Row key={`${item.occurredAt}:${item.operation}:${index}`}>
+            <Table.Cell className="whitespace-nowrap text-muted">{formatDateTime(item.occurredAt, locale, { timeZone: "UTC" })}</Table.Cell>
+            <Table.Cell className="whitespace-nowrap">{localizePlatformAuditEvent(locale, item.eventName, item.eventName)}</Table.Cell>
+            <Table.Cell>
+              <Chip className="whitespace-nowrap" color={auditOutcomeColor(item.outcome)} size="sm" variant="soft">
+                <Chip.Label>{localizeSecurityAuditOutcome(locale, item.outcome, item.outcome)}</Chip.Label>
+              </Chip>
+            </Table.Cell>
+            <Table.Cell><HistoryIdentifier value={item.actorId} fallback={t("users.management.notAvailable")} /></Table.Cell>
+            <Table.Cell><HistoryIdentifier value={item.clientInterfaceHost} fallback={t("users.management.notAvailable")} /></Table.Cell>
+            <Table.Cell>{item.redactedReason ?? "—"}</Table.Cell>
+          </Table.Row>)}
+        </Table.Body>
+      </Table.Content>
+    </Table.ScrollContainer>
+    {pager && <Table.Footer>{pager}</Table.Footer>}
+  </Table>;
 }
 
 function isContactIdentifierInUse(error: unknown): boolean {

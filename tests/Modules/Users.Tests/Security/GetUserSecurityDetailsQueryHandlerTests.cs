@@ -52,6 +52,92 @@ public sealed class GetUserSecurityDetailsQueryHandlerTests
     }
 
     [Fact]
+    public async Task Authentication_history_uses_its_own_page_when_given()
+    {
+        Mock<IUsersService> users = AuthorizedUsers();
+        Mock<ISecurityAuditQueryService> audit = new();
+        SecurityAuditEventReadDto securityEvent = AuditEvent(SecurityAuditEventCatalog.UserSecurityAttributeChangeEvent, SecurityAuditEventCatalog.SecurityAttributeCategory);
+        SecurityAuditEventReadDto authenticationEvent = AuditEvent(SecurityAuditEventCatalog.AuthenticationPasskeyLoginEvent, SecurityAuditEventCatalog.AuthenticationCategory);
+        audit.Setup(value => value.QueryPlatformAsync(
+                It.Is<SecurityAuditPlatformQuery>(query =>
+                    query.Query.SubjectId == UserId && query.Query.Page == 1 && query.Query.PageSize == 10 && query.Query.EventCategory == null),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Page(securityEvent));
+        audit.Setup(value => value.QueryPlatformAsync(
+                It.Is<SecurityAuditPlatformQuery>(query =>
+                    query.Query.SubjectId == UserId && query.Query.Page == 3 && query.Query.PageSize == 10 &&
+                    query.Query.EventCategory == SecurityAuditEventCatalog.AuthenticationCategory),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Page(authenticationEvent));
+        GetUserSecurityDetailsQueryHandler handler = new(RequestContext(IdentityDefinitions.PlatformAdmin), users.Object, audit.Object);
+
+        UserSecurityDetailsQueryResult result = await handler.Handle(new(UserId, 1, 10, 3), CancellationToken.None);
+
+        result.SecurityHistoryAvailable.Should().BeTrue();
+        result.AuthenticationHistoryAvailable.Should().BeTrue();
+        audit.Verify(value => value.QueryPlatformAsync(
+            It.Is<SecurityAuditPlatformQuery>(query => query.Query.SubjectId == UserId && query.Query.Page == 1 && query.Query.EventCategory == null),
+            It.IsAny<CancellationToken>()), Times.Once);
+        audit.Verify(value => value.QueryPlatformAsync(
+            It.Is<SecurityAuditPlatformQuery>(query => query.Query.SubjectId == UserId && query.Query.Page == 3 && query.Query.EventCategory == SecurityAuditEventCatalog.AuthenticationCategory),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Authentication_history_defaults_to_the_security_page()
+    {
+        Mock<IUsersService> users = AuthorizedUsers();
+        Mock<ISecurityAuditQueryService> audit = new();
+        SecurityAuditEventReadDto securityEvent = AuditEvent(SecurityAuditEventCatalog.UserSecurityAttributeChangeEvent, SecurityAuditEventCatalog.SecurityAttributeCategory);
+        SecurityAuditEventReadDto authenticationEvent = AuditEvent(SecurityAuditEventCatalog.AuthenticationPasskeyLoginEvent, SecurityAuditEventCatalog.AuthenticationCategory);
+        audit.Setup(value => value.QueryPlatformAsync(
+                It.Is<SecurityAuditPlatformQuery>(query =>
+                    query.Query.SubjectId == UserId && query.Query.Page == 2 && query.Query.PageSize == 10 && query.Query.EventCategory == null),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Page(securityEvent));
+        audit.Setup(value => value.QueryPlatformAsync(
+                It.Is<SecurityAuditPlatformQuery>(query =>
+                    query.Query.SubjectId == UserId && query.Query.Page == 2 && query.Query.PageSize == 10 &&
+                    query.Query.EventCategory == SecurityAuditEventCatalog.AuthenticationCategory),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Page(authenticationEvent));
+        GetUserSecurityDetailsQueryHandler handler = new(RequestContext(IdentityDefinitions.PlatformAdmin), users.Object, audit.Object);
+
+        UserSecurityDetailsQueryResult result = await handler.Handle(new(UserId, 2, 10), CancellationToken.None);
+
+        result.SecurityHistoryAvailable.Should().BeTrue();
+        result.AuthenticationHistoryAvailable.Should().BeTrue();
+        audit.Verify(value => value.QueryPlatformAsync(
+            It.Is<SecurityAuditPlatformQuery>(query => query.Query.SubjectId == UserId && query.Query.Page == 2 && query.Query.EventCategory == null),
+            It.IsAny<CancellationToken>()), Times.Once);
+        audit.Verify(value => value.QueryPlatformAsync(
+            It.Is<SecurityAuditPlatformQuery>(query => query.Query.SubjectId == UserId && query.Query.Page == 2 && query.Query.EventCategory == SecurityAuditEventCatalog.AuthenticationCategory),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Rejects_authentication_page_below_one_the_same_way_as_the_security_page()
+    {
+        Mock<IUsersService> users = AuthorizedUsers();
+        Mock<ISecurityAuditQueryService> audit = new();
+        audit.Setup(value => value.QueryPlatformAsync(
+                It.Is<SecurityAuditPlatformQuery>(query => query.Query.Page >= 1),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Page(AuditEvent(SecurityAuditEventCatalog.UserSecurityAttributeChangeEvent, SecurityAuditEventCatalog.SecurityAttributeCategory)));
+        audit.Setup(value => value.QueryPlatformAsync(
+                It.Is<SecurityAuditPlatformQuery>(query => query.Query.Page < 1),
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new ArgumentOutOfRangeException("query"));
+        GetUserSecurityDetailsQueryHandler handler = new(RequestContext(IdentityDefinitions.PlatformAdmin), users.Object, audit.Object);
+
+        Func<Task> securityPageZero = () => handler.Handle(new(UserId, 0, 10), CancellationToken.None);
+        Func<Task> authenticationPageZero = () => handler.Handle(new(UserId, 1, 10, 0), CancellationToken.None);
+
+        await securityPageZero.Should().ThrowAsync<ArgumentOutOfRangeException>();
+        await authenticationPageZero.Should().ThrowAsync<ArgumentOutOfRangeException>();
+    }
+
+    [Fact]
     public async Task Returns_identity_and_roles_with_history_unavailable_when_audit_store_cannot_be_read()
     {
         Mock<IUsersService> users = AuthorizedUsers();
