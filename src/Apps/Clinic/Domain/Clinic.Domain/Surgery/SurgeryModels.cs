@@ -204,10 +204,17 @@ public static class SurgeryPlanRules
     public static IReadOnlyList<string> TeamRoles(IReadOnlyList<SurgeryTeamMember> team)
         => team.Select(member => member.Role.Trim()).Where(role => role.Length > 0).Distinct(StringComparer.Ordinal).ToArray();
 
-    /// <summary>Only planned surgeries can be edited.</summary>
+    /// <summary>Planned and completed surgeries can be edited; editing a completed one corrects a mistaken completion.</summary>
     public static void EnsureEditable(SurgeryReadModel current)
     {
-        if (current.Status != SurgeryStatus.Planned) throw new InvalidOperationException("Only a planned surgery can be edited.");
+        if (current.Status is not (SurgeryStatus.Planned or SurgeryStatus.Completed)) throw new InvalidOperationException("Only a planned or completed surgery can be edited.");
+    }
+
+    /// <summary>An edit keeps a surgery planned or completed; it can be completed only once its scheduled start has passed.</summary>
+    public static void EnsureEditedStatus(SurgeryStatus status, DateTimeOffset scheduledAt, DateTimeOffset now)
+    {
+        if (status is not (SurgeryStatus.Planned or SurgeryStatus.Completed)) throw new ArgumentException("An edited surgery must be planned or completed.", nameof(status));
+        if (status == SurgeryStatus.Completed && scheduledAt > now) throw new ArgumentException("A surgery cannot be completed before its scheduled start.", nameof(scheduledAt));
     }
 
     /// <summary>A planned surgery can be completed once its scheduled start has passed.</summary>
@@ -217,9 +224,9 @@ public static class SurgeryPlanRules
         if (current.ScheduledAt > now) throw new InvalidOperationException("A surgery cannot be completed before its scheduled start.");
     }
 
-    /// <summary>Planned and completed surgeries can be cancelled; cancelling a completed one corrects a mistaken completion.</summary>
+    /// <summary>Only planned surgeries can be cancelled, because cancelling notifies the patient and the team; a mistaken completion is corrected by editing the surgery's status.</summary>
     public static bool IsCancellable(SurgeryStatus status)
-        => status is SurgeryStatus.Planned or SurgeryStatus.Completed;
+        => status == SurgeryStatus.Planned;
 
     /// <summary>
     /// Whether two surgeries occupy overlapping time. A surgery without a duration occupies only its start instant,

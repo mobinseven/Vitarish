@@ -303,10 +303,7 @@ internal sealed class SurgeryToolchain(
         }
         SurgeryReadModel currentSurgery = ToRead(current);
         SurgeryPlanRules.EnsureEditable(currentSurgery);
-        if (surgery.Status != SurgeryStatus.Planned)
-        {
-            throw new ArgumentException("Only a planned surgery can be edited.", nameof(surgery.Status));
-        }
+        SurgeryPlanRules.EnsureEditedStatus(surgery.Status, surgery.ScheduledAt, timeProvider.GetUtcNow());
         surgery = surgery with
         {
             PatientId = current.OwnerEntityId,

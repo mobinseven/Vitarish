@@ -29,16 +29,20 @@ import {
   type SurgeryPlanErrors,
   type SurgeryPlanFormValues,
 } from "../../models/surgeries/surgeryPlanForm";
-import type { ClinicStaffMember } from "../../models/surgeries/surgeryModels";
+import { surgeryStatuses, type ClinicStaffMember, type SurgeryStatus } from "../../models/surgeries/surgeryModels";
 import { useSurgeryTypes } from "../../hooks/surgeries/useSurgeryTypes";
 import { useSurgerySuggestions } from "../../hooks/surgeries/useSurgerySuggestions";
 import { useSurgeryConflicts } from "../../hooks/surgeries/useSurgeryConflicts";
 import { SurgeryConflictAlert } from "./SurgeryConflictAlert";
 import { SurgeryReminderEditor } from "./SurgeryReminderEditor";
+import { surgeryStatusLabelKeys } from "./SurgeryStatusChip";
 import {
   SurgerySuggestionComboBox,
   SurgeryTeamEditor,
 } from "./SurgeryTeamEditor";
+
+/** The statuses an edit can set; cancelling has its own confirmed action. */
+const editableStatuses = [surgeryStatuses.planned, surgeryStatuses.completed] as const;
 
 export interface SurgeryPlanFormProps {
   mode: "create" | "edit";
@@ -183,10 +187,13 @@ export function SurgeryPlanForm({
   const removeTool = (tool: string) =>
     update({ tools: values.tools.filter((item) => item !== tool) });
 
+  // Only a completed surgery offers the status, so a mistaken completion can be set back to planned.
+  const offersStatusChoice = mode === "edit" && initialValues.status === surgeryStatuses.completed;
+
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setAttempted(true);
-    const nextErrors = validateSurgeryPlanForm(values);
+    const nextErrors = validateSurgeryPlanForm(values, { timeZone, now: new Date() });
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
     onSubmit(values);
@@ -242,6 +249,40 @@ export function SurgeryPlanForm({
               </p>
             ) : null}
           </div>
+
+          {offersStatusChoice ? (
+            <div className="flex flex-col gap-1.5">
+              <Select
+                aria-label={t("clinic.surgeries.fields.status")}
+                value={values.status}
+                variant="secondary"
+                onChange={(key) => {
+                  if (key != null) update({ status: String(key) as SurgeryStatus });
+                }}
+              >
+                <Label>{t("clinic.surgeries.fields.status")}</Label>
+                <Select.Trigger>
+                  <Select.Value className="min-w-0 truncate" />
+                  <Select.Indicator />
+                </Select.Trigger>
+                <Select.Popover>
+                  <ListBox>
+                    {editableStatuses.map((status) => (
+                      <ListBox.Item key={status} id={status} textValue={t(surgeryStatusLabelKeys[status])}>
+                        {t(surgeryStatusLabelKeys[status])}
+                        <ListBox.ItemIndicator />
+                      </ListBox.Item>
+                    ))}
+                  </ListBox>
+                </Select.Popover>
+              </Select>
+              {errors.status ? (
+                <p className="text-sm text-danger" role="alert">
+                  {t(errors.status)}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
 
           <TextField
             isInvalid={Boolean(errors.name)}

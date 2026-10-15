@@ -4,7 +4,7 @@ import {
   toCalendarDate,
   toZoned,
 } from "@internationalized/date";
-import type { Surgery, SurgeryReminderPolicy, SurgeryType } from "./surgeryModels";
+import { surgeryStatuses, type Surgery, type SurgeryReminderPolicy, type SurgeryStatus, type SurgeryType } from "./surgeryModels";
 
 export interface SurgeryPlanTeamRow {
   key: string;
@@ -26,6 +26,8 @@ export interface SurgeryPlanFormValues {
   team: SurgeryPlanTeamRow[];
   tools: string[];
   reminderPolicies: SurgeryReminderPolicy[];
+  /** Planned or completed; only an edit of a completed surgery offers the choice. */
+  status: SurgeryStatus;
 }
 
 export type SurgeryPlanField = keyof SurgeryPlanFormValues;
@@ -82,6 +84,7 @@ export function emptySurgeryPlanForm(patientId: string): SurgeryPlanFormValues {
     team: [],
     tools: [],
     reminderPolicies: [],
+    status: surgeryStatuses.planned,
   };
 }
 
@@ -136,6 +139,7 @@ export function surgeryPlanFormFromSurgery(
     })),
     tools: [...surgery.tools],
     reminderPolicies: surgery.reminderPolicies.map((policy) => ({ ...policy })),
+    status: surgery.status,
   };
 }
 
@@ -165,11 +169,22 @@ export function scheduledInstant(
   }
 }
 
-/** Returns the first problem per field, as localization keys. */
+/**
+ * Returns the first problem per field, as localization keys. With a schedule context, a surgery
+ * marked completed must already have started.
+ */
 export function validateSurgeryPlanForm(
   values: SurgeryPlanFormValues,
+  schedule?: { timeZone: string; now: Date },
 ): SurgeryPlanErrors {
   const errors: SurgeryPlanErrors = {};
+
+  if (values.status === surgeryStatuses.completed && schedule) {
+    const start = scheduledInstant(values, schedule.timeZone);
+    if (start && new Date(start).getTime() > schedule.now.getTime()) {
+      errors.status = "clinic.surgeries.validation.completedInFuture";
+    }
+  }
 
   if (!values.patientId.trim()) {
     errors.patientId = "clinic.surgeries.validation.patientRequired";

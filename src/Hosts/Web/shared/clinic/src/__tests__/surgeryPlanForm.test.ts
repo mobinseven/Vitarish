@@ -11,7 +11,13 @@ import {
   buildSurgeryCreateRequest,
   buildSurgeryWriteRequest,
 } from "../models/surgeries/surgeryMappers";
-import type { Surgery, SurgeryType } from "../models/surgeries/surgeryModels";
+import {
+  canCancelSurgery,
+  canEditSurgery,
+  surgeryStatuses,
+  type Surgery,
+  type SurgeryType,
+} from "../models/surgeries/surgeryModels";
 
 const typeFixture: SurgeryType = {
   id: "type-1",
@@ -61,6 +67,23 @@ describe("validateSurgeryPlanForm", () => {
     );
 
     expect(errors.team).toBe("clinic.surgeries.validation.teamRoleRequired");
+  });
+
+  it("rejects marking a surgery completed before its scheduled start", () => {
+    const schedule = { timeZone: "UTC", now: new Date("2026-05-01T08:00:00Z") };
+
+    expect(
+      validateSurgeryPlanForm(validValues({ status: surgeryStatuses.completed }), schedule).status,
+    ).toBe("clinic.surgeries.validation.completedInFuture");
+    expect(
+      validateSurgeryPlanForm(validValues({ status: surgeryStatuses.planned }), schedule).status,
+    ).toBeUndefined();
+    expect(
+      validateSurgeryPlanForm(validValues({ status: surgeryStatuses.completed }), {
+        ...schedule,
+        now: new Date("2026-05-01T10:00:00Z"),
+      }).status,
+    ).toBeUndefined();
   });
 
   it("rejects a duration outside 1 to 1440 minutes", () => {
@@ -166,6 +189,27 @@ describe("surgery request builders", () => {
     ]);
   });
 
+  it("sends the chosen status when editing, so a mistaken completion can be set back to planned", () => {
+    const completed = { ...storedSurgery(), status: surgeryStatuses.completed };
+
+    const request = buildSurgeryWriteRequest(completed, validValues({ status: surgeryStatuses.planned }), {
+      timeZone: "UTC",
+      staff: [],
+    });
+
+    expect(request.status).toBe(surgeryStatuses.planned);
+  });
+
+  it("always creates a planned surgery", () => {
+    const request = buildSurgeryCreateRequest(validValues({ status: surgeryStatuses.completed }), {
+      idempotencyKey: "key-1",
+      timeZone: "UTC",
+      staff: [],
+    });
+
+    expect(request.status).toBe(surgeryStatuses.planned);
+  });
+
   it("sends empty contacts and persons to notify when creating", () => {
     const request = buildSurgeryCreateRequest(validValues(), {
       idempotencyKey: "key-1",
@@ -175,5 +219,35 @@ describe("surgery request builders", () => {
 
     expect(request.personsToNotify).toEqual([]);
     expect(request.contacts).toEqual([]);
+  });
+});
+
+describe("surgery status actions", () => {
+  const surgery = (status: Surgery["status"]): Surgery => ({
+    id: "surgery-1",
+    patientId: "patient-1",
+    catalogId: typeFixture.id,
+    name: "Knee replacement",
+    status,
+    scheduledAt: "2026-05-01T09:00:00.000Z",
+    team: [],
+    tools: [],
+    personsToNotify: [],
+    contacts: [],
+    reminderPolicies: [],
+    concurrencyToken: "token-1",
+    createdAt: "2026-05-01T09:00:00.000Z",
+  });
+
+  it("cancels only a planned surgery, so a completed one never sends a cancellation notice", () => {
+    expect(canCancelSurgery(surgery(surgeryStatuses.planned))).toBe(true);
+    expect(canCancelSurgery(surgery(surgeryStatuses.completed))).toBe(false);
+    expect(canCancelSurgery(surgery(surgeryStatuses.cancelled))).toBe(false);
+  });
+
+  it("edits planned and completed surgeries but not cancelled ones", () => {
+    expect(canEditSurgery(surgery(surgeryStatuses.planned))).toBe(true);
+    expect(canEditSurgery(surgery(surgeryStatuses.completed))).toBe(true);
+    expect(canEditSurgery(surgery(surgeryStatuses.cancelled))).toBe(false);
   });
 });

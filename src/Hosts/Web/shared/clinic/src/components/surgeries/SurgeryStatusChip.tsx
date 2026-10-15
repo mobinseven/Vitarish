@@ -15,7 +15,8 @@ const statusIcons: Record<SurgeryStatus, string> = {
   [surgeryStatuses.cancelled]: "calendar-xmark",
 };
 
-const statusLabelKeys: Record<SurgeryStatus, MessageKey> = {
+/** The localization key of each surgery status label. */
+export const surgeryStatusLabelKeys: Record<SurgeryStatus, MessageKey> = {
   [surgeryStatuses.planned]: "clinic.surgeries.status.planned",
   [surgeryStatuses.completed]: "clinic.surgeries.status.completed",
   [surgeryStatuses.cancelled]: "clinic.surgeries.status.cancelled",
@@ -28,7 +29,7 @@ export function SurgeryStatusChip({ status }: { status: SurgeryStatus }) {
   return (
     <Chip size="sm" {...surgeryStatusChipProps(status)}>
       <FaIcon aria-hidden="true" icon={statusIcons[status]} />
-      <Chip.Label>{t(statusLabelKeys[status])}</Chip.Label>
+      <Chip.Label>{t(surgeryStatusLabelKeys[status])}</Chip.Label>
     </Chip>
   );
 }
