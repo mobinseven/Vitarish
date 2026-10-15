@@ -25,6 +25,7 @@ This index is the authoritative navigation point for global ADRs. Scoped platfor
 | [0012](0012-module-owned-agents-with-guarded-composition.md) | Module-owned agents with guarded composition | Accepted | 2026-08-12 |
 | [0013](0013-separate-e2e-host-with-shared-hosting-composition.md) | Separate E2E host with shared hosting composition | Accepted | 2026-08-15 |
 | [0014](0014-app-color-palette.md) | App color palette | Proposed | 2026-10-10 |
+| [0015](0015-surgery-planning-contract-change-without-versioning.md) | Surgery planning contract change without versioning | Accepted | 2026-10-15 |
 
 ## Related global architecture documents
 
