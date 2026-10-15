@@ -116,8 +116,10 @@ Do not duplicate AGENTS.md, architecture.md, ADRs, runbooks, or module docs.
 - Remove condition: remove when the E2E host runs on a real PostgreSQL store with
   Hangfire, or when surgery reads no longer depend on materialized views.
 - Lesson for Codex: in the E2E host, a project-object write refreshes its view
-  synchronously, so a read right after the write sees it; production refreshes
-  asynchronously and can briefly serve the previous view.
+  synchronously, so a read right after the write sees it. Production surgery
+  writes also refresh the surgery view inline before returning
+  (`SurgeryToolchain.RefreshSurgeryViewAsync`, #870); other project-object
+  views still refresh asynchronously and can briefly serve the previous view.
 
 ## Temporary workarounds
 
