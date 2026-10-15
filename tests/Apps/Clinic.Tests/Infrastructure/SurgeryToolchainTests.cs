@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging.Abstractions;
 using System.Security.Claims;
 using System.Text.Json;
 using FluentAssertions;
@@ -86,6 +87,69 @@ public sealed class SurgeryToolchainTests
         result!.Status.Should().Be(SurgeryStatus.Completed);
         updatedData.GetProperty("Status").GetString().Should().Be(nameof(SurgeryStatus.Completed));
         replaced.Should().NotBeNull().And.BeEmpty();
+    }
+
+    [Fact]
+    public async Task A_saved_surgery_refreshes_the_surgery_view_before_returning()
+    {
+        (Mock<IProjectObjectService> projectObjects, Guid surgeryId) = CompletableSurgery();
+        Mock<IProjectObjectMaterializedViewRefresher> refresher = SurgeryViewRefresher();
+
+        await using InMemoryClinicDbContext db = CreateContext();
+        SurgeryToolchain toolchain = CreateToolchain(projectObjects, new Mock<IRemindersService>(), db, viewRefresher: refresher);
+
+        (await toolchain.CompleteAsync(surgeryId, Guid.NewGuid(), CancellationToken.None)).Should().NotBeNull();
+
+        refresher.Verify(value => value.RefreshAsync(TenantId, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task A_failed_inline_refresh_does_not_fail_the_saved_surgery()
+    {
+        (Mock<IProjectObjectService> projectObjects, Guid surgeryId) = CompletableSurgery();
+        Mock<IProjectObjectMaterializedViewRefresher> refresher = SurgeryViewRefresher();
+        refresher.Setup(value => value.RefreshAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("refresh failed"));
+
+        await using InMemoryClinicDbContext db = CreateContext();
+        SurgeryToolchain toolchain = CreateToolchain(projectObjects, new Mock<IRemindersService>(), db, viewRefresher: refresher);
+
+        SurgeryReadModel? result = await toolchain.CompleteAsync(surgeryId, Guid.NewGuid(), CancellationToken.None);
+
+        result!.Status.Should().Be(SurgeryStatus.Completed);
+    }
+
+    [Fact]
+    public async Task A_rejected_write_does_not_refresh_the_surgery_view()
+    {
+        Guid surgeryId = Guid.NewGuid();
+        Mock<IProjectObjectService> projectObjects = new();
+        projectObjects.Setup(value => value.GetAsync(surgeryId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Read(surgeryId, Guid.NewGuid(), SurgeryStatus.Planned, Now.AddHours(1)));
+        Mock<IProjectObjectMaterializedViewRefresher> refresher = SurgeryViewRefresher();
+
+        await using InMemoryClinicDbContext db = CreateContext();
+        SurgeryToolchain toolchain = CreateToolchain(projectObjects, new Mock<IRemindersService>(), db, viewRefresher: refresher);
+
+        Func<Task> action = () => toolchain.CompleteAsync(surgeryId, Guid.NewGuid(), CancellationToken.None);
+
+        await action.Should().ThrowAsync<InvalidOperationException>();
+        refresher.Verify(value => value.RefreshAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    private static (Mock<IProjectObjectService> ProjectObjects, Guid SurgeryId) CompletableSurgery()
+    {
+        Guid surgeryId = Guid.NewGuid();
+        Guid patientId = Guid.NewGuid();
+        Mock<IProjectObjectService> projectObjects = new();
+        projectObjects.Setup(value => value.GetAsync(surgeryId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Read(surgeryId, patientId, SurgeryStatus.Planned, Now.AddHours(-1)));
+        projectObjects.Setup(value => value.UpdateAsync(
+                surgeryId, SurgeryObjectTypes.OwnerEntityType, patientId, SurgeryObjectTypes.ObjectType,
+                It.IsAny<JsonElement>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Guid id, string ownerEntityType, Guid ownerEntityId, string objectType, JsonElement data, Guid token, CancellationToken _) =>
+                new ProjectObjectReadDto(id, ownerEntityType, ownerEntityId, objectType, data, Guid.NewGuid(), Now.UtcDateTime, null, null, null, null, null));
+        return (projectObjects, surgeryId);
     }
 
     [Fact]
@@ -597,7 +661,8 @@ public sealed class SurgeryToolchainTests
         Mock<ISurgeryCatalogStore>? catalogs = null,
         Mock<ISurgeryTeamDirectory>? teamDirectory = null,
         Mock<ISurgerySettingsStore>? settingsStore = null,
-        Mock<ISurgeryPlanningAuthorization>? authorization = null) =>
+        Mock<ISurgeryPlanningAuthorization>? authorization = null,
+        Mock<IProjectObjectMaterializedViewRefresher>? viewRefresher = null) =>
         new(
             projectObjects: projectObjects.Object,
             reminders: reminders.Object,
@@ -609,7 +674,16 @@ public sealed class SurgeryToolchainTests
             teamDirectory: (teamDirectory ?? new Mock<ISurgeryTeamDirectory>()).Object,
             timeProvider: new FakeTimeProvider(Now),
             settingsStore: (settingsStore ?? new Mock<ISurgerySettingsStore>()).Object,
-            authorization: (authorization ?? PlanningMock(canPlan: true)).Object);
+            authorization: (authorization ?? PlanningMock(canPlan: true)).Object,
+            viewRefreshers: [(viewRefresher ?? SurgeryViewRefresher()).Object],
+            logger: NullLogger<SurgeryToolchain>.Instance);
+
+    private static Mock<IProjectObjectMaterializedViewRefresher> SurgeryViewRefresher()
+    {
+        Mock<IProjectObjectMaterializedViewRefresher> refresher = new();
+        refresher.SetupGet(value => value.ObjectType).Returns(SurgeryObjectTypes.ObjectType);
+        return refresher;
+    }
 
     private static Mock<ISurgeryPlanningAuthorization> PlanningMock(bool canPlan)
     {

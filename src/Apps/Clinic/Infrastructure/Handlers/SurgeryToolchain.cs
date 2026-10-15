@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Security.Cryptography;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Vitarish.Clinic.Application.Abstractions;
 using Vitarish.Clinic.Domain.Models;
 using Vitarish.Clinic.Domain.Surgery;
@@ -27,7 +28,9 @@ internal sealed class SurgeryToolchain(
     TimeProvider timeProvider,
     IOperationReceiptStore<SurgeryCreateOperation> operations,
     ISurgerySettingsStore settingsStore,
-    ISurgeryPlanningAuthorization authorization) : ISurgeryToolchain
+    ISurgeryPlanningAuthorization authorization,
+    IEnumerable<IProjectObjectMaterializedViewRefresher> viewRefreshers,
+    ILogger<SurgeryToolchain> logger) : ISurgeryToolchain
 {
     private static readonly TimeSpan OperationLifetime = TimeSpan.FromHours(24);
     private static readonly TimeSpan OperationLease = TimeSpan.FromMinutes(2);
@@ -289,6 +292,7 @@ internal sealed class SurgeryToolchain(
         {
             throw new SurgeryOperationUnavailableException(exception);
         }
+        await RefreshSurgeryViewAsync(cancellationToken);
         return result;
     }
 
@@ -339,6 +343,7 @@ internal sealed class SurgeryToolchain(
         {
             await CompensateRestoreAsync(current, value.ConcurrencyToken, exception);
         }
+        await RefreshSurgeryViewAsync(cancellationToken);
         return result;
     }
 
@@ -383,6 +388,7 @@ internal sealed class SurgeryToolchain(
         {
             await CompensateRestoreAsync(current, value.ConcurrencyToken, exception);
         }
+        await RefreshSurgeryViewAsync(cancellationToken);
         return result;
     }
 
@@ -434,6 +440,7 @@ internal sealed class SurgeryToolchain(
         {
             await CompensateRestoreAsync(current, value.ConcurrencyToken, exception);
         }
+        await RefreshSurgeryViewAsync(cancellationToken);
         return result;
     }
 
@@ -493,6 +500,25 @@ internal sealed class SurgeryToolchain(
 
         SurgeryPlanRules.ValidatePlan(surgery);
         return surgery;
+    }
+
+    /// <summary>
+    /// Refreshes the surgery view before a write returns, so the calendar, lists and the double-booking check
+    /// see it at once. The background refresh the write queued still runs and catches up if this one fails.
+    /// </summary>
+    private async Task RefreshSurgeryViewAsync(CancellationToken cancellationToken)
+    {
+        IProjectObjectMaterializedViewRefresher? refresher = viewRefreshers.FirstOrDefault(
+            item => string.Equals(item.ObjectType, SurgeryObjectTypes.ObjectType, StringComparison.Ordinal));
+        if (refresher is null) return;
+        try
+        {
+            await refresher.RefreshAsync(requestContext.TenantId ?? string.Empty, cancellationToken);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            logger.LogWarning(exception, "The surgery view could not be refreshed inline; the queued background refresh will update it.");
+        }
     }
 
     private async Task RebuildRemindersAsync(SurgeryReadModel surgery, CancellationToken cancellationToken)
