@@ -48,6 +48,34 @@ public sealed class TenantMemberManagementTests
     }
 
     [Fact]
+    public async Task List_by_user_ids_returns_only_those_members_of_the_current_tenant()
+    {
+        await using TestUsersDbContext dbContext = await CreateDbContextAsync();
+        ListTenantMembersQueryHandler handler = new(dbContext, RequestContext(TenantId, IdentityDefinitions.PlatformAdmin));
+
+        IReadOnlyList<TenantMemberSummary> members = await handler.Handle(
+            new ListTenantMembersQuery(null, 3, ["staff", "other", "staf"]),
+            CancellationToken.None);
+
+        members.Select(member => member.Id).Should().Equal("staff");
+    }
+
+    [Fact]
+    public async Task List_by_an_empty_user_id_set_returns_no_members()
+    {
+        await using TestUsersDbContext dbContext = await CreateDbContextAsync();
+        ListTenantMembersQueryHandler handler = new(dbContext, RequestContext(TenantId, IdentityDefinitions.PlatformAdmin));
+
+        IReadOnlyList<TenantMemberSummary> members = await handler.Handle(new ListTenantMembersQuery(null, 1, []), CancellationToken.None);
+
+        members.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void List_rejects_more_user_ids_than_the_result_cap()
+        => new ListTenantMembersQueryValidator().Validate(new ListTenantMembersQuery(null, 1, ["owner", "staff"])).IsValid.Should().BeFalse();
+
+    [Fact]
     public async Task Provision_creates_a_passwordless_contact_account_and_duplicate_calls_are_idempotent()
     {
         await using TestUsersDbContext dbContext = await CreateDbContextAsync();
