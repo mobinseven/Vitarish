@@ -478,8 +478,10 @@ test("platform administrator creates, edits, assigns access, and reviews a user'
   // its first page of 25 and give the pager something real to page through.
   for (const minutes of [16, 17, 18, 19, 20, 21, 22, 23]) {
     await page.getByRole("spinbutton", { name: "Inactivity timeout (minutes)" }).fill(String(minutes));
+    // The save refetches the stored timeout; wait for it so it cannot overwrite the next value typed.
     const [timeoutResponse] = await Promise.all([
       page.waitForResponse((response) => response.request().method() === "PUT" && response.url().includes(`/api/modules/authentication/security/users/${createdUser.id}/inactivity-timeout`)),
+      page.waitForResponse((response) => response.request().method() === "GET" && response.url().includes(`/api/modules/authentication/security/users/${createdUser.id}/inactivity-timeout`)),
       page.getByRole("button", { name: "Save inactivity timeout" }).click(),
     ]);
     expect(timeoutResponse.ok()).toBe(true);
