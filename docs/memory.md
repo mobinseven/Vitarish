@@ -17,6 +17,9 @@ Do not duplicate AGENTS.md, architecture.md, ADRs, runbooks, or module docs.
 - `private-practice-owner` and `patients` replace the retired `private-practice-general` web host; the backend Clinic and SEA modules remain active.
 - Internal module API endpoints are protected by default.
 - Generated clients/contracts are regenerated, not manually edited.
+- Patients may carry a legacy `DateOfSurgery` metadata value that nothing shows
+  or migrates since surgery planning; patient saves must keep it, and any change
+  that reads, migrates, or deletes it follows ADR-0015.
 - NSMAIL-1 FDP_RIP.2.1 does not require ending the session on browser close:
   its two-step-authentication guidance accepts any one of four options, and
   the auth cookie is issued only after the second factor succeeds. FTA_SSL.3.1
