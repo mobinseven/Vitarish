@@ -73,33 +73,60 @@ public sealed class SurgeryPlanRulesTests
         action.Should().NotThrow();
     }
 
-    [Fact]
-    public void EnsureEditable_allows_a_planned_surgery()
+    [Theory]
+    [InlineData(SurgeryStatus.Planned)]
+    [InlineData(SurgeryStatus.Completed)]
+    public void EnsureEditable_allows_a_planned_or_completed_surgery(SurgeryStatus status)
     {
-        Action action = () => SurgeryPlanRules.EnsureEditable(Read(SurgeryStatus.Planned, Start.AddHours(-1)));
+        Action action = () => SurgeryPlanRules.EnsureEditable(Read(status, Start.AddHours(-1)));
 
         action.Should().NotThrow();
     }
 
-    [Theory]
-    [InlineData(SurgeryStatus.Cancelled)]
-    [InlineData(SurgeryStatus.Completed)]
-    public void EnsureEditable_rejects_a_non_planned_surgery(SurgeryStatus status)
+    [Fact]
+    public void EnsureEditable_rejects_a_cancelled_surgery()
     {
-        Action action = () => SurgeryPlanRules.EnsureEditable(Read(status, Start.AddHours(-1)));
+        Action action = () => SurgeryPlanRules.EnsureEditable(Read(SurgeryStatus.Cancelled, Start.AddHours(-1)));
 
         action.Should().Throw<InvalidOperationException>();
     }
 
-    [Theory]
-    [InlineData(SurgeryStatus.Planned)]
-    [InlineData(SurgeryStatus.Completed)]
-    public void IsCancellable_allows_planned_and_completed_surgeries(SurgeryStatus status)
-        => SurgeryPlanRules.IsCancellable(status).Should().BeTrue();
+    [Fact]
+    public void EnsureEditedStatus_rejects_cancelling_through_an_edit()
+    {
+        Action action = () => SurgeryPlanRules.EnsureEditedStatus(SurgeryStatus.Cancelled, Start.AddHours(-1), Start);
+
+        action.Should().Throw<ArgumentException>();
+    }
 
     [Fact]
-    public void IsCancellable_rejects_a_cancelled_surgery()
-        => SurgeryPlanRules.IsCancellable(SurgeryStatus.Cancelled).Should().BeFalse();
+    public void EnsureEditedStatus_rejects_completing_before_the_scheduled_start()
+    {
+        Action action = () => SurgeryPlanRules.EnsureEditedStatus(SurgeryStatus.Completed, Start.AddHours(1), Start);
+
+        action.Should().Throw<ArgumentException>();
+    }
+
+    [Theory]
+    [InlineData(SurgeryStatus.Planned, 1)]
+    [InlineData(SurgeryStatus.Planned, -1)]
+    [InlineData(SurgeryStatus.Completed, -1)]
+    public void EnsureEditedStatus_allows_planned_and_a_started_completed_surgery(SurgeryStatus status, int hoursFromNow)
+    {
+        Action action = () => SurgeryPlanRules.EnsureEditedStatus(status, Start.AddHours(hoursFromNow), Start);
+
+        action.Should().NotThrow();
+    }
+
+    [Fact]
+    public void IsCancellable_allows_a_planned_surgery()
+        => SurgeryPlanRules.IsCancellable(SurgeryStatus.Planned).Should().BeTrue();
+
+    [Theory]
+    [InlineData(SurgeryStatus.Completed)]
+    [InlineData(SurgeryStatus.Cancelled)]
+    public void IsCancellable_rejects_a_completed_or_cancelled_surgery(SurgeryStatus status)
+        => SurgeryPlanRules.IsCancellable(status).Should().BeFalse();
 
     [Theory]
     [InlineData(0)]

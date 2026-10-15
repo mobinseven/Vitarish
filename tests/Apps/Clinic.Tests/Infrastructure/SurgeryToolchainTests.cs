@@ -89,13 +89,13 @@ public sealed class SurgeryToolchainTests
     }
 
     [Fact]
-    public async Task UpdateAsync_on_a_completed_surgery_throws_and_writes_nothing()
+    public async Task UpdateAsync_on_a_cancelled_surgery_throws_and_writes_nothing()
     {
         Guid surgeryId = Guid.NewGuid();
         Guid patientId = Guid.NewGuid();
         Mock<IProjectObjectService> projectObjects = new();
         projectObjects.Setup(value => value.GetAsync(surgeryId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Read(surgeryId, patientId, SurgeryStatus.Completed, Now.AddHours(-1)));
+            .ReturnsAsync(Read(surgeryId, patientId, SurgeryStatus.Cancelled, Now.AddHours(-1)));
 
         await using InMemoryClinicDbContext db = CreateContext();
         SurgeryToolchain toolchain = CreateToolchain(projectObjects, new Mock<IRemindersService>(), db);
@@ -109,6 +109,28 @@ public sealed class SurgeryToolchainTests
         projectObjects.Verify(value => value.UpdateAsync(
             It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<string>(),
             It.IsAny<JsonElement>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task CancelAsync_on_a_completed_surgery_throws_and_sends_no_notice()
+    {
+        Guid surgeryId = Guid.NewGuid();
+        Guid patientId = Guid.NewGuid();
+        Mock<IProjectObjectService> projectObjects = new();
+        projectObjects.Setup(value => value.GetAsync(surgeryId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Read(surgeryId, patientId, SurgeryStatus.Completed, Now.AddHours(-1)));
+        Mock<IRemindersService> reminders = new();
+
+        await using InMemoryClinicDbContext db = CreateContext();
+        SurgeryToolchain toolchain = CreateToolchain(projectObjects, reminders, db);
+
+        Func<Task> action = () => toolchain.CancelAsync(surgeryId, Guid.NewGuid(), CancellationToken.None);
+
+        await action.Should().ThrowAsync<InvalidOperationException>();
+        projectObjects.Verify(value => value.UpdateAsync(
+            It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<string>(),
+            It.IsAny<JsonElement>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
+        reminders.VerifyNoOtherCalls();
     }
 
     [Fact]

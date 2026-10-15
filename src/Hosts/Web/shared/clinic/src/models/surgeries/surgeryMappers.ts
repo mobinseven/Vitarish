@@ -186,7 +186,7 @@ function buildCoreFields(
   return {
     catalogId: values.catalogId,
     name: values.name.trim(),
-    status: surgeryStatuses.planned,
+    status: values.status,
     scheduledAt,
     tools: [...values.tools],
     reminderPolicies: values.reminderPolicies.map((policy) => ({
@@ -206,6 +206,8 @@ export function buildSurgeryCreateRequest(
 ): SurgeryCreateRequest {
   return {
     ...buildCoreFields(values, context.timeZone),
+    // A new surgery always starts planned.
+    status: surgeryStatuses.planned,
     personsToNotify: [],
     contacts: [],
     idempotencyKey: context.idempotencyKey,

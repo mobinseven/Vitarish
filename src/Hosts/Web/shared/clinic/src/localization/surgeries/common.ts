@@ -25,6 +25,7 @@ export const surgeryCommonMessages = {
       minutesBefore: "Minutes before",
       subject: "Subject",
       message: "Message",
+      status: "Status",
     },
     actions: {
       plan: "Plan surgery",
@@ -75,6 +76,7 @@ export const surgeryCommonMessages = {
       timeInvalid: "Enter a valid time.",
       durationInvalid:
         "Enter a duration between 1 and 1440 minutes, or leave it empty.",
+      completedInFuture: "A surgery can be marked completed only after its scheduled start.",
       locationTooLong: "Keep the location to 200 characters or fewer.",
       teamRoleRequired: "Give every team member a role.",
       teamRoleTooLong: "Keep each role to 100 characters or fewer.",
@@ -109,6 +111,7 @@ export const surgeryCommonMessages = {
       minutesBefore: "دقیقه قبل",
       subject: "موضوع",
       message: "متن پیام",
+      status: "وضعیت",
     },
     actions: {
       plan: "برنامه‌ریزی جراحی",
@@ -159,6 +162,7 @@ export const surgeryCommonMessages = {
       timeInvalid: "ساعت معتبر وارد کنید.",
       durationInvalid:
         "مدتی بین ۱ تا ۱۴۴۰ دقیقه وارد کنید یا آن را خالی بگذارید.",
+      completedInFuture: "جراحی را فقط پس از زمان شروع برنامه‌ریزی‌شده می‌توان انجام‌شده ثبت کرد.",
       locationTooLong: "محل را حداکثر ۲۰۰ نویسه وارد کنید.",
       teamRoleRequired: "برای هر عضو تیم نقشی تعیین کنید.",
       teamRoleTooLong: "هر نقش را حداکثر ۱۰۰ نویسه وارد کنید.",

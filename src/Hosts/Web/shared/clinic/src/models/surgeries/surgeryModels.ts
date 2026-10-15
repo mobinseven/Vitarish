@@ -110,9 +110,12 @@ export function surgeryEnd(
   return new Date(start.getTime() + surgery.durationMinutes * 60_000);
 }
 
-/** Only planned surgeries can still be changed. */
+/** Planned and completed surgeries can be edited; editing a completed one corrects a mistaken completion. */
 export function canEditSurgery(surgery: Surgery): boolean {
-  return surgery.status === surgeryStatuses.planned;
+  return (
+    surgery.status === surgeryStatuses.planned ||
+    surgery.status === surgeryStatuses.completed
+  );
 }
 
 /** A planned surgery can be completed once its scheduled start has passed. */
@@ -123,10 +126,7 @@ export function canCompleteSurgery(surgery: Surgery, now: Date): boolean {
   return start.getTime() <= now.getTime();
 }
 
-/** Planned surgeries can be cancelled, and a completed one can be corrected. */
+/** Only planned surgeries can be cancelled; cancelling notifies the patient and the team. */
 export function canCancelSurgery(surgery: Surgery): boolean {
-  return (
-    surgery.status === surgeryStatuses.planned ||
-    surgery.status === surgeryStatuses.completed
-  );
+  return surgery.status === surgeryStatuses.planned;
 }
