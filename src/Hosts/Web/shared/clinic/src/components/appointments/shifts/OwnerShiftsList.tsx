@@ -12,7 +12,6 @@ import {
 } from "@vitarish/ui";
 import { useOwnerShifts } from "../../../hooks/appointments/shifts/useOwnerShifts";
 import { useLocalizedText, type MessageKey } from "../../../localization/index";
-import { clinicOperationButtonClassName } from "../../operations/clinicOperation";
 
 const dayNameKeys = [
   "clinic.weekdays.sunday",
@@ -48,7 +47,7 @@ export function OwnerShiftsList({ onNavigate }: OwnerShiftsListProps) {
             </h1>
           </div>
         </div>
-        <Button className={clinicOperationButtonClassName("appointment")}
+        <Button
           variant="primary"
           onPress={() => onNavigate?.({ kind: "ownerShiftCreate" })}
         >

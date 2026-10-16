@@ -25,7 +25,6 @@ public sealed class PatientView
     public string? FirstName { get; init; }
     public string? LastName { get; init; }
     public DateTime? DateOfBirth { get; init; }
-    public DateTime? DateOfSurgery { get; init; }
     public Gender Gender { get; init; }
     public string? PlaceOfBirth { get; init; }
     public string? Address { get; init; }
@@ -47,4 +46,12 @@ public sealed class PatientView
 
     [NotMapped]
     public StatsReadDto? Stats { get; set; }
+
+    /// <summary>Start of the latest non-cancelled surgery that already started; loaded per page.</summary>
+    [NotMapped]
+    public DateTimeOffset? LastSurgeryAt { get; set; }
+
+    /// <summary>Start of the earliest planned surgery still ahead; loaded per page.</summary>
+    [NotMapped]
+    public DateTimeOffset? NextSurgeryAt { get; set; }
 }

@@ -1,5 +1,8 @@
+import { surgeriesEnMessages } from "./surgeries";
+
 export const clinicEnMessages = {
   clinic: {
+    surgeries: surgeriesEnMessages,
     patients: {
       title: "Patients",
       newPatient: "New Patient",
@@ -84,7 +87,6 @@ export const clinicEnMessages = {
         address: "Address",
         emergencyContact: "Emergency Contact",
         emergencyPhone: "Emergency Phone",
-        dateOfSurgery: "Date of Surgery",
         heightCm: "Height (cm)",
         weightKg: "Weight (kg)",
         allergies: "Allergies",
@@ -99,6 +101,18 @@ export const clinicEnMessages = {
         created: "Created",
         updated: "Updated",
         tags: "Tags",
+      },
+      sort: {
+        lastSurgery: "Last surgery",
+        nextSurgery: "Next surgery",
+      },
+      sortValue: {
+        identificationCode: "Identification Code",
+        dateOfBirth: "Date of Birth",
+        createdAt: "Created",
+        updatedAt: "Updated",
+        lastSurgery: "Last surgery",
+        nextSurgery: "Next surgery",
       },
       overview: {
         title: "Overview",

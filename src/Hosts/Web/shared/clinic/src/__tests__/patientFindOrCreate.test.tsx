@@ -151,7 +151,6 @@ describe("patient find or create", () => {
       firstName: "Ada",
       lastName: "Lovelace",
       dateOfBirth: "1815-12-10",
-      dateOfSurgery: "1843-01-01",
       gender: "Female",
       placeOfBirth: "London",
       fatherName: "Lord Byron",
@@ -177,7 +176,6 @@ describe("patient find or create", () => {
       firstName: "Ada",
       lastName: "Lovelace",
       dateOfBirth: "1815-12-10T00:00:00.000Z",
-      dateOfSurgery: "1843-01-01T00:00:00.000Z",
       gender: "Female",
       education: "Professional",
       height: 165,
@@ -185,7 +183,7 @@ describe("patient find or create", () => {
       clinicalNotes: "Analytical Engine notes",
       emergencyContactName: "Charles Babbage",
     });
-    expect(Object.keys(request)).toHaveLength(24);
+    expect(Object.keys(request)).toHaveLength(23);
     expect(request.tags).toEqual([]);
   });
 });

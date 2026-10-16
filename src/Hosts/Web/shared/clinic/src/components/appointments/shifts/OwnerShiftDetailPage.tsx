@@ -20,7 +20,6 @@ import {
   useDeleteShift,
   useOwnerShiftDetail,
 } from "../../../hooks/appointments/shifts/useOwnerShifts";
-import { clinicOperationButtonClassName } from "../../operations/clinicOperation";
 const dayKeys = [
   "clinic.weekdays.sunday",
   "clinic.weekdays.monday",
@@ -73,7 +72,7 @@ export function OwnerShiftDetailPage({
           </div>
         </div>
         <div className="flex gap-2">
-          <Button className={clinicOperationButtonClassName("appointment")}
+          <Button
             variant="ghost"
             onPress={() => onNavigate({ kind: "ownerShiftEdit", shiftId })}
           >

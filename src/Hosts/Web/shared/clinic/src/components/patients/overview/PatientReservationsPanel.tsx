@@ -18,7 +18,6 @@ import {
 import { getDateCalendar, useLocalizedText } from "../../../localization";
 import { useOwnerReservations } from "../../../hooks/appointments/reservations/useOwnerReservations";
 import { ReservationDetailDialog } from "../../appointments/agenda/ReservationDetailDialog";
-import { clinicOperationButtonClassName } from "../../operations/clinicOperation";
 
 interface PatientReservationsPanelProps {
   patientId: string;
@@ -90,7 +89,7 @@ export function PatientReservationsPanel({
           <p className="text-sm text-muted">
             {t("clinic.patient.reservations.emptyHint")}
           </p>
-          <Button className={clinicOperationButtonClassName("appointment")} variant="primary" onPress={onCreateReservation}>
+          <Button variant="tertiary" onPress={onCreateReservation}>
             <FaIcon icon="plus" aria-hidden="true" />
             {t("common.actions.create")}
           </Button>

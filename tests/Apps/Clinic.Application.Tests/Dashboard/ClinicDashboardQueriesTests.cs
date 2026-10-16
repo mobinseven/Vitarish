@@ -50,7 +50,6 @@ public sealed class ClinicDashboardQueriesTests
         Mock<IAccessControlledShiftManager> shifts = new(MockBehavior.Strict);
         Mock<IServiceManager> services = new(MockBehavior.Strict);
         Mock<IPatientDirectory> patients = new(MockBehavior.Strict);
-        Mock<ISurgeryToolchain> surgeries = new(MockBehavior.Strict);
 
         reservations.Setup(value => value.GetListAsync(It.IsAny<ReservationDescriptorDto>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(EntityResult<IReadOnlyList<ReservationReadDto>>.Success(
@@ -63,7 +62,7 @@ public sealed class ClinicDashboardQueriesTests
         patients.Setup(value => value.FindByIdAsync(patientId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new PatientView { Id = patientId, Name = "Patient One", Tags = ["vip", "follow-up"] });
 
-        ClinicDashboardQueries query = new(reservations.Object, shifts.Object, services.Object, surgeries.Object, patients.Object);
+        ClinicDashboardQueries query = new(reservations.Object, shifts.Object, services.Object, patients.Object);
 
         IReadOnlyList<DashboardAppointmentReadModel> result = await query.ListAppointmentsAsync(
             DashboardDateRange.Create(new DateOnly(2026, 8, 1), new DateOnly(2026, 8, 31), null), CancellationToken.None);
@@ -96,7 +95,6 @@ public sealed class ClinicDashboardQueriesTests
             reservations.Object,
             shifts.Object,
             Mock.Of<IServiceManager>(),
-            Mock.Of<ISurgeryToolchain>(),
             Mock.Of<IPatientDirectory>());
 
         Func<Task> action = () => query.ListAppointmentsAsync(

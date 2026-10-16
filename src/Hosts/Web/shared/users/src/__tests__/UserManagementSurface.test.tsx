@@ -16,6 +16,7 @@ const inactivityPolicySave = vi.fn((_input: unknown, options?: { onSuccess?: () 
 const revokeSessions = vi.fn((_input: unknown, options?: { onSuccess?: (result: { endedSessions: number }) => void; onError?: (error: unknown) => void }) => options?.onSuccess?.({ endedSessions: 2 }));
 const disableUser = vi.fn((_input: unknown, options?: { onSuccess?: () => void; onError?: (error: unknown) => void }) => options?.onSuccess?.());
 const enableUser = vi.fn((_input: unknown, options?: { onSuccess?: () => void; onError?: (error: unknown) => void }) => options?.onSuccess?.());
+const securityQueryParams = vi.fn();
 let securityDetailsQueryResponse: { data?: typeof userSecurityDetails; error: unknown; isLoading: boolean; isError: boolean; refetch: typeof refetch };
 const userSecurityDetails = {
   user: {
@@ -84,7 +85,10 @@ vi.mock("@vitarish/auth", () => ({
   useUsersAdministrationListTenantRoles: () => ({ isLoading: false, isError: false, refetch, data: [
     { tenantId: "tenant-a", roleSuffix: "TenantUser", assigned: true },
   ] }),
-  useUsersAdministrationGetUserSecurity: () => securityDetailsQueryResponse,
+  useUsersAdministrationGetUserSecurity: (_userId: string, params: unknown) => {
+    securityQueryParams(params);
+    return securityDetailsQueryResponse;
+  },
   useUsersAdministrationUpdateUser: () => ({ isPending: false, mutate: managedUserUpdate }),
   useUsersAddRole: () => ({ isPending: false, mutate: globalRoleGrant }),
   useAuthenticationUserInactivityPolicyGet: () => ({ data: { version: 1, inactivityTimeoutMinutes: null }, isLoading: false, isError: false, refetch }),
@@ -112,6 +116,20 @@ function renderSurface(mode: "tenant" | "platform", props: Partial<UserManagemen
       <UserManagementSurface mode={mode} {...props} />
     </LocalizationProvider>,
   );
+}
+
+function historySection(name: string): HTMLElement {
+  const section = screen.getByRole("heading", { name }).closest("section");
+  if (!section) throw new Error(`The ${name} section is not rendered.`);
+  return section;
+}
+
+function withHistoryTotals(securityTotal: number, authenticationTotal: number): typeof userSecurityDetails {
+  return {
+    ...userSecurityDetails,
+    securityHistory: { ...userSecurityDetails.securityHistory, totalCount: securityTotal },
+    authenticationHistory: { ...userSecurityDetails.authenticationHistory, totalCount: authenticationTotal },
+  };
 }
 
 function accountStatusSection(): HTMLElement {
@@ -210,6 +228,35 @@ describe("UserManagementSurface", () => {
     expect(screen.getByText("Passkey login")).toBeInTheDocument();
     expect(screen.getByText("User security attributes changed")).toBeInTheDocument();
     expect(screen.getAllByText("admin.example.test")).toHaveLength(2);
+  });
+
+  it("pages the sign-in history on its own without moving the security history", async () => {
+    const user = userEvent.setup();
+    securityDetailsQueryResponse = { ...securityDetailsQueryResponse, data: withHistoryTotals(60, 60) };
+    renderSurface("platform", { platformView: "detail", userId: "platform-user" });
+
+    await user.click(within(historySection("Authentication history")).getByRole("button", { name: "Older events" }));
+
+    expect(securityQueryParams).toHaveBeenLastCalledWith({ page: 1, authenticationPage: 2, pageSize: 25 });
+  });
+
+  it("pages the security history on its own without moving the sign-in history", async () => {
+    const user = userEvent.setup();
+    securityDetailsQueryResponse = { ...securityDetailsQueryResponse, data: withHistoryTotals(60, 60) };
+    renderSurface("platform", { platformView: "detail", userId: "platform-user" });
+
+    await user.click(within(historySection("Security history")).getByRole("button", { name: "Older events" }));
+
+    expect(securityQueryParams).toHaveBeenLastCalledWith({ page: 2, authenticationPage: 1, pageSize: 25 });
+    expect(within(historySection("Security history")).getByText("Page 2 of 3")).toBeInTheDocument();
+  });
+
+  it("offers a pager only for a history that spans more than one page", () => {
+    securityDetailsQueryResponse = { ...securityDetailsQueryResponse, data: withHistoryTotals(60, 1) };
+    renderSurface("platform", { platformView: "detail", userId: "platform-user" });
+
+    expect(within(historySection("Security history")).getByRole("button", { name: "Older events" })).toBeInTheDocument();
+    expect(within(historySection("Authentication history")).queryByRole("button", { name: "Older events" })).not.toBeInTheDocument();
   });
 
   it("grants only a global role offered by the server and refreshes security details", async () => {

@@ -3,7 +3,6 @@ using Vitarish.Appointments.Domain.Dto;
 using Vitarish.Appointments.Domain.Enums;
 using Vitarish.Clinic.Application.Abstractions;
 using Vitarish.Clinic.Domain.Models;
-using Vitarish.Clinic.Domain.Surgery;
 using Vitarish.Entities.Contracts.Models;
 using Vitarish.Entities.Server.Abstractions;
 
@@ -22,19 +21,16 @@ public sealed record DashboardDateRange(DateOnly DateFrom, DateOnly DateTo, int 
 }
 
 public sealed record DashboardAppointmentReadModel(Guid ReservationId, string? PatientId, string? PatientDisplayName, Guid? ServiceId, string? ServiceDisplayName, DateOnly Date, TimeOnly? StartTime, string? TimeZone, ReservationStatus Status, IReadOnlyList<string> PatientTags);
-public sealed record DashboardSurgeryReadModel(Guid SurgeryId, Guid PatientId, string? PatientDisplayName, string SurgeryName, string Status, DateTimeOffset ScheduledAt);
 
 public interface IClinicDashboardQueries
 {
     Task<IReadOnlyList<DashboardAppointmentReadModel>> ListAppointmentsAsync(DashboardDateRange range, CancellationToken cancellationToken);
-    Task<IReadOnlyList<DashboardSurgeryReadModel>> ListSurgeriesAsync(DashboardDateRange range, CancellationToken cancellationToken);
 }
 
 public sealed class ClinicDashboardQueries(
     IAccessControlledReservationManager reservations,
     IAccessControlledShiftManager shifts,
     IServiceManager services,
-    ISurgeryToolchain surgeries,
     IPatientDirectory patients) : IClinicDashboardQueries
 {
     public async Task<IReadOnlyList<DashboardAppointmentReadModel>> ListAppointmentsAsync(DashboardDateRange range, CancellationToken cancellationToken)
@@ -90,23 +86,6 @@ public sealed class ClinicDashboardQueries(
             .ThenBy(item => item.StartTime ?? TimeOnly.MaxValue)
             .ThenBy(item => item.ReservationId)
             .ToArray();
-    }
-
-    public async Task<IReadOnlyList<DashboardSurgeryReadModel>> ListSurgeriesAsync(DashboardDateRange range, CancellationToken cancellationToken)
-    {
-        IReadOnlyList<SurgeryReadModel> selected = await surgeries.GetRangeAsync(range.DateFrom, range.DateTo, range.Take, cancellationToken);
-        Dictionary<Guid, string?> names = [];
-        List<DashboardSurgeryReadModel> result = [];
-        foreach (SurgeryReadModel surgery in selected)
-        {
-            if (!names.TryGetValue(surgery.PatientId, out string? patientName))
-            {
-                patientName = (await patients.FindByIdAsync(surgery.PatientId, cancellationToken))?.Name;
-                names[surgery.PatientId] = patientName;
-            }
-            result.Add(new(surgery.Id, surgery.PatientId, patientName, surgery.Name, surgery.Status.ToString(), surgery.ScheduledAt));
-        }
-        return result;
     }
 
     private static async Task<ShiftReadDto?> ReadOptionalAsync(IAccessControlledShiftManager service, Guid id, CancellationToken cancellationToken)

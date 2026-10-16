@@ -2,7 +2,6 @@
 
 import { Button, Card, Tabs, Tooltip } from "@heroui/react";
 import { useEffect, useRef, useState } from "react";
-import { Widget } from "@heroui-pro/react";
 import {
   ErrorStateSurface as ClinicErrorState,
   FaIcon,
@@ -21,10 +20,10 @@ import { PatientVisitEventDialog } from "../procedures/PatientVisitEventDialog";
 import { PatientReservationsPanel } from "./PatientReservationsPanel";
 import { PatientOverviewHeader } from "./PatientOverviewHeader";
 import { PatientProfileCard } from "./PatientProfileCard";
+import { PatientSurgeriesPanel } from "../../surgeries/PatientSurgeriesPanel";
 import { PatientPrescriptionSubmissionSheet } from "../prescriptions/PatientPrescriptionSubmissionSheet";
 import { PatientPrescriptionDashboard, patientPrescriptionHistoryQueryKey } from "../prescriptions/PatientPrescriptionDashboard";
 import { useQueryClient } from "@tanstack/react-query";
-import { clinicOperationButtonClassName } from "../../operations/clinicOperation";
 
 /** Quick actions another page can ask the patient page to open on arrival. */
 export const patientQuickActions = ["prescription", "newVisit"] as const;
@@ -36,7 +35,6 @@ interface PatientQuickActionButton {
   labelKey: MessageKey;
   icon: string;
   variant: "outline" | "primary";
-  className?: string;
   onPress: () => void;
   isDisabled?: boolean;
 }
@@ -108,15 +106,13 @@ export function PatientOverviewPage({
       labelKey: "clinic.patient.quickActions.prescription",
       icon: "prescription-bottle-medical",
       variant: "primary",
-      className: clinicOperationButtonClassName("prescription"),
       onPress: () => setIsPrescriptionOpen(true),
     },
     {
       id: "newVisit",
       labelKey: "clinic.patient.quickActions.newVisit",
       icon: "calendar-plus",
-      variant: "primary",
-      className: clinicOperationButtonClassName("visit"),
+      variant: "outline",
       onPress: openNewVisit,
       isDisabled: !visitsProcedure,
     },
@@ -124,8 +120,7 @@ export function PatientOverviewPage({
       id: "checkIn",
       labelKey: "clinic.patient.quickActions.checkIn",
       icon: "calendar-check",
-      variant: "primary",
-      className: clinicOperationButtonClassName("appointment"),
+      variant: "outline",
       onPress: () => onNavigate({ kind: "checkIn" }),
     },
   ];
@@ -142,7 +137,6 @@ export function PatientOverviewPage({
             {quickActions.map((action) => (
               <Tooltip key={action.id}>
                 <Button
-                  className={action.className}
                   aria-label={t(action.labelKey)}
                   variant={action.variant}
                   onPress={action.onPress}
@@ -166,58 +160,69 @@ export function PatientOverviewPage({
       </div>
       <div className="hidden w-full grid-cols-1 gap-3 md:grid md:grid-cols-2">
         {hasVisits ? (
-          <Widget className="md:col-span-2 md:row-start-2">
-            <Widget.Header>
-              <Widget.Title>{t("clinic.procedures.visits.title")}</Widget.Title>
-            </Widget.Header>
-            <Widget.Content>
+          <Card className="md:col-span-2 md:row-start-2">
+            <Card.Header>
+              <Card.Title>{t("clinic.procedures.visits.title")}</Card.Title>
+            </Card.Header>
+            <Card.Content>
               <PatientVisitsPanel
                 patientId={patientId}
                 onVisibilityChange={setHasVisits}
                 onNewVisit={openNewVisit}
                 onNavigate={onNavigate}
               />
-            </Widget.Content>
-          </Widget>
+            </Card.Content>
+          </Card>
         ) : null}
-        <Widget className="md:col-span-2 md:row-start-3">
-          <Widget.Header>
-            <Widget.Title>{t("clinic.procedures.title")}</Widget.Title>
-          </Widget.Header>
-          <Widget.Content>
+        <Card className="md:col-span-2 md:row-start-3">
+          <Card.Header>
+            <Card.Title>{t("clinic.procedures.title")}</Card.Title>
+          </Card.Header>
+          <Card.Content>
             <PatientProceduresPanel
               patientId={patientId}
               onNavigate={onNavigate}
               excludedProcedureName={patientVisitsProcedureName}
             />
-          </Widget.Content>
-        </Widget>
-        <Widget>
-          <Widget.Header>
-            <Widget.Title>
+          </Card.Content>
+        </Card>
+        <Card>
+          <Card.Header>
+            <Card.Title>{t("clinic.surgeries.title")}</Card.Title>
+          </Card.Header>
+          <Card.Content>
+            <PatientSurgeriesPanel
+              patientId={patientId}
+              onNavigate={onNavigate}
+            />
+          </Card.Content>
+        </Card>
+        <Card>
+          <Card.Header>
+            <Card.Title>
               {t("clinic.appointments.reservations.title")}
-            </Widget.Title>
-          </Widget.Header>
-          <Widget.Content>
+            </Card.Title>
+          </Card.Header>
+          <Card.Content>
             <PatientReservationsPanel
               patientId={patientId}
               onCreateReservation={() =>
                 onNavigate({ kind: "ownerReservationIndex" })
               }
             />
-          </Widget.Content>
-        </Widget>
-        <Widget>
-          <Widget.Header>
-            <Widget.Title>{t("clinic.patient.sections.profile")}</Widget.Title>
-          </Widget.Header>
-          <Widget.Content>
+          </Card.Content>
+        </Card>
+        <Card className="md:col-span-2">
+          <Card.Header>
+            <Card.Title>{t("clinic.patient.sections.profile")}</Card.Title>
+          </Card.Header>
+          <Card.Content>
             <PatientProfileCard patient={patient} />
-          </Widget.Content>
-        </Widget>
+          </Card.Content>
+        </Card>
       </div>
-      <Widget className="md:hidden">
-        <Widget.Content>
+      <Card className="md:hidden">
+        <Card.Content>
           <Tabs defaultSelectedKey="prescriptions" className="w-full">
             <Tabs.ListContainer className="flex justify-center border-b border-border px-1">
               <Tabs.List
@@ -235,6 +240,14 @@ export function PatientOverviewPage({
                     className="mr-2"
                   />
                   {t("clinic.procedures.title")}
+                  <Tabs.Indicator />
+                </Tabs.Tab>
+                <Tabs.Tab
+                  id="surgeries"
+                  className="min-h-12 px-3 text-base sm:px-5"
+                >
+                  <FaIcon icon="scissors" aria-hidden="true" className="mr-2" />
+                  {t("clinic.surgeries.title")}
                   <Tabs.Indicator />
                 </Tabs.Tab>
                 <Tabs.Tab
@@ -276,6 +289,9 @@ export function PatientOverviewPage({
                 excludedProcedureName={patientVisitsProcedureName}
               />
             </Tabs.Panel>
+            <Tabs.Panel id="surgeries" className="pt-4">
+              <PatientSurgeriesPanel patientId={patientId} onNavigate={onNavigate} />
+            </Tabs.Panel>
             <Tabs.Panel id="reservations" className="pt-4">
               <PatientReservationsPanel
                 patientId={patientId}
@@ -288,8 +304,8 @@ export function PatientOverviewPage({
               <PatientProfileCard patient={patient} />
             </Tabs.Panel>
           </Tabs>
-        </Widget.Content>
-      </Widget>
+        </Card.Content>
+      </Card>
       <PatientPrescriptionSubmissionSheet
         patient={patient}
         isOpen={isPrescriptionOpen}

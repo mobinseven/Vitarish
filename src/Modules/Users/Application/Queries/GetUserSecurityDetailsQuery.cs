@@ -8,7 +8,7 @@ using Vitarish.Users.Domain.Entities;
 
 namespace Vitarish.Users.Application.Queries;
 
-public sealed record GetUserSecurityDetailsQuery(string UserId, int Page, int PageSize)
+public sealed record GetUserSecurityDetailsQuery(string UserId, int Page, int PageSize, int? AuthenticationPage = null)
     : IRequest<UserSecurityDetailsQueryResult>;
 
 public sealed record UserSecurityDetailsQueryResult(
@@ -95,7 +95,7 @@ internal sealed class GetUserSecurityDetailsQueryHandler(
             SecurityAuditPageReadDto authenticationHistory = await auditQuery.QueryPlatformAsync(
                 new SecurityAuditPlatformQuery(
                     new SecurityAuditQuery(
-                        Page: request.Page,
+                        Page: request.AuthenticationPage ?? request.Page,
                         PageSize: request.PageSize,
                         EventCategory: SecurityAuditEventCatalog.AuthenticationCategory,
                         SortBy: SecurityAuditSortField.OccurredAt,

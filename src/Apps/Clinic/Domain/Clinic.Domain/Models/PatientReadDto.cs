@@ -13,8 +13,6 @@ public record PatientReadDto : ProjectReadDto
 
     public DateTime? DateOfBirth => GetField<DateTime?>();
 
-    public DateTime? DateOfSurgery => GetField<DateTime?>();
-
     public Gender Gender => GetField<Gender>();
 
     public string? PlaceOfBirth => GetField<string>();

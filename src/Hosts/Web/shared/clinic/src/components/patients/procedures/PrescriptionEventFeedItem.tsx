@@ -30,7 +30,6 @@ import {
   useLocalizedText,
 } from "../../../localization";
 import type { ProcedureEventPluginItem } from "./eventFeedPlugins";
-import { clinicOperationButtonClassName } from "../../operations/clinicOperation";
 
 const statusKeys = [
   "draft",
@@ -512,7 +511,6 @@ export function PrescriptionEventFeedItem({
                           </Tooltip>
                           <Tooltip>
                             <Button
-                              className={clinicOperationButtonClassName("prescription")}
                               variant="primary"
                               isPending={isSaving}
                               isDisabled={

@@ -23,7 +23,6 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  clinicOperationButtonClassName,
   patientTagClassName,
   reservationStatusChipProps,
   reservationStatuses,
@@ -34,6 +33,7 @@ import { formatNumber, useLocalizedText } from "@/localization";
 import { Routes } from "@/app/routes";
 import { calendarDayRange } from "../calendarDayRange";
 import styles from "./HomeDashboard.module.css";
+import { SurgeriesWidget } from "../widgets/surgeries/SurgeriesWidget";
 import { FaIcon, HeaderIcon } from "@vitarish/ui";
 
 type SortMode = "time" | "patient";
@@ -136,8 +136,8 @@ export function HomeDashboard() {
   }
 
   return (
-    <div className={`${styles.root} relative flex min-h-full flex-col gap-5 overflow-hidden px-4 py-5 sm:px-6 lg:px-8 lg:py-6`}>
-      <header className="relative z-10 flex flex-col gap-2 lg:flex-row lg:items-end lg:justify-between">
+    <div className={`${styles.root} relative flex min-h-full flex-col gap-5 overflow-hidden px-4 py-5 sm:px-6 lg:px-8 lg:py-6 2xl:grid 2xl:grid-cols-[minmax(0,1fr)_24rem] 2xl:content-start 2xl:items-start`}>
+      <header className="relative z-10 flex flex-col gap-2 lg:flex-row lg:items-end lg:justify-between 2xl:col-span-2">
         <div>
           <div className="flex items-center gap-4">
             <HeaderIcon icon="house" level="page" />
@@ -503,14 +503,14 @@ export function HomeDashboard() {
                             <Tooltip.Content>{t("home.dashboard.viewProfile")}</Tooltip.Content>
                           </Tooltip>
                           <Tooltip>
-                            <Button className={`${clinicOperationButtonClassName("prescription")} ${styles.actionButton}`} size="sm" variant="secondary" onPress={() => openPatient(row.patientId, "prescription")}>
+                            <Button className={styles.actionButton} size="sm" variant="tertiary" onPress={() => openPatient(row.patientId, "prescription")}>
                               <FaIcon icon="prescription-bottle-medical" aria-hidden="true" />
                               {t("home.dashboard.newPrescription")}
                             </Button>
                             <Tooltip.Content>{t("home.dashboard.newPrescription")}</Tooltip.Content>
                           </Tooltip>
                           <Tooltip>
-                            <Button className={`${clinicOperationButtonClassName("visit")} ${styles.actionButton}`} size="sm" variant="secondary" onPress={() => openPatient(row.patientId, "newVisit")}>
+                            <Button className={styles.actionButton} size="sm" variant="tertiary" onPress={() => openPatient(row.patientId, "newVisit")}>
                               <FaIcon icon="calendar-plus" aria-hidden="true" />
                               {t("home.dashboard.newNote")}
                             </Button>
@@ -526,6 +526,7 @@ export function HomeDashboard() {
           )}
         </Card.Content>
       </Card>
+      <SurgeriesWidget />
     </div>
   );
 }

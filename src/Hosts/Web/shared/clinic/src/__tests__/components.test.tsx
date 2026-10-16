@@ -304,7 +304,10 @@ describe("clinic display components", () => {
     expect(screen.getByText("Try adjusting your search.")).toBeInTheDocument();
   });
 
-  it("offers date-of-surgery sorting", () => {
+  it.each([
+    ["Last surgery", "LastSurgery"],
+    ["Next surgery", "NextSurgery"],
+  ] as const)("sorts patients by %s", (label, field) => {
     const onSort = vi.fn();
     render(
       <PatientsGrid
@@ -320,11 +323,11 @@ describe("clinic display components", () => {
     );
 
     fireEvent.click(screen.getByRole("button", { name: "Sort" }));
-    fireEvent.click(screen.getByRole("menuitem", { name: "Date of Surgery" }));
-    expect(onSort).toHaveBeenCalledWith("DateOfSurgery");
+    fireEvent.click(screen.getByRole("menuitem", { name: label }));
+    expect(onSort).toHaveBeenCalledWith(field);
   });
 
-  it("shows the selected surgery date as the patient-row subtitle", () => {
+  it("shows no value line when a patient has no date for the surgery sort", () => {
     render(
       <PatientsGrid
         patients={[
@@ -333,11 +336,10 @@ describe("clinic display components", () => {
             firstName: "Ada",
             lastName: "Lovelace",
             identificationCode: "P-100",
-            dateOfSurgery: "2026-07-16",
           },
         ]}
         totalCount={1}
-        sortBy="DateOfSurgery"
+        sortBy="NextSurgery"
         descending={false}
         onAddPatient={vi.fn()}
         onSearch={vi.fn()}
@@ -347,10 +349,9 @@ describe("clinic display components", () => {
       { wrapper: Wrapper },
     );
 
-    expect(screen.getByText("7/16/2026")).toBeInTheDocument();
-    expect(
-      screen.queryByText(/Identification Code: P-100/),
-    ).not.toBeInTheDocument();
+    expect(screen.getByText("Ada Lovelace")).toBeInTheDocument();
+    expect(screen.queryByText(/P-100/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Next surgery/)).not.toBeInTheDocument();
   });
 
   it("renders responsive patient cards with an icon avatar, selection, and sorting", () => {
@@ -824,11 +825,10 @@ describe("clinic display components", () => {
 });
 
 describe("clinic editors", () => {
-  it("renders patient date pickers using the selected culture", () => {
+  it("renders the patient date picker using the selected culture", () => {
     const initialData = {
       ...emptyFormData(),
       dateOfBirth: "2026-07-15",
-      dateOfSurgery: "2026-07-16",
     };
     const { container } = render(
       <PatientProfileForm
@@ -842,9 +842,8 @@ describe("clinic editors", () => {
       ...container.querySelectorAll('[data-slot="date-picker"]'),
     ];
 
-    expect(datePickers).toHaveLength(2);
+    expect(datePickers).toHaveLength(1);
     expect(screen.getByText("تاریخ تولد")).toBeInTheDocument();
-    expect(screen.getByText("تاریخ جراحی")).toBeInTheDocument();
     for (const datePicker of datePickers) {
       expect(datePicker).toHaveTextContent(/[۰-۹]/);
     }

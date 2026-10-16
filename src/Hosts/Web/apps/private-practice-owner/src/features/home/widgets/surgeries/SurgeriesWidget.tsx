@@ -2,29 +2,101 @@
 
 import { Button, Calendar, Card, Surface, Tooltip } from "@heroui/react";
 import {
+  createCalendar,
   getLocalTimeZone,
+  toCalendar,
   today,
   type CalendarDate,
 } from "@internationalized/date";
 import Image from "next/image";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useClinicListDashboardSurgeries, clinicOperationButtonClassName } from "@vitarish/clinic";
-import { formatDate, formatDateTime, useLocalizedText } from "@/localization";
+import {
+  surgeryCalendarRange,
+  surgeryDayKey,
+  surgeryStatuses,
+  SurgeryList,
+  useCanPlanSurgeries,
+  useSurgeryCalendar,
+  type Surgery,
+} from "@vitarish/clinic";
+import { dateValueToIsoDate, formatDate, getDateCalendar, useLocalizedText } from "@/localization";
 import { Routes } from "@/app/routes";
-import { calendarMonthRange } from "../../calendarMonthRange";
 import styles from "../HomeWidgets.module.css";
+
+const maxMonthRows = 6;
+
+function sortByStart(surgeries: Surgery[]): Surgery[] {
+  return [...surgeries].sort(
+    (a, b) =>
+      new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime(),
+  );
+}
 
 export function SurgeriesWidget() {
   const { t, locale } = useLocalizedText();
+  const canPlan = useCanPlanSurgeries();
   const router = useRouter();
+  const timeZone = getLocalTimeZone();
   const [focusedDate, setFocusedDate] = useState<CalendarDate>(() =>
-    today(getLocalTimeZone()),
+    toCalendar(today(timeZone), createCalendar(getDateCalendar(locale))),
   );
   const [selectedDate, setSelectedDate] = useState<CalendarDate | null>(null);
-  const range = useMemo(() => calendarMonthRange(focusedDate), [focusedDate]);
-  const query = useClinicListDashboardSurgeries(range);
-  const rows = query.data ?? [];
+
+  const range = useMemo(
+    () => surgeryCalendarRange("month", focusedDate, timeZone, locale),
+    [focusedDate, timeZone, locale],
+  );
+  const query = useSurgeryCalendar({ from: range.from, to: range.to });
+  const surgeries = query.data ?? [];
+
+  const surgeriesByDay = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const surgery of surgeries) {
+      if (surgery.status !== surgeryStatuses.planned) continue;
+      const dayKey = surgeryDayKey(surgery.scheduledAt, timeZone);
+      counts.set(dayKey, (counts.get(dayKey) ?? 0) + 1);
+    }
+    return counts;
+  }, [surgeries, timeZone]);
+
+  const selectedDayKey = selectedDate
+    ? dateValueToIsoDate(selectedDate)
+    : undefined;
+  const visibleSurgeries = useMemo(() => {
+    if (selectedDayKey) {
+      return sortByStart(
+        surgeries.filter(
+          (surgery) =>
+            surgeryDayKey(surgery.scheduledAt, timeZone) === selectedDayKey,
+        ),
+      );
+    }
+    const now = Date.now();
+    return sortByStart(
+      surgeries.filter(
+        (surgery) =>
+          surgery.status === surgeryStatuses.planned &&
+          new Date(surgery.scheduledAt).getTime() >= now,
+      ),
+    );
+  }, [surgeries, selectedDayKey, timeZone]);
+
+  const monthRows = selectedDayKey
+    ? visibleSurgeries
+    : visibleSurgeries.slice(0, maxMonthRows);
+  const hiddenCount = visibleSurgeries.length - monthRows.length;
+
+  const toggleSelectedDate = (date: CalendarDate | null) => {
+    if (!date) {
+      setSelectedDate(null);
+      return;
+    }
+    setSelectedDate((current) =>
+      current && current.compare(date) === 0 ? null : date,
+    );
+  };
+
   return (
     <Card className={`${styles.widget} relative flex h-full min-h-[620px] flex-col overflow-hidden p-0`}>
       <Image
@@ -52,7 +124,7 @@ export function SurgeriesWidget() {
               aria-label={t("home.dashboard.surgeriesCalendarLabel")}
               focusedValue={focusedDate}
               value={selectedDate}
-              onChange={setSelectedDate}
+              onChange={toggleSelectedDate}
               onFocusChange={setFocusedDate}
               weeksInMonth={6}
               className="w-full"
@@ -61,13 +133,13 @@ export function SurgeriesWidget() {
                 <Calendar.Heading />
                 <div className="flex gap-1">
                   <Calendar.NavButton
-                    className="h-6 w-auto min-w-fit px-1.5 text-xs"
+                    className="h-6 w-auto min-w-fit px-1.5 text-sm"
                     slot="previous"
                   >
                     {t("common.actions.previous")}
                   </Calendar.NavButton>
                   <Calendar.NavButton
-                    className="h-6 w-auto min-w-fit px-1.5 text-xs"
+                    className="h-6 w-auto min-w-fit px-1.5 text-sm"
                     slot="next"
                   >
                     {t("common.actions.next")}
@@ -79,17 +151,69 @@ export function SurgeriesWidget() {
                   {(day) => <Calendar.HeaderCell>{day}</Calendar.HeaderCell>}
                 </Calendar.GridHeader>
                 <Calendar.GridBody>
-                  {(date) => <Calendar.Cell date={date} />}
+                  {(date) => {
+                    const count =
+                      surgeriesByDay.get(dateValueToIsoDate(date)) ?? 0;
+                    return (
+                      <Calendar.Cell date={date}>
+                        <span className="flex h-full w-full flex-col items-center justify-center gap-0.5">
+                          <span>
+                            {formatDate(date.toDate(timeZone), locale, {
+                              day: "numeric",
+                            })}
+                          </span>
+                          {count > 0 ? (
+                            <span className="flex h-3 items-center justify-center">
+                              <span
+                                aria-hidden="true"
+                                className={
+                                  count === 1
+                                    ? "block size-1.5 rounded-full bg-success"
+                                    : "min-w-4 rounded-full bg-success/15 px-1 text-center text-xs font-semibold leading-4 text-success"
+                                }
+                              >
+                                {count > 1 ? count : null}
+                              </span>
+                              <span className="sr-only">
+                                {count === 1
+                                  ? t("home.dashboard.oneSurgeryOnDay")
+                                  : t("home.dashboard.surgeriesOnDay", {
+                                      count,
+                                    })}
+                              </span>
+                            </span>
+                          ) : null}
+                        </span>
+                      </Calendar.Cell>
+                    );
+                  }}
                 </Calendar.GridBody>
               </Calendar.Grid>
             </Calendar>
-            <p className="mt-3 text-xs text-muted">
-              {selectedDate
-                ? formatDate(selectedDate.toDate(getLocalTimeZone()), locale, {
-                    dateStyle: "medium",
-                  })
-                : t("home.dashboard.surgeriesCalendarLabel")}
-            </p>
+            <div className="mt-3 flex items-center justify-between gap-2">
+              <p className="text-sm text-muted">
+                {selectedDate
+                  ? formatDate(selectedDate.toDate(timeZone), locale, {
+                      dateStyle: "medium",
+                    })
+                  : t("home.dashboard.surgeriesCalendarLabel")}
+              </p>
+              {selectedDate ? (
+                <Tooltip>
+                  <Button
+                    size="sm"
+                    variant="tertiary"
+                    onPress={() => setSelectedDate(null)}
+                  >
+                    <i aria-hidden="true" className="fa-light fa-calendar-days" />
+                    {t("home.dashboard.showWholeMonth")}
+                  </Button>
+                  <Tooltip.Content>
+                    {t("home.dashboard.showWholeMonth")}
+                  </Tooltip.Content>
+                </Tooltip>
+              ) : null}
+            </div>
             {query.isLoading ? (
               <p className="py-6 text-sm text-muted" aria-live="polite">
                 {t("home.dashboard.loadingSurgeries")}
@@ -114,38 +238,25 @@ export function SurgeriesWidget() {
                   <Tooltip.Content>{t("home.dashboard.retry")}</Tooltip.Content>
                 </Tooltip>
               </div>
-            ) : rows.length === 0 ? (
-              <p className="py-6 text-sm text-muted">
-                {t("home.dashboard.noSurgeries")}
-              </p>
             ) : (
-              <div className="divide-y divide-separator">
-                {rows.map((row) => {
-                  const fallbackName = `${t("home.dashboard.patient")} ${row.patientId.slice(0, 8)}`;
-                  const name = row.patientDisplayName?.trim() || fallbackName;
-                  return (
-                    <div
-                      className="flex items-center gap-3 py-3"
-                      key={row.surgeryId}
-                    >
-                      <span className={`grid size-9 shrink-0 place-items-center rounded-full bg-default text-xs font-semibold text-foreground`}>
-                        {name.trim().slice(0, 2).toUpperCase()}
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-semibold">{name}</p>
-                        <p className="truncate text-xs text-muted">
-                          {row.surgeryName}
-                        </p>
-                      </div>
-                      <time className="shrink-0 text-end text-xs font-semibold text-foreground">
-                        {formatDateTime(row.scheduledAt, locale, {
-                          dateStyle: "medium",
-                          timeStyle: "short",
-                        })}
-                      </time>
-                    </div>
-                  );
-                })}
+              <div className="flex flex-col">
+                <SurgeryList
+                  emptyMessage={
+                    selectedDayKey
+                      ? t("home.dashboard.noSurgeriesForDay")
+                      : t("home.dashboard.noSurgeries")
+                  }
+                  onOpen={(surgery) =>
+                    router.push(Routes.Clinic.Surgeries.Detail(surgery.id))
+                  }
+                  showDate={!selectedDayKey}
+                  surgeries={monthRows}
+                />
+                {hiddenCount > 0 ? (
+                  <p className="pt-2 text-sm text-muted">
+                    {t("home.dashboard.moreSurgeries", { count: hiddenCount })}
+                  </p>
+                ) : null}
               </div>
             )}
           <footer className="mt-auto flex gap-3 border-t border-separator pt-4">
@@ -153,7 +264,7 @@ export function SurgeriesWidget() {
               <Button
                 className="min-w-0 flex-1"
                 variant="outline"
-                onPress={() => router.push(Routes.Clinic.Patients.Index)}
+                onPress={() => router.push(Routes.Clinic.Surgeries.Index)}
               >
                 <i aria-hidden="true" className="fa-light fa-calendar-days" />
                 {t("home.dashboard.viewCalendar")}
@@ -162,19 +273,21 @@ export function SurgeriesWidget() {
                 {t("home.dashboard.viewCalendar")}
               </Tooltip.Content>
             </Tooltip>
-            <Tooltip>
-              <Button
-                className={`${clinicOperationButtonClassName("procedure")} min-w-0 flex-1`}
-                variant="primary"
-                onPress={() => router.push(Routes.Clinic.Patients.New)}
-              >
-                <i aria-hidden="true" className="fa-light fa-plus" />
-                {t("home.dashboard.addSurgery")}
-              </Button>
-              <Tooltip.Content>
-                {t("home.dashboard.addSurgery")}
-              </Tooltip.Content>
-            </Tooltip>
+            {canPlan ? (
+              <Tooltip>
+                <Button
+                  className="min-w-0 flex-1"
+                  variant="tertiary"
+                  onPress={() => router.push(Routes.Clinic.Surgeries.New)}
+                >
+                  <i aria-hidden="true" className="fa-light fa-plus" />
+                  {t("home.dashboard.addSurgery")}
+                </Button>
+                <Tooltip.Content>
+                  {t("home.dashboard.addSurgery")}
+                </Tooltip.Content>
+              </Tooltip>
+            ) : null}
           </footer>
         </Surface>
       </div>

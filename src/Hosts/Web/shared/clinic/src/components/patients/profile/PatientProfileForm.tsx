@@ -300,41 +300,6 @@ export function PatientProfileForm({
         <h2 className="mb-4 text-sm font-semibold text-foreground">
           {t("clinic.patient.sections.medical")}
         </h2>
-        <DatePicker
-          value={parseIsoDateValue(formData.dateOfSurgery)}
-          onChange={(value) =>
-            handleChange("dateOfSurgery", dateValueToIsoDate(value))
-          }
-        >
-          <Label>{t("clinic.patient.fields.dateOfSurgery")}</Label>
-          <DateField.Group fullWidth variant="secondary">
-            <DateField.Input>
-              {(segment) => <DateField.Segment segment={segment} />}
-            </DateField.Input>
-            <DateField.Suffix>
-              <DatePicker.Trigger>
-                <DatePicker.TriggerIndicator />
-              </DatePicker.Trigger>
-            </DateField.Suffix>
-          </DateField.Group>
-          <DatePicker.Popover>
-            <Calendar aria-label={t("clinic.patient.fields.dateOfSurgery")}>
-              <Calendar.Header>
-                <Calendar.NavButton slot="previous" />
-                <Calendar.Heading />
-                <Calendar.NavButton slot="next" />
-              </Calendar.Header>
-              <Calendar.Grid>
-                <Calendar.GridHeader>
-                  {(day) => <Calendar.HeaderCell>{day}</Calendar.HeaderCell>}
-                </Calendar.GridHeader>
-                <Calendar.GridBody>
-                  {(date) => <Calendar.Cell date={date} />}
-                </Calendar.GridBody>
-              </Calendar.Grid>
-            </Calendar>
-          </DatePicker.Popover>
-        </DatePicker>
         <div className="grid gap-4 sm:grid-cols-2">
           <FormTextField
             label={t("clinic.patient.fields.heightCm")}

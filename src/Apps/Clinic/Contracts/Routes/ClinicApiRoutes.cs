@@ -10,13 +10,21 @@ public static class ClinicApiRoutes
     public const string PatientFindOrCreate = "/patients/find-or-create";
     public const string PatientDetails = "/patients/{patientId:guid}";
     public const string PatientUpdate = PatientDetails;
-    public const string SurgeryCatalogs = "/surgeries/catalogs";
     public const string PatientSurgeries = PatientDetails + "/surgeries";
     public const string Surgeries = "/surgeries";
+    public const string SurgeryCatalogs = Surgeries + "/catalogs";
+    public const string SurgeryCatalogById = SurgeryCatalogs + "/{id:guid}";
+    public const string SurgeryCatalogDelete = SurgeryCatalogById + "/delete";
+    public const string SurgeryDefaultCatalog = SurgeryCatalogs + "/default";
+    public const string SurgerySettings = Surgeries + "/settings";
+    public const string SurgeryDefaultSettings = SurgerySettings + "/default";
+    public const string SurgeryCalendar = Surgeries + "/calendar";
+    public const string SurgeryConflicts = Surgeries + "/conflicts";
+    public const string SurgerySuggestions = Surgeries + "/suggestions";
     public const string DashboardAppointments = "/dashboard/appointments";
-    public const string DashboardSurgeries = "/dashboard/surgeries";
     public const string SurgeryById = Surgeries + "/{id:guid}";
     public const string SurgeryCancel = SurgeryById + "/cancel";
+    public const string SurgeryComplete = SurgeryById + "/complete";
     public const string PatientAssistant = "/patients/{patientId:guid}/assistant";
     // Compatibility window owned by Clinic API: legacy Web/third-party clients and persisted Intelligence conversations remain dependents;
     // remove these aliases only after all clients migrate and legacy traffic plus legacy conversation reads are absent.

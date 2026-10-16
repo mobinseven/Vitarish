@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using NpgsqlTypes;
@@ -63,7 +64,10 @@ internal sealed class PatientViewQueryShape(EntitySearchPatternFactory searchPat
     public IQueryable<PatientView> ApplySort(
         IQueryable<PatientView> query,
         PatientSortBy? sortBy,
-        bool descending)
+        bool descending,
+        ClinicDbContext dbContext,
+        string tenantId,
+        DateTimeOffset now)
     {
         sortBy ??= PatientSortBy.Name;
 
@@ -111,18 +115,8 @@ internal sealed class PatientViewQueryShape(EntitySearchPatternFactory searchPat
                 .ThenBy(patient => patient.LastName ?? patient.Name)
                 .ThenBy(patient => patient.FirstName)
                 .ThenBy(patient => patient.Id),
-            (PatientSortBy.DateOfSurgery, true) => query
-                .OrderByDescending(patient => patient.DateOfSurgery.HasValue)
-                .ThenByDescending(patient => patient.DateOfSurgery)
-                .ThenByDescending(patient => patient.LastName ?? patient.Name)
-                .ThenByDescending(patient => patient.FirstName)
-                .ThenByDescending(patient => patient.Id),
-            (PatientSortBy.DateOfSurgery, false) => query
-                .OrderByDescending(patient => patient.DateOfSurgery.HasValue)
-                .ThenBy(patient => patient.DateOfSurgery)
-                .ThenBy(patient => patient.LastName ?? patient.Name)
-                .ThenBy(patient => patient.FirstName)
-                .ThenBy(patient => patient.Id),
+            (PatientSortBy.LastSurgery, _) => OrderBySurgeryDate(query, PatientSurgeryDates.LastKey(dbContext, tenantId, now), descending),
+            (PatientSortBy.NextSurgery, _) => OrderBySurgeryDate(query, PatientSurgeryDates.NextKey(dbContext, tenantId, now), descending),
             (PatientSortBy.CreatedAt, true) => query
                 .OrderByDescending(patient => patient.CreatedAt)
                 .ThenByDescending(patient => patient.LastName ?? patient.Name)
@@ -151,5 +145,28 @@ internal sealed class PatientViewQueryShape(EntitySearchPatternFactory searchPat
                 .ThenBy(patient => patient.Name)
                 .ThenBy(patient => patient.Id)
         };
+    }
+
+    /// <summary>Patients with a date first, then by the date, then by name; matches the other date sorts.</summary>
+    private static IQueryable<PatientView> OrderBySurgeryDate(
+        IQueryable<PatientView> query,
+        Expression<Func<PatientView, DateTimeOffset?>> key,
+        bool descending)
+    {
+        Expression<Func<PatientView, bool>> hasKey = Expression.Lambda<Func<PatientView, bool>>(
+            Expression.Property(key.Body, nameof(Nullable<DateTimeOffset>.HasValue)),
+            key.Parameters);
+        IOrderedQueryable<PatientView> ordered = query.OrderByDescending(hasKey);
+        return descending
+            ? ordered
+                .ThenByDescending(key)
+                .ThenByDescending(patient => patient.LastName ?? patient.Name)
+                .ThenByDescending(patient => patient.FirstName)
+                .ThenByDescending(patient => patient.Id)
+            : ordered
+                .ThenBy(key)
+                .ThenBy(patient => patient.LastName ?? patient.Name)
+                .ThenBy(patient => patient.FirstName)
+                .ThenBy(patient => patient.Id);
     }
 }

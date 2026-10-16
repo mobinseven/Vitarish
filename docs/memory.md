@@ -17,6 +17,9 @@ Do not duplicate AGENTS.md, architecture.md, ADRs, runbooks, or module docs.
 - `private-practice-owner` and `patients` replace the retired `private-practice-general` web host; the backend Clinic and SEA modules remain active.
 - Internal module API endpoints are protected by default.
 - Generated clients/contracts are regenerated, not manually edited.
+- Patients may carry a legacy `DateOfSurgery` metadata value that nothing shows
+  or migrates since surgery planning; patient saves must keep it, and any change
+  that reads, migrates, or deletes it follows ADR-0015.
 - NSMAIL-1 FDP_RIP.2.1 does not require ending the session on browser close:
   its two-step-authentication guidance accepts any one of four options, and
   the auth cookie is issued only after the second factor succeeds. FTA_SSL.3.1
@@ -49,6 +52,11 @@ Do not duplicate AGENTS.md, architecture.md, ADRs, runbooks, or module docs.
   nonce from `<meta property="csp-nonce">`; every Web app layout must render
   `ContentSecurityPolicyNonceMeta` from `@vitarish/ui/content-security-policy`
   or the production browser-evidence gate fails on a `style-src-elem` violation.
+- SEA project objects store `Data` as a `Dictionary<string, object?>` and
+  serialize it again on every read, so a caller gets the same values back but
+  not the same JSON text (escaping and formatting can differ). Never compare or
+  hash stored object JSON as text; deserialize to the owning model and compare
+  that. Surgery idempotency fingerprints do this in `SurgeryToolchain`.
 
 ## Package/tool quirks
 
@@ -92,6 +100,26 @@ Do not duplicate AGENTS.md, architecture.md, ADRs, runbooks, or module docs.
   threshold or integrity trigger. The monitor alerts once per exceeded period, so a
   second threshold check in the same host run within the 15-minute interval writes
   no new event.
+
+### Inline project-object view refresh
+
+- Status: active E2E proof infrastructure.
+- Added date: 2026-10-14.
+- Owning module/doc: E2E host (`src/Hosts/E2e`), clinic surgery planning.
+- What: `E2eBackgroundJobClient` runs exactly one Hangfire job inline, the SEA
+  `ProjectObjectRefreshProcessor`, inside the current request scope; every other
+  job still throws. `E2eSurgeryViewRefresher` replaces the PostgreSQL
+  `SurgeryMaterializedViewRefresher` and rebuilds the in-memory surgery and
+  suggestion views from SEA project objects. The E2E in-memory contexts also
+  ignore `TransactionIgnoredWarning`, because reminder replacement opens a
+  transaction the in-memory store cannot honor.
+- Remove condition: remove when the E2E host runs on a real PostgreSQL store with
+  Hangfire, or when surgery reads no longer depend on materialized views.
+- Lesson for Codex: in the E2E host, a project-object write refreshes its view
+  synchronously, so a read right after the write sees it. Production surgery
+  writes also refresh the surgery view inline before returning
+  (`SurgeryToolchain.RefreshSurgeryViewAsync`, #870); other project-object
+  views still refresh asynchronously and can briefly serve the previous view.
 
 ## Temporary workarounds
 

@@ -125,7 +125,6 @@ SELECT
   p.md ->> 'LastName' AS "LastName",
 
   "Clinic"."try_timestamptz"(p.md ->> 'DateOfBirth') AS "DateOfBirth",
-  "Clinic"."try_timestamptz"(p.md ->> 'DateOfSurgery') AS "DateOfSurgery",
 
   COALESCE("Clinic"."try_int"(p.md ->> 'Gender'), 0) AS "Gender",
 
@@ -159,6 +158,8 @@ CREATE UNIQUE INDEX "IX_mv_Patients_Id"
 CREATE INDEX "IX_mv_Patients_Tags"
   ON "Clinic"."mv_Patients" USING GIN ("Tags");
 
+DROP MATERIALIZED VIEW IF EXISTS "Clinic"."mv_SurgerySuggestions";
+
 DROP MATERIALIZED VIEW IF EXISTS "Clinic"."mv_PatientSurgeries";
 
 CREATE MATERIALIZED VIEW "Clinic"."mv_PatientSurgeries" AS
@@ -177,6 +178,9 @@ SELECT
   po."Data" -> 'PersonsToNotify' AS "PersonsToNotify",
   po."Data" -> 'Contacts' AS "Contacts",
   po."Data" -> 'ReminderPolicies' AS "ReminderPolicies",
+  "Clinic"."try_int"(po."Data" ->> 'DurationMinutes') AS "DurationMinutes",
+  NULLIF(btrim(po."Data" ->> 'Location'), '') AS "Location",
+  COALESCE(po."Data" -> 'Team', '[]'::jsonb) AS "Team",
   po."CreatedAt",
   po."UpdatedAt"
 FROM "Sea"."ProjectObjects" po
@@ -189,3 +193,33 @@ CREATE UNIQUE INDEX "IX_mv_PatientSurgeries_Id"
 
 CREATE INDEX "IX_mv_PatientSurgeries_TenantId_PatientId"
   ON "Clinic"."mv_PatientSurgeries" ("TenantId", "PatientId");
+
+CREATE INDEX "IX_mv_PatientSurgeries_TenantId_ScheduledAt"
+  ON "Clinic"."mv_PatientSurgeries" ("TenantId", "ScheduledAt");
+
+CREATE MATERIALIZED VIEW "Clinic"."mv_SurgerySuggestions" AS
+SELECT
+  s."TenantId" AS "TenantId",
+  'location' AS "Kind",
+  s."Location" AS "Value",
+  count(*)::bigint AS "UseCount",
+  max(GREATEST(s."CreatedAt", COALESCE(s."UpdatedAt", s."CreatedAt"))) AS "LastUsedAt"
+FROM "Clinic"."mv_PatientSurgeries" s
+WHERE s."Location" IS NOT NULL
+GROUP BY s."TenantId", s."Location"
+
+UNION ALL
+
+SELECT
+  s."TenantId" AS "TenantId",
+  'role' AS "Kind",
+  btrim(member ->> 'Role') AS "Value",
+  count(*)::bigint AS "UseCount",
+  max(GREATEST(s."CreatedAt", COALESCE(s."UpdatedAt", s."CreatedAt"))) AS "LastUsedAt"
+FROM "Clinic"."mv_PatientSurgeries" s
+CROSS JOIN LATERAL jsonb_array_elements(s."Team") AS member
+WHERE btrim(member ->> 'Role') <> ''
+GROUP BY s."TenantId", btrim(member ->> 'Role');
+
+CREATE UNIQUE INDEX "IX_mv_SurgerySuggestions_TenantId_Kind_Value"
+  ON "Clinic"."mv_SurgerySuggestions" ("TenantId", "Kind", "Value");

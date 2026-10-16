@@ -118,7 +118,10 @@ public sealed class SurgeryAssistantActionCommitter(ISurgeryToolchain surgeries)
                 proposal.PersonsToNotify,
                 proposal.Contacts,
                 proposal.ReminderPolicies,
-                Guid.Empty), cancellationToken);
+                Guid.Empty,
+                DurationMinutes: proposal.DurationMinutes,
+                Location: proposal.Location,
+                Team: proposal.Team?.Select(member => new SurgeryTeamMember(member.UserId, string.Empty, member.Role)).ToArray()), cancellationToken);
             return AssistantActionCommitResult.Completed(JsonSerializer.Serialize(
                 result,
                 SurgeryAssistantJsonSerializerContext.Default.SurgeryReadModel));
@@ -126,6 +129,10 @@ public sealed class SurgeryAssistantActionCommitter(ISurgeryToolchain surgeries)
         catch (ArgumentException exception)
         {
             return AssistantActionCommitResult.Failed("invalid_surgery", exception.Message);
+        }
+        catch (SurgeryPlanningForbiddenException exception)
+        {
+            return AssistantActionCommitResult.Failed("surgery_forbidden", exception.Message);
         }
         catch (SurgeryOperationUnavailableException exception)
         {

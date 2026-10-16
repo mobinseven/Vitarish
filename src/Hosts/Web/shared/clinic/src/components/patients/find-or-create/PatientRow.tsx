@@ -9,6 +9,7 @@ import type {
 } from "../../../models/patients/patientSearchModels";
 import { patientTagClassName } from "../tags/patientTagColor";
 import { useLocalizedText, formatDate } from "../../../localization/index";
+import { resolvePatientSortValue } from "./patientSortValue";
 
 interface PatientRowProps {
   patient: PatientViewDto;
@@ -28,16 +29,10 @@ export function PatientRow({
     patient.firstName || patient.lastName
       ? ((patient.firstName ?? "") + " " + (patient.lastName ?? "")).trim()
       : patient.name || t("clinic.patients.unnamedPatient");
-  const description =
-    subtitleField === "DateOfBirth"
-      ? patient.dateOfBirth && formatDate(patient.dateOfBirth, locale)
-      : subtitleField === "DateOfSurgery"
-        ? patient.dateOfSurgery && formatDate(patient.dateOfSurgery, locale)
-        : subtitleField === "Name"
-          ? patientName
-          : patient.identificationCode
-            ? `${t("clinic.patient.fields.identificationCode")}: ${patient.identificationCode}`
-            : null;
+  const sortValue = resolvePatientSortValue(subtitleField, patient, { locale });
+  const description = sortValue
+    ? `${t(sortValue.labelKey)}: ${sortValue.value}`
+    : null;
 
   return (
     <ItemCard<"button">

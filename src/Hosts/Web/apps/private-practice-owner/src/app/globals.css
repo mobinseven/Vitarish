@@ -29,6 +29,8 @@
   --color-chroma-quinary-foreground: var(--chroma-quinary-foreground);
   --color-chroma-senary: var(--chroma-senary);
   --color-chroma-senary-foreground: var(--chroma-senary-foreground);
+  --color-anchor: var(--anchor);
+  --color-anchor-foreground: var(--anchor-foreground);
 }
 /* 
 @theme inline {
@@ -290,4 +292,37 @@ html[dir="rtl"] body {
   --chroma-quaternary-foreground: #ffffff;
   --chroma-quinary-foreground: #ffffff;
   --chroma-senary-foreground: #ffffff;
+}
+
+/*
+ * Anchor (docs/hosts/web/color-roles.md): the deep navy that grounds the
+ * magenta accent. It fills the patient hero band with white text, and is the
+ * hue of the light-mode ink. One value serves both modes, as the accent does.
+ */
+:root {
+  --anchor: oklch(27.9% 0.082 275);
+  --anchor-foreground: #ffffff;
+}
+
+/*
+ * Owner-approved override of design-system tokens (2026-10-14), recorded in
+ * docs/hosts/web/color-roles.md. The saved HeroUI design system in
+ * ./theme.css does not carry these values yet. Remove this block once that
+ * design system is updated and re-exported with them. The root selector
+ * excludes dark mode, which keeps the export's dark background and ink.
+ */
+:root:not(.dark):not([data-theme="dark"]),
+.light,
+.default,
+[data-theme="light"],
+[data-theme="default"] {
+  --background: oklch(97.5% 0.006 270);
+  --foreground: var(--anchor);
+  --muted: oklch(50% 0.035 275);
+  --danger: oklch(58% 0.2 38);
+}
+
+.dark,
+[data-theme="dark"] {
+  --danger: oklch(66% 0.19 38);
 }

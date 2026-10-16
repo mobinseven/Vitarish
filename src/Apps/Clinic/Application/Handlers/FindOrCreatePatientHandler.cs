@@ -63,7 +63,6 @@ public sealed class FindOrCreatePatientHandler(IPatientDirectory patientDirector
             Phone = NormalizeOptional(request.Phone),
             Email = NormalizeOptional(request.Email),
             DateOfBirth = request.DateOfBirth,
-            DateOfSurgery = request.DateOfSurgery,
             Gender = request.Gender ?? Gender.Unspecified,
             PlaceOfBirth = NormalizeOptional(request.PlaceOfBirth),
             Address = NormalizeOptional(request.Address),

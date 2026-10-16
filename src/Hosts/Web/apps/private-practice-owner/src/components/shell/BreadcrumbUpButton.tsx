@@ -60,6 +60,18 @@ function getParentPathname(pathname: string): string | undefined {
   );
   if (procedureMatch) return `/patients/${procedureMatch[1]}`;
 
+  const surgeryEditMatch = pathname.match(/^\/surgeries\/([^/]+)\/edit\/?$/);
+  if (surgeryEditMatch) return `/surgeries/${surgeryEditMatch[1]}`;
+
+  const surgeryNewMatch = pathname.match(/^\/surgeries\/new\/?$/);
+  if (surgeryNewMatch) return "/surgeries";
+
+  const surgeryDetailMatch = pathname.match(/^\/surgeries\/([^/]+)\/?$/);
+  if (surgeryDetailMatch) return "/surgeries";
+
+  const surgeryTypesMatch = pathname.match(/^\/settings\/surgery-types\/?$/);
+  if (surgeryTypesMatch) return "/settings";
+
   const segments = pathname.split("/").filter(Boolean);
   if (segments.length < 2) return undefined;
   return "/" + segments.slice(0, -1).join("/");

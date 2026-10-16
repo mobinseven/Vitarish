@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Security.Cryptography;
 using System.Text;
@@ -17,6 +18,7 @@ using Vitarish.Clinic.Application.Assistant.Actions;
 using Vitarish.Clinic.Application.Assistant.Capabilities;
 using Vitarish.Clinic.Application.Assistant.Operations;
 using Vitarish.Clinic.Api.Assistant;
+using Vitarish.Clinic.Contracts.Authorization;
 using Vitarish.Clinic.Contracts.Errors;
 using Vitarish.Clinic.Contracts.ClinicAssistant;
 using Vitarish.Clinic.Contracts.Responses;
@@ -44,6 +46,7 @@ public static class ClinicApiEndpointMapping
 {
     private const int DefaultSkip = 0;
     private const int DefaultTake = 100;
+    private const string SurgeryOperationLogCategory = "Vitarish.Clinic.Surgeries";
 
     public static IEndpointRouteBuilder MapClinicApi(this IEndpointRouteBuilder endpoints)
     {
@@ -60,21 +63,44 @@ public static class ClinicApiEndpointMapping
         _ = group.MapModuleGet(ClinicApiRoutes.PatientDetails, GetPatientDetailsAsync, "ClinicGetPatientDetails", typeof(PatientViewDto));
         _ = group.MapModulePut(ClinicApiRoutes.PatientUpdate, UpdatePatientAsync, "ClinicUpdatePatient", typeof(PatientViewDto))
             .RequireAuthorization(SeaAuthorizationPolicies.UpdateProject);
-        _ = group.MapModuleGet(ClinicApiRoutes.SurgeryCatalogs, GetSurgeryCatalogs, "ClinicGetSurgeryCatalogs", typeof(SurgeryCatalogDto[]));
+        _ = group.MapModuleGet(ClinicApiRoutes.SurgeryCatalogs, GetSurgeryCatalogsAsync, "ClinicGetSurgeryCatalogs", typeof(SurgeryCatalogDto[]))
+            .RequireAuthorization(SeaAuthorizationPolicies.Read);
+        _ = group.MapModulePost(ClinicApiRoutes.SurgeryCatalogs, CreateSurgeryCatalogAsync, "ClinicCreateSurgeryCatalog", typeof(SurgeryCatalogDto), successStatusCode: StatusCodes.Status201Created)
+            .RequireAuthorization(ClinicAuthorizationPolicies.PlanSurgeries);
+        _ = group.MapModulePut(ClinicApiRoutes.SurgeryCatalogById, UpdateSurgeryCatalogAsync, "ClinicUpdateSurgeryCatalog", typeof(SurgeryCatalogDto))
+            .RequireAuthorization(ClinicAuthorizationPolicies.PlanSurgeries);
+        _ = group.MapModulePost(ClinicApiRoutes.SurgeryCatalogDelete, DeleteSurgeryCatalogAsync, "ClinicDeleteSurgeryCatalog", successStatusCode: StatusCodes.Status204NoContent)
+            .RequireAuthorization(ClinicAuthorizationPolicies.PlanSurgeries);
+        _ = group.MapModulePost(ClinicApiRoutes.SurgeryDefaultCatalog, EnsureDefaultSurgeryCatalogAsync, "ClinicEnsureDefaultSurgeryCatalog", typeof(SurgeryCatalogDto))
+            .RequireAuthorization(ClinicAuthorizationPolicies.PlanSurgeries);
+        _ = group.MapModuleGet(ClinicApiRoutes.SurgerySettings, GetSurgerySettingsAsync, "ClinicGetSurgerySettings", typeof(SurgerySettingsDto))
+            .RequireAuthorization(SeaAuthorizationPolicies.Read);
+        _ = group.MapModulePut(ClinicApiRoutes.SurgerySettings, UpdateSurgerySettingsAsync, "ClinicUpdateSurgerySettings", typeof(SurgerySettingsDto))
+            .RequireAuthorization(ClinicAuthorizationPolicies.PlanSurgeries);
+        _ = group.MapModulePost(ClinicApiRoutes.SurgeryDefaultSettings, EnsureDefaultSurgerySettingsAsync, "ClinicEnsureDefaultSurgerySettings", typeof(SurgerySettingsDto))
+            .RequireAuthorization(ClinicAuthorizationPolicies.PlanSurgeries);
         _ = group.MapModuleGet(ClinicApiRoutes.Surgeries, ListSurgeriesAsync, "ClinicListSurgeries", typeof(SurgeryResponse[]))
             .RequireAuthorization(SeaAuthorizationPolicies.Read);
-        _ = group.MapModuleGet(ClinicApiRoutes.DashboardAppointments, ListDashboardAppointmentsAsync, "ClinicListDashboardAppointments", typeof(DashboardAppointmentResponse[]))
+        _ = group.MapModuleGet(ClinicApiRoutes.SurgeryCalendar, ListSurgeryCalendarAsync, "ClinicListSurgeryCalendar", typeof(SurgeryCalendarEntryResponse[]))
             .RequireAuthorization(SeaAuthorizationPolicies.Read);
-        _ = group.MapModuleGet(ClinicApiRoutes.DashboardSurgeries, ListDashboardSurgeriesAsync, "ClinicListDashboardSurgeries", typeof(DashboardSurgeryResponse[]))
+        _ = group.MapModuleGet(ClinicApiRoutes.SurgeryConflicts, FindSurgeryConflictsAsync, "ClinicFindSurgeryConflicts", typeof(SurgeryConflictResponse[]))
+            .RequireAuthorization(SeaAuthorizationPolicies.Read);
+        _ = group.MapModuleGet(ClinicApiRoutes.SurgerySuggestions, GetSurgerySuggestionsAsync, "ClinicGetSurgerySuggestions", typeof(SurgerySuggestionsResponse))
+            .RequireAuthorization(SeaAuthorizationPolicies.Read);
+        _ = group.MapModuleGet(ClinicApiRoutes.SurgeryById, GetSurgeryAsync, "ClinicGetSurgery", typeof(SurgeryCalendarEntryResponse))
+            .RequireAuthorization(SeaAuthorizationPolicies.Read);
+        _ = group.MapModuleGet(ClinicApiRoutes.DashboardAppointments, ListDashboardAppointmentsAsync, "ClinicListDashboardAppointments", typeof(DashboardAppointmentResponse[]))
             .RequireAuthorization(SeaAuthorizationPolicies.Read);
         _ = group.MapModuleGet(ClinicApiRoutes.PatientSurgeries, ListPatientSurgeriesAsync, "ClinicListPatientSurgeries", typeof(SurgeryResponse[]))
             .RequireAuthorization(SeaAuthorizationPolicies.Read);
         _ = group.MapModulePost(ClinicApiRoutes.PatientSurgeries, CreatePatientSurgeryAsync, "ClinicCreatePatientSurgery", typeof(SurgeryResponse))
-            .RequireAuthorization(SeaAuthorizationPolicies.CreateProject);
+            .RequireAuthorization(ClinicAuthorizationPolicies.PlanSurgeries);
         _ = group.MapModulePut(ClinicApiRoutes.SurgeryById, UpdateSurgeryAsync, "ClinicUpdateSurgery", typeof(SurgeryResponse))
-            .RequireAuthorization(SeaAuthorizationPolicies.UpdateProject);
+            .RequireAuthorization(ClinicAuthorizationPolicies.PlanSurgeries);
         _ = group.MapModulePost(ClinicApiRoutes.SurgeryCancel, CancelSurgeryAsync, "ClinicCancelSurgery", typeof(SurgeryResponse))
-            .RequireAuthorization(SeaAuthorizationPolicies.UpdateProject);
+            .RequireAuthorization(ClinicAuthorizationPolicies.PlanSurgeries);
+        _ = group.MapModulePost(ClinicApiRoutes.SurgeryComplete, CompleteSurgeryAsync, "ClinicCompleteSurgery", typeof(SurgeryResponse))
+            .RequireAuthorization(ClinicAuthorizationPolicies.PlanSurgeries);
         _ = group.MapModulePost(ClinicApiRoutes.PatientAssistant, RunCanonicalPatientAssistantAsync, "ClinicRunPatientAssistant", typeof(RunClinicAssistantResponse));
         _ = group.MapModulePost(ClinicApiRoutes.LegacyPatientAgent, RunLegacyPatientAgentAsync, "ClinicRunPatientAgent", typeof(RunClinicAssistantResponse));
         _ = group.MapModuleDelete(ClinicApiRoutes.PatientAssistantConversation, DeleteCanonicalPatientAssistantConversationAsync, "ClinicDeletePatientAssistantConversation");
@@ -139,17 +165,115 @@ public static class ClinicApiEndpointMapping
         return endpoints;
     }
 
-    private static IReadOnlyList<SurgeryCatalogDto> GetSurgeryCatalogs([FromServices] ISurgeryToolchain toolchain)
-        => toolchain.GetCatalogs().Select(ToContract).ToArray();
+    private static async Task<IResult> GetSurgeryCatalogsAsync([FromServices] ISurgeryCatalogStore catalogs, CancellationToken cancellationToken)
+        => Results.Ok((await catalogs.ListAsync(cancellationToken)).Select(ToContract).ToArray());
+
+    private static Task<IResult> CreateSurgeryCatalogAsync(HttpContext httpContext, SurgeryCatalogWriteRequest? request, [FromServices] ISurgeryCatalogStore catalogs, CancellationToken cancellationToken)
+        => ExecuteSurgeryOperationAsync(httpContext, async () =>
+        {
+            SurgeryCatalogWriteRequest validRequest = ValidateCatalogRequestShape(request);
+            SurgeryCatalog created = await catalogs.CreateAsync(ToDomain(validRequest), cancellationToken);
+            return Results.Created($"{ClinicApiRoutes.Base}{ClinicApiRoutes.SurgeryCatalogs}/{created.Id}", ToContract(created));
+        });
+
+    private static Task<IResult> UpdateSurgeryCatalogAsync(HttpContext httpContext, Guid id, SurgeryCatalogUpdateRequest? request, [FromServices] ISurgeryCatalogStore catalogs, CancellationToken cancellationToken)
+        => ExecuteSurgeryOperationAsync(httpContext, async () =>
+        {
+            SurgeryCatalogUpdateRequest validRequest = ValidateCatalogRequestShape(request);
+            if (validRequest.ConcurrencyToken == Guid.Empty)
+            {
+                return Results.BadRequest("A concurrency token is required.");
+            }
+
+            SurgeryCatalog? result = await catalogs.UpdateAsync(id, ToDomain(validRequest), validRequest.ConcurrencyToken, cancellationToken);
+            return result is null ? Results.NotFound() : Results.Ok(ToContract(result));
+        });
+
+    private static Task<IResult> DeleteSurgeryCatalogAsync(HttpContext httpContext, Guid id, SurgeryCatalogDeleteRequest? request, [FromServices] ISurgeryCatalogStore catalogs, CancellationToken cancellationToken)
+        => ExecuteSurgeryOperationAsync(httpContext, async () =>
+        {
+            if (request is null || request.ConcurrencyToken == Guid.Empty)
+            {
+                return Results.BadRequest("A concurrency token is required.");
+            }
+
+            bool deleted = await catalogs.DeleteAsync(id, request.ConcurrencyToken, cancellationToken);
+            return deleted ? Results.NoContent() : Results.NotFound();
+        });
+
+    private static Task<IResult> EnsureDefaultSurgeryCatalogAsync(HttpContext httpContext, SurgeryCatalogWriteRequest? request, [FromServices] ISurgeryCatalogStore catalogs, CancellationToken cancellationToken)
+        => ExecuteSurgeryOperationAsync(httpContext, async () =>
+        {
+            SurgeryCatalogWriteRequest validRequest = ValidateCatalogRequestShape(request);
+            SurgeryCatalog result = await catalogs.EnsureDefaultAsync(ToDomain(validRequest), cancellationToken);
+            return Results.Ok(ToContract(result));
+        });
+
+    private static async Task<IResult> GetSurgerySettingsAsync([FromServices] ISurgerySettingsStore settings, CancellationToken cancellationToken)
+    {
+        SurgerySettings? result = await settings.GetAsync(cancellationToken);
+        return result is null ? Results.NotFound() : Results.Ok(ToContract(result));
+    }
+
+    private static Task<IResult> UpdateSurgerySettingsAsync(HttpContext httpContext, SurgerySettingsUpdateRequest? request, [FromServices] ISurgerySettingsStore settings, CancellationToken cancellationToken)
+        => ExecuteSurgeryOperationAsync(httpContext, async () =>
+        {
+            SurgerySettingsUpdateRequest validRequest = ValidateSettingsRequestShape(request);
+            if (validRequest.ConcurrencyToken == Guid.Empty)
+            {
+                return Results.BadRequest("A concurrency token is required.");
+            }
+
+            SurgerySettings? result = await settings.UpdateAsync(ToDomain(validRequest), validRequest.ConcurrencyToken, cancellationToken);
+            return result is null ? Results.NotFound() : Results.Ok(ToContract(result));
+        });
+
+    private static Task<IResult> EnsureDefaultSurgerySettingsAsync(HttpContext httpContext, SurgerySettingsWriteRequest? request, [FromServices] ISurgerySettingsStore settings, CancellationToken cancellationToken)
+        => ExecuteSurgeryOperationAsync(httpContext, async () =>
+        {
+            SurgerySettingsWriteRequest validRequest = ValidateSettingsRequestShape(request);
+            SurgerySettings result = await settings.EnsureDefaultAsync(ToDomain(validRequest), cancellationToken);
+            return Results.Ok(ToContract(result));
+        });
 
     private static async Task<IResult> ListSurgeriesAsync([FromServices] ISurgeryToolchain toolchain, CancellationToken cancellationToken)
         => Results.Ok((await toolchain.GetUpcomingAsync(cancellationToken)).Select(ToContract).ToArray());
 
+    private static async Task<IResult> ListSurgeryCalendarAsync([AsParameters] SurgeryCalendarRequest request, [FromServices] ISurgeryToolchain toolchain, CancellationToken cancellationToken)
+    {
+        if (request.to <= request.from)
+        {
+            return Results.BadRequest("The calendar end must be after its start.");
+        }
+
+        if (request.to - request.from > TimeSpan.FromDays(SurgeryCalendarLimits.MaxRangeDays))
+        {
+            return Results.BadRequest($"The calendar range cannot exceed {SurgeryCalendarLimits.MaxRangeDays} days.");
+        }
+
+        return Results.Ok((await toolchain.GetCalendarAsync(request.from, request.to, cancellationToken)).Select(ToContract).ToArray());
+    }
+
+    private static async Task<IResult> FindSurgeryConflictsAsync([AsParameters] SurgeryConflictRequest request, [FromServices] ISurgeryToolchain toolchain, CancellationToken cancellationToken)
+    {
+        SurgeryConflictProbe probe = new(request.scheduledAt, request.durationMinutes, request.location, request.teamUserIds ?? [], request.excludeSurgeryId);
+        return Results.Ok((await toolchain.FindConflictsAsync(probe, cancellationToken)).Select(ToContract).ToArray());
+    }
+
+    private static async Task<IResult> GetSurgerySuggestionsAsync([FromServices] ISurgeryToolchain toolchain, CancellationToken cancellationToken)
+    {
+        SurgerySuggestions suggestions = await toolchain.GetSuggestionsAsync(cancellationToken);
+        return Results.Ok(new SurgerySuggestionsResponse(suggestions.Locations, suggestions.Roles));
+    }
+
+    private static async Task<IResult> GetSurgeryAsync(Guid id, [FromServices] ISurgeryToolchain toolchain, CancellationToken cancellationToken)
+    {
+        SurgeryCalendarEntry? entry = await toolchain.GetAsync(id, cancellationToken);
+        return entry is null ? Results.NotFound() : Results.Ok(ToContract(entry));
+    }
+
     private static Task<IResult> ListDashboardAppointmentsAsync([AsParameters] DashboardDateRangeRequest request, [FromServices] IClinicDashboardQueries queries, CancellationToken cancellationToken)
         => ListDashboardAsync(request, queries.ListAppointmentsAsync, values => values.Select(value => new DashboardAppointmentResponse(value.ReservationId, value.PatientId, value.PatientDisplayName, value.ServiceId, value.ServiceDisplayName, value.Date, value.StartTime, value.TimeZone, (Vitarish.Appointments.Contracts.Enums.ReservationStatus)value.Status, value.PatientTags)).ToArray(), cancellationToken);
-
-    private static Task<IResult> ListDashboardSurgeriesAsync([AsParameters] DashboardDateRangeRequest request, [FromServices] IClinicDashboardQueries queries, CancellationToken cancellationToken)
-        => ListDashboardAsync(request, queries.ListSurgeriesAsync, values => values.Select(value => new DashboardSurgeryResponse(value.SurgeryId, value.PatientId, value.PatientDisplayName, value.SurgeryName, value.Status, value.ScheduledAt)).ToArray(), cancellationToken);
 
     private static async Task<IResult> ListDashboardAsync<T, TContract>(DashboardDateRangeRequest request, Func<DashboardDateRange, CancellationToken, Task<IReadOnlyList<T>>> query, Func<IReadOnlyList<T>, TContract[]> map, CancellationToken cancellationToken)
     {
@@ -171,53 +295,24 @@ public static class ClinicApiEndpointMapping
     private static async Task<IResult> ListPatientSurgeriesAsync(Guid patientId, [FromServices] ISurgeryToolchain toolchain, CancellationToken cancellationToken)
         => Results.Ok((await toolchain.GetByPatientAsync(patientId, cancellationToken)).Select(ToContract).ToArray());
 
-    private static async Task<IResult> CreatePatientSurgeryAsync(Guid patientId, SurgeryCreateRequest? request, [FromServices] ISurgeryToolchain toolchain, CancellationToken cancellationToken)
-    {
-        try
+    private static Task<IResult> CreatePatientSurgeryAsync(HttpContext httpContext, Guid patientId, SurgeryCreateRequest? request, [FromServices] ISurgeryToolchain toolchain, CancellationToken cancellationToken)
+        => ExecuteSurgeryOperationAsync(httpContext, async () =>
         {
             SurgeryCreateRequest validRequest = ValidateRequestShape(request);
             SurgeryReadModel result = await toolchain.CreateAsync(ToDomain(Guid.Empty, patientId, validRequest), cancellationToken);
-            return Results.Created($"{ClinicApiRoutes.Base}/surgeries/{result.Id}", ToContract(result));
-        }
-        catch (ArgumentException exception)
-        {
-            return Results.BadRequest(exception.Message);
-        }
-        catch (SurgeryOperationUnavailableException exception)
-        {
-            return Results.Problem(exception.Message, statusCode: StatusCodes.Status503ServiceUnavailable);
-        }
-        catch (InvalidOperationException exception)
-        {
-            return Results.Conflict(exception.Message);
-        }
-    }
+            return Results.Created($"{ClinicApiRoutes.Base}{ClinicApiRoutes.Surgeries}/{result.Id}", ToContract(result));
+        });
 
-    private static async Task<IResult> UpdateSurgeryAsync(Guid id, SurgeryWriteRequest? request, [FromServices] ISurgeryToolchain toolchain, CancellationToken cancellationToken)
-    {
-        try
+    private static Task<IResult> UpdateSurgeryAsync(HttpContext httpContext, Guid id, SurgeryWriteRequest? request, [FromServices] ISurgeryToolchain toolchain, CancellationToken cancellationToken)
+        => ExecuteSurgeryOperationAsync(httpContext, async () =>
         {
             SurgeryWriteRequest validRequest = ValidateRequestShape(request);
             SurgeryReadModel? result = await toolchain.UpdateAsync(ToDomain(id, Guid.Empty, validRequest), cancellationToken);
             return result is null ? Results.NotFound() : Results.Ok(ToContract(result));
-        }
-        catch (ArgumentException exception)
-        {
-            return Results.BadRequest(exception.Message);
-        }
-        catch (SurgeryOperationUnavailableException exception)
-        {
-            return Results.Problem(exception.Message, statusCode: StatusCodes.Status503ServiceUnavailable);
-        }
-        catch (InvalidOperationException exception)
-        {
-            return Results.Conflict(exception.Message);
-        }
-    }
+        });
 
-    private static async Task<IResult> CancelSurgeryAsync(Guid id, SurgeryCancelRequest? request, [FromServices] ISurgeryToolchain toolchain, CancellationToken cancellationToken)
-    {
-        try
+    private static Task<IResult> CancelSurgeryAsync(HttpContext httpContext, Guid id, SurgeryCancelRequest? request, [FromServices] ISurgeryToolchain toolchain, CancellationToken cancellationToken)
+        => ExecuteSurgeryOperationAsync(httpContext, async () =>
         {
             if (request is null || request.ConcurrencyToken == Guid.Empty)
             {
@@ -226,13 +321,39 @@ public static class ClinicApiEndpointMapping
 
             SurgeryReadModel? result = await toolchain.CancelAsync(id, request.ConcurrencyToken, cancellationToken);
             return result is null ? Results.NotFound() : Results.Ok(ToContract(result));
+        });
+
+    private static Task<IResult> CompleteSurgeryAsync(HttpContext httpContext, Guid id, SurgeryCompleteRequest? request, [FromServices] ISurgeryToolchain toolchain, CancellationToken cancellationToken)
+        => ExecuteSurgeryOperationAsync(httpContext, async () =>
+        {
+            if (request is null || request.ConcurrencyToken == Guid.Empty)
+            {
+                return Results.BadRequest("A concurrency token is required.");
+            }
+
+            SurgeryReadModel? result = await toolchain.CompleteAsync(id, request.ConcurrencyToken, cancellationToken);
+            return result is null ? Results.NotFound() : Results.Ok(ToContract(result));
+        });
+
+    private static async Task<IResult> ExecuteSurgeryOperationAsync(HttpContext httpContext, Func<Task<IResult>> operation)
+    {
+        try
+        {
+            return await operation();
         }
         catch (ArgumentException exception)
         {
             return Results.BadRequest(exception.Message);
         }
+        catch (SurgeryPlanningForbiddenException)
+        {
+            return Results.Forbid();
+        }
         catch (SurgeryOperationUnavailableException exception)
         {
+            httpContext.RequestServices.GetRequiredService<ILoggerFactory>()
+                .CreateLogger(SurgeryOperationLogCategory)
+                .LogError(exception, "A surgery operation failed because a dependency is unavailable.");
             return Results.Problem(exception.Message, statusCode: StatusCodes.Status503ServiceUnavailable);
         }
         catch (InvalidOperationException exception)
@@ -254,7 +375,10 @@ public static class ClinicApiEndpointMapping
             request.Contacts,
             request.ReminderPolicies,
             request.ConcurrencyToken,
-            null);
+            null,
+            request.DurationMinutes,
+            request.Location,
+            request.Team);
 
     private static SurgeryWriteModel ToDomain(Guid id, Guid patientId, SurgeryCreateRequest request)
         => ToDomain(
@@ -269,7 +393,10 @@ public static class ClinicApiEndpointMapping
             request.Contacts,
             request.ReminderPolicies,
             Guid.Empty,
-            request.IdempotencyKey);
+            request.IdempotencyKey,
+            request.DurationMinutes,
+            request.Location,
+            request.Team);
 
     private static SurgeryWriteModel ToDomain(
         Guid id,
@@ -283,11 +410,14 @@ public static class ClinicApiEndpointMapping
         IReadOnlyList<SurgeryContactDto> contacts,
         IReadOnlyList<SurgeryReminderPolicyDto> reminderPolicies,
         Guid concurrencyToken,
-        string? idempotencyKey)
+        string? idempotencyKey,
+        int? durationMinutes,
+        string? location,
+        IReadOnlyList<SurgeryTeamMemberDto>? team)
     {
         if (!Enum.TryParse(statusValue, true, out SurgeryStatus status))
         {
-            throw new ArgumentException("Status must be Planned or Cancelled.", nameof(statusValue));
+            throw new ArgumentException($"Status must be one of: {string.Join(", ", Enum.GetNames<SurgeryStatus>())}.", nameof(statusValue));
         }
 
         return new(
@@ -301,9 +431,27 @@ public static class ClinicApiEndpointMapping
             tools,
             personsToNotify,
             contacts.Select(item => new SurgeryContact(item.Name, item.Destination, item.Channel)).ToArray(),
-            reminderPolicies.Select(item => new SurgeryReminderPolicy(item.Name, item.MinutesBefore, item.Subject, item.TextBody)).ToArray(),
-            concurrencyToken);
+            reminderPolicies.Select(ToDomain).ToArray(),
+            concurrencyToken,
+            durationMinutes,
+            location,
+            (team ?? []).Select(item => new SurgeryTeamMember(item.UserId, item.DisplayName, item.Role)).ToArray());
     }
+
+    private static SurgeryCatalogWriteModel ToDomain(SurgeryCatalogWriteRequest request)
+        => new(request.Name, request.Tools, request.DefaultTeamRoles, request.ReminderPolicies.Select(ToDomain).ToArray());
+
+    private static SurgeryCatalogWriteModel ToDomain(SurgeryCatalogUpdateRequest request)
+        => new(request.Name, request.Tools, request.DefaultTeamRoles, request.ReminderPolicies.Select(ToDomain).ToArray());
+
+    private static SurgerySettingsWriteModel ToDomain(SurgerySettingsWriteRequest request)
+        => new(request.CancellationSubject, request.CancellationTextBody);
+
+    private static SurgerySettingsWriteModel ToDomain(SurgerySettingsUpdateRequest request)
+        => new(request.CancellationSubject, request.CancellationTextBody);
+
+    private static SurgeryReminderPolicy ToDomain(SurgeryReminderPolicyDto value)
+        => new(value.Name, value.MinutesBefore, value.Subject, value.TextBody);
 
     private static SurgeryCreateRequest ValidateRequestShape(SurgeryCreateRequest? request)
     {
@@ -311,6 +459,11 @@ public static class ClinicApiEndpointMapping
         if (request.Tools is null || request.PersonsToNotify is null || request.Contacts is null || request.ReminderPolicies is null)
         {
             throw new ArgumentException("Surgery collections cannot be null.");
+        }
+
+        if (request.Team is not null && request.Team.Any(member => member is null || string.IsNullOrWhiteSpace(member.UserId) || string.IsNullOrWhiteSpace(member.Role)))
+        {
+            throw new ArgumentException("Each team member needs a user and a role.");
         }
 
         return request;
@@ -324,17 +477,59 @@ public static class ClinicApiEndpointMapping
             throw new ArgumentException("Surgery collections cannot be null.");
         }
 
+        if (request.Team is not null && request.Team.Any(member => member is null || string.IsNullOrWhiteSpace(member.UserId) || string.IsNullOrWhiteSpace(member.Role)))
+        {
+            throw new ArgumentException("Each team member needs a user and a role.");
+        }
+
         return request;
     }
 
+    private static SurgeryCatalogWriteRequest ValidateCatalogRequestShape(SurgeryCatalogWriteRequest? request)
+    {
+        if (request is null) throw new ArgumentException("A surgery type request is required.");
+        if (request.Tools is null || request.DefaultTeamRoles is null || request.ReminderPolicies is null)
+        {
+            throw new ArgumentException("Surgery type collections cannot be null.");
+        }
+
+        return request;
+    }
+
+    private static SurgeryCatalogUpdateRequest ValidateCatalogRequestShape(SurgeryCatalogUpdateRequest? request)
+    {
+        if (request is null) throw new ArgumentException("A surgery type request is required.");
+        if (request.Tools is null || request.DefaultTeamRoles is null || request.ReminderPolicies is null)
+        {
+            throw new ArgumentException("Surgery type collections cannot be null.");
+        }
+
+        return request;
+    }
+
+    private static SurgerySettingsWriteRequest ValidateSettingsRequestShape(SurgerySettingsWriteRequest? request)
+        => request ?? throw new ArgumentException("Surgery settings are required.");
+
+    private static SurgerySettingsUpdateRequest ValidateSettingsRequestShape(SurgerySettingsUpdateRequest? request)
+        => request ?? throw new ArgumentException("Surgery settings are required.");
+
     private static SurgeryCatalogDto ToContract(SurgeryCatalog value)
-        => new(value.Id, value.Name, value.Tools, value.PersonsToNotify, value.ReminderPolicies.Select(ToContract).ToArray());
+        => new(value.Id, value.Name, value.Tools, value.DefaultTeamRoles, value.ReminderPolicies.Select(ToContract).ToArray(), value.ConcurrencyToken);
 
     private static SurgeryResponse ToContract(SurgeryReadModel value)
-        => new(value.Id, value.PatientId, value.CatalogId, value.Name, value.IdempotencyKey, value.Status.ToString(), value.ScheduledAt, value.Tools, value.PersonsToNotify, value.Contacts.Select(item => new SurgeryContactDto(item.Name, item.Destination, item.Channel)).ToArray(), value.ReminderPolicies.Select(ToContract).ToArray(), value.ConcurrencyToken, value.CreatedAt, value.UpdatedAt);
+        => new(value.Id, value.PatientId, value.CatalogId, value.Name, value.IdempotencyKey, value.Status.ToString(), value.ScheduledAt, value.Tools, value.PersonsToNotify, value.Contacts.Select(item => new SurgeryContactDto(item.Name, item.Destination, item.Channel)).ToArray(), value.ReminderPolicies.Select(ToContract).ToArray(), value.ConcurrencyToken, value.CreatedAt, value.UpdatedAt, value.DurationMinutes, value.Location, value.Team.Select(item => new SurgeryTeamMemberDto(item.UserId, item.DisplayName, item.Role)).ToArray());
+
+    private static SurgeryCalendarEntryResponse ToContract(SurgeryCalendarEntry value)
+        => new(ToContract(value.Surgery), value.PatientDisplayName);
+
+    private static SurgeryConflictResponse ToContract(SurgeryConflict value)
+        => new(ToContract(value.Entry), value.Reasons.Select(reason => reason.ToString()).ToArray(), value.SharedTeamUserIds);
 
     private static SurgeryReminderPolicyDto ToContract(SurgeryReminderPolicy value)
         => new(value.Name, value.MinutesBefore, value.Subject, value.TextBody);
+
+    private static SurgerySettingsDto ToContract(SurgerySettings value)
+        => new(value.CancellationSubject, value.CancellationTextBody, value.ConcurrencyToken);
 
     private static IResult AgentRuntimeHealthAsync(
         HttpRequest request,
@@ -810,7 +1005,6 @@ public static class ClinicApiEndpointMapping
                 request.Phone,
                 request.Email,
                 request.DateOfBirth,
-                request.DateOfSurgery,
                 request.Gender is null ? null : (DomainGender)(int)request.Gender.Value,
                 request.PlaceOfBirth,
                 request.Address,
@@ -888,7 +1082,6 @@ public static class ClinicApiEndpointMapping
                 request.Phone,
                 request.Email,
                 request.DateOfBirth,
-                request.DateOfSurgery,
                 request.Gender is null ? null : (DomainGender)(int)request.Gender.Value,
                 request.PlaceOfBirth,
                 request.Address,
@@ -934,7 +1127,9 @@ public static class ClinicApiEndpointMapping
         ContractPatientSortBy.Template => DomainPatientSortBy.Template,
         ContractPatientSortBy.IdentificationCode => DomainPatientSortBy.IdentificationCode,
         ContractPatientSortBy.DateOfBirth => DomainPatientSortBy.DateOfBirth,
-        ContractPatientSortBy.DateOfSurgery => DomainPatientSortBy.DateOfSurgery,
+        ContractPatientSortBy.DateOfSurgery => DomainPatientSortBy.NextSurgery,
+        ContractPatientSortBy.LastSurgery => DomainPatientSortBy.LastSurgery,
+        ContractPatientSortBy.NextSurgery => DomainPatientSortBy.NextSurgery,
         ContractPatientSortBy.CreatedAt => DomainPatientSortBy.CreatedAt,
         ContractPatientSortBy.UpdatedAt => DomainPatientSortBy.UpdatedAt,
         _ => null
@@ -961,7 +1156,6 @@ public static class ClinicApiEndpointMapping
         FirstName = patient.FirstName,
         LastName = patient.LastName,
         DateOfBirth = patient.DateOfBirth,
-        DateOfSurgery = patient.DateOfSurgery,
         Gender = (ContractGender)(int)patient.Gender,
         PlaceOfBirth = patient.PlaceOfBirth,
         Address = patient.Address,
@@ -980,7 +1174,9 @@ public static class ClinicApiEndpointMapping
         ClinicalNotes = patient.ClinicalNotes,
         EmergencyContactName = patient.EmergencyContactName,
         EmergencyContactPhone = patient.EmergencyContactPhone,
-        Stats = ToContract(patient.Stats)
+        Stats = ToContract(patient.Stats),
+        LastSurgeryAt = patient.LastSurgeryAt,
+        NextSurgeryAt = patient.NextSurgeryAt
     };
 
     private static ContractStatsReadDto? ToContract(Vitarish.Sea.Domain.Dto.StatsReadDto? stats) => stats is null

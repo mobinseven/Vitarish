@@ -9,6 +9,7 @@ import { patientVisitsProcedureName } from "../../../hooks/patients/procedures/u
 import { formatDate, useLocalizedText } from "../../../localization";
 import type { NavigationIntent } from "../../../navigation";
 import { clinicOperationButtonClassName } from "../../operations/clinicOperation";
+import { useLocalizedText } from "../../../localization";
 
 interface PatientVisitsPanelProps {
   patientId: string;
@@ -50,7 +51,7 @@ export function PatientVisitsPanel({
         <p className="text-sm text-muted">
           {t("clinic.procedures.visits.description")}
         </p>
-        <Button className={clinicOperationButtonClassName("visit")} size="sm" variant="primary" onPress={onNewVisit}>
+        <Button size="sm" variant="tertiary" onPress={onNewVisit}>
           <FaIcon icon="plus" aria-hidden="true" />
           {t("clinic.procedures.visits.new")}
         </Button>

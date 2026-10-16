@@ -57,6 +57,14 @@ export function createCommandGroups(
           keywords: ["appointments", "reservations", "booking"],
         },
         {
+          id: "surgeries",
+          labelKey: "clinic.surgeries.title",
+          icon: "scissors",
+          shortcut: "G S",
+          action: () => navigate(Routes.Clinic.Surgeries.Index),
+          keywords: ["surgeries", "surgery", "operations"],
+        },
+        {
           id: "reminders",
           labelKey: "clinic.dashboard.sections.reminders.title",
           icon: "bell",

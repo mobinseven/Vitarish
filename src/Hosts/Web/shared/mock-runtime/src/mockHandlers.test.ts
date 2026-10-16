@@ -24,6 +24,19 @@ describe("mock preview handlers", () => {
     await expect(session.json()).resolves.toMatchObject({ isAuthenticated: false, user: null });
   });
 
+  it("pages a user's security and sign-in histories independently", async () => {
+    const response = await fetch("https://mock.example.test/api/modules/users/administration/mock-user/security?page=3&authenticationPage=2&pageSize=25");
+    const details = await response.json() as {
+      securityHistory: { page: number; totalCount: number; items: unknown[] };
+      authenticationHistory: { page: number; totalCount: number; items: unknown[] };
+    };
+
+    expect(details.securityHistory).toMatchObject({ page: 3, totalCount: 60 });
+    expect(details.securityHistory.items).toHaveLength(10);
+    expect(details.authenticationHistory).toMatchObject({ page: 2, totalCount: 40 });
+    expect(details.authenticationHistory.items).toHaveLength(15);
+  });
+
   it("enables every sign-in method in the authentication profile", async () => {
     const profile = await fetch("https://mock.example.test/api/modules/authentication/profile");
 

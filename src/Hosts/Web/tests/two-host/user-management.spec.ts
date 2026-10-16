@@ -186,7 +186,7 @@ test("authenticated platform administrator retains global search and membership 
     has: page.getByRole("heading", { name: "Authentication history", exact: true }),
   });
   await expect(authenticationHistory.getByText("Password login", { exact: true })).toBeVisible();
-  const passwordLoginEvent = authenticationHistory.getByRole("listitem").filter({ hasText: "Password login" }).first();
+  const passwordLoginEvent = authenticationHistory.getByRole("row").filter({ hasText: "Password login" }).first();
   await expect(passwordLoginEvent.getByText(new URL(platformOrigin).hostname, { exact: true })).toBeVisible();
   await signOutThroughPublicApi(page);
 });
@@ -474,6 +474,20 @@ test("platform administrator creates, edits, assigns access, and reviews a user'
   ]);
   expect(inheritResponse.ok()).toBe(true);
 
+  // Each saved timeout records security events, so these push the security history past
+  // its first page of 25 and give the pager something real to page through.
+  for (const minutes of [16, 17, 18, 19, 20, 21, 22, 23]) {
+    await page.getByRole("spinbutton", { name: "Inactivity timeout (minutes)" }).fill(String(minutes));
+    // The save refetches the stored timeout; wait for it so it cannot overwrite the next value typed.
+    const [timeoutResponse] = await Promise.all([
+      page.waitForResponse((response) => response.request().method() === "PUT" && response.url().includes(`/api/modules/authentication/security/users/${createdUser.id}/inactivity-timeout`)),
+      page.waitForResponse((response) => response.request().method() === "GET" && response.url().includes(`/api/modules/authentication/security/users/${createdUser.id}/inactivity-timeout`)),
+      page.getByRole("button", { name: "Save inactivity timeout" }).click(),
+    ]);
+    expect(timeoutResponse.ok()).toBe(true);
+    await expect(page.getByRole("spinbutton", { name: "Inactivity timeout (minutes)" })).toHaveValue(String(minutes));
+  }
+
   const stalePage = await page.context().newPage();
   await stalePage.goto(`${platformOrigin}${PlatformRoutes.Users.Detail(createdUser.id!)}`, { waitUntil: "domcontentloaded" });
   await expect(stalePage.getByText(createdUser.id!, { exact: true })).toBeVisible({ timeout: 30_000 });
@@ -543,13 +557,32 @@ test("platform administrator creates, edits, assigns access, and reviews a user'
   await page.reload({ waitUntil: "domcontentloaded" });
   const authenticationHistory = page.locator("section").filter({ has: page.getByRole("heading", { name: "Authentication history", exact: true }) });
   await expect(authenticationHistory.getByText("Password login", { exact: true })).toBeVisible({ timeout: 30_000 });
-  const failedAttempt = authenticationHistory.getByRole("listitem").filter({ hasText: "Password login" }).first();
+  const failedAttempt = authenticationHistory.getByRole("row").filter({ hasText: "Password login" }).first();
   await expect(failedAttempt.getByText("Denied", { exact: true })).toBeVisible();
   await expect(failedAttempt.getByText(new URL(platformOrigin).hostname, { exact: true })).toBeVisible();
   await expect(page.getByRole("textbox", { name: "Email address" })).toHaveValue(changedContact);
 
+  const securityHistory = page.locator("section").filter({ has: page.getByRole("heading", { name: "Security history", exact: true }) });
+  await expect(securityHistory.getByText(/^Page 1 of [2-9]$/)).toBeVisible();
+  await expect(authenticationHistory.getByRole("button", { name: "Older events" })).toHaveCount(0);
+
   const proofScreenshot = process.env[twoHostE2eProofScreenshotEnvironmentKey];
   if (proofScreenshot) await captureAuthenticatedScreenshot(page, proofScreenshot);
+
+  // The security history pages on its own: the request moves only its page, and the
+  // sign-in history stays on its first page.
+  const firstSecurityEvent = await securityHistory.getByRole("row").nth(1).textContent();
+  const [olderSecurityResponse] = await Promise.all([
+    page.waitForResponse((response) => response.request().method() === "GET" && response.url().includes(`/api/modules/users/administration/${createdUser.id}/security`) && response.url().includes("page=2")),
+    securityHistory.getByRole("button", { name: "Older events" }).click(),
+  ]);
+  expect(olderSecurityResponse.ok()).toBe(true);
+  const olderSecurityUrl = new URL(olderSecurityResponse.url());
+  expect(olderSecurityUrl.searchParams.get("page")).toBe("2");
+  expect(olderSecurityUrl.searchParams.get("authenticationPage")).toBe("1");
+  await expect(securityHistory.getByText(/^Page 2 of [2-9]$/)).toBeVisible();
+  await expect(securityHistory.getByRole("row").nth(1)).not.toHaveText(firstSecurityEvent ?? "");
+  await expect(failedAttempt.getByText("Denied", { exact: true })).toBeVisible();
 
   await page.goto(`${platformOrigin}${PlatformRoutes.Audit}`, { waitUntil: "domcontentloaded" });
   await expect(page.getByRole("heading", { name: "Security event stream", exact: true })).toBeVisible({ timeout: 30_000 });

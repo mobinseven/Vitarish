@@ -1,5 +1,8 @@
+import { surgeriesFaMessages } from "./surgeries";
+
 export const clinicFaMessages = {
   clinic: {
+    surgeries: surgeriesFaMessages,
     patients: {
       title: "بیماران",
       newPatient: "بیمار جدید",
@@ -84,7 +87,6 @@ export const clinicFaMessages = {
         address: "آدرس",
         emergencyContact: "تماس اضطراری",
         emergencyPhone: "تلفن اضطراری",
-        dateOfSurgery: "تاریخ جراحی",
         heightCm: "قد (سانتی‌متر)",
         weightKg: "وزن (کیلوگرم)",
         allergies: "آلرژی‌ها",
@@ -99,6 +101,18 @@ export const clinicFaMessages = {
         created: "ایجاد شده",
         updated: "بروزرسانی شده",
         tags: "برچسب‌ها",
+      },
+      sort: {
+        lastSurgery: "آخرین جراحی",
+        nextSurgery: "جراحی بعدی",
+      },
+      sortValue: {
+        identificationCode: "کد شناسایی",
+        dateOfBirth: "تاریخ تولد",
+        createdAt: "ایجاد شده",
+        updatedAt: "بروزرسانی شده",
+        lastSurgery: "آخرین جراحی",
+        nextSurgery: "جراحی بعدی",
       },
       overview: {
         title: "نمای کلی",

@@ -15,8 +15,6 @@ public record PatientWriteDto : ProjectWriteDto
 
     public DateTime? DateOfBirth { get => GetField<DateTime?>(); set => SetField(value); }
 
-    public DateTime? DateOfSurgery { get => GetField<DateTime?>(); set => SetField(value); }
-
     public Gender Gender { get => GetField<Gender>(); set => SetField(value); }
 
     public string? PlaceOfBirth { get => GetField<string>(); set => SetField(value); }

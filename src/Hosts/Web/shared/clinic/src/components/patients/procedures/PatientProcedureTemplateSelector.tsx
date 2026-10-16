@@ -21,7 +21,6 @@ import { usePatientProcedureTemplates } from "../../../hooks/patients/procedures
 import { useCreatePatientProcedure } from "../../../hooks/patients/procedures/usePatientProcedureMutations";
 import { useLocalizedText } from "../../../localization/index";
 import type { SeaProcedureReadDto } from "@vitarish/sea";
-import { clinicOperationButtonClassName } from "../../operations/clinicOperation";
 
 interface PatientProcedureTemplateSelectorProps {
   patientId: string;
@@ -233,7 +232,7 @@ export function PatientProcedureTemplateSelector({
                   >
                     {t("common.actions.cancel")}
                   </Button>
-                  <Button className={clinicOperationButtonClassName("procedure")}
+                  <Button
                     variant="primary"
                     onPress={handleCreate}
                     isDisabled={!customName.trim()}
