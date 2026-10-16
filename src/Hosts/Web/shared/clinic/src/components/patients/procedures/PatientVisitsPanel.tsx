@@ -8,7 +8,6 @@ import { usePatientProcedureEvents } from "../../../hooks/patients/procedures/us
 import { patientVisitsProcedureName } from "../../../hooks/patients/procedures/useEnsurePatientVisitsProcedure";
 import { formatDate, useLocalizedText } from "../../../localization";
 import type { NavigationIntent } from "../../../navigation";
-import { clinicOperationButtonClassName } from "../../operations/clinicOperation";
 
 interface PatientVisitsPanelProps {
   patientId: string;
