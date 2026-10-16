@@ -9,7 +9,6 @@ import { patientVisitsProcedureName } from "../../../hooks/patients/procedures/u
 import { formatDate, useLocalizedText } from "../../../localization";
 import type { NavigationIntent } from "../../../navigation";
 import { clinicOperationButtonClassName } from "../../operations/clinicOperation";
-import { useLocalizedText } from "../../../localization";
 
 interface PatientVisitsPanelProps {
   patientId: string;
