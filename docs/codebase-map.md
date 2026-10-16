@@ -324,8 +324,12 @@ npm run test:theme-mode
 
 `npm run screenshots:private-practice-owner` captures the private-practice-owner
 sign-in pages (signed out), its main signed-in pages (dashboard, patients,
-patient profile, audit), and the test-only color legend against the mock API
-for each mock scenario, locale, light/dark theme, and desktop/mobile viewport.
+patient profile, audit, SEA procedure templates, procedure, and step), and the
+test-only color legend against the mock API for each mock scenario, locale,
+light/dark theme, and desktop/mobile viewport. In the ready scenario it also
+walks the SEA clinic flow (template catalog, procedure from a template, step
+completion, step workspace) into a numbered `sea-flow/` folder; `--grep "sea-"`
+captures only the SEA screens.
 Narrow a run with
 `-- --scenarios ready -- --project desktop-light --grep "<name>"`; images land in
 `src/Hosts/Web/artifacts/private-practice-owner-screenshots/<scenario>/<locale>-<project>/`.

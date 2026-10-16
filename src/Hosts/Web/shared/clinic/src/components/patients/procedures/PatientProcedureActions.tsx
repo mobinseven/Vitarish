@@ -40,7 +40,7 @@ export function PatientProcedureActions({
           {procedure.description && (
             <p className="text-sm text-muted mt-1">{procedure.description}</p>
           )}
-          <div className="flex items-center gap-3 mt-2 text-xs text-muted">
+          <div className="flex items-center gap-3 mt-2 text-sm text-muted">
             <span>
               {t("clinic.procedures.events.count", {
                 count: procedure.eventCount,

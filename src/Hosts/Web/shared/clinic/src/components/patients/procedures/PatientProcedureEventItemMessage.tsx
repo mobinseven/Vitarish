@@ -2,21 +2,13 @@
 
 import { useState } from "react";
 import { Avatar, Button, Modal } from "@heroui/react";
-import {
-  ChatAttachment,
-  ChatAttachmentGroup,
-  ChatMessage,
-  ChatMessageActions,
-  ChatSource,
-  ContextMenu,
-  EmptyState,
-} from "@heroui-pro/react";
+import { ChatAttachment, ContextMenu } from "@heroui-pro/react";
 import { MenuItem } from "react-aria-components";
 import { FaIcon } from "@vitarish/ui";
 import { isStoredSeaAttachmentContent } from "@vitarish/sea";
 import { usePatientProcedureAttachmentSource } from "../../../hooks/patients/procedures/usePatientProcedureAttachmentSource";
 import {
-  formatDateTime,
+  formatDate,
   formatFileSize,
   useLocalizedText,
 } from "../../../localization";
@@ -26,6 +18,8 @@ import type {
 } from "../../../models/patients/procedures/PatientProcedureEventItemModels";
 
 export interface PatientProcedureEventItemMessageProps {
+  /** The author's display name when the practice's members could be resolved. */
+  authorName?: string;
   canWrite: boolean;
   isDeleting: boolean;
   item: EventItemSummary;
@@ -87,7 +81,7 @@ function AttachmentPreviewDialog({
                 />
               )}
             </div>
-            <dl className="text-muted flex flex-wrap gap-x-6 gap-y-2 text-xs">
+            <dl className="text-muted flex flex-wrap gap-x-6 gap-y-2 text-sm">
               {contentType ? (
                 <div className="flex gap-2">
                   <dt>{t("clinic.procedures.items.fileType")}</dt>
@@ -126,6 +120,7 @@ function AttachmentPreviewDialog({
 }
 
 export function PatientProcedureEventItemMessage({
+  authorName,
   canWrite,
   isDeleting,
   item,
@@ -141,21 +136,10 @@ export function PatientProcedureEventItemMessage({
   );
   const isCurrentUser = Boolean(viewer?.id && item.authorId === viewer.id);
   const authorLabel = isCurrentUser
-    ? (viewer?.label ?? t("clinic.procedures.items.you"))
-    : (item.authorName ?? t("clinic.procedures.items.careTeam"));
+    ? t("clinic.procedures.items.you")
+    : (authorName ?? item.authorName ?? t("clinic.procedures.items.careTeam"));
   const fileName =
     item.fileName ?? t("clinic.procedures.items.genericAttachment");
-  const metadata = (
-    <div
-      className={`text-muted flex min-w-0 flex-wrap items-center gap-2 text-xs ${isCurrentUser ? "justify-end" : "justify-start"}`}
-    >
-      <span className="text-foreground font-medium">{authorLabel}</span>
-      <span aria-hidden="true">·</span>
-      <time className="tabular-nums" dateTime={item.createdAt}>
-        {formatDateTime(item.createdAt, locale)}
-      </time>
-    </div>
-  );
   const attachmentPreview = (
     <ChatAttachment
       className="max-w-full"
@@ -209,69 +193,76 @@ export function PatientProcedureEventItemMessage({
         {attachmentPreview}
       </div>
     );
-  const body = attachment ? (
-    <ChatAttachmentGroup className={isCurrentUser ? "justify-end" : undefined}>
-      {attachment}
-    </ChatAttachmentGroup>
-  ) : (
-    <ChatMessage.Content>
-      <p className="m-0 whitespace-pre-wrap text-sm leading-relaxed">
-        {item.content}
-      </p>
-    </ChatMessage.Content>
+  const time = (
+    <time className="text-muted text-sm tabular-nums" dateTime={item.createdAt}>
+      {formatDate(item.createdAt, locale, { timeStyle: "short" })}
+    </time>
   );
-  const attachmentError = source.error ? null : null;
-  const message = isCurrentUser ? (
-    <ChatMessage.User id={item.id}>
-      {attachment ? body : <ChatMessage.Bubble>{body}</ChatMessage.Bubble>}
-      {attachmentError}
-    </ChatMessage.User>
-  ) : (
-    <ChatMessage.Assistant id={item.id}>
-      <ChatMessage.Body>
+  const message = (
+    <article
+      aria-label={authorLabel}
+      className={`flex w-full gap-3 ${isCurrentUser ? "flex-row-reverse" : ""}`}
+    >
+      {showAuthor ? (
+        <Avatar
+          color="default"
+          size="sm"
+          variant="soft"
+          className="bg-surface-secondary mt-1 shrink-0"
+        >
+          <Avatar.Fallback>
+            <FaIcon
+              icon={isCurrentUser ? "user" : "user-doctor"}
+              aria-hidden="true"
+            />
+          </Avatar.Fallback>
+        </Avatar>
+      ) : (
+        <span aria-hidden="true" className="w-8 shrink-0" />
+      )}
+      <div
+        className={`flex min-w-0 max-w-[min(36rem,85%)] flex-col gap-1 ${isCurrentUser ? "items-end" : "items-start"}`}
+      >
         {showAuthor ? (
-          <ChatSource sourceType="document" title={item.authorName} />
+          <div
+            className={`flex flex-wrap items-baseline gap-2 ${isCurrentUser ? "flex-row-reverse" : ""}`}
+          >
+            <span className="text-foreground text-sm font-semibold">
+              {authorLabel}
+            </span>
+            {time}
+          </div>
         ) : null}
-        {body}
-        {attachmentError}
-      </ChatMessage.Body>
-    </ChatMessage.Assistant>
+        {attachment ?? (
+          <p
+            dir="auto"
+            className={`text-foreground m-0 whitespace-pre-wrap rounded-3xl px-4 py-2.5 text-base leading-relaxed ${isCurrentUser ? "border-separator bg-surface rounded-se-md border" : "bg-surface-secondary rounded-ss-md"}`}
+          >
+            {item.content}
+          </p>
+        )}
+        {!showAuthor ? time : null}
+      </div>
+    </article>
   );
 
-  if (!canWrite && isCurrentUser) return message;
+  if (!canWrite) return message;
   return (
-    <ContextMenu isDisabled={canWrite && isDeleting}>
+    <ContextMenu isDisabled={isDeleting}>
       <ContextMenu.Trigger>{message}</ContextMenu.Trigger>
       <ContextMenu.Popover>
         <ContextMenu.Menu
           aria-label={t("clinic.procedures.items.moreActions")}
-          onAction={
-            canWrite ? (key) => key === "delete" && onDelete() : undefined
-          }
+          onAction={(key) => key === "delete" && onDelete()}
         >
-          {!isCurrentUser ? (
-            <>
-              <MenuItem
-                className="cursor-default px-3 py-2"
-                id="metadata"
-                isDisabled
-                textValue={authorLabel}
-              >
-                {metadata}
-              </MenuItem>
-              {canWrite ? <ContextMenu.Separator /> : null}
-            </>
-          ) : null}
-          {canWrite ? (
-            <MenuItem
-              className="text-danger flex items-center gap-2 px-3 py-2 text-sm"
-              id="delete"
-              textValue={t("clinic.procedures.items.delete")}
-            >
-              <FaIcon icon="trash-can" aria-hidden="true" className="size-4" />
-              <span>{t("clinic.procedures.items.delete")}</span>
-            </MenuItem>
-          ) : null}
+          <MenuItem
+            className="text-danger flex items-center gap-2 px-3 py-2 text-base"
+            id="delete"
+            textValue={t("clinic.procedures.items.delete")}
+          >
+            <FaIcon icon="trash-can" aria-hidden="true" className="size-4" />
+            <span>{t("clinic.procedures.items.delete")}</span>
+          </MenuItem>
         </ContextMenu.Menu>
       </ContextMenu.Popover>
     </ContextMenu>

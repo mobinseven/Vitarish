@@ -12,7 +12,9 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@vitarish/auth": "0.1.0",
     "@vitarish/localization": "0.1.0",
+    "@vitarish/sea": "0.1.0",
     "msw": "^2.10.2",
     "react": "^19.0.0"
   },

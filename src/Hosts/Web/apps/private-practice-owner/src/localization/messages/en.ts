@@ -703,6 +703,9 @@ export const enMessages = {
     culture: {
       label: "Language",
     },
+    settings: {
+      label: "Settings",
+    },
   },
   metadata: {
     root: {

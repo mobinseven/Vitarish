@@ -8,6 +8,7 @@ import {
   Input,
   Label,
   TextArea,
+  Surface,
   TextField,
   Tooltip,
 } from "@heroui/react";
@@ -263,9 +264,9 @@ export function TemplateProjectDetailPane({
         ))}
       </ItemCardGroup>
       {selectedProcedureId && (
-        <div className="flex flex-col gap-3">
+        <Surface variant="secondary" className="flex flex-col gap-3 rounded-3xl p-4">
           <div>
-            <h3 className="text-lg font-semibold">
+            <h3 className="text-lg font-semibold text-foreground">
               {t("clinic.procedures.templateManagement.steps")}
             </h3>
             <p className="text-sm text-muted">
@@ -320,7 +321,7 @@ export function TemplateProjectDetailPane({
               </Disclosure.Content>
             </Disclosure>
           ))}
-        </div>
+        </Surface>
       )}
       {duplicateError && (
         <Alert status="danger">

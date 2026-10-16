@@ -169,6 +169,7 @@ export function PatientOverviewPage({
                 patientId={patientId}
                 onVisibilityChange={setHasVisits}
                 onNewVisit={openNewVisit}
+                onNavigate={onNavigate}
               />
             </Card.Content>
           </Card>
@@ -278,6 +279,7 @@ export function PatientOverviewPage({
                     patientId={patientId}
                     onVisibilityChange={setHasVisits}
                     onNewVisit={openNewVisit}
+                    onNavigate={onNavigate}
                   />
                 </div>
               ) : null}

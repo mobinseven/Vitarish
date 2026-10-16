@@ -364,6 +364,7 @@ export const clinicEnMessages = {
         title: "Visits",
         description: "Record a patient visit and add its notes or evidence.",
         new: "New visit",
+        open: "Open visit",
         dialog: {
           title: "Record a new visit",
           description:
@@ -492,6 +493,7 @@ export const clinicEnMessages = {
           danger: "Danger zone",
         },
         committedState: "Committed",
+        pendingState: "Pending",
         commitConfirmation: {
           commitTitle: "Mark step as complete",
           commitMessage: "Mark this step as complete?",
@@ -499,6 +501,7 @@ export const clinicEnMessages = {
           reopenTitle: "Reopen step",
           reopenMessage: "Reopen this step?",
           confirmReopen: "Reopen step",
+          failed: "The step could not be updated. Try again.",
         },
         focusedDetails: "Focused event details",
         noDescription: "No event details have been added.",
@@ -566,12 +569,16 @@ export const clinicEnMessages = {
         pending: "Saving...",
         saved: "Saved",
         error: "Failed to save",
+        loadFailed: "Access roles could not be loaded.",
       },
       templates: {
         title: "Template Protocols",
         preview: "Preview",
         createFrom: "Create Procedure from Template",
-        procedureCount: "{count} procedures",
+        procedureCount: {
+          one: "{count} procedure",
+          other: "{count} procedures",
+        },
       },
       triage: {
         incomplete: "Incomplete",

@@ -21,34 +21,37 @@ import {
   EmptyStateSurface as ClinicEmptyState,
   FaIcon,
 } from "@vitarish/ui";
+import { PatientProcedureEventCommitDialog } from "./PatientProcedureEventCommitDialog";
 import { PatientProcedureEventDeleteDialog } from "./PatientProcedureEventDeleteDialog";
 import { PatientProcedureEventForm } from "./PatientProcedureEventForm";
 import { PatientProcedureEventAttachmentMiniView } from "./PatientProcedureEventAttachmentMiniView";
 import { PatientProcedureEventItemsPanel } from "./PatientProcedureEventItemsPanel";
 import { useLocalizedText } from "../../../localization";
 import type { ClinicalEventSummary } from "../../../models/patients/procedures/PatientProcedureEventModels";
+import type { ProcedureEventViewer } from "../../../models/patients/procedures/PatientProcedureEventItemModels";
 import {
-  useCommitPatientProcedureEvent,
   useMovePatientProcedureEventDown,
   useMovePatientProcedureEventUp,
-  useUncommitPatientProcedureEvent,
 } from "../../../hooks/patients/procedures/usePatientProcedureEventMutations";
 
 interface PatientProcedureEventTimelineProps {
   patientId?: string;
   procedureId: string;
   events: ClinicalEventSummary[];
+  viewer?: ProcedureEventViewer;
 }
 
 function EventAttachmentsDrawer({
   patientId,
   procedureId,
   eventId,
+  viewer,
   onClose,
 }: {
   patientId: string;
   procedureId: string;
   eventId?: string;
+  viewer?: ProcedureEventViewer;
   onClose: () => void;
 }) {
   const { t } = useLocalizedText();
@@ -82,6 +85,7 @@ function EventAttachmentsDrawer({
                   procedureId,
                   eventId: eventId ?? "",
                 }}
+                viewer={viewer}
               />
             </Sheet.Body>
           </Sheet.Dialog>
@@ -95,13 +99,13 @@ export function PatientProcedureEventTimeline({
   patientId = "",
   procedureId,
   events,
+  viewer,
 }: PatientProcedureEventTimelineProps) {
   const { t } = useLocalizedText();
   const [editingEventId, setEditingEventId] = useState<string | null>(null);
   const [deletingEventId, setDeletingEventId] = useState<string | null>(null);
   const [attachmentsEventId, setAttachmentsEventId] = useState<string>();
-  const commit = useCommitPatientProcedureEvent();
-  const uncommit = useUncommitPatientProcedureEvent();
+  const [committingEventId, setCommittingEventId] = useState<string | null>(null);
   const earlier = useMovePatientProcedureEventUp();
   const later = useMovePatientProcedureEventDown();
 
@@ -109,8 +113,7 @@ export function PatientProcedureEventTimeline({
     const event = events.find((candidate) => candidate.id === eventId);
     if (!event) return;
 
-    if (key === "commit")
-      event.isCommitted ? uncommit.mutate(event.id) : commit.mutate(event.id);
+    if (key === "commit") setCommittingEventId(event.id);
     else if (key === "reorder-earlier") earlier.mutate(event.id);
     else if (key === "reorder-later") later.mutate(event.id);
     else if (key === "edit") setEditingEventId(event.id);
@@ -122,6 +125,9 @@ export function PatientProcedureEventTimeline({
     : null;
   const deletingEvent = deletingEventId
     ? events.find((event) => event.id === deletingEventId)
+    : null;
+  const committingEvent = committingEventId
+    ? events.find((event) => event.id === committingEventId)
     : null;
 
   return (
@@ -237,6 +243,7 @@ export function PatientProcedureEventTimeline({
                       {event.attachments?.length ? (
                         <PatientProcedureEventAttachmentMiniView
                           items={event.attachments}
+                          viewer={viewer}
                         />
                       ) : null}
                       <div className="space-y-3">
@@ -263,9 +270,7 @@ export function PatientProcedureEventTimeline({
                                   ? "clinic.procedures.events.reopen"
                                   : "clinic.procedures.events.commit",
                               )}
-                              isDisabled={
-                                commit.isPending || uncommit.isPending
-                              }
+                              isDisabled={committingEventId !== null}
                               size="sm"
                               variant={
                                 event.isCommitted ? "secondary" : "primary"
@@ -334,10 +339,20 @@ export function PatientProcedureEventTimeline({
         />
       ) : null}
 
+      {committingEvent ? (
+        <PatientProcedureEventCommitDialog
+          eventId={committingEvent.id}
+          eventTitle={committingEvent.title}
+          isCommitted={committingEvent.isCommitted}
+          onClose={() => setCommittingEventId(null)}
+        />
+      ) : null}
+
       <EventAttachmentsDrawer
         patientId={patientId}
         procedureId={procedureId}
         eventId={attachmentsEventId}
+        viewer={viewer}
         onClose={() => setAttachmentsEventId(undefined)}
       />
     </div>

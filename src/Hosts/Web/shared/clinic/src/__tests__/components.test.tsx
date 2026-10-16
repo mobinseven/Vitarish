@@ -47,6 +47,9 @@ vi.mock("../hooks/patients/procedures/usePatientProcedureEventDetail", () => ({
   usePatientProcedureEventDetail: hookMocks.usePatientProcedureEventDetail,
 }));
 
+vi.mock("../hooks/patients/procedures/useProcedureEventAuthorNames", () => ({
+  useProcedureEventAuthorNames: () => new Map<string, string>(),
+}));
 vi.mock("../hooks/patients/procedures/usePatientProcedureEventItems", () => ({
   usePatientProcedureEventItems: hookMocks.usePatientProcedureEventItems,
 }));
@@ -599,22 +602,12 @@ describe("clinic display components", () => {
     );
     expect(screen.queryByText("image/png")).not.toBeInTheDocument();
     expect(screen.queryByText("1 KB")).not.toBeInTheDocument();
-    const message = document.querySelector(
-      '[data-slot="chat-message-assistant"]',
-    );
-    expect(message).toHaveClass("chat-message--assistant");
-    expect(screen.getByText("Grace Hopper")).toHaveAttribute(
-      "data-slot",
-      "chat-source-title",
-    );
-
-    fireEvent.contextMenu(message!);
-    expect(
-      await screen.findByRole("menuitem", { name: /Grace Hopper/ }),
-    ).toBeInTheDocument();
-    fireEvent.keyDown(screen.getByRole("menu"), { key: "Escape" });
-    await waitFor(() =>
-      expect(screen.queryByRole("menu")).not.toBeInTheDocument(),
+    // Another member's message names its author and time in plain sight.
+    const message = screen.getByRole("article", { name: "Grace Hopper" });
+    expect(within(message).getByText("Grace Hopper")).toBeVisible();
+    expect(message.querySelector("time")).toHaveAttribute(
+      "datetime",
+      mediaItem.createdAt,
     );
 
     fireEvent.click(screen.getByRole("button", { name: "Preview scan.png" }));
@@ -706,12 +699,15 @@ describe("clinic display components", () => {
     expect(
       screen.queryByRole("button", { name: "Delete Item" }),
     ).not.toBeInTheDocument();
-    const message = document.querySelector('[data-slot="chat-message-user"]');
-    expect(message).toHaveClass("chat-message--user");
+    // The viewer's own message is labelled as theirs rather than by name.
+    const message = screen.getByRole("article", { name: "You" });
     expect(screen.queryByText("Ava Patel")).not.toBeInTheDocument();
-    expect(screen.queryByRole("time")).not.toBeInTheDocument();
+    expect(message.querySelector("time")).toHaveAttribute(
+      "datetime",
+      fileItem.createdAt,
+    );
 
-    fireEvent.contextMenu(message!);
+    fireEvent.contextMenu(message);
     const deleteMenuItem = await screen.findByRole("menuitem", {
       name: "Delete Item",
     });

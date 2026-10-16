@@ -360,6 +360,7 @@ export const clinicFaMessages = {
         title: "ویزیت‌ها",
         description: "ویزیت بیمار و یادداشت یا مدارک آن را ثبت کنید.",
         new: "ویزیت جدید",
+        open: "باز کردن ویزیت",
         dialog: {
           title: "ثبت ویزیت جدید",
           description:
@@ -483,6 +484,7 @@ export const clinicFaMessages = {
           danger: "منطقه خطر",
         },
         committedState: "تکمیل‌شده",
+        pendingState: "در انتظار",
         commitConfirmation: {
           commitTitle: "علامت‌گذاری مرحله به‌عنوان تکمیل‌شده",
           commitMessage: "این مرحله به‌عنوان تکمیل‌شده علامت‌گذاری شود؟",
@@ -490,6 +492,7 @@ export const clinicFaMessages = {
           reopenTitle: "بازگشایی مرحله ",
           reopenMessage: "این مرحله  دوباره باز شود؟",
           confirmReopen: "بازگشایی مرحله",
+          failed: "وضعیت مرحله به‌روز نشد. دوباره تلاش کنید.",
         },
         title: "مراحل ",
         activityLabel: "روند درمانی",
@@ -560,12 +563,16 @@ export const clinicFaMessages = {
         pending: "در حال ذخیره...",
         saved: "ذخیره شد",
         error: "ذخیره انجام نشد",
+        loadFailed: "نقش‌های دسترسی بارگذاری نشد.",
       },
       templates: {
         title: "قالب‌های پروتکل",
         preview: "پیش‌نمایش",
         createFrom: "ایجاد روند از قالب",
-        procedureCount: "{count} روند",
+        procedureCount: {
+          one: "{count} روند",
+          other: "{count} روند",
+        },
       },
       triage: {
         incomplete: "ناتمام",

@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Alert, Spinner } from "@heroui/react";
+import { Alert, Button, Spinner, Tooltip } from "@heroui/react";
 import { Widget } from "@heroui-pro/react";
+import { FaIcon } from "@vitarish/ui";
 import {
   useSeaEvents,
   useSeaProcedures,
@@ -19,6 +20,8 @@ export function ProcedureTemplateManagementPanel() {
   const [projectId, setProjectId] = useState<string | null>(null);
   const [procedureId, setProcedureId] = useState<string | null>(null);
   const [eventId, setEventId] = useState<string | null>(null);
+  // Narrow screens show one pane at a time: the category list until a category is opened.
+  const [isProjectOpen, setIsProjectOpen] = useState(false);
   const proceduresQuery = useSeaProcedures(projectId ?? "");
   const procedures = proceduresQuery.data ?? [];
   const eventsQuery = useSeaEvents(procedureId ?? "");
@@ -58,26 +61,47 @@ export function ProcedureTemplateManagementPanel() {
       </Alert>
     );
 
+  const openProject = (id: string) => {
+    setProjectId(id);
+    setIsProjectOpen(true);
+  };
+  const backLabel = t("clinic.procedures.templateManagement.projects");
+
   return (
     <div className="flex h-full min-h-0 gap-3">
-      <Widget className="w-72 shrink-0 overflow-auto">
-        <TemplateProjectListPane
-          projects={projects}
-          selectedProjectId={projectId}
-          onSelect={setProjectId}
-        />
-      </Widget>
-      <Widget className="min-w-0 flex-1 overflow-auto">
-        <TemplateProjectDetailPane
-          projectId={projectId}
-          procedures={procedures}
-          selectedProcedureId={procedureId}
-          onSelectProcedure={setProcedureId}
-          events={events}
-          selectedEventId={eventId}
-          onSelectEvent={setEventId}
-        />
-      </Widget>
+      <div className={`${isProjectOpen ? "hidden" : "flex"} min-h-0 w-full md:flex md:w-72 md:shrink-0`}>
+        <Widget className="w-full overflow-auto">
+          <TemplateProjectListPane
+            projects={projects}
+            selectedProjectId={projectId}
+            onSelect={openProject}
+          />
+        </Widget>
+      </div>
+      <div className={`${isProjectOpen ? "flex" : "hidden"} min-h-0 min-w-0 flex-1 flex-col items-start gap-3 md:flex`}>
+        <Tooltip>
+          <Button
+            className="md:hidden"
+            variant="tertiary"
+            onPress={() => setIsProjectOpen(false)}
+          >
+            <FaIcon icon="arrow-left" aria-hidden="true" className="rtl:rotate-180" />
+            {backLabel}
+          </Button>
+          <Tooltip.Content>{backLabel}</Tooltip.Content>
+        </Tooltip>
+        <Widget className="w-full min-w-0 flex-1 overflow-auto">
+          <TemplateProjectDetailPane
+            projectId={projectId}
+            procedures={procedures}
+            selectedProcedureId={procedureId}
+            onSelectProcedure={setProcedureId}
+            events={events}
+            selectedEventId={eventId}
+            onSelectEvent={setEventId}
+          />
+        </Widget>
+      </div>
     </div>
   );
 }
