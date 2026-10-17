@@ -27,6 +27,7 @@ import {
 } from "../../hooks/surgeries/useSurgeryMutations";
 import { useClinicStaff } from "../../hooks/surgeries/useClinicStaff";
 import { PatientFindOrCreate } from "../patients/find-or-create/PatientFindOrCreate";
+import { SurgeryPageHeader } from "./SurgeryPageHeader";
 import { SurgeryPlanForm } from "./SurgeryPlanForm";
 
 export interface SurgeryPlanPageProps {
@@ -41,20 +42,6 @@ export interface SurgeryPlanPageProps {
 function httpStatus(error: unknown): number {
   if (typeof error !== "object" || error === null || !("status" in error)) return 0;
   return Number((error as { status?: number | string }).status);
-}
-
-function PatientSummaryHeader() {
-  const { t } = useLocalizedText();
-  return (
-    <div className="flex items-center gap-3">
-      <HeaderIcon icon="user" />
-      <div className="min-w-0">
-        <h2 className="text-lg font-semibold text-foreground">
-          {t("clinic.surgeries.plan.patientSectionTitle")}
-        </h2>
-      </div>
-    </div>
-  );
 }
 
 /** Fallback label when the patient record has no display name. */
@@ -149,17 +136,41 @@ export function SurgeryPlanPage({
 
   const isSubmitting = mutations.create.isPending || mutations.update.isPending;
 
+  const patientName = (() => {
+    const patient = patientQuery.data;
+    if (!patient) return null;
+    const name = [patient.firstName, patient.lastName]
+      .filter((part): part is string => Boolean(part && part.trim()))
+      .join(" ")
+      .trim();
+    return name.length > 0 ? name : null;
+  })();
+
+  // Once the patient is known, the header names both the task and the patient it is for.
   const header = (
-    <header className="flex items-center gap-4">
-      <HeaderIcon icon="scissors" level="page" />
-      <div className="min-w-0">
-        <h1 className="text-2xl font-bold text-foreground">
-          {mode === "create"
-            ? t("clinic.surgeries.plan.createTitle")
-            : t("clinic.surgeries.plan.editTitle")}
-        </h1>
-      </div>
-    </header>
+    <SurgeryPageHeader
+      title={mode === "create"
+        ? t("clinic.surgeries.plan.createTitle")
+        : t("clinic.surgeries.plan.editTitle")}
+      details={lookupPatientId ? (
+        <p className="mt-1 flex items-center gap-2 text-base font-medium text-anchor-foreground">
+          <FaIcon aria-hidden="true" icon="user" />
+          <span className="sr-only">{t("clinic.surgeries.plan.patientSectionTitle")}: </span>
+          {patientName ?? (patientQuery.isPending ? null : <UnnamedPatient />)}
+        </p>
+      ) : undefined}
+      actions={mode === "create" && patientId ? (
+        <Tooltip>
+          <Button variant="tertiary" onPress={() => setPatientId("")}>
+            <FaIcon aria-hidden="true" icon="user-pen" />
+            {t("clinic.surgeries.plan.changePatient")}
+          </Button>
+          <Tooltip.Content>
+            {t("clinic.surgeries.plan.changePatient")}
+          </Tooltip.Content>
+        </Tooltip>
+      ) : undefined}
+    />
   );
 
   if (!canPlan) {
@@ -175,44 +186,6 @@ export function SurgeryPlanPage({
       </div>
     );
   }
-
-  const patientName = (() => {
-    const patient = patientQuery.data;
-    if (!patient) return null;
-    const name = [patient.firstName, patient.lastName]
-      .filter((part): part is string => Boolean(part && part.trim()))
-      .join(" ")
-      .trim();
-    return name.length > 0 ? name : null;
-  })();
-
-  const patientSummary = (
-    <Surface className="flex flex-col gap-4 rounded-3xl p-6">
-      <PatientSummaryHeader />
-      <div className="flex items-center gap-3">
-        <span
-          aria-hidden="true"
-          className="flex size-10 shrink-0 items-center justify-center rounded-full bg-surface-secondary text-foreground"
-        >
-          <FaIcon aria-hidden="true" icon="user" />
-        </span>
-        <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">
-          {patientName ?? (patientQuery.isPending ? null : <UnnamedPatient />)}
-        </span>
-        {mode === "create" ? (
-          <Tooltip>
-            <Button variant="tertiary" onPress={() => setPatientId("")}>
-              <FaIcon aria-hidden="true" icon="user-pen" />
-              {t("clinic.surgeries.plan.changePatient")}
-            </Button>
-            <Tooltip.Content>
-              {t("clinic.surgeries.plan.changePatient")}
-            </Tooltip.Content>
-          </Tooltip>
-        ) : null}
-      </div>
-    </Surface>
-  );
 
   if (mode === "edit") {
     if (surgeryQuery.isPending) {
@@ -287,7 +260,6 @@ export function SurgeryPlanPage({
     return (
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 pt-8">
         {header}
-        {patientSummary}
         <SurgeryPlanForm
           key={surgery.id}
           excludeSurgeryId={surgery.id}
@@ -310,7 +282,6 @@ export function SurgeryPlanPage({
       {header}
       {patientId ? (
         <>
-          {patientSummary}
           <SurgeryPlanForm
             key={patientId}
             initialValues={emptySurgeryPlanForm(patientId)}

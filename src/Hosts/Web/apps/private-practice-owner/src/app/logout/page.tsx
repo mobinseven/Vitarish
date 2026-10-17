@@ -17,7 +17,7 @@ export default function LogoutPage() {
   const { t } = useLocalizedText();
 
   return (
-    <StandaloneCenteredPage>
+    <StandaloneCenteredPage className="bg-anchor">
       <Card className="w-full max-w-md">
         <Card.Header className="flex flex-col items-start gap-1">
           <div className="flex items-center gap-4">

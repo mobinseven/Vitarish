@@ -7,28 +7,14 @@ import { Routes } from "@/app/routes";
 import { LoadingScreen } from "@/components/loading/LoadingScreen";
 import { useLocalizedText } from "@/localization";
 
-function LoginLogotype({
-  src,
-  darkSrc,
-  alt,
-}: {
-  src: string;
-  darkSrc: string;
-  alt: string;
-}) {
+function LoginLogotype({ src, alt }: { src: string; alt: string }) {
   return (
     <header className="w-full">
       <img
         src={src}
         alt={alt}
         aria-hidden={alt === "" ? true : undefined}
-        className="block h-auto w-full dark:hidden"
-      />
-      <img
-        src={darkSrc}
-        alt=""
-        aria-hidden="true"
-        className="hidden h-auto w-full dark:block"
+        className="block h-auto w-full"
       />
     </header>
   );
@@ -48,12 +34,8 @@ export default function LoginLayout({ children }: { children: ReactNode }) {
   );
 
   return (
-    <>
-      <LoginLogotype
-        src="/Master-Hel-Logotype.svg"
-        darkSrc="/Master-Hel-Logotype-Dark.svg"
-        alt={t("appShell.brand")}
-      />
+    <div className="bg-anchor">
+      <LoginLogotype src="/Master-Hel-Logotype.svg" alt={t("appShell.brand")} />
       <Suspense fallback={<LoginRouteFallback />}>
         <AuthenticatedRedirectBoundary
           authenticatedHref={Routes.Home}
@@ -64,11 +46,7 @@ export default function LoginLayout({ children }: { children: ReactNode }) {
           {children}
         </AuthenticatedRedirectBoundary>
       </Suspense>
-      <LoginLogotype
-        src="/Master-Hel-Logotype-©.svg"
-        darkSrc="/Master-Hel-Logotype-Dark-©.svg"
-        alt=""
-      />
-    </>
+      <LoginLogotype src="/Master-Hel-Logotype-©.svg" alt="" />
+    </div>
   );
 }

@@ -14,7 +14,7 @@ Decision and rationale:
 |---|---|---|
 | Neutral | `surface`, `default`, `foreground`, `muted` | Surfaces, text, header and sidebar icons, avatars, tiles, generic buttons |
 | Accent | `accent` | Current navigation item, focus, a page's one lead action, every form's commit button, a control whose state narrows what a list shows (soft accent) |
-| Anchor | `anchor`, `anchor-foreground` | The patient hero band, the tint of section header bands, and in light mode the hue of `foreground` |
+| Anchor | `anchor`, `anchor-foreground` | The patient hero band, the tint of section header bands, the signed-out screens' background, and in light mode the hue of `foreground` |
 | Chroma | `chroma-primary` to `chroma-senary` | Colors a feature package gives a fixed meaning, such as status chips, patient tags, and sign-in methods |
 | Status | `success`, `warning`, `danger` | Only where something has that status |
 
@@ -26,8 +26,10 @@ Each host theme owns the values; change them there, never in feature code.
 A host without chroma tokens falls back to neutral.
 
 The owner app pairs a deep magenta accent with a deep navy anchor
-(`oklch(27.9% 0.082 275)`) on a cool off-white canvas: one strong hue, one
+(`oklch(20.5% 0.053 270)`) on a cool off-white canvas: one strong hue, one
 deep ground, and white surfaces, so nothing competes with the lead action.
+The signed-out screens (sign-in, password recovery, and sign-out) sit on the
+anchor.
 Danger is a vermilion (hue 38) kept away from the magenta accent, so errors
 never read as brand.
 
@@ -90,11 +92,14 @@ Surgery status chips follow the same rule through `surgeryStatusChipProps` in
 |---|---|---|---|
 | Generic | Open, view, back, cancel, add, edit, filter | Neutral (`tertiary`, `outline`, or `ghost` variant; HeroUI `secondary` has accent text) | none |
 | Delete | Remove, delete | Soft danger | `removeButtonClassName` from `@vitarish/ui` |
-| Lead action | The one action a page exists for, such as Create prescription on the patient page | Accent (`primary` variant) | none |
+| Lead action | The one action a page section or dashboard widget exists for, such as Create prescription on the patient page or Add surgery in the surgeries widget | Accent (`primary` variant) | none |
 | Commit | The submit button of every form, sheet, or dialog, clinical or not | Accent (`primary` variant) | none |
-| Other operation starters | New visit, check in, plan surgery, create reservation, dashboard row actions | Neutral (`tertiary` or `outline`) with the operation's icon | none |
+| Other operation starters | New visit, check in, create reservation, dashboard row actions | Neutral (`tertiary` or `outline`) with the operation's icon | none |
 
-A page has at most one filled lead action. Operations are told apart by their
+A page section or dashboard widget has at most one filled lead action, its
+create action, such as Add surgery in the dashboard's surgeries widget or Plan
+surgery in the patient's surgeries panel; every other button in it stays
+neutral. Operations are told apart by their
 icon and label, not by color: the icon stays visible when the button shrinks
 to icon-only on narrow screens.
 

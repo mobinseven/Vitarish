@@ -134,7 +134,11 @@ describe("SurgeryCalendarPage", () => {
     expect(within(list()).getByText("Carol")).toBeInTheDocument();
     expect(within(list()).queryByText("Bob")).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("radio", { name: message("clinic.surgeries.status.cancelled") }));
+    const statusFilter = screen.getByRole("grid", { name: message("clinic.surgeries.calendar.filters.status") });
+    const cancelledFilter = within(statusFilter).getByRole("row", { name: message("clinic.surgeries.status.cancelled") });
+    fireEvent.click(cancelledFilter);
+
+    expect(cancelledFilter).toHaveAttribute("aria-selected", "true");
 
     expect(within(list()).getByText("Carol")).toBeInTheDocument();
     expect(within(list()).queryByText("Alice")).not.toBeInTheDocument();

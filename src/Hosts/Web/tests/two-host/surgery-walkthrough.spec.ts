@@ -185,6 +185,8 @@ test("walks an owner through surgery types, planning, the calendar, editing, and
   const today = new Date();
   const startOfWeek = new Date(today);
   startOfWeek.setDate(today.getDate() - today.getDay());
+  // Count whole weeks from the start of the week's first day, so the result does not depend on the time the test runs.
+  startOfWeek.setHours(0, 0, 0, 0);
   const weeksAhead = Math.floor((scheduledAt.getTime() - startOfWeek.getTime()) / (7 * 24 * 60 * 60 * 1000));
   for (let week = 0; week < weeksAhead && !(await calendarEntry.isVisible()); week += 1) {
     await page.getByRole("button", { name: surgeryMessages.calendar.navigation.next }).click();

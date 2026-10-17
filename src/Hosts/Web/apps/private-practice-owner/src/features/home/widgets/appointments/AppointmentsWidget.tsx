@@ -6,7 +6,6 @@ import {
   today,
   type CalendarDate,
 } from "@internationalized/date";
-import Image from "next/image";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useClinicListDashboardAppointments } from "@vitarish/clinic";
@@ -26,16 +25,9 @@ export function AppointmentsWidget() {
   const query = useClinicListDashboardAppointments(range);
   const rows = query.data ?? [];
   return (
-    <Card className={`${styles.widget} relative flex h-full min-h-[620px] flex-col overflow-hidden p-0`}>
-      <Image
-        alt=""
-        className="object-cover object-top"
-        fill
-        sizes="(min-width: 1280px) 33vw, 100vw"
-        src="/dashboard-appointments.webp"
-      />
+    <Card className="relative flex h-full min-h-[620px] flex-col overflow-hidden bg-anchor p-0">
       <div className={`${styles.content} relative z-10 flex h-full flex-col`}>
-        <header className="min-h-40 px-5 py-6 text-white sm:min-h-44 sm:px-6">
+        <header className="min-h-40 px-5 py-6 text-anchor-foreground sm:min-h-44 sm:px-6">
           <i
             aria-hidden="true"
             className="fa-light fa-calendar-days text-2xl text-foreground"
@@ -43,7 +35,7 @@ export function AppointmentsWidget() {
           <h2 className="mt-8 text-2xl font-semibold">
             {t("home.dashboard.appointments")}
           </h2>
-          <p className="mt-1 text-sm text-white/80">
+          <p className="mt-1 text-sm text-anchor-foreground/75">
             {t("home.dashboard.appointmentsDescription")}
           </p>
         </header>
@@ -179,7 +171,7 @@ export function AppointmentsWidget() {
             <Tooltip>
               <Button
                 className="min-w-0 flex-1"
-                variant="tertiary"
+                variant="primary"
                 onPress={() =>
                   router.push(Routes.Clinic.Appointments.Reservations.Index)
                 }

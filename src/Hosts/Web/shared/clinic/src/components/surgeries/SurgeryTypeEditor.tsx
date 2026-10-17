@@ -225,40 +225,6 @@ export function SurgeryTypeEditor({
               </Tooltip.Content>
             </Tooltip>
           )}
-          {!deleteBlockedMessage && (
-            <Tooltip>
-              <Button
-                variant="ghost"
-                className={`${removeButtonClassName} text-danger`}
-                isDisabled={isRemoving}
-                onPress={onRequestDelete}
-              >
-                <FaIcon icon="trash" aria-hidden="true" />
-                {t("clinic.surgeries.types.delete")}
-              </Button>
-              <Tooltip.Content>
-                {t("clinic.surgeries.types.deleteTooltip")}
-              </Tooltip.Content>
-            </Tooltip>
-          )}
-          <Tooltip>
-            <Button variant="tertiary" onPress={reset}>
-              <FaIcon icon="rotate-left" aria-hidden="true" />
-              {t("clinic.surgeries.types.discard")}
-            </Button>
-            <Tooltip.Content>
-              {t("clinic.surgeries.types.discardTooltip")}
-            </Tooltip.Content>
-          </Tooltip>
-          <Tooltip>
-            <Button variant="primary" isPending={isSaving} onPress={handleSave}>
-              <FaIcon icon="floppy-disk" aria-hidden="true" />
-              {t("clinic.surgeries.types.save")}
-            </Button>
-            <Tooltip.Content>
-              {t("clinic.surgeries.types.saveTooltip")}
-            </Tooltip.Content>
-          </Tooltip>
         </div>
       </div>
 
@@ -554,6 +520,47 @@ export function SurgeryTypeEditor({
           );
         })}
       </div>
+
+      <footer className="flex flex-col-reverse gap-3 border-t border-separator pt-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          {type && !deleteBlockedMessage ? (
+            <Tooltip>
+              <Button
+                variant="ghost"
+                className={`${removeButtonClassName} text-danger`}
+                isDisabled={isRemoving}
+                onPress={onRequestDelete}
+              >
+                <FaIcon icon="trash" aria-hidden="true" />
+                {t("clinic.surgeries.types.delete")}
+              </Button>
+              <Tooltip.Content>
+                {t("clinic.surgeries.types.deleteTooltip")}
+              </Tooltip.Content>
+            </Tooltip>
+          ) : null}
+        </div>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <Tooltip>
+            <Button variant="tertiary" onPress={reset}>
+              <FaIcon icon="rotate-left" aria-hidden="true" />
+              {t("clinic.surgeries.types.discard")}
+            </Button>
+            <Tooltip.Content>
+              {t("clinic.surgeries.types.discardTooltip")}
+            </Tooltip.Content>
+          </Tooltip>
+          <Tooltip>
+            <Button variant="primary" isPending={isSaving} onPress={handleSave}>
+              <FaIcon icon="floppy-disk" aria-hidden="true" />
+              {t("clinic.surgeries.types.save")}
+            </Button>
+            <Tooltip.Content>
+              {t("clinic.surgeries.types.saveTooltip")}
+            </Tooltip.Content>
+          </Tooltip>
+        </div>
+      </footer>
     </Surface>
   );
 }

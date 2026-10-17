@@ -109,6 +109,13 @@ describe("SurgeryTypeManagementPanel", () => {
     );
   });
 
+  it("opens the first type for editing before any is chosen", () => {
+    arrange();
+    render(<SurgeryTypeManagementPanel />, { wrapper: Wrapper });
+
+    expect(screen.getByLabelText("Name")).toHaveValue("General");
+  });
+
   it("requires a name before saving", () => {
     const { update } = arrange();
     render(<SurgeryTypeManagementPanel />, { wrapper: Wrapper });

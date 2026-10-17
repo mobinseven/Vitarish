@@ -300,7 +300,7 @@ html[dir="rtl"] body {
  * hue of the light-mode ink. One value serves both modes, as the accent does.
  */
 :root {
-  --anchor: oklch(27.9% 0.082 275);
+  --anchor: oklch(20.5% 0.053 270);
   --anchor-foreground: #ffffff;
 }
 
