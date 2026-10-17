@@ -6,6 +6,7 @@ import { dirname, resolve } from "node:path";
 import {
   twoHostE2eAuditEvidenceDirectoryEnvironmentKey,
   twoHostE2eGrepEnvironmentKey,
+  twoHostE2eLocaleEnvironmentKey,
 } from "./two-host-e2e-artifacts.mjs";
 
 const webRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -41,7 +42,7 @@ const child = spawn(process.execPath, [runner], {
   cwd: webRoot,
   env: {
     ...process.env,
-    VITARISH_E2E_LOCALE: "fa",
+    [twoHostE2eLocaleEnvironmentKey]: "fa",
     [twoHostE2eAuditEvidenceDirectoryEnvironmentKey]: evidenceDirectory,
     [twoHostE2eGrepEnvironmentKey]: "real actions create visible platform security-audit evidence",
   },

@@ -9,10 +9,10 @@ import { rm } from "node:fs/promises";
 import path from "node:path";
 
 import { layoutTestFixturesEnvironment } from "./layout-test-fixtures.mjs";
+import { mockScenarios, mockScreenshotOutputEnvironmentKey, mockScreenshotScenarioEnvironmentKey } from "./spec-capture-options.mjs";
 
 const app = "@vitarish/private-practice-owner";
 const appUrl = "http://127.0.0.1:3000";
-const allScenarios = ["ready", "empty", "loading", "error"];
 const outputRoot = path.resolve("artifacts/private-practice-owner-screenshots");
 const playwrightCli = createRequire(import.meta.url).resolve("@playwright/test/cli");
 const serverStartTimeoutMilliseconds = 300_000;
@@ -22,14 +22,14 @@ const separator = process.argv.indexOf("--");
 const ownArguments = separator === -1 ? process.argv.slice(2) : process.argv.slice(2, separator);
 const playwrightArguments = separator === -1 ? [] : process.argv.slice(separator + 1);
 
-let scenarios = allScenarios;
+let scenarios = mockScenarios;
 if (ownArguments.length > 0) {
   if (ownArguments.length !== 2 || ownArguments[0] !== "--scenarios") {
     console.error(usage);
     process.exit(2);
   }
   scenarios = ownArguments[1].split(",");
-  const unknown = scenarios.filter((scenario) => !allScenarios.includes(scenario));
+  const unknown = scenarios.filter((scenario) => !mockScenarios.includes(scenario));
   if (unknown.length > 0) {
     console.error(`Unsupported mock scenario: ${unknown.join(", ")}`);
     process.exit(2);
@@ -57,7 +57,7 @@ for (const scenario of scenarios) {
     console.log(`== ${scenario}: capturing`);
     const exitCode = await run(
       [playwrightCli, "test", "--config", "playwright.private-practice-owner-screenshots.config.ts", ...playwrightArguments],
-      { VITARISH_SCREENSHOT_SCENARIO: scenario, VITARISH_SCREENSHOT_OUTPUT: outputRoot },
+      { [mockScreenshotScenarioEnvironmentKey]: scenario, [mockScreenshotOutputEnvironmentKey]: outputRoot },
     );
     if (exitCode !== 0) failed = true;
   } finally {

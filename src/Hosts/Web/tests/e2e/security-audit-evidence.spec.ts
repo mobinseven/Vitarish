@@ -1,7 +1,7 @@
 import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { twoHostE2eApiOriginEnvironmentKey, twoHostE2eAuditEvidenceDirectoryEnvironmentKey } from "../../scripts/two-host-e2e-artifacts.mjs";
+import { twoHostE2eApiOriginEnvironmentKey, twoHostE2eAuditEvidenceDirectoryEnvironmentKey, twoHostE2eLocaleEnvironmentKey } from "../../scripts/two-host-e2e-artifacts.mjs";
 import { TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
 import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
 import { Routes as PlatformRoutes } from "../../apps/platform-admin/src/app/routes";
@@ -24,7 +24,7 @@ const tenantUserRoleSuffix = "TenantUser";
 const password = process.env.VITARISH_E2E_PASSWORD;
 const evidenceDirectory = process.env[twoHostE2eAuditEvidenceDirectoryEnvironmentKey]
   ?? join(process.cwd(), "artifacts", "two-host-e2e", "security-audit-evidence");
-const locale = process.env.VITARISH_E2E_LOCALE === "fa" ? "fa" : "en";
+const locale = process.env[twoHostE2eLocaleEnvironmentKey] === "fa" ? "fa" : "en";
 const uiText = {
   clinicUsers: locale === "fa" ? "کاربران کلینیک" : "Clinic Users",
   addStaff: locale === "fa" ? "افزودن کارمند" : "Add staff member",

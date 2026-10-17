@@ -1,6 +1,7 @@
 import { test, type Page } from "@playwright/test";
 import path from "node:path";
 import { Routes } from "../../apps/private-practice-owner/src/app/routes";
+import { mockScreenshotOutputEnvironmentKey, mockScreenshotScenarioEnvironmentKey } from "../../scripts/spec-capture-options.mjs";
 import { localeCookieName } from "../../shared/localization/src/localeCookie";
 import { supportedLocales } from "../../shared/localization/src/locales";
 import { mockAnonymousSessionValue, mockSessionCookieName } from "../../shared/mock-runtime/src/mockSession";
@@ -33,8 +34,8 @@ const pages: ScreenshotPage[] = [
   signedIn("color-legend", colorLegendPath),
 ];
 
-const scenario = process.env.VITARISH_SCREENSHOT_SCENARIO ?? "ready";
-const outputRoot = process.env.VITARISH_SCREENSHOT_OUTPUT ?? "artifacts/private-practice-owner-screenshots";
+const scenario = process.env[mockScreenshotScenarioEnvironmentKey] ?? "ready";
+const outputRoot = process.env[mockScreenshotOutputEnvironmentKey] ?? "artifacts/private-practice-owner-screenshots";
 const loadingCaptureDelayMilliseconds = 300;
 const settleDelayMilliseconds = 500;
 const networkIdleTimeoutMilliseconds = 15_000;

@@ -1,12 +1,22 @@
 import { defineConfig, devices } from "@playwright/test";
+import {
+  captureColorSchemes,
+  captureVideoEnvironmentKey,
+  captureViewports,
+  mockScreenshotScenarioEnvironmentKey,
+} from "./scripts/spec-capture-options.mjs";
 
 /** Captures every private-practice-owner page against the mock API; run through scripts/private-practice-owner-screenshots.mjs. */
-const desktop = { viewport: { width: 1440, height: 900 } };
-const mobile = { ...devices["Pixel 7"], browserName: "chromium" as const };
+const viewportOptions = {
+  desktop: { viewport: { width: 1440, height: 900 } },
+  mobile: { ...devices["Pixel 7"], browserName: "chromium" as const },
+};
+// Each scenario runs in its own Playwright pass, which clears its output folder first.
+const scenario = process.env[mockScreenshotScenarioEnvironmentKey] ?? "ready";
 
 export default defineConfig({
-  testDir: "./tests/private-practice-owner-screenshots",
-  outputDir: "./artifacts/playwright-results/private-practice-owner-screenshots",
+  testDir: "./tests/mock",
+  outputDir: `./artifacts/playwright-results/private-practice-owner-screenshots/${scenario}`,
   fullyParallel: true,
   workers: 2,
   timeout: 180_000,
@@ -16,15 +26,15 @@ export default defineConfig({
     browserName: "chromium",
     contextOptions: { reducedMotion: "reduce" },
     serviceWorkers: "allow",
-    video: "off",
+    video: process.env[captureVideoEnvironmentKey] ? "on" : "off",
     launchOptions: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH
       ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH }
       : undefined,
   },
-  projects: [
-    { name: "desktop-light", use: { ...desktop, colorScheme: "light" } },
-    { name: "desktop-dark", use: { ...desktop, colorScheme: "dark" } },
-    { name: "mobile-light", use: { ...mobile, colorScheme: "light" } },
-    { name: "mobile-dark", use: { ...mobile, colorScheme: "dark" } },
-  ],
+  projects: captureViewports.flatMap((viewport) =>
+    captureColorSchemes.map((colorScheme) => ({
+      name: `${viewport}-${colorScheme}`,
+      use: { ...viewportOptions[viewport], colorScheme },
+    })),
+  ),
 });

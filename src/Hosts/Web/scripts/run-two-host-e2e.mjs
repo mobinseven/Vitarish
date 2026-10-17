@@ -46,6 +46,8 @@ const smtpPort = 2525;
 const readinessProbeTimeoutMs = 5000;
 // next dev compiles the first page while it starts, into a new build folder each run.
 const nextDevReadinessTimeoutMs = 300_000;
+// Spec files and flags such as --headed or --ui pass through to Playwright.
+const playwrightArguments = process.argv.slice(2);
 
 mkdirSync(resolve(artifactRoot, "runs"), { recursive: true });
 mkdirSync(artifactDirectory);
@@ -360,7 +362,7 @@ async function run() {
   const playwright = startProcess(
     "playwright",
     process.execPath,
-    [resolve(webRoot, "node_modules", "@playwright", "test", "cli.js"), "test", "--config", playwrightConfig, ...(process.env[twoHostE2eGrepEnvironmentKey] ? ["--grep", process.env[twoHostE2eGrepEnvironmentKey]] : [])],
+    [resolve(webRoot, "node_modules", "@playwright", "test", "cli.js"), "test", "--config", playwrightConfig, ...(process.env[twoHostE2eGrepEnvironmentKey] ? ["--grep", process.env[twoHostE2eGrepEnvironmentKey]] : []), ...playwrightArguments],
     webRoot,
     webEnvironment,
   );

@@ -320,6 +320,7 @@ npm run validate:app-boundaries
 npm run lint:layout
 npm run test:layout-lint
 npm run test:theme-mode
+npm run specs -- --mode mock --flows sea-flow --locales fa --themes light,dark --viewports mobile --scenarios ready --no-video --browser headless
 ```
 
 `npm run screenshots:private-practice-owner` captures the private-practice-owner
@@ -341,6 +342,20 @@ two-host runner writes next to its proof screenshot under
 Narrow a run with
 `-- --scenarios ready -- --project desktop-light --grep "<name>"`; images land in
 `src/Hosts/Web/artifacts/private-practice-owner-screenshots/<scenario>/<locale>-<project>/`.
+
+Browser specs live in `src/Hosts/Web/tests/mock` (mock API, run by
+`screenshots:private-practice-owner`), `tests/e2e` (real E2E and Web hosts, run
+by `test:e2e:two-host`), and `tests/layout`. `npm run specs` captures
+screenshots and video from mock and E2E specs: it asks for the mode, flows,
+locales, themes, viewports, mock scenarios, video, and headless/headed/UI
+browser, and only asks for a locale when a selected spec can follow one (an
+E2E spec follows it by reading `twoHostE2eLocaleEnvironmentKey`). Each flag
+answers its question up front; without a terminal, as in an agent shell, a
+missing flag takes its default, so pass them all. The run prints the fully
+flagged command for the selection it used. Each E2E theme, viewport, and locale
+combination starts fresh hosts, and its screenshots and videos land in that
+run's `artifacts/two-host-e2e/runs/<run>/test-results/`. It captures selected
+flows only and does not replace the two-host proof.
 
 Use the owning package's `generate:api` script after an OpenAPI change. Do not
 assume every workspace exposes every root script; inspect its `package.json`.

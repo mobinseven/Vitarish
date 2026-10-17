@@ -423,9 +423,9 @@ internal static partial class AuthorizationMatrixCheck
         "Intelligence" => "tests/Modules/Intelligence.Tests/Api/RealtimeTranscriptionBoundaryTests.cs#Capability_and_websocket_endpoints_are_protected",
         "Medical" => "tests/Modules/Medical.Tests/Infrastructure/Handlers/Prescriptions/CreateDraftTenantScopeTests.cs#ResolveTenantId_uses_the_authenticated_request_tenant",
         "Sea" => "tests/Modules/Sea.Tests/SeaAuthorizationHandlerTests.cs#SeaAuthorizationHandlerTests",
-        "Communications" when operation.Classification == "anonymous" => "src/Hosts/Web/tests/two-host/authenticated-boundary.spec.ts#authorization-matrix:intentional-anonymous",
-        "Social" when operation.Classification == "anonymous" => "src/Hosts/Web/tests/two-host/authenticated-boundary.spec.ts#authorization-matrix:intentional-anonymous",
-        _ => "src/Hosts/Web/tests/two-host/authenticated-boundary.spec.ts#authorization-matrix:main-module-boundary"
+        "Communications" when operation.Classification == "anonymous" => "src/Hosts/Web/tests/e2e/authenticated-boundary.spec.ts#authorization-matrix:intentional-anonymous",
+        "Social" when operation.Classification == "anonymous" => "src/Hosts/Web/tests/e2e/authenticated-boundary.spec.ts#authorization-matrix:intentional-anonymous",
+        _ => "src/Hosts/Web/tests/e2e/authenticated-boundary.spec.ts#authorization-matrix:main-module-boundary"
     };
 
     private static string ExpectedAuthentication(string statement)
