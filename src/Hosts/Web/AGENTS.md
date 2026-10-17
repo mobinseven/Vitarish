@@ -139,7 +139,24 @@ Applies to every `apps/*` and `shared/*` package.
 
 ## Screenshot capture
 
-- Use `scripts/screenshot.ps1` from the Web host root for browser screenshots. It accepts `-Url`, `-OutputPath`, `-ViewportSize`, and `-WaitMilliseconds`; inspect the generated image before reporting visual completion.
+- Capture owner-app pages and flows with `npm run specs` from the Web host
+  root. It runs the mock specs in `tests/mock` and the real-host specs in
+  `tests/e2e`, by locale, theme, viewport, and mock scenario, with optional
+  video, and ends with a `file://` link to every screenshot, video, and failure
+  trace it wrote.
+- **[MUST]** Run `npm run specs` with every flag, because a shell without a
+  terminal silently takes the default for each missing answer:
+  `--mode`, `--flows`, `--locales` (when a selected spec follows a locale),
+  `--themes`, `--viewports`, `--scenarios` (mock), `--video` or `--no-video`,
+  and `--browser headless`. Select only the flows and combinations the change
+  affects; each E2E theme, viewport, and locale combination restarts the hosts.
+  `--browser headed` and `--browser ui` wait for a person.
+- **[MUST]** Inspect the printed screenshots (and video when recorded) before
+  reporting visual completion; a passing run is not visual proof.
+- Use `scripts/screenshot.ps1` for a single URL the specs do not cover, such as
+  another app. It accepts `-Url`, `-OutputPath`, `-ViewportSize`, and
+  `-WaitMilliseconds`.
+- Writing or changing a browser spec follows `tests/AGENTS.md`.
 
 ## Real-host E2E feedback
 
@@ -155,7 +172,10 @@ Applies to every `apps/*` and `shared/*` package.
   if (-not (Test-Path -LiteralPath $proof)) { throw "E2E proof screenshot was not produced." }
   ```
 
-- **[MUST]** Capture screenshots with `scripts/screenshot.ps1` and inspect the resulting image as part of the implementation flow. Use it to identify and correct layout, loading, data,
+- `npm run specs -- --mode e2e` captures selected E2E flows but runs neither
+  the whole suite nor the proof screenshot, so it never replaces this proof.
+- **[MUST]** Inspect the proof screenshot, and capture the changed screens as
+  described under Screenshot capture, as part of the implementation flow. Use them to identify and correct layout, loading, data,
   authentication, tenant, or authorization-flow defects, then rerun the proof.
   Do not report completion from a passing test or screenshot that was not
   inspected.

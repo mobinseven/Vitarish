@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import path from "node:path";
 import { Routes } from "../../apps/private-practice-owner/src/app/routes";
+import { mockScreenshotOutputEnvironmentKey, mockScreenshotScenarioEnvironmentKey } from "../../scripts/spec-capture-options.mjs";
 import { authMessageCatalogs } from "../../shared/auth/src/localization/catalogs";
 import { localeCookieName } from "../../shared/localization/src/localeCookie";
 import { supportedLocales } from "../../shared/localization/src/locales";
@@ -11,8 +12,8 @@ import { mockAnonymousSessionValue, mockSessionCookieName } from "../../shared/m
 // the sign-in methods, a rejected and a second-step password sign-in, the phone and email code steps,
 // passkey sign-in, password recovery through to its new password, and sign-out.
 // Only the ready scenario answers these requests; the other scenarios are covered by pages.spec.ts.
-const scenario = process.env.VITARISH_SCREENSHOT_SCENARIO ?? "ready";
-const outputRoot = process.env.VITARISH_SCREENSHOT_OUTPUT ?? "artifacts/private-practice-owner-screenshots";
+const scenario = process.env[mockScreenshotScenarioEnvironmentKey] ?? "ready";
+const outputRoot = process.env[mockScreenshotOutputEnvironmentKey] ?? "artifacts/private-practice-owner-screenshots";
 const settleDelayMilliseconds = 500;
 const networkIdleTimeoutMilliseconds = 15_000;
 // What the flow types into the forms.

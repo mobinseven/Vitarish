@@ -6,3 +6,4 @@ export const twoHostE2eNextDistDirectoryEnvironmentKey = "NEXT_DIST_DIR";
 export const twoHostE2eProofScreenshotEnvironmentKey = "VITARISH_E2E_PROOF_SCREENSHOT";
 export const twoHostE2eSecurityPolicyScreenshotEnvironmentKey = "VITARISH_E2E_SECURITY_POLICY_PROOF_SCREENSHOT";
 export const twoHostE2eProofStorageStateEnvironmentKey = "VITARISH_E2E_PROOF_STORAGE_STATE";
+export const twoHostE2eLocaleEnvironmentKey = "VITARISH_E2E_LOCALE";

@@ -1,12 +1,13 @@
 import { expect, test, type Page } from "@playwright/test";
 import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
+import { twoHostE2eLocaleEnvironmentKey } from "../../scripts/two-host-e2e-artifacts.mjs";
 import { TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
 
 // In-page requests use the web origin's same-origin /api, as in production.
 const browserApiOrigin = "";
 const ownerUsername = process.env.VITARISH_E2E_USERNAME ?? "e2e-owner";
 const password = process.env.VITARISH_E2E_PASSWORD;
-const locale = process.env.VITARISH_E2E_LOCALE === "fa" ? "fa" : "en";
+const locale = process.env[twoHostE2eLocaleEnvironmentKey] === "fa" ? "fa" : "en";
 const expectedMaximumContentBytes = 512 * 1024 * 1024;
 // FilesErrorCode.UnsupportedContentType: the contract enum has no string converter, so its ordinal is the wire value.
 const unsupportedContentTypeOrdinal = 10;

@@ -1,6 +1,7 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import path from "node:path";
 import { Routes } from "../../apps/private-practice-owner/src/app/routes";
+import { mockScreenshotOutputEnvironmentKey, mockScreenshotScenarioEnvironmentKey } from "../../scripts/spec-capture-options.mjs";
 import { clinicMessageCatalogs } from "../../shared/clinic/src/localization/catalogs";
 import { localeCookieName } from "../../shared/localization/src/localeCookie";
 import { supportedLocales } from "../../shared/localization/src/locales";
@@ -9,8 +10,8 @@ import { mockFixtureIds as ids } from "../../shared/mock-runtime/src/mockStore";
 // Walks the SEA-backed clinic features of the owner app against the stateful mock API and captures
 // each step: template catalog, starting a procedure from a template, working its steps, and the event workspace.
 // Only the ready scenario has SEA records to work with; the other scenarios are covered by pages.spec.ts.
-const scenario = process.env.VITARISH_SCREENSHOT_SCENARIO ?? "ready";
-const outputRoot = process.env.VITARISH_SCREENSHOT_OUTPUT ?? "artifacts/private-practice-owner-screenshots";
+const scenario = process.env[mockScreenshotScenarioEnvironmentKey] ?? "ready";
+const outputRoot = process.env[mockScreenshotOutputEnvironmentKey] ?? "artifacts/private-practice-owner-screenshots";
 const settleDelayMilliseconds = 500;
 const networkIdleTimeoutMilliseconds = 15_000;
 // Seeded mock records the flow works with, and what it types into the forms.

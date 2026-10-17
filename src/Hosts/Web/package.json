@@ -34,6 +34,7 @@
     "screenshots:private-practice-owner": "node scripts/private-practice-owner-screenshots.mjs",
     "test:theme-mode": "playwright test --config playwright.theme-mode.config.ts",
     "test:e2e:two-host": "node scripts/run-two-host-e2e.mjs",
+    "specs": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/run-specs.mjs",
     "test:layout:update-linux": "node scripts/update-layout-snapshots-linux.mjs",
     "validate:api-boundary": "npm run validate:api-boundary --workspaces --if-present",
     "validate:localization": "node scripts/validate-localization.mjs",
