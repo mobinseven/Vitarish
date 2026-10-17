@@ -328,8 +328,16 @@ patient profile, audit, SEA procedure templates, procedure, and step), and the
 test-only color legend against the mock API for each mock scenario, locale,
 light/dark theme, and desktop/mobile viewport. In the ready scenario it also
 walks the SEA clinic flow (template catalog, procedure from a template, step
-completion, step workspace) into a numbered `sea-flow/` folder; `--grep "sea-"`
-captures only the SEA screens.
+completion, step workspace) into a numbered `mock-sea-flow/` folder;
+`--grep "sea-"` captures only the SEA screens. It also walks every
+authentication screen (sign-in methods, rejected and second-step password
+sign-in, phone and email code steps, passkey, password recovery, sign-out) into
+a numbered `mock-auth-flow/` folder, and surgery type management (default type,
+new type, saved type) into `mock-surgery-types-flow/`; `--grep "auth-flow"` or
+`--grep "surgery-types-flow"` captures only those. Flow folders carry the
+`mock-` prefix so they are never confused with real-host captures, which the
+two-host runner writes next to its proof screenshot under
+`src/Hosts/Web/artifacts/two-host-e2e/`.
 Narrow a run with
 `-- --scenarios ready -- --project desktop-light --grep "<name>"`; images land in
 `src/Hosts/Web/artifacts/private-practice-owner-screenshots/<scenario>/<locale>-<project>/`.

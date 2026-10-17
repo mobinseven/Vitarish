@@ -2,7 +2,9 @@ import { HttpResponse, http, type RequestHandler } from "msw";
 import { parseLocaleCookie } from "@vitarish/localization";
 import { createMockStore } from "./mockStore";
 import { isMockAnonymousSession } from "./mockSession";
+import { createAuthMockHandlers } from "./mockAuthHandlers";
 import { createSeaMockHandlers } from "./mockSeaHandlers";
+import { createSurgeryMockHandlers } from "./mockSurgeryHandlers";
 
 export type MockScenario = "ready" | "empty" | "loading" | "error";
 export type MockHandlerFactory = (scenario: MockScenario) => readonly RequestHandler[];
@@ -448,7 +450,9 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
       }
       return HttpResponse.json({ succeeded: true, entityId: "mock-appointment-entity" });
     }),
+    ...createAuthMockHandlers({ isUnavailable: activeScenario === "error", withDelay, unavailable }),
     ...createSeaMockHandlers({ store, isUnavailable: activeScenario === "error", withDelay, unavailable, notFound }),
+    ...createSurgeryMockHandlers({ isUnavailable: activeScenario === "error", withDelay, unavailable, notFound }),
     http.post(/\/api\/modules\/medical\/providers\/available(?:\?|$)/, async () => {
       await withDelay();
       if (activeScenario === "error") return unavailable();

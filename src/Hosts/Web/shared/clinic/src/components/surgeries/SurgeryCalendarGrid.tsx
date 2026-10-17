@@ -1,9 +1,11 @@
 "use client";
 
+import { Chip } from "@heroui/react";
 import type { CalendarDate } from "@internationalized/date";
 import { dateValueToIsoDate, formatDate, formatDateTime, formatNumber, useLocalizedText } from "../../localization";
 import type { SurgeryCalendarView } from "../../models/surgeries/surgeryCalendarRange";
 import type { Surgery } from "../../models/surgeries/surgeryModels";
+import { surgeryStatusChipProps } from "./surgeryStatusChipProps";
 
 export interface SurgeryCalendarGridProps {
   view: SurgeryCalendarView;
@@ -92,14 +94,7 @@ export function SurgeryCalendarGrid({
                 </span>
                 <span className="hidden flex-1 flex-col gap-1 sm:flex">
                   {visibleLines.map((surgery) => (
-                    <span key={surgery.id} className="flex min-w-0 items-center gap-1 text-sm">
-                      <span className="shrink-0 font-medium text-foreground">
-                        {formatDateTime(surgery.scheduledAt, locale, { dateStyle: undefined, timeStyle: "short" })}
-                      </span>
-                      <span className="truncate text-muted">
-                        {surgery.patientDisplayName?.trim() || t("clinic.patients.unnamedPatient")}
-                      </span>
-                    </span>
+                    <SurgeryEntryChip key={surgery.id} surgery={surgery} />
                   ))}
                   {hiddenCount > 0 ? (
                     <span className="text-sm text-muted">
@@ -123,5 +118,22 @@ export function SurgeryCalendarGrid({
         )}
       </div>
     </div>
+  );
+}
+
+/** One surgery in a day cell: its time and patient on a soft chip in the surgery's status color. */
+function SurgeryEntryChip({ surgery }: { surgery: Surgery }) {
+  const { t, locale } = useLocalizedText();
+  const chip = surgeryStatusChipProps(surgery.status);
+
+  return (
+    <Chip size="sm" {...chip} className={`${chip.className ?? ""} max-w-full justify-start`}>
+      <Chip.Label className="truncate">
+        <span className="font-medium">
+          {formatDateTime(surgery.scheduledAt, locale, { dateStyle: undefined, timeStyle: "short" })}
+        </span>{" "}
+        {surgery.patientDisplayName?.trim() || t("clinic.patients.unnamedPatient")}
+      </Chip.Label>
+    </Chip>
   );
 }

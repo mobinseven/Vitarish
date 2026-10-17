@@ -44,7 +44,7 @@ export function PatientSurgeriesPanel({
           <Tooltip>
             <Button
               size="sm"
-              variant="tertiary"
+              variant="primary"
               onPress={() => onNavigate({ kind: "surgeryNew", patientId })}
             >
               <FaIcon icon="plus" aria-hidden="true" />

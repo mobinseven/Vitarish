@@ -1,7 +1,6 @@
 "use client";
 
 import { Button, Card, Surface, Tooltip } from "@heroui/react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useInsuranceProviderCredentials } from "@vitarish/clinic";
 import { useLocalizedText } from "@/localization";
@@ -14,16 +13,9 @@ export function InsuranceWidget() {
   const { context, credentials } = useInsuranceProviderCredentials();
   const rows = credentials.data ?? [];
   return (
-    <Card className={`${styles.widget} relative flex h-full min-h-[620px] flex-col overflow-hidden p-0`}>
-      <Image
-        alt=""
-        className="object-cover object-top"
-        fill
-        sizes="(min-width: 1280px) 33vw, 100vw"
-        src="/dashboard-insurance.webp"
-      />
+    <Card className="relative flex h-full min-h-[620px] flex-col overflow-hidden bg-anchor p-0">
       <div className={`${styles.content} relative z-10 flex h-full flex-col`}>
-        <header className="min-h-40 px-5 py-6 text-white sm:min-h-44 sm:px-6">
+        <header className="min-h-40 px-5 py-6 text-anchor-foreground sm:min-h-44 sm:px-6">
           <i
             aria-hidden="true"
             className="fa-light fa-shield-check text-2xl text-foreground"
@@ -31,7 +23,7 @@ export function InsuranceWidget() {
           <h2 className="mt-8 text-2xl font-semibold">
             {t("home.dashboard.insurance")}
           </h2>
-          <p className="mt-1 text-sm text-white/80">
+          <p className="mt-1 text-sm text-anchor-foreground/75">
             {t("home.dashboard.insuranceDescription")}
           </p>
         </header>

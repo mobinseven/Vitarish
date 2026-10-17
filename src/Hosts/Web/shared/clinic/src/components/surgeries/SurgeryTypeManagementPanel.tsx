@@ -36,6 +36,7 @@ import type {
   SurgeryType,
 } from "../../models/surgeries/surgeryModels";
 import { TemplateConfirmDialog } from "../procedures/TemplateConfirmDialog";
+import { SurgeryPageHeader } from "./SurgeryPageHeader";
 import {
   SurgeryTypeEditor,
   type SurgeryTypeEditorValues,
@@ -67,29 +68,16 @@ function SurgeryTypeListPane({
       role="region"
       aria-label={t("clinic.surgeries.types.listTitle")}
     >
-      <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-3">
-          <HeaderIcon icon="scissors" />
-          <div className="min-w-0">
-            <h2 className="text-lg font-semibold text-foreground">
-              {t("clinic.surgeries.types.listTitle")}
-            </h2>
-            <p className="text-sm text-muted">
-              {t("clinic.surgeries.types.listDescription")}
-            </p>
-          </div>
+      <div className="flex items-center gap-3">
+        <HeaderIcon icon="scissors" />
+        <div className="min-w-0">
+          <h2 className="text-lg font-semibold text-foreground">
+            {t("clinic.surgeries.types.listTitle")}
+          </h2>
+          <p className="text-sm text-muted">
+            {t("clinic.surgeries.types.listDescription")}
+          </p>
         </div>
-        {readOnly ? null : (
-          <Tooltip>
-            <Button variant="tertiary" onPress={onNew} isDisabled={isCreating}>
-              <FaIcon icon="plus" aria-hidden="true" />
-              {t("clinic.surgeries.types.newType")}
-            </Button>
-            <Tooltip.Content>
-              {t("clinic.surgeries.types.newTypeTooltip")}
-            </Tooltip.Content>
-          </Tooltip>
-        )}
       </div>
       {types.length === 0 ? (
         <EmptyStateSurface
@@ -130,6 +118,17 @@ function SurgeryTypeListPane({
             </ItemCard>
           ))}
         </ItemCardGroup>
+      )}
+      {readOnly ? null : (
+        <Tooltip>
+          <Button className="w-full" variant="primary" onPress={onNew} isDisabled={isCreating}>
+            <FaIcon icon="plus" aria-hidden="true" />
+            {t("clinic.surgeries.types.newType")}
+          </Button>
+          <Tooltip.Content>
+            {t("clinic.surgeries.types.newTypeTooltip")}
+          </Tooltip.Content>
+        </Tooltip>
       )}
     </Surface>
   );
@@ -321,8 +320,12 @@ export function SurgeryTypeManagementPanel() {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [blockedDeleteIds, setBlockedDeleteIds] = useState<string[]>([]);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  // Narrow screens show one pane at a time: the type list until a type is opened.
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
 
-  const selected = types.find((type) => type.id === selectedId) ?? null;
+  // Like the template pages, the editor opens on the first type until another is chosen.
+  const selected =
+    types.find((type) => type.id === selectedId) ?? types[0] ?? null;
   const showEditor = canPlan && (creating || selected !== null);
   const editorKey = creating ? "new" : (selected?.id ?? "none");
   const deleteBlockedMessage =
@@ -347,17 +350,19 @@ export function SurgeryTypeManagementPanel() {
     setCreating(false);
     setSaveError(null);
     setSelectedId(typeId);
+    setIsEditorOpen(true);
   };
 
   const handleNew = () => {
     setCreating(true);
     setSaveError(null);
+    setIsEditorOpen(true);
   };
 
   const handleBack = () => {
     setCreating(false);
     setSaveError(null);
-    setSelectedId(null);
+    setIsEditorOpen(false);
   };
 
   const handleSave = (values: SurgeryTypeEditorValues) => {
@@ -416,17 +421,10 @@ export function SurgeryTypeManagementPanel() {
 
   return (
     <div className="flex min-h-0 flex-col gap-6">
-      <header className="flex items-center gap-4">
-        <HeaderIcon icon="scissors" level="page" />
-        <div className="min-w-0">
-          <h1 className="text-2xl font-bold text-foreground">
-            {t("clinic.surgeries.types.title")}
-          </h1>
-          <p className="text-sm text-muted">
-            {t("clinic.surgeries.types.settingsDescription")}
-          </p>
-        </div>
-      </header>
+      <SurgeryPageHeader
+        title={t("clinic.surgeries.types.title")}
+        details={t("clinic.surgeries.types.settingsDescription")}
+      />
 
       {canPlan ? null : (
         <Alert status="default">
@@ -456,27 +454,23 @@ export function SurgeryTypeManagementPanel() {
           <div
             className={
               showEditor
-                ? "hidden flex-col lg:flex lg:w-80 lg:shrink-0"
-                : "flex flex-col"
+                ? `${isEditorOpen ? "hidden" : "flex"} flex-col lg:flex lg:w-80 lg:shrink-0`
+                : "flex flex-1 flex-col"
             }
           >
             <SurgeryTypeListPane
               types={types}
-              selectedId={creating ? null : selectedId}
+              selectedId={creating ? null : (selected?.id ?? null)}
               isCreating={creating}
               readOnly={!canPlan}
               onSelect={handleSelect}
               onNew={handleNew}
             />
           </div>
-          <div
-            className={
-              showEditor
-                ? "flex min-w-0 flex-1 flex-col"
-                : "hidden min-w-0 flex-1 flex-col lg:flex"
-            }
-          >
-            {showEditor ? (
+          {showEditor ? (
+            <div
+              className={`${isEditorOpen ? "flex" : "hidden"} min-w-0 flex-1 flex-col lg:flex`}
+            >
               <SurgeryTypeEditor
                 key={editorKey}
                 type={creating ? null : selected}
@@ -492,12 +486,8 @@ export function SurgeryTypeManagementPanel() {
                   selected && setConfirmDeleteId(selected.id)
                 }
               />
-            ) : (
-              <p className="text-sm text-muted">
-                {t("clinic.surgeries.types.selectPrompt")}
-              </p>
-            )}
-          </div>
+            </div>
+          ) : null}
         </div>
       )}
 

@@ -3,7 +3,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { createCalendar, getLocalTimeZone, today, toCalendar } from "@internationalized/date";
 import type { CalendarDate } from "@internationalized/date";
-import { Button, Chip, Input, Label, ListBox, Select, Surface, TextField, Tooltip } from "@heroui/react";
+import { Button, Chip, Input, Label, ListBox, Select, Surface, Tag, TagGroup, TextField, Tooltip } from "@heroui/react";
 import { Segment } from "@heroui-pro/react";
 import {
   EmptyStateSurface as ClinicEmptyState,
@@ -13,7 +13,7 @@ import {
   LoadingStateSurface as ClinicLoadingState,
 } from "@vitarish/ui";
 import type { NavigationIntent } from "../../navigation";
-import { dateValueToIsoDate, formatDate, formatNumber, getDateCalendar, useLocalizedText, type MessageKey } from "../../localization";
+import { dateValueToIsoDate, formatDate, formatNumber, getDateCalendar, useLocalizedText } from "../../localization";
 import { useCanPlanSurgeries } from "../../hooks/surgeries/useCanPlanSurgeries";
 import { useClinicStaff } from "../../hooks/surgeries/useClinicStaff";
 import { useSurgeryCalendar } from "../../hooks/surgeries/useSurgeryCalendar";
@@ -23,6 +23,8 @@ import { surgeryStatuses } from "../../models/surgeries/surgeryModels";
 import type { Surgery, SurgeryStatus } from "../../models/surgeries/surgeryModels";
 import { SurgeryCalendarGrid } from "./SurgeryCalendarGrid";
 import { SurgeryList } from "./SurgeryList";
+import { SurgeryPageHeader } from "./SurgeryPageHeader";
+import { SurgeryStatusChip, surgeryStatusLabelKeys } from "./SurgeryStatusChip";
 
 export interface SurgeryCalendarPageProps {
   onNavigate: (intent: NavigationIntent) => void;
@@ -30,11 +32,15 @@ export interface SurgeryCalendarPageProps {
 
 type StatusFilter = "all" | SurgeryStatus;
 
-const statusLabelKeys: Record<SurgeryStatus, MessageKey> = {
-  [surgeryStatuses.planned]: "clinic.surgeries.status.planned",
-  [surgeryStatuses.completed]: "clinic.surgeries.status.completed",
-  [surgeryStatuses.cancelled]: "clinic.surgeries.status.cancelled",
-};
+const filterableStatuses: SurgeryStatus[] = [
+  surgeryStatuses.planned,
+  surgeryStatuses.completed,
+  surgeryStatuses.cancelled,
+];
+
+// The status chip itself is the filter option; the selected one is ringed.
+const statusFilterTagClassName =
+  "rounded-full bg-transparent p-0 ring-offset-2 ring-offset-surface data-[selected=true]:ring-2 data-[selected=true]:ring-foreground/40";
 
 export function SurgeryCalendarPage({ onNavigate }: SurgeryCalendarPageProps) {
   const { t, locale, direction } = useLocalizedText();
@@ -99,7 +105,7 @@ export function SurgeryCalendarPage({ onNavigate }: SurgeryCalendarPageProps) {
     if (statusFilter !== "all") {
       chips.push({
         key: "status",
-        label: t("clinic.surgeries.calendar.filters.statusChip", { value: t(statusLabelKeys[statusFilter]) }),
+        label: t("clinic.surgeries.calendar.filters.statusChip", { value: t(surgeryStatusLabelKeys[statusFilter]) }),
         onRemove: () => setStatusFilter("all"),
       });
     }
@@ -161,15 +167,10 @@ export function SurgeryCalendarPage({ onNavigate }: SurgeryCalendarPageProps) {
 
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
-      <header className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-        <div className="flex items-center gap-4">
-          <HeaderIcon icon="scissors" level="page" />
-          <div className="min-w-0">
-            <h1 className="text-2xl font-bold text-foreground">{t("clinic.surgeries.title")}</h1>
-            <p className="text-sm text-muted">{t("clinic.surgeries.calendar.pageDescription")}</p>
-          </div>
-        </div>
-        {canPlan ? (
+      <SurgeryPageHeader
+        title={t("clinic.surgeries.title")}
+        details={t("clinic.surgeries.calendar.pageDescription")}
+        actions={canPlan ? (
           <Tooltip>
             <Button
               variant="primary"
@@ -181,7 +182,7 @@ export function SurgeryCalendarPage({ onNavigate }: SurgeryCalendarPageProps) {
             <Tooltip.Content>{t("clinic.surgeries.actions.plan")}</Tooltip.Content>
           </Tooltip>
         ) : null}
-      </header>
+      />
 
       {isLoading ? <ClinicLoadingState label={t("clinic.surgeries.calendar.loading")} /> : null}
 
@@ -265,17 +266,39 @@ export function SurgeryCalendarPage({ onNavigate }: SurgeryCalendarPageProps) {
                   <p className={`mb-1.5 text-sm ${statusFilter !== "all" ? "text-accent" : "text-muted"}`}>
                     {t("clinic.surgeries.calendar.filters.status")}
                   </p>
-                  <Segment
+                  <TagGroup
                     aria-label={t("clinic.surgeries.calendar.filters.status")}
-                    size="sm"
-                    selectedKey={statusFilter}
-                    onSelectionChange={(key) => setStatusFilter(key as StatusFilter)}
+                    selectionMode="single"
+                    selectedKeys={new Set([statusFilter])}
+                    onSelectionChange={(keys) => {
+                      // Pressing the selected chip again keeps it; another chip replaces it.
+                      const [key] = Array.from(keys);
+                      if (key !== undefined) setStatusFilter(key as StatusFilter);
+                    }}
                   >
-                    <Segment.Item id="all">{t("clinic.surgeries.calendar.filters.statusAll")}</Segment.Item>
-                    <Segment.Item id={surgeryStatuses.planned}>{t(statusLabelKeys[surgeryStatuses.planned])}</Segment.Item>
-                    <Segment.Item id={surgeryStatuses.completed}>{t(statusLabelKeys[surgeryStatuses.completed])}</Segment.Item>
-                    <Segment.Item id={surgeryStatuses.cancelled}>{t(statusLabelKeys[surgeryStatuses.cancelled])}</Segment.Item>
-                  </Segment>
+                    <TagGroup.List className="gap-2">
+                      <Tag
+                        id="all"
+                        className={statusFilterTagClassName}
+                        textValue={t("clinic.surgeries.calendar.filters.statusAll")}
+                      >
+                        <Chip size="sm">
+                          <FaIcon aria-hidden="true" icon="layer-group" />
+                          <Chip.Label>{t("clinic.surgeries.calendar.filters.statusAll")}</Chip.Label>
+                        </Chip>
+                      </Tag>
+                      {filterableStatuses.map((status) => (
+                        <Tag
+                          key={status}
+                          id={status}
+                          className={statusFilterTagClassName}
+                          textValue={t(surgeryStatusLabelKeys[status])}
+                        >
+                          <SurgeryStatusChip status={status} />
+                        </Tag>
+                      ))}
+                    </TagGroup.List>
+                  </TagGroup>
                 </div>
                 <div className="flex min-w-44 flex-col gap-1.5">
                   <Label className={teamFilter ? "text-accent" : undefined}>

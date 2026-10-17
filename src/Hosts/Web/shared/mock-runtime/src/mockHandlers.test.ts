@@ -1,6 +1,7 @@
 import { setupServer } from "msw/node";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { createDefaultMockHandlers, resolveMockScenario } from "./mockHandlers";
+import { mockRejectedPassword } from "./mockAuthHandlers";
 import { mockAnonymousSessionValue, mockSessionCookieName } from "./mockSession";
 
 const server = setupServer(...createDefaultMockHandlers("ready"));
@@ -45,6 +46,20 @@ describe("mock preview handlers", () => {
       allowPasswordlessEmailLogin: true,
       allowPasskeyLogin: true,
     });
+  });
+
+  it("rejects the mock rejected password and asks any other password for a second step", async () => {
+    const signIn = (password: string) => fetch("https://mock.example.test/api/modules/authentication/login/password", {
+      method: "POST",
+      body: JSON.stringify({ userNameOrEmail: "owner", password }),
+    });
+
+    const rejected = await signIn(mockRejectedPassword);
+    const secondStep = await signIn("any-other-password");
+
+    expect(rejected.status).toBe(401);
+    await expect(rejected.json()).resolves.toMatchObject({ code: "invalid_credentials" });
+    await expect(secondStep.json()).resolves.toMatchObject({ code: "additional_step_required", challengeId: expect.any(String) });
   });
 
   it("returns a session and antiforgery token through the normal HTTP boundary", async () => {

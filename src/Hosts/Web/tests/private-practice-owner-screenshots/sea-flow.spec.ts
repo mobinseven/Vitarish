@@ -35,7 +35,7 @@ for (const locale of supportedLocales) {
       step += 1;
       await page.screenshot({
         fullPage: true,
-        path: path.join(outputRoot, scenario, `${locale}-${testInfo.project.name}`, "sea-flow", `${String(step).padStart(2, "0")}-${name}.png`),
+        path: path.join(outputRoot, scenario, `${locale}-${testInfo.project.name}`, "mock-sea-flow", `${String(step).padStart(2, "0")}-${name}.png`),
       });
     };
 

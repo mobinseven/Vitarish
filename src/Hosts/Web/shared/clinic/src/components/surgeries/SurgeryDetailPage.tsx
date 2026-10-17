@@ -27,6 +27,7 @@ import {
   surgeryStatuses,
 } from "../../models/surgeries/surgeryModels";
 import type { NavigationIntent } from "../../navigation";
+import { SurgeryPageHeader } from "./SurgeryPageHeader";
 import { SurgeryStatusChip } from "./SurgeryStatusChip";
 import {
   SurgeryStatusDialogs,
@@ -180,89 +181,87 @@ export function SurgeryDetailPage({
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
-      <header className="flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-4">
-          <HeaderIcon icon="scissors" level="page" />
-          <div className="min-w-0">
-            <h1 className="text-2xl font-bold text-foreground">
-              {surgery.name}
-            </h1>
-            <div className="mt-1 flex flex-wrap items-center gap-2">
-              <Tooltip>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onPress={() =>
-                    onNavigate({
-                      kind: "patientDetail",
-                      patientId: surgery.patientId,
-                    })
-                  }
-                >
-                  <FaIcon icon="user" aria-hidden="true" />
-                  {patientName}
-                </Button>
-                <Tooltip.Content>
-                  {t("clinic.surgeries.detail.openPatient")}
-                </Tooltip.Content>
-              </Tooltip>
-              <SurgeryStatusChip status={surgery.status} />
-            </div>
-          </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {canPlan && canEditSurgery(surgery) ? (
+      <SurgeryPageHeader
+        title={surgery.name}
+        details={
+          <div className="mt-1 flex flex-wrap items-center gap-2">
             <Tooltip>
               <Button
-                variant="tertiary"
+                className="text-anchor-foreground"
+                variant="ghost"
+                size="sm"
                 onPress={() =>
-                  onNavigate({ kind: "surgeryEdit", surgeryId: surgery.id })
+                  onNavigate({
+                    kind: "patientDetail",
+                    patientId: surgery.patientId,
+                  })
                 }
               >
-                <FaIcon icon="pen" aria-hidden="true" />
-                {t("clinic.surgeries.actions.edit")}
+                <FaIcon icon="user" aria-hidden="true" />
+                {patientName}
               </Button>
               <Tooltip.Content>
-                {t("clinic.surgeries.actions.edit")}
+                {t("clinic.surgeries.detail.openPatient")}
               </Tooltip.Content>
             </Tooltip>
-          ) : null}
+            <SurgeryStatusChip status={surgery.status} />
+          </div>
+        }
+        actions={
+          <>
+            {canPlan && canEditSurgery(surgery) ? (
+              <Tooltip>
+                <Button
+                  variant="tertiary"
+                  onPress={() =>
+                    onNavigate({ kind: "surgeryEdit", surgeryId: surgery.id })
+                  }
+                >
+                  <FaIcon icon="pen" aria-hidden="true" />
+                  {t("clinic.surgeries.actions.edit")}
+                </Button>
+                <Tooltip.Content>
+                  {t("clinic.surgeries.actions.edit")}
+                </Tooltip.Content>
+              </Tooltip>
+            ) : null}
 
-          {canPlan && surgery.status === surgeryStatuses.planned ? (
-            <Tooltip>
-              <Button
-                variant="primary"
-                isDisabled={!canComplete}
-                onPress={() => setDialogAction("complete")}
-              >
-                <FaIcon icon="circle-check" aria-hidden="true" />
-                {t("clinic.surgeries.actions.complete")}
-              </Button>
-              <Tooltip.Content>
-                {canComplete
-                  ? t("clinic.surgeries.actions.complete")
-                  : t("clinic.surgeries.detail.completeUnavailable")}
-              </Tooltip.Content>
-            </Tooltip>
-          ) : null}
+            {canPlan && surgery.status === surgeryStatuses.planned ? (
+              <Tooltip>
+                <Button
+                  variant="primary"
+                  isDisabled={!canComplete}
+                  onPress={() => setDialogAction("complete")}
+                >
+                  <FaIcon icon="circle-check" aria-hidden="true" />
+                  {t("clinic.surgeries.actions.complete")}
+                </Button>
+                <Tooltip.Content>
+                  {canComplete
+                    ? t("clinic.surgeries.actions.complete")
+                    : t("clinic.surgeries.detail.completeUnavailable")}
+                </Tooltip.Content>
+              </Tooltip>
+            ) : null}
 
-          {canPlan && canCancelSurgery(surgery) ? (
-            <Tooltip>
-              <Button
-                className={`${removeButtonClassName} text-danger`}
-                variant="ghost"
-                onPress={() => setDialogAction("cancel")}
-              >
-                <FaIcon icon="ban" aria-hidden="true" />
-                {t("clinic.surgeries.actions.cancel")}
-              </Button>
-              <Tooltip.Content>
-                {t("clinic.surgeries.actions.cancel")}
-              </Tooltip.Content>
-            </Tooltip>
-          ) : null}
-        </div>
-      </header>
+            {canPlan && canCancelSurgery(surgery) ? (
+              <Tooltip>
+                <Button
+                  className={`${removeButtonClassName} text-danger`}
+                  variant="ghost"
+                  onPress={() => setDialogAction("cancel")}
+                >
+                  <FaIcon icon="ban" aria-hidden="true" />
+                  {t("clinic.surgeries.actions.cancel")}
+                </Button>
+                <Tooltip.Content>
+                  {t("clinic.surgeries.actions.cancel")}
+                </Tooltip.Content>
+              </Tooltip>
+            ) : null}
+          </>
+        }
+      />
 
       <DetailSection
         icon="calendar"
