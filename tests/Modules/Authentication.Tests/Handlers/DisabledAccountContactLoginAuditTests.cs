@@ -83,7 +83,8 @@ public sealed class DisabledAccountContactLoginAuditTests
         CreatePolicyProvider(),
         CreateKeys(),
         CreateAuditor(events),
-        Mock.Of<IInitialPlatformAdministratorGrant>());
+        Mock.Of<IInitialPlatformAdministratorGrant>(),
+        Mock.Of<IUserAccountUpdater>());
 
     private static CompleteEmailLoginHandler CreateEmailHandler(
         AuthenticationChallenge challenge,
@@ -97,7 +98,8 @@ public sealed class DisabledAccountContactLoginAuditTests
         CreatePolicyProvider(),
         CreateKeys(),
         CreateAuditor(events),
-        Mock.Of<IInitialPlatformAdministratorGrant>());
+        Mock.Of<IInitialPlatformAdministratorGrant>(),
+        Mock.Of<IUserAccountUpdater>());
 
     private static IAuthenticationChallengeStore CreateStore(AuthenticationChallenge challenge)
     {

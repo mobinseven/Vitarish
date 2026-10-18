@@ -24,6 +24,9 @@ public sealed class UserAccountUpdater(
         return result.Succeeded;
     }
 
+    public async Task ConfirmContactAsync(string userId, string contact, CancellationToken cancellationToken = default) =>
+        _ = await sender.Send(new ConfirmUserContactCommand(userId, contact), cancellationToken);
+
     public async Task<PasswordChangeOutcome> ChangePasswordAsync(string userId, string currentPassword, string newPassword, CancellationToken cancellationToken = default)
     {
         User? user = await userManager.FindByIdAsync(userId);

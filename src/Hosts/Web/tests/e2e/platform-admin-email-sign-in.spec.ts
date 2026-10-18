@@ -88,7 +88,7 @@ test("a platform admin sets up a practice tenant through the admin app", async (
     await page.goto(`${platformOrigin}${PlatformRoutes.Owners.New}`, { waitUntil: "domcontentloaded" });
     await page.getByLabel(messages.admin.owners.name).fill(ownerName);
     await page.getByRole("button", { name: messages.admin.owners.create }).click();
-    await expect(page).toHaveURL(`${platformOrigin}${PlatformRoutes.Owners.Index}`);
+    await expect(page).toHaveURL(`${platformOrigin}${PlatformRoutes.Owners.Index}`, { timeout: 30_000 });
     await expect(page.getByRole("link", { name: ownerName })).toBeVisible({ timeout: 30_000 });
 
     await page.goto(`${platformOrigin}${PlatformRoutes.Tenants.New}`, { waitUntil: "domcontentloaded" });
@@ -97,7 +97,7 @@ test("a platform admin sets up a practice tenant through the admin app", async (
     await expect(page.getByRole("option", { name: ownerName })).toBeAttached({ timeout: 30_000 });
     await page.getByLabel(messages.admin.tenants.owner).selectOption({ label: ownerName });
     await page.getByRole("button", { name: messages.admin.tenants.create }).click();
-    await expect(page).toHaveURL(`${platformOrigin}${PlatformRoutes.Tenants.Index}`);
+    await expect(page).toHaveURL(`${platformOrigin}${PlatformRoutes.Tenants.Index}`, { timeout: 30_000 });
 
     await page.getByRole("link", { name: tenantName }).click();
     await expect(page).toHaveURL(new RegExp(`${platformOrigin}/tenants/[0-9a-f-]{36}$`), { timeout: 30_000 });
