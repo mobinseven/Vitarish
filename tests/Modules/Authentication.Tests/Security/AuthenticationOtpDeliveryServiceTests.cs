@@ -1,4 +1,6 @@
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Vitarish.Audit.Application;
 using Vitarish.Audit.Domain;
@@ -23,7 +25,8 @@ public sealed class AuthenticationOtpDeliveryServiceTests
         AuthenticationOtpDeliveryService delivery = new(
             writer.Object,
             requestContext.Object,
-            new TestAuthenticationUtcClock());
+            new TestAuthenticationUtcClock(),
+            NullLogger<AuthenticationOtpDeliveryService>.Instance);
         bool sent = false;
 
         await delivery.SendSmsCodeAsync("+12125550123", () =>
@@ -39,6 +42,42 @@ public sealed class AuthenticationOtpDeliveryServiceTests
         auditEvent.TenantId.Should().Be(SecurityAuditScopeCatalog.PlatformScopeId);
         auditEvent.Resource.Should().Be(AuthenticationSecurityAuditEvents.OtpDeliveryResourcePrefix + "*******0123");
         auditEvent.Resource.Should().NotContain("+12125550123");
+    }
+
+    [Fact]
+    public async Task A_delivery_failure_is_logged_with_the_provider_error_and_masked_recipient_then_rethrown()
+    {
+        Mock<ISecurityAuditWriter> writer = new();
+        writer.Setup(value => value.WriteAsync(It.IsAny<SecurityAuditEvent>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(SecurityAuditWriteResult.Recorded);
+        Mock<IRequestContext> requestContext = new();
+        requestContext.SetupGet(value => value.RequestId).Returns("request-id");
+        RecordingLogger logger = new();
+        AuthenticationOtpDeliveryService delivery = new(writer.Object, requestContext.Object, new TestAuthenticationUtcClock(), logger);
+        InvalidOperationException providerFailure = new("smtp handshake failed");
+
+        Func<Task> send = () => delivery.SendEmailCodeAsync("owner@example.test", () => throw providerFailure);
+
+        (await send.Should().ThrowAsync<InvalidOperationException>()).Which.Should().BeSameAs(providerFailure);
+        RecordingLogger.Entry entry = logger.Entries.Should().ContainSingle().Subject;
+        entry.Level.Should().Be(LogLevel.Error);
+        entry.Exception.Should().BeSameAs(providerFailure);
+        entry.Message.Should().Contain(AuthenticationSecurityAuditEvents.OtpEmailSendOperation).And.Contain("***er@***");
+        entry.Message.Should().NotContain("owner@example.test");
+    }
+
+    private sealed class RecordingLogger : ILogger<AuthenticationOtpDeliveryService>
+    {
+        public sealed record Entry(LogLevel Level, string Message, Exception? Exception);
+
+        public List<Entry> Entries { get; } = [];
+
+        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+
+        public bool IsEnabled(LogLevel logLevel) => true;
+
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter) =>
+            Entries.Add(new(logLevel, formatter(state, exception), exception));
     }
 
     private sealed class TestAuthenticationUtcClock : IAuthenticationUtcClock

@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using Vitarish.Audit.Application;
 using Vitarish.Audit.Domain;
 using Vitarish.Authentication.Application.Abstractions;
@@ -9,7 +10,8 @@ namespace Vitarish.Authentication.Application.Services;
 public sealed class AuthenticationOtpDeliveryService(
     ISecurityAuditWriter auditWriter,
     IRequestContext requestContext,
-    IAuthenticationUtcClock clock)
+    IAuthenticationUtcClock clock,
+    ILogger<AuthenticationOtpDeliveryService> logger)
 {
     public Task SendSmsCodeAsync(
         string phoneNumber,
@@ -41,8 +43,11 @@ public sealed class AuthenticationOtpDeliveryService(
         {
             await send();
         }
-        catch
+        catch (Exception exception)
         {
+            // The caller answers with a generic provider failure, so this is the
+            // operator's only record of why delivery failed. Never log the code.
+            logger.LogError(exception, "Sign-in code delivery {Operation} to {Recipient} failed", operation, maskedRecipient);
             await WriteAuditAsync(
                 tenantId,
                 maskedRecipient,
