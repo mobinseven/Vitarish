@@ -21,7 +21,8 @@ internal static class ChallengeCompletionHelper
         IAuthenticationAttemptTracker attemptTracker,
         SecurityAccessPolicy securityPolicy,
         IAuthenticationAttemptKeyFactory attemptKeyFactory,
-        IInitialPlatformAdministratorGrant? initialAdministratorGrant = null)
+        IInitialPlatformAdministratorGrant? initialAdministratorGrant = null,
+        IUserAccountUpdater? contactConfirmer = null)
     {
         if (!AuthenticationInputValidator.HasText(challengeId) || !AuthenticationInputValidator.HasText(code))
             return new AuthenticationResult<LoginResult>.Failure(new(AuthenticationFailureReason.InvalidInput, "Challenge ID and code are required."));
@@ -112,8 +113,11 @@ internal static class ChallengeCompletionHelper
         if (challenge.Status == AuthenticationChallengeStatus.Pending)
             challenge.Complete(now);
 
-        // Granted before the session starts so it carries the role. Only contact-code
-        // sign-ins pass a grant: they prove control of the contact that names the account.
+        // Contact-code sign-ins prove control of the contact that names the account, so
+        // they confirm it and may claim the initial administrator role. Both happen
+        // before the session starts so the session reflects them.
+        if (contactConfirmer is not null)
+            await contactConfirmer.ConfirmContactAsync(challenge.UserId, challenge.Destination, cancellationToken);
         if (initialAdministratorGrant is not null)
             await initialAdministratorGrant.GrantIfUnclaimedAsync(challenge.UserId, cancellationToken);
 

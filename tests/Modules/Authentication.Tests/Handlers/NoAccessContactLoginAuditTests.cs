@@ -107,7 +107,7 @@ public sealed class NoAccessContactLoginAuditTests
     }
 
     [Fact]
-    public async Task A_verified_email_code_offers_the_initial_administrator_grant_before_the_session_starts()
+    public async Task A_verified_email_code_confirms_the_contact_and_offers_the_initial_administrator_grant_before_the_session_starts()
     {
         AuthenticationChallenge challenge = AuthenticationChallengePolicy.Default.CreateEmailLoginChallenge(
             "user-42", "user-42@example.test", DateTimeOffset.UtcNow);
@@ -121,25 +121,33 @@ public sealed class NoAccessContactLoginAuditTests
         grant.Setup(item => item.GrantIfUnclaimedAsync("user-42", It.IsAny<CancellationToken>()))
             .Callback(() => calls.Add("grant"))
             .Returns(Task.CompletedTask);
-        CompleteEmailLoginHandler handler = CreateEmailHandler(challenge, signIn, [], grant.Object);
+        Mock<IUserAccountUpdater> contactConfirmer = new();
+        contactConfirmer.Setup(item => item.ConfirmContactAsync("user-42", "user-42@example.test", It.IsAny<CancellationToken>()))
+            .Callback(() => calls.Add("confirm-contact"))
+            .Returns(Task.CompletedTask);
+        CompleteEmailLoginHandler handler = CreateEmailHandler(challenge, signIn, [], grant.Object, contactConfirmer.Object);
 
         _ = await handler.Handle(new CompleteEmailLoginCommand(challenge.Id.Value, "123456", "/home"), CancellationToken.None);
 
-        calls.Should().Equal("grant", "sign-in");
+        calls.Should().Equal("confirm-contact", "grant", "sign-in");
     }
 
     [Fact]
-    public async Task A_wrong_phone_code_never_offers_the_initial_administrator_grant()
+    public async Task A_wrong_phone_code_neither_confirms_the_contact_nor_offers_the_initial_administrator_grant()
     {
         AuthenticationChallenge challenge = AuthenticationChallengePolicy.Default.CreatePhoneLoginChallenge(
             "user-42", "+989121234567", DateTimeOffset.UtcNow);
         Mock<IInitialPlatformAdministratorGrant> grant = new();
-        CompletePhoneLoginHandler handler = CreatePhoneHandler(challenge, NoAccessSignIn(), [], grant.Object);
+        Mock<IUserAccountUpdater> contactConfirmer = new();
+        CompletePhoneLoginHandler handler = CreatePhoneHandler(challenge, NoAccessSignIn(), [], grant.Object, contactConfirmer.Object);
 
         _ = await handler.Handle(new CompletePhoneLoginCommand(challenge.Id.Value, "000000", "/home"), CancellationToken.None);
 
         grant.Verify(
             item => item.GrantIfUnclaimedAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+        contactConfirmer.Verify(
+            item => item.ConfirmContactAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
@@ -156,7 +164,8 @@ public sealed class NoAccessContactLoginAuditTests
         AuthenticationChallenge challenge,
         Mock<IAuthenticationSignInService> signIn,
         List<SecurityAuditEvent> events,
-        IInitialPlatformAdministratorGrant? grant = null) => new(
+        IInitialPlatformAdministratorGrant? grant = null,
+        IUserAccountUpdater? contactConfirmer = null) => new(
         CreateStore(challenge),
         CreateVerifier(challenge),
         signIn.Object,
@@ -165,13 +174,15 @@ public sealed class NoAccessContactLoginAuditTests
         CreatePolicyProvider(),
         CreateKeys(),
         CreateAuditor(events),
-        grant ?? Mock.Of<IInitialPlatformAdministratorGrant>());
+        grant ?? Mock.Of<IInitialPlatformAdministratorGrant>(),
+        contactConfirmer ?? Mock.Of<IUserAccountUpdater>());
 
     private static CompleteEmailLoginHandler CreateEmailHandler(
         AuthenticationChallenge challenge,
         Mock<IAuthenticationSignInService> signIn,
         List<SecurityAuditEvent> events,
-        IInitialPlatformAdministratorGrant? grant = null) => new(
+        IInitialPlatformAdministratorGrant? grant = null,
+        IUserAccountUpdater? contactConfirmer = null) => new(
         CreateStore(challenge),
         CreateVerifier(challenge),
         signIn.Object,
@@ -180,7 +191,8 @@ public sealed class NoAccessContactLoginAuditTests
         CreatePolicyProvider(),
         CreateKeys(),
         CreateAuditor(events),
-        grant ?? Mock.Of<IInitialPlatformAdministratorGrant>());
+        grant ?? Mock.Of<IInitialPlatformAdministratorGrant>(),
+        contactConfirmer ?? Mock.Of<IUserAccountUpdater>());
 
     private static IAuthenticationChallengeStore CreateStore(AuthenticationChallenge challenge)
     {

@@ -10,6 +10,7 @@ public interface IUserAccountUpdater
 {
     Task<bool> SetPhoneNumberAsync(string userId, string phoneNumber, CancellationToken cancellationToken = default);
     Task<bool> SetEmailAsync(string userId, string email, CancellationToken cancellationToken = default);
+    Task ConfirmContactAsync(string userId, string contact, CancellationToken cancellationToken = default);
     Task<PasswordChangeOutcome> ChangePasswordAsync(string userId, string currentPassword, string newPassword, CancellationToken cancellationToken = default);
     Task<PasswordChangeOutcome> ResetPasswordAsync(string userId, string newPassword, CancellationToken cancellationToken = default);
     Task<bool> PasswordMatchesAsync(string userId, string password, CancellationToken cancellationToken = default);
