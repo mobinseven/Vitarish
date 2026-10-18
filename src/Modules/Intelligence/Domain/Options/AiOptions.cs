@@ -2,6 +2,8 @@
 
 public class AiOptions
 {
+    public const string DefaultResponseModelConfigurationKey = "Vitarish:Intelligence:DefaultResponseModel";
+
     public string DefaultTranscriptionModel { get; set; } = "gpt-4o-mini-transcribe";
     public string DefaultResponseModel { get; set; } = "gpt-5.6-luna";
     public OllamaOptions Ollama { get; set; } = new();

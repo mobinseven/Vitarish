@@ -11,6 +11,7 @@ using Vitarish.Clinic.Infrastructure.Extensions;
 using Vitarish.Clinic.Agents;
 using Vitarish.Entities.Server.Extensions;
 using Vitarish.Modules.Base.Core;
+using Vitarish.Intelligence.Domain.Options;
 
 namespace Vitarish.Clinic.App;
 
@@ -24,8 +25,9 @@ public class ClinicApp : Vitarish.Apps.Base.Core.App
         _ = builder.Services.AddClinicInfrastructure();
         _ = builder.Services.AddClinicApiAuthorization();
         _ = builder.Services.AddSingleton(new AssistantOptions(
-            builder.Configuration["Vitarish:Intelligence:DefaultResponseModel"]
-            ?? throw new InvalidOperationException("Vitarish:Intelligence:DefaultResponseModel must be configured.")));
+            builder.Configuration[AgentRuntimeOptions.ModelConfigurationKey]
+            ?? builder.Configuration[AiOptions.DefaultResponseModelConfigurationKey]
+            ?? throw new InvalidOperationException($"{AiOptions.DefaultResponseModelConfigurationKey} must be configured.")));
         _ = builder.Services.AddAssistantComposition();
         _ = builder.Services.AddTransient<AssistantConversationEndpoint>();
         _ = builder.Services.AddTransient<Vitarish.Intelligence.Application.Agents.IAgentConversationEndpoint>(sp => sp.GetRequiredService<AssistantConversationEndpoint>());
