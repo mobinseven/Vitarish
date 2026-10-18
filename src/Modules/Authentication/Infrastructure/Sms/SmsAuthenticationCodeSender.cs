@@ -1,6 +1,9 @@
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Vitarish.Authentication.Application.Abstractions;
 using Vitarish.Authentication.Application.Services;
 using Vitarish.Authentication.Domain.Challenges;
+using Vitarish.Authentication.Infrastructure.Options;
 using Vitarish.Communications.Application.Abstractions;
 using Vitarish.Communications.Domain.Models;
 
@@ -9,7 +12,9 @@ namespace Vitarish.Authentication.Infrastructure;
 public sealed class SmsAuthenticationCodeSender(
     IMessagesService messagesService,
     VerificationSmsRequestShield shield,
-    AuthenticationOtpDeliveryService otpDelivery) : IPhoneAuthenticationCodeSender
+    AuthenticationOtpDeliveryService otpDelivery,
+    IOptions<DeliveredCodeLogOptions> deliveredCodeLog,
+    ILogger<SmsAuthenticationCodeSender> logger) : IPhoneAuthenticationCodeSender
 {
     public async Task SendAsync(string phoneNumber, string code, AuthenticationChallengePurpose purpose, CancellationToken cancellationToken)
     {
@@ -21,5 +26,8 @@ public sealed class SmsAuthenticationCodeSender(
 
         Message message = new() { Recipient = phoneNumber, Body = code };
         await otpDelivery.SendSmsCodeAsync(phoneNumber, () => messagesService.SendSmsCode(message, cancellationToken));
+        // Temporary exception, see DeliveredCodeLogOptions (issue #893).
+        if (deliveredCodeLog.Value.Enabled)
+            logger.LogWarning("Delivered SMS sign-in code {Code} for {Purpose}", code, purpose);
     }
 }

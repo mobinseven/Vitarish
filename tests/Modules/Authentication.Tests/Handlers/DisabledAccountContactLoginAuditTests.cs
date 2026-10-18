@@ -82,7 +82,8 @@ public sealed class DisabledAccountContactLoginAuditTests
         new InMemoryAuthenticationAttemptTracker(),
         CreatePolicyProvider(),
         CreateKeys(),
-        CreateAuditor(events));
+        CreateAuditor(events),
+        Mock.Of<IInitialPlatformAdministratorGrant>());
 
     private static CompleteEmailLoginHandler CreateEmailHandler(
         AuthenticationChallenge challenge,
@@ -95,7 +96,8 @@ public sealed class DisabledAccountContactLoginAuditTests
         new InMemoryAuthenticationAttemptTracker(),
         CreatePolicyProvider(),
         CreateKeys(),
-        CreateAuditor(events));
+        CreateAuditor(events),
+        Mock.Of<IInitialPlatformAdministratorGrant>());
 
     private static IAuthenticationChallengeStore CreateStore(AuthenticationChallenge challenge)
     {
