@@ -24,7 +24,7 @@ export function PlatformAdminAccessBoundary({
 
   useEffect(() => {
     if (!isLoginRoute && !isLoading && !isError && !isAuthenticated) {
-      router.replace(Routes.LoginPassword);
+      router.replace(Routes.Login);
     }
   }, [isAuthenticated, isError, isLoading, isLoginRoute, router]);
 

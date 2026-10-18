@@ -6,6 +6,7 @@ export const Routes = {
   Logout: "/logout",
   Login: "/login",
   LoginPassword: "/login/password",
+  LoginEmail: "/login/email",
   LoginForgotPassword: AuthenticationWebRoutes.PasswordRecovery,
   Users: {
     Index: "/users",

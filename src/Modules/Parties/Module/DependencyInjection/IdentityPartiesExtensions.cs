@@ -2,6 +2,7 @@ using DnsClient;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Vitarish.Parties.Application;
 using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Infrastructure;
 using Vitarish.Parties.Infrastructure.Abstractions;
@@ -25,6 +26,7 @@ public static class IdentityPartiesExtensions
         _ = builder.Services.AddTransientDbContext<PartiesDbContext>((_, options) => dbContextOptionsBuilder(options));
 
         _ = builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
+        _ = builder.Services.AddOptions<PlatformAdminHostOptions>().BindConfiguration(Modules.Base.Core.Module.ApplicationSection);
 
         // Register Entity Services
         _ = builder.Services.AddTransient<OwnersService>();
