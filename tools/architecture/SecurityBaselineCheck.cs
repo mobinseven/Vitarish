@@ -306,7 +306,7 @@ internal static class SecurityBaselineCheck
             Match agentRuntime = Regex.Match(compose, @"(?ms)^  agent-runtime:\r?\n(?<body>.*?)(?=^  postgres:\r?\n)");
             string agentBody = agentRuntime.Groups["body"].Value;
             if (!agentRuntime.Success ||
-                !agentBody.Contains($"VITARISH_{environmentPrefix}_OPENAI_API_KEY:?", StringComparison.Ordinal) ||
+                !AgentRuntimeProviderKeyRequired(agentBody, environmentPrefix) ||
                 !agentBody.Contains("AGENT_RUNTIME_SHARED_SECRET", StringComparison.Ordinal) ||
                 !Regex.IsMatch(agentBody, @"(?m)^    networks: \[application, egress\]\s*$"))
                 violations.Add(DeploymentViolation(composePath, "AgentRuntimeBoundaryMissing", "Require the provider key and shared secret and confine the agent runtime to application and provider-egress networks."));
@@ -792,6 +792,19 @@ internal static class SecurityBaselineCheck
         }
 
         return File.ReadAllText(path);
+    }
+
+    // The agent runtime must take its provider key from a required deployment
+    // variable. OpenAI is the SDK default endpoint; an OpenRouter key is only
+    // valid together with OpenRouter's OpenAI-compatible base URL.
+    private static bool AgentRuntimeProviderKeyRequired(string agentBody, string environmentPrefix)
+    {
+        Match key = Regex.Match(agentBody, @"(?m)^      OPENAI_API_KEY: \$\{VITARISH_" + Regex.Escape(environmentPrefix) + @"_(?<provider>OPENAI|OPENROUTER)_API_KEY:\?");
+        if (!key.Success)
+            return false;
+        bool openRouterBaseUrl = Regex.IsMatch(agentBody, @"(?m)^      OPENAI_BASE_URL: https://openrouter\.ai/api/v1\s*$");
+        bool anyBaseUrl = Regex.IsMatch(agentBody, @"(?m)^      OPENAI_BASE_URL:");
+        return key.Groups["provider"].Value == "OPENROUTER" ? openRouterBaseUrl : !anyBaseUrl;
     }
 
     private static ArchitectureViolation DeploymentViolation(string path, string kind, string remediation) =>
