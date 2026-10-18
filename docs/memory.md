@@ -57,6 +57,11 @@ Do not duplicate AGENTS.md, architecture.md, ADRs, runbooks, or module docs.
   not the same JSON text (escaping and formatting can differ). Never compare or
   hash stored object JSON as text; deserialize to the owning model and compare
   that. Surgery idempotency fingerprints do this in `SurgeryToolchain`.
+- A clinic assistant prepared action's review payload is parsed from the tool
+  output, which the model also reads. Data only the commit needs, such as a
+  patient resolved from a practice-scope search token, belongs in the owning
+  workflow's server-side proposal store (`ISurgeryAssistantProposalStore`,
+  `IClinicalEventProposalStore`), never in the output or review payload.
 
 ## Package/tool quirks
 

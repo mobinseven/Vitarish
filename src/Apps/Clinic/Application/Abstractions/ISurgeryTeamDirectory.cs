@@ -7,4 +7,7 @@ public interface ISurgeryTeamDirectory
 {
     /// <summary>Returns the members of the current clinic among <paramref name="userIds"/>; ids of non-members are omitted.</summary>
     Task<IReadOnlyList<SurgeryTeamContact>> FindMembersAsync(IReadOnlyCollection<string> userIds, CancellationToken cancellationToken);
+
+    /// <summary>Returns current-clinic members whose name matches <paramref name="search"/>, or the first members when it is blank.</summary>
+    Task<IReadOnlyList<SurgeryTeamContact>> SearchMembersAsync(string? search, CancellationToken cancellationToken);
 }

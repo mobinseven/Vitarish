@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Clinic.Agents;
 using Vitarish.Clinic.Application.Assistant;
 using Vitarish.Clinic.Application.Assistant.Capabilities;
@@ -28,6 +29,17 @@ public sealed class AssistantCompositionTests
         operations.Tools.Select(tool => tool.Definition.Name).Should().Equal("operations_tool", "search", "convert_calendar_date");
         patient.CompatibilityKey.Should().NotBe(operations.CompatibilityKey);
         patient.Definition.Instructions.Should().NotContain("<current-utc>");
+    }
+
+    [Fact]
+    public void The_service_registration_has_a_pack_for_every_capability_a_profile_names()
+    {
+        using ServiceProvider services = new ServiceCollection().AddAssistantComposition().BuildServiceProvider();
+        AgentCapabilityCatalog<AssistantCompositionContext> catalog = services.GetRequiredService<AgentCapabilityCatalog<AssistantCompositionContext>>();
+
+        AssistantCapabilityKeys.Patient.Concat(AssistantCapabilityKeys.OperationsProfile)
+            .Where(key => !catalog.TryGet(key, out _))
+            .Should().BeEmpty();
     }
 
     [Fact]

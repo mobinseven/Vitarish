@@ -12,11 +12,7 @@ import {
   removeButtonClassName,
 } from "@vitarish/ui";
 import { ApiError } from "../../api/client/apiFetch";
-import {
-  formatDateTime,
-  useLocalizedText,
-  type Translate,
-} from "../../localization";
+import { formatDateTime, useLocalizedText } from "../../localization";
 import { useCanPlanSurgeries } from "../../hooks/surgeries/useCanPlanSurgeries";
 import { useSurgery } from "../../hooks/surgeries/useSurgery";
 import { useSurgeryTypes } from "../../hooks/surgeries/useSurgeryTypes";
@@ -27,6 +23,7 @@ import {
   surgeryEnd,
   surgeryStatuses,
 } from "../../models/surgeries/surgeryModels";
+import { surgeryReminderOffsetLabel } from "../../models/surgeries/surgeryReminderOffset";
 import type { NavigationIntent } from "../../navigation";
 import { SurgeryStatusChip } from "./SurgeryStatusChip";
 import {
@@ -37,25 +34,6 @@ import {
 export interface SurgeryDetailPageProps {
   surgeryId: string;
   onNavigate: (intent: NavigationIntent) => void;
-}
-
-function reminderOffsetLabel(minutesBefore: number, t: Translate): string {
-  if (!Number.isFinite(minutesBefore) || minutesBefore <= 0) {
-    return t("clinic.surgeries.detail.reminders.atStart");
-  }
-  if (minutesBefore % 1440 === 0) {
-    return t("clinic.surgeries.detail.reminders.daysBefore", {
-      count: String(minutesBefore / 1440),
-    });
-  }
-  if (minutesBefore % 60 === 0) {
-    return t("clinic.surgeries.detail.reminders.hoursBefore", {
-      count: String(minutesBefore / 60),
-    });
-  }
-  return t("clinic.surgeries.detail.reminders.minutesBefore", {
-    count: String(minutesBefore),
-  });
 }
 
 function DetailSection({
@@ -341,7 +319,7 @@ export function SurgeryDetailPage({
                   className="text-sm text-foreground"
                 >
                   <span className="font-medium">
-                    {reminderOffsetLabel(policy.minutesBefore, t)}
+                    {surgeryReminderOffsetLabel(policy.minutesBefore, t)}
                   </span>
                   {`: ${policy.subject.trim() || policy.name}`}
                 </li>

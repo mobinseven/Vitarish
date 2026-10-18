@@ -1,206 +1,184 @@
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using Vitarish.Clinic.Application.Abstractions;
 using Vitarish.Clinic.Application.Assistant;
 using Vitarish.Clinic.Application.Assistant.Capabilities;
-using Vitarish.Clinic.Domain.Surgery;
+using Vitarish.Clinic.Application.Assistant.Operations;
+using Vitarish.Clinic.Application.Assistant.Surgeries;
 using Vitarish.Intelligence.Application.Agents;
 
 namespace Vitarish.Clinic.Infrastructure.Assistant.Capabilities.Surgery;
 
+/// <summary>
+/// The surgery workflow's capability and workflow keys, model-facing tool names, and persisted action types.
+/// Action types are stored with prepared actions and read by the Web surgery review card: append, never rename.
+/// </summary>
 public static class SurgeryAssistantActions
 {
-    public const string Create = "create_patient_surgery";
     public const string Capability = "Surgeries";
+    public const string OperationsCapability = "SurgeryOperations";
     public const string Workflow = "surgeries";
+
+    public const string Create = "create_patient_surgery";
+    public const string Update = "update_patient_surgery";
+    public const string Complete = "complete_patient_surgery";
+    public const string Cancel = "cancel_patient_surgery";
+    public const string OperationsCreate = "create_surgery";
+    public const string OperationsUpdate = "update_surgery";
+    public const string OperationsComplete = "complete_surgery";
+    public const string OperationsCancel = "cancel_surgery";
+    public const string CreateType = "create_surgery_type";
+    public const string UpdateType = "update_surgery_type";
+    public const string DeleteType = "delete_surgery_type";
+    public const string UpdateCancellationMessage = "update_surgery_cancellation_message";
+
     public const string ListTool = "list_patient_surgeries";
     public const string ListTypesTool = "list_surgery_types";
+    public const string ListStaffTool = "list_surgery_staff";
+    public const string ConflictsTool = "find_surgery_conflicts";
+    public const string SuggestionsTool = "get_surgery_suggestions";
     public const string PrepareTool = "prepare_patient_surgery";
+    public const string PrepareUpdateTool = "prepare_patient_surgery_update";
+    public const string PrepareCompletionTool = "prepare_patient_surgery_completion";
+    public const string PrepareCancellationTool = "prepare_patient_surgery_cancellation";
+
+    public const string OperationsListTool = "list_operations_surgeries";
+    public const string OperationsGetTool = "get_operations_surgery";
+    public const string OperationsListTypesTool = "list_operations_surgery_types";
+    public const string OperationsListStaffTool = "list_operations_surgery_staff";
+    public const string OperationsConflictsTool = "find_operations_surgery_conflicts";
+    public const string OperationsSuggestionsTool = "get_operations_surgery_suggestions";
+    public const string GetCancellationMessageTool = "get_surgery_cancellation_message";
+    public const string OperationsPrepareTool = "prepare_operations_surgery";
+    public const string OperationsPrepareUpdateTool = "prepare_operations_surgery_update";
+    public const string OperationsPrepareCompletionTool = "prepare_operations_surgery_completion";
+    public const string OperationsPrepareCancellationTool = "prepare_operations_surgery_cancellation";
+    public const string PrepareTypeCreationTool = "prepare_surgery_type_creation";
+    public const string PrepareTypeUpdateTool = "prepare_surgery_type_update";
+    public const string PrepareTypeDeletionTool = "prepare_surgery_type_deletion";
+    public const string PrepareCancellationMessageTool = "prepare_surgery_cancellation_message_update";
+
+    /// <summary>Every action type the surgery workflow commits.</summary>
+    public static readonly IReadOnlySet<string> ActionTypes = new HashSet<string>(StringComparer.Ordinal)
+    {
+        Create, Update, Complete, Cancel,
+        OperationsCreate, OperationsUpdate, OperationsComplete, OperationsCancel,
+        CreateType, UpdateType, DeleteType, UpdateCancellationMessage
+    };
+
+    /// <summary>Only the clinic owner can plan and manage surgeries, so only the owner is offered the preparations.</summary>
+    internal static AssistantActionPolicy Prepare(
+        string actionType, string toolName, AssistantActionRetryClassification retry, IEnumerable<string>? permissions = null, int revision = 1) =>
+        AssistantActionPolicies.Prepare(
+            actionType,
+            Workflow,
+            permissions ?? [],
+            requiredRoles: [AssistantOperationsScope.TenantOwnerRole],
+            toolNames: [toolName],
+            revision: revision,
+            retryClassification: retry);
 }
 
+/// <summary>The route-bound patient's surgeries: read them, and plan, edit, complete, or cancel them after confirmation.</summary>
 public sealed class PatientSurgeryAgentCapability(
-    ListPatientSurgeriesAssistantTool list,
-    ListSurgeryTypesAssistantTool listTypes,
-    PreparePatientSurgeryTool prepare) : AssistantCapability([list, listTypes, prepare], [
-        AssistantActionPolicies.Prepare(
-            SurgeryAssistantActions.Create,
-            SurgeryAssistantActions.Workflow,
-            ["ClinicalEvents.Create"],
-            toolNames: [SurgeryAssistantActions.PrepareTool],
-            retryClassification: AssistantActionRetryClassification.Idempotent)
+    ISurgeryToolchain surgeries,
+    ISurgeryCatalogStore catalogs,
+    ISurgeryTeamDirectory directory,
+    IAssistantPatientSearch patients,
+    ISurgeryAssistantProposalStore proposals,
+    TimeProvider timeProvider) : AssistantCapability(
+    [
+        new ListPatientSurgeriesAssistantTool(surgeries),
+        new ListSurgeryTypesAssistantTool(SurgeryAssistantActions.ListTypesTool, catalogs),
+        new ListSurgeryStaffAssistantTool(SurgeryAssistantActions.ListStaffTool, directory),
+        new FindSurgeryConflictsAssistantTool(SurgeryAssistantActions.ConflictsTool, surgeries),
+        new GetSurgerySuggestionsAssistantTool(SurgeryAssistantActions.SuggestionsTool, surgeries),
+        new PrepareSurgeryCreationTool(SurgeryAssistantActions.PrepareTool, SurgeryAssistantActions.Create, SurgeryAssistantActions.Capability,
+            catalogs, directory, patients, proposals, timeProvider),
+        new PrepareSurgeryUpdateTool(SurgeryAssistantActions.PrepareUpdateTool, SurgeryAssistantActions.Update, SurgeryAssistantActions.Capability,
+            surgeries, catalogs, directory, proposals, timeProvider),
+        new PrepareSurgeryStatusTool(SurgeryAssistantActions.PrepareCompletionTool, SurgeryAssistantActions.Complete, SurgeryAssistantActions.Capability,
+            cancels: false, surgeries, catalogs, proposals, timeProvider),
+        new PrepareSurgeryStatusTool(SurgeryAssistantActions.PrepareCancellationTool, SurgeryAssistantActions.Cancel, SurgeryAssistantActions.Capability,
+            cancels: true, surgeries, catalogs, proposals, timeProvider)
+    ],
+    [
+        // Revision 2 keeps its commit data on the server; a revision-1 proposal must be prepared again.
+        SurgeryAssistantActions.Prepare(SurgeryAssistantActions.Create, SurgeryAssistantActions.PrepareTool,
+            AssistantActionRetryClassification.Idempotent, ["ClinicalEvents.Create"], revision: 2),
+        SurgeryAssistantActions.Prepare(SurgeryAssistantActions.Update, SurgeryAssistantActions.PrepareUpdateTool,
+            AssistantActionRetryClassification.Retryable, ["ClinicalEvents.Create"]),
+        SurgeryAssistantActions.Prepare(SurgeryAssistantActions.Complete, SurgeryAssistantActions.PrepareCompletionTool,
+            AssistantActionRetryClassification.Retryable, ["ClinicalEvents.Create"]),
+        SurgeryAssistantActions.Prepare(SurgeryAssistantActions.Cancel, SurgeryAssistantActions.PrepareCancellationTool,
+            AssistantActionRetryClassification.Retryable, ["ClinicalEvents.Create"])
     ])
 {
     public override string Name => SurgeryAssistantActions.Capability;
-    public override string Description => "Read current-patient surgeries and prepare a surgery plan for explicit clinician confirmation.";
+    public override string Description => "Read the current patient's surgeries and prepare planning, editing, completing, or cancelling them for explicit clinician confirmation.";
     public override IReadOnlySet<string> RequiredPermissions { get; } =
-        new HashSet<string>(StringComparer.Ordinal) { "ClinicalEvents.Read", "ClinicalEvents.Create" };
+        new HashSet<string>(StringComparer.Ordinal) { "ClinicalEvents.Read" };
     public override string GetInstructions() =>
-        $"Use only the server-supplied patient scope. Call {SurgeryAssistantActions.ListTypesTool} before preparing a plan so the clinician picks a valid surgery type; team members must be clinic staff user ids. " +
-        "Reminders are sent automatically to the patient and every team member. Confirm the full surgery plan, contacts, and reminder policy with the clinician before preparing it; never create it during the model run.";
+        $"Use only the server-supplied patient scope. Before preparing a plan, call {SurgeryAssistantActions.ListTypesTool} for a valid surgery type and {SurgeryAssistantActions.ListStaffTool} for team user ids, " +
+        $"and check the slot with {SurgeryAssistantActions.ConflictsTool}; a conflict is a warning to report, not a refusal. Use {SurgeryAssistantActions.ListTool} for surgery ids before editing, completing, or cancelling. " +
+        "Reminders are sent automatically to the patient and every team member; cancelling also sends them the clinic's cancellation message. " +
+        "Only a planned surgery can be cancelled; a mistaken completion is corrected by editing its status back to planned. " +
+        "Confirm the full change with the clinician before preparing it; preparing never applies it.";
 }
 
-public sealed class ListPatientSurgeriesAssistantTool(ISurgeryToolchain surgeries) : IAgentTool
+/// <summary>
+/// The practice's surgeries across patients, its surgery types, and its cancellation message, for the clinic owner.
+/// Patients are chosen through patient search tokens; no tool returns a patient id.
+/// </summary>
+public sealed class SurgeryOperationsAgentCapability(
+    ISurgeryToolchain surgeries,
+    ISurgeryCatalogStore catalogs,
+    ISurgerySettingsStore settings,
+    ISurgeryTeamDirectory directory,
+    IAssistantPatientSearch patients,
+    ISurgeryAssistantProposalStore proposals,
+    TimeProvider timeProvider) : AssistantCapability(
+    [
+        new ListOperationsSurgeriesAssistantTool(surgeries),
+        new GetOperationsSurgeryAssistantTool(surgeries),
+        new ListSurgeryTypesAssistantTool(SurgeryAssistantActions.OperationsListTypesTool, catalogs),
+        new ListSurgeryStaffAssistantTool(SurgeryAssistantActions.OperationsListStaffTool, directory),
+        new FindSurgeryConflictsAssistantTool(SurgeryAssistantActions.OperationsConflictsTool, surgeries),
+        new GetSurgerySuggestionsAssistantTool(SurgeryAssistantActions.OperationsSuggestionsTool, surgeries),
+        new GetSurgeryCancellationMessageAssistantTool(settings),
+        new PrepareSurgeryCreationTool(SurgeryAssistantActions.OperationsPrepareTool, SurgeryAssistantActions.OperationsCreate, SurgeryAssistantActions.OperationsCapability,
+            catalogs, directory, patients, proposals, timeProvider),
+        new PrepareSurgeryUpdateTool(SurgeryAssistantActions.OperationsPrepareUpdateTool, SurgeryAssistantActions.OperationsUpdate, SurgeryAssistantActions.OperationsCapability,
+            surgeries, catalogs, directory, proposals, timeProvider),
+        new PrepareSurgeryStatusTool(SurgeryAssistantActions.OperationsPrepareCompletionTool, SurgeryAssistantActions.OperationsComplete, SurgeryAssistantActions.OperationsCapability,
+            cancels: false, surgeries, catalogs, proposals, timeProvider),
+        new PrepareSurgeryStatusTool(SurgeryAssistantActions.OperationsPrepareCancellationTool, SurgeryAssistantActions.OperationsCancel, SurgeryAssistantActions.OperationsCapability,
+            cancels: true, surgeries, catalogs, proposals, timeProvider),
+        new PrepareSurgeryTypeTool(SurgeryAssistantActions.PrepareTypeCreationTool, SurgeryAssistantActions.CreateType, SurgeryAssistantActions.OperationsCapability,
+            edits: false, catalogs, proposals, timeProvider),
+        new PrepareSurgeryTypeTool(SurgeryAssistantActions.PrepareTypeUpdateTool, SurgeryAssistantActions.UpdateType, SurgeryAssistantActions.OperationsCapability,
+            edits: true, catalogs, proposals, timeProvider),
+        new PrepareSurgeryTypeDeletionTool(catalogs, proposals, timeProvider),
+        new PrepareSurgeryCancellationMessageTool(settings, proposals, timeProvider)
+    ],
+    [
+        SurgeryAssistantActions.Prepare(SurgeryAssistantActions.OperationsCreate, SurgeryAssistantActions.OperationsPrepareTool, AssistantActionRetryClassification.Idempotent),
+        SurgeryAssistantActions.Prepare(SurgeryAssistantActions.OperationsUpdate, SurgeryAssistantActions.OperationsPrepareUpdateTool, AssistantActionRetryClassification.Retryable),
+        SurgeryAssistantActions.Prepare(SurgeryAssistantActions.OperationsComplete, SurgeryAssistantActions.OperationsPrepareCompletionTool, AssistantActionRetryClassification.Retryable),
+        SurgeryAssistantActions.Prepare(SurgeryAssistantActions.OperationsCancel, SurgeryAssistantActions.OperationsPrepareCancellationTool, AssistantActionRetryClassification.Retryable),
+        // A new type has no idempotency key, so a failed creation is never retried automatically.
+        SurgeryAssistantActions.Prepare(SurgeryAssistantActions.CreateType, SurgeryAssistantActions.PrepareTypeCreationTool, AssistantActionRetryClassification.NeverRetry),
+        SurgeryAssistantActions.Prepare(SurgeryAssistantActions.UpdateType, SurgeryAssistantActions.PrepareTypeUpdateTool, AssistantActionRetryClassification.Retryable),
+        SurgeryAssistantActions.Prepare(SurgeryAssistantActions.DeleteType, SurgeryAssistantActions.PrepareTypeDeletionTool, AssistantActionRetryClassification.Retryable),
+        SurgeryAssistantActions.Prepare(SurgeryAssistantActions.UpdateCancellationMessage, SurgeryAssistantActions.PrepareCancellationMessageTool, AssistantActionRetryClassification.Retryable)
+    ])
 {
-    public AgentToolDefinition Definition { get; } = new(
-        SurgeryAssistantActions.ListTool,
-        "List surgeries for the current patient.",
-        "{\"type\":\"object\",\"properties\":{},\"additionalProperties\":false}");
-
-    public async Task<AgentToolResult> ExecuteAsync(AgentToolCall call, AgentExecutionContext context, CancellationToken cancellationToken = default)
-    {
-        Guid patientId = SurgeryAssistantScope.PatientId(context);
-        IReadOnlyList<SurgeryReadModel> values = await surgeries.GetByPatientAsync(patientId, cancellationToken);
-        return new(call.Id, JsonSerializer.Serialize(
-            new SurgeryAssistantListResult(values),
-            SurgeryAssistantJsonSerializerContext.Default.SurgeryAssistantListResult));
-    }
+    public override string Name => SurgeryAssistantActions.OperationsCapability;
+    public override string Description => "Read the practice's surgery calendar and prepare planning, editing, completing, or cancelling surgeries, managing surgery types, and changing the cancellation message for explicit owner confirmation.";
+    public override IReadOnlySet<string> RequiredPermissions { get; } = new HashSet<string>(StringComparer.Ordinal);
+    public override bool IsAvailable(AssistantContext context) =>
+        context.SubjectKind == SurgeryAssistantScope.PracticeSubject && AssistantOperationsScope.IsAuthorizedRole(context.Role);
+    public override string GetInstructions() =>
+        $"Find the patient with search_patients and pass its candidate token to {SurgeryAssistantActions.OperationsPrepareTool}. Use {SurgeryAssistantActions.OperationsListTool} or {SurgeryAssistantActions.OperationsGetTool} for surgery ids, " +
+        $"{SurgeryAssistantActions.OperationsListTypesTool} for type ids, and {SurgeryAssistantActions.OperationsListStaffTool} for team user ids; check a slot with {SurgeryAssistantActions.OperationsConflictsTool} and report conflicts as warnings. " +
+        "Only a planned surgery can be cancelled, which sends the patient and team the cancellation message; a mistaken completion is corrected by editing its status back to planned. " +
+        "Every change is prepared for the owner's explicit confirmation; never claim it was applied during the run.";
 }
-
-public sealed class ListSurgeryTypesAssistantTool(ISurgeryCatalogStore catalogs) : IAgentTool
-{
-    public AgentToolDefinition Definition { get; } = new(
-        SurgeryAssistantActions.ListTypesTool,
-        "List this clinic's surgery types with their default tools, team roles and reminders.",
-        "{\"type\":\"object\",\"properties\":{},\"additionalProperties\":false}");
-
-    public async Task<AgentToolResult> ExecuteAsync(AgentToolCall call, AgentExecutionContext context, CancellationToken cancellationToken = default)
-    {
-        IReadOnlyList<SurgeryCatalog> types = await catalogs.ListAsync(cancellationToken);
-        return new(call.Id, JsonSerializer.Serialize(
-            new SurgeryAssistantTypesResult(types),
-            SurgeryAssistantJsonSerializerContext.Default.SurgeryAssistantTypesResult));
-    }
-}
-
-public sealed class PreparePatientSurgeryTool(ISurgeryCatalogStore catalogs) : IAgentTool, IAssistantPreparationTool
-{
-    public AgentToolDefinition Definition { get; } = new(
-        SurgeryAssistantActions.PrepareTool,
-        "Prepare a current-patient surgery plan for explicit clinician confirmation; this does not create it.",
-        """{"type":"object","properties":{"catalogId":{"type":"string","description":"A clinic surgery type id; list the clinic's surgery types before choosing one."},"name":{"type":"string"},"scheduledAt":{"type":"string"},"durationMinutes":{"type":"integer","minimum":1,"maximum":1440},"location":{"type":"string"},"team":{"type":"array","items":{"type":"object","properties":{"userId":{"type":"string"},"role":{"type":"string"}},"required":["userId","role"],"additionalProperties":false}},"tools":{"type":"array","items":{"type":"string"}},"personsToNotify":{"type":"array","items":{"type":"string"},"description":"Optional legacy field; reminders are sent automatically to the patient and team."},"contacts":{"type":"array","items":{"type":"object","properties":{"name":{"type":"string"},"destination":{"type":"string"},"channel":{"type":"string","enum":["email","sms"]}},"required":["name","destination","channel"],"additionalProperties":false},"description":"Optional legacy field."},"reminderPolicies":{"type":"array","items":{"type":"object","properties":{"name":{"type":"string"},"minutesBefore":{"type":"integer","minimum":0},"subject":{"type":"string"},"textBody":{"type":"string"}},"required":["name","minutesBefore","subject","textBody"],"additionalProperties":false}}},"required":["catalogId","name","scheduledAt"],"additionalProperties":false}""");
-
-    public async Task<AgentToolResult> ExecuteAsync(AgentToolCall call, AgentExecutionContext context, CancellationToken cancellationToken = default)
-    {
-        using JsonDocument document = JsonDocument.Parse(call.ArgumentsJson);
-        JsonElement arguments = document.RootElement;
-        string catalogId = arguments.GetProperty("catalogId").GetString() ?? string.Empty;
-        SurgeryCatalog? catalog = await catalogs.FindAsync(catalogId, cancellationToken);
-        if (catalog is null)
-        {
-            throw new ArgumentException("The surgery type does not exist.", nameof(catalogId));
-        }
-        SurgeryAssistantProposal proposal = new(
-            Guid.CreateVersion7(),
-            SurgeryAssistantScope.PatientId(context),
-            catalogId,
-            arguments.GetProperty("name").GetString() ?? string.Empty,
-            arguments.GetProperty("scheduledAt").GetDateTimeOffset(),
-            Strings(arguments, "tools"),
-            Strings(arguments, "personsToNotify"),
-            Contacts(arguments),
-            Policies(arguments),
-            Duration(arguments),
-            Location(arguments),
-            TeamMembers(arguments));
-        return new AgentToolResult(
-            call.Id,
-            JsonSerializer.Serialize(
-                new SurgeryAssistantPreparationResult(proposal),
-                SurgeryAssistantJsonSerializerContext.Default.SurgeryAssistantPreparationResult));
-    }
-
-    public AssistantPreparedAction? GetPreparedAction(AgentToolResult result)
-    {
-        SurgeryAssistantPreparationResult? preparation = JsonSerializer.Deserialize(
-            result.Output,
-            SurgeryAssistantJsonSerializerContext.Default.SurgeryAssistantPreparationResult);
-        return preparation?.Proposal is { } proposal
-            ? new(
-                SurgeryAssistantActions.Capability,
-                SurgeryAssistantActions.Create,
-                proposal.Id,
-                JsonSerializer.Serialize(proposal, SurgeryAssistantJsonSerializerContext.Default.SurgeryAssistantProposal),
-                DateTimeOffset.UtcNow.AddMinutes(30),
-                proposal.Location is { Length: > 0 } location
-                    ? $"Create surgery '{proposal.Name}' at {proposal.ScheduledAt:O} in {location}."
-                    : $"Create surgery '{proposal.Name}' at {proposal.ScheduledAt:O}.")
-            : null;
-    }
-
-    private static IReadOnlyList<string> Strings(JsonElement arguments, string name) =>
-        arguments.TryGetProperty(name, out JsonElement values) && values.ValueKind == JsonValueKind.Array
-            ? values.EnumerateArray().Select(value => value.GetString() ?? string.Empty).ToArray()
-            : [];
-
-    private static IReadOnlyList<SurgeryContact> Contacts(JsonElement arguments) =>
-        arguments.TryGetProperty("contacts", out JsonElement values) && values.ValueKind == JsonValueKind.Array
-            ? values.EnumerateArray().Select(value => new SurgeryContact(
-                value.GetProperty("name").GetString() ?? string.Empty,
-                value.GetProperty("destination").GetString() ?? string.Empty,
-                value.GetProperty("channel").GetString() ?? string.Empty)).ToArray()
-            : [];
-
-    private static IReadOnlyList<SurgeryReminderPolicy> Policies(JsonElement arguments) =>
-        arguments.TryGetProperty("reminderPolicies", out JsonElement values) && values.ValueKind == JsonValueKind.Array
-            ? values.EnumerateArray().Select(value => new SurgeryReminderPolicy(
-                value.GetProperty("name").GetString() ?? string.Empty,
-                value.GetProperty("minutesBefore").GetInt32(),
-                value.GetProperty("subject").GetString() ?? string.Empty,
-                value.GetProperty("textBody").GetString() ?? string.Empty)).ToArray()
-            : [];
-
-    private static int? Duration(JsonElement arguments) =>
-        arguments.TryGetProperty("durationMinutes", out JsonElement value) && value.ValueKind == JsonValueKind.Number
-            ? value.GetInt32()
-            : null;
-
-    private static string? Location(JsonElement arguments) =>
-        arguments.TryGetProperty("location", out JsonElement value) && value.ValueKind == JsonValueKind.String
-            ? SurgeryPlanRules.NormalizeText(value.GetString())
-            : null;
-
-    private static IReadOnlyList<SurgeryAssistantTeamMember> TeamMembers(JsonElement arguments) =>
-        arguments.TryGetProperty("team", out JsonElement values) && values.ValueKind == JsonValueKind.Array
-            ? values.EnumerateArray().Select(value => new SurgeryAssistantTeamMember(
-                value.GetProperty("userId").GetString() ?? string.Empty,
-                value.GetProperty("role").GetString() ?? string.Empty)).ToArray()
-            : [];
-}
-
-internal static class SurgeryAssistantScope
-{
-    public static Guid PatientId(AgentExecutionContext context) =>
-        context.Metadata is not null && context.Metadata.TryGetValue("patientId", out string? value) && Guid.TryParse(value, out Guid patientId)
-            ? patientId
-            : throw new InvalidOperationException("The trusted surgery patient scope is incomplete.");
-}
-
-internal sealed record SurgeryAssistantTeamMember(string UserId, string Role);
-
-internal sealed record SurgeryAssistantProposal(
-    Guid Id,
-    Guid PatientId,
-    string CatalogId,
-    string Name,
-    DateTimeOffset ScheduledAt,
-    IReadOnlyList<string> Tools,
-    IReadOnlyList<string> PersonsToNotify,
-    IReadOnlyList<SurgeryContact> Contacts,
-    IReadOnlyList<SurgeryReminderPolicy> ReminderPolicies,
-    int? DurationMinutes = null,
-    string? Location = null,
-    IReadOnlyList<SurgeryAssistantTeamMember>? Team = null);
-
-internal sealed record SurgeryAssistantPreparationResult(SurgeryAssistantProposal Proposal);
-internal sealed record SurgeryAssistantListResult(IReadOnlyList<SurgeryReadModel> Surgeries);
-internal sealed record SurgeryAssistantTypesResult(
-    [property: JsonPropertyName("types")] IReadOnlyList<SurgeryCatalog> Types);
-
-[JsonSerializable(typeof(SurgeryAssistantProposal))]
-[JsonSerializable(typeof(SurgeryAssistantPreparationResult))]
-[JsonSerializable(typeof(SurgeryAssistantListResult))]
-[JsonSerializable(typeof(SurgeryAssistantTypesResult))]
-[JsonSerializable(typeof(SurgeryAssistantTeamMember))]
-[JsonSerializable(typeof(SurgeryCatalog))]
-[JsonSerializable(typeof(SurgeryReadModel))]
-internal sealed partial class SurgeryAssistantJsonSerializerContext : JsonSerializerContext;

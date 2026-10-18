@@ -339,8 +339,10 @@ only those. The surgery flow is also split into `surgery-types-flow` (create,
 edit, and delete a type; the cancellation message), `surgery-overview-flow`
 (dashboard panel, calendar views and filter, patient profile),
 `surgery-plan-flow` (patient lookup, validation, every plan section, conflict
-warning, saved detail), `surgery-edit-flow`, and `surgery-status-flow`
-(complete, correct the completion back to planned, cancel); all of them share their steps from
+warning, saved detail), `surgery-edit-flow`, `surgery-status-flow`
+(complete, correct the completion back to planned, cancel), and
+`surgery-assistant-flow` (the operations assistant's review card for a prepared
+surgery cancellation, wide screens only); all of them share their steps from
 `tests/mock/surgerySteps.ts`. Flow folders carry the
 `mock-` prefix so they are never confused with real-host captures, which the
 two-host runner writes next to its proof screenshot under

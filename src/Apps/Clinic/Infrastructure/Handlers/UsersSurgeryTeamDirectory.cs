@@ -30,6 +30,14 @@ internal sealed class UsersSurgeryTeamDirectory(ISender sender) : ISurgeryTeamDi
         return userIds.Where(members.ContainsKey).Select(userId => members[userId]).ToArray();
     }
 
+    public async Task<IReadOnlyList<SurgeryTeamContact>> SearchMembersAsync(string? search, CancellationToken cancellationToken)
+    {
+        IReadOnlyList<TenantMemberSummary> found = await sender.Send(
+            new ListTenantMembersQuery(string.IsNullOrWhiteSpace(search) ? null : search.Trim(), TenantMemberQueryDefaults.MaxResults),
+            cancellationToken);
+        return found.Select(summary => new SurgeryTeamContact(summary.Id, DisplayName(summary), summary.Email, summary.PhoneNumber)).ToArray();
+    }
+
     private static string DisplayName(TenantMemberSummary member)
     {
         string name = string.Join(' ', new[] { member.FirstName, member.LastName }

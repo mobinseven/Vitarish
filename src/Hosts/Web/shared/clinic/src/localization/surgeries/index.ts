@@ -1,3 +1,4 @@
+import { surgeryAssistantMessages } from "./assistant";
 import { surgeryCalendarMessages } from "./calendar";
 import { surgeryCommonMessages } from "./common";
 import { surgeryDetailMessages } from "./detail";
@@ -12,6 +13,7 @@ export const surgeriesEnMessages = {
   detail: surgeryDetailMessages.en,
   types: surgeryTypeMessages.en,
   patientPanel: surgeryPatientPanelMessages.en,
+  assistant: surgeryAssistantMessages.en,
 } as const;
 
 export const surgeriesFaMessages = {
@@ -21,4 +23,5 @@ export const surgeriesFaMessages = {
   detail: surgeryDetailMessages.fa,
   types: surgeryTypeMessages.fa,
   patientPanel: surgeryPatientPanelMessages.fa,
+  assistant: surgeryAssistantMessages.fa,
 } as const;
