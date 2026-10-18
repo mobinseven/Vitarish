@@ -33,6 +33,8 @@ internal static class E2eFixtureSeeder
     public const string PlatformAdminUserName = "e2e-platform-admin";
     public const string UserManagementPlatformAdminUserName = "e2e-user-management-admin";
     public const string LockoutPlatformAdminUserName = "e2e-lockout-platform-admin";
+    public const string EmailSignInPlatformAdminUserName = "e2e-email-sign-in-platform-admin";
+    public const string EmailSignInPlatformAdminEmail = "e2e-email-sign-in-platform-admin@example.test";
     public const string PatientName = "E2E Patient";
     public const string PatientFirstName = "E2E";
     public const string PatientLastName = "Patient";
@@ -54,7 +56,7 @@ internal static class E2eFixtureSeeder
                 "e2e-fixture"))
         };
 
-        Console.WriteLine("E2E fixture seeding: ensuring identity 1 of 7.");
+        Console.WriteLine("E2E fixture seeding: ensuring identity 1 of 8.");
         User user = await EnsureUserAsync(
             users,
             UserName,
@@ -63,7 +65,7 @@ internal static class E2eFixtureSeeder
             "E2E",
             "Owner",
             password);
-        Console.WriteLine("E2E fixture seeding: ensuring identity 2 of 7.");
+        Console.WriteLine("E2E fixture seeding: ensuring identity 2 of 8.");
         User tenantUser = await EnsureUserAsync(
             users,
             TenantUserName,
@@ -72,7 +74,7 @@ internal static class E2eFixtureSeeder
             "E2E",
             "Tenant User",
             password);
-        Console.WriteLine("E2E fixture seeding: ensuring identity 3 of 7.");
+        Console.WriteLine("E2E fixture seeding: ensuring identity 3 of 8.");
         User emailChangeUser = await EnsureUserAsync(
             users,
             EmailChangeUserName,
@@ -81,7 +83,7 @@ internal static class E2eFixtureSeeder
             "E2E",
             "Email Change User",
             password);
-        Console.WriteLine("E2E fixture seeding: ensuring identity 4 of 7.");
+        Console.WriteLine("E2E fixture seeding: ensuring identity 4 of 8.");
         User tenantBOwner = await EnsureUserAsync(
             users,
             TenantBOwnerUserName,
@@ -90,7 +92,7 @@ internal static class E2eFixtureSeeder
             "E2E",
             "Tenant B Owner",
             password);
-        Console.WriteLine("E2E fixture seeding: ensuring identity 5 of 7.");
+        Console.WriteLine("E2E fixture seeding: ensuring identity 5 of 8.");
         User platformAdmin = await EnsureUserAsync(
             users,
             PlatformAdminUserName,
@@ -99,7 +101,7 @@ internal static class E2eFixtureSeeder
             "E2E",
             "Platform Admin",
             password);
-        Console.WriteLine("E2E fixture seeding: ensuring identity 6 of 7.");
+        Console.WriteLine("E2E fixture seeding: ensuring identity 6 of 8.");
         User userManagementPlatformAdmin = await EnsureUserAsync(
             users,
             UserManagementPlatformAdminUserName,
@@ -108,7 +110,7 @@ internal static class E2eFixtureSeeder
             "E2E",
             "User Management Admin",
             password);
-        Console.WriteLine("E2E fixture seeding: ensuring identity 7 of 7.");
+        Console.WriteLine("E2E fixture seeding: ensuring identity 7 of 8.");
         User lockoutPlatformAdmin = await EnsureUserAsync(
             users,
             LockoutPlatformAdminUserName,
@@ -123,6 +125,15 @@ internal static class E2eFixtureSeeder
         IdentityResult lockoutReset = await users.SetLockoutEndDateAsync(lockoutPlatformAdmin, null);
         if (!lockoutReset.Succeeded)
             throw new InvalidOperationException("E2E lockout platform-admin lockout reset failed.");
+        Console.WriteLine("E2E fixture seeding: ensuring identity 8 of 8.");
+        User emailSignInPlatformAdmin = await EnsureUserAsync(
+            users,
+            EmailSignInPlatformAdminUserName,
+            Guid.Parse("5c7d2e91-3a4b-4c8d-9e0f-1a2b3c4d5e6f"),
+            EmailSignInPlatformAdminEmail,
+            "E2E",
+            "Email Sign-In Platform Admin",
+            password);
 
         Console.WriteLine("E2E fixture seeding: identity accounts are ready.");
         Guid ownerId = Guid.Parse(user.Id);
@@ -454,6 +465,12 @@ internal static class E2eFixtureSeeder
             IdentityResult result = await usersService.AddUserToRoleAsync(lockoutPlatformAdmin, IdentityDefinitions.PlatformAdmin, cancellationToken);
             if (!result.Succeeded)
                 throw new InvalidOperationException("E2E lockout platform-admin role assignment failed.");
+        }
+        if (!await users.IsInRoleAsync(emailSignInPlatformAdmin, IdentityDefinitions.PlatformAdmin))
+        {
+            IdentityResult result = await usersService.AddUserToRoleAsync(emailSignInPlatformAdmin, IdentityDefinitions.PlatformAdmin, cancellationToken);
+            if (!result.Succeeded)
+                throw new InvalidOperationException("E2E email sign-in platform-admin role assignment failed.");
         }
 
     }

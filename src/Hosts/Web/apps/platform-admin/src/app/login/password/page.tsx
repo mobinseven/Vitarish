@@ -17,6 +17,7 @@ export default function PlatformPasswordLoginPage() {
       title={t("auth.login.shortTitle")}
       subtitle={t("auth.login.credentialsSubtitle")}
       skeletonHeight="184px"
+      backHref={Routes.Login}
     >
       <LoginForm
         navigate={navigate}
