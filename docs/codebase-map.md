@@ -333,9 +333,15 @@ completion, step workspace) into a numbered `mock-sea-flow/` folder;
 `--grep "sea-"` captures only the SEA screens. It also walks every
 authentication screen (sign-in methods, rejected and second-step password
 sign-in, phone and email code steps, passkey, password recovery, sign-out) into
-a numbered `mock-auth-flow/` folder, and surgery type management (default type,
-new type, saved type) into `mock-surgery-types-flow/`; `--grep "auth-flow"` or
-`--grep "surgery-types-flow"` captures only those. Flow folders carry the
+a numbered `mock-auth-flow/` folder, and every surgery page and widget into
+`mock-surgery-flow/`; `--grep "auth-flow"` or `--grep "surgery-flow"` captures
+only those. The surgery flow is also split into `surgery-types-flow` (create,
+edit, and delete a type; the cancellation message), `surgery-overview-flow`
+(dashboard panel, calendar views and filter, patient profile),
+`surgery-plan-flow` (patient lookup, validation, every plan section, conflict
+warning, saved detail), `surgery-edit-flow`, and `surgery-status-flow`
+(complete, correct the completion back to planned, cancel); all of them share their steps from
+`tests/mock/surgerySteps.ts`. Flow folders carry the
 `mock-` prefix so they are never confused with real-host captures, which the
 two-host runner writes next to its proof screenshot under
 `src/Hosts/Web/artifacts/two-host-e2e/`.

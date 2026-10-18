@@ -15,7 +15,7 @@ const signedIn = (name: string, pagePath: string): ScreenshotPage => ({ name, pa
 // Test-only fixture route; served when the fixture flag is on.
 const colorLegendPath = "/color-legend";
 const { Clinic } = Routes;
-const { Patients, Settings } = Clinic;
+const { Appointments, Patients, Settings } = Clinic;
 
 const pages: ScreenshotPage[] = [
   signedOut("login", Routes.Login.Index),
@@ -25,6 +25,7 @@ const pages: ScreenshotPage[] = [
   signedOut("login-passkey", Routes.Login.Passkey),
   signedOut("login-forgot-password", Routes.Login.ForgotPassword),
   signedIn("home", Routes.Home),
+  signedIn("reservations", Appointments.Reservations.Index),
   signedIn("patients", Patients.Index),
   signedIn("patient", Patients.Detail(ids.patient)),
   signedIn("settings-audit", Settings.Audit),
