@@ -33,6 +33,8 @@ public static class AuthenticationInfrastructureServiceCollectionExtensions
             new AuthenticationAttemptKeyOptionsValidator(
                 provider.GetRequiredService<IConfiguration>(),
                 provider.GetService<IHostEnvironment>()));
+        _ = services.AddOptions<DeliveredCodeLogOptions>()
+            .BindConfiguration(DeliveredCodeLogOptions.SectionName);
         _ = services.AddSingleton<IAuthenticationAttemptKeyFactory, AuthenticationAttemptKeyFactory>();
         _ = services.AddSingleton<IAuthenticationAttemptTracker, RedisAuthenticationAttemptTracker>();
         _ = services.AddScoped<IPasswordValidator<User>, SecurityPolicyPasswordValidator>();
@@ -42,6 +44,7 @@ public static class AuthenticationInfrastructureServiceCollectionExtensions
         services.AddSingleton<AuthenticationChallengePolicy>(AuthenticationChallengePolicy.Default);
         services.AddSingleton<IAuthenticationChallengeStore, DistributedAuthenticationChallengeStore>();
         services.AddScoped<IAuthenticationUserDirectory, AspNetIdentityAuthenticationUserDirectory>();
+        services.AddScoped<IInitialPlatformAdministratorGrant, UsersInitialPlatformAdministratorGrant>();
         services.AddScoped<IAuthenticationSignInService, AspNetIdentitySignInService>();
         services.AddScoped<AuthenticationSessionRegistry>();
         services.AddScoped<IAuthenticationSessionRegistry>(provider => provider.GetRequiredService<AuthenticationSessionRegistry>());

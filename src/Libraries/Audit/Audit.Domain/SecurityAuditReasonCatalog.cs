@@ -47,6 +47,7 @@ public static class SecurityAuditReasonCatalog
     public const string TenantRolePersistenceFailure = "tenant_role_persistence_failure";
     public const string TenantRoleNotFound = "tenant_role_not_found";
     public const string GlobalRoleNotFound = "global_role_not_found";
+    public const string InitialPlatformAdministrator = "initial_platform_administrator";
     public const string TenantRoleReplacementReasonPrefix = "tenant_role_replacement:";
     public const string TenantRoleReplacementBeforePrefix = "before=";
     public const string TenantRoleReplacementAfterSeparator = ";after=";
@@ -113,7 +114,8 @@ public static class SecurityAuditReasonCatalog
         TenantRoleConcurrencyConflict,
         TenantRolePersistenceFailure,
         TenantRoleNotFound,
-        GlobalRoleNotFound
+        GlobalRoleNotFound,
+        InitialPlatformAdministrator
     };
 
     public static string HttpStatus(int statusCode)

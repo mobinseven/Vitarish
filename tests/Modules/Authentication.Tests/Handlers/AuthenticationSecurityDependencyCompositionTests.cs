@@ -76,6 +76,7 @@ public sealed class AuthenticationSecurityDependencyCompositionTests
         services.Replace(ServiceDescriptor.Scoped<IAuthenticationSecurityPolicyProvider>(_ => new TestSecurityPolicyProvider()));
         services.Replace(ServiceDescriptor.Scoped<IAuthenticationChallengeStore>(_ => Mock.Of<IAuthenticationChallengeStore>()));
         services.Replace(ServiceDescriptor.Scoped<IAuthenticationUserDirectory>(_ => Mock.Of<IAuthenticationUserDirectory>()));
+        services.Replace(ServiceDescriptor.Scoped<IInitialPlatformAdministratorGrant>(_ => Mock.Of<IInitialPlatformAdministratorGrant>()));
         services.Replace(ServiceDescriptor.Scoped<IAuthenticationCodeGenerator>(_ => Mock.Of<IAuthenticationCodeGenerator>()));
         services.Replace(ServiceDescriptor.Scoped<IAuthenticationCodeVerifier>(_ => Mock.Of<IAuthenticationCodeVerifier>()));
         services.Replace(ServiceDescriptor.Scoped<IUserAccountUpdater>(_ => Mock.Of<IUserAccountUpdater>()));

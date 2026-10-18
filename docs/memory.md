@@ -136,6 +136,20 @@ Use dated entries only. Each entry must include:
 - Remove condition
 - Lesson for Codex
 
+### Sign-in codes logged on production
+
+- Status: active, owner-approved deviation from the root and Authentication
+  `AGENTS.md` no-OTP-in-logs rules (critical issue #893).
+- Added date: 2026-10-18.
+- Owning module/doc: Authentication (`DeliveredCodeLogOptions`, the email and
+  SMS code senders); enabled by `Vitarish__Security__DeliveredCodeLog__Enabled`
+  in `src/Hosts/deployment/docker-compose.production.yml`.
+- Remove condition: the first platform administrator and practice owner can
+  sign in on production, and always before real users or data arrive.
+- Lesson for Codex: Main's logs on that server contain live sign-in codes while
+  this is active; do not copy those logs into issues, artifacts, or evidence,
+  and do not extend the switch to other environments.
+
 ### Optional managed-user edit revision
 
 - Status: active compatibility window.
