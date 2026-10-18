@@ -57,6 +57,7 @@ services:
       Vitarish__Intelligence__OpenAi__ApiKey: ${VITARISH_PRODUCTION_OPENAI_API_KEY:?VITARISH_PRODUCTION_OPENAI_API_KEY is required}
       Vitarish__Intelligence__DefaultResponseModel: ${VITARISH_DEFAULT_RESPONSE_MODEL:?VITARISH_DEFAULT_RESPONSE_MODEL is required}
       Vitarish__Intelligence__AgentRuntime__BaseUrl: http://agent-runtime:3003
+      Vitarish__Intelligence__AgentRuntime__Model: openrouter/auto
       Vitarish__Intelligence__AgentRuntime__ToolCallbackUrl: http://main:8080/api/modules/intelligence/internal/agent/tools/execute
       Vitarish__Intelligence__AgentRuntime__SharedSecret: ${VITARISH_PRODUCTION_AGENT_RUNTIME_SHARED_SECRET:?VITARISH_PRODUCTION_AGENT_RUNTIME_SHARED_SECRET is required}
       Vitarish__Security__AuthenticationAttempts__CurrentPepper: ${VITARISH_PRODUCTION_AUTH_ATTEMPT_KEY_PEPPER:?VITARISH_PRODUCTION_AUTH_ATTEMPT_KEY_PEPPER is required}
@@ -130,7 +131,9 @@ services:
       timeout: 5s
       retries: 12
     environment:
-      OPENAI_API_KEY: ${VITARISH_PRODUCTION_OPENAI_API_KEY:?VITARISH_PRODUCTION_OPENAI_API_KEY is required}
+      # The agent runtime's OpenAI-compatible provider is OpenRouter.
+      OPENAI_BASE_URL: https://openrouter.ai/api/v1
+      OPENAI_API_KEY: ${VITARISH_PRODUCTION_OPENROUTER_API_KEY:?VITARISH_PRODUCTION_OPENROUTER_API_KEY is required}
       AGENT_RUNTIME_SHARED_SECRET: ${VITARISH_PRODUCTION_AGENT_RUNTIME_SHARED_SECRET:?VITARISH_PRODUCTION_AGENT_RUNTIME_SHARED_SECRET is required}
       AGENT_RUNTIME_INTELLIGENCE_HEALTH_URL: http://main:8080/api/modules/clinic/internal/assistant/health
     networks: [application, egress]
