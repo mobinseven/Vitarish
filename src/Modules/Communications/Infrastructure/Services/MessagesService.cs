@@ -32,7 +32,7 @@ public class MessagesService(IOptionsMonitor<ProvidersOptions> providersOptions,
         using SmtpClient client = new();
         client.SslProtocols = SslProtocols.Tls12;
         client.CheckCertificateRevocation = true;
-        await client.ConnectAsync(currentOptions.Smtp.Host, currentOptions.Smtp.Port, currentOptions.Smtp.EnableSsl, cancellationToken);
+        await client.ConnectAsync(currentOptions.Smtp.Host, currentOptions.Smtp.Port, SmtpTransportSecurity.For(currentOptions.Smtp), cancellationToken);
         await client.AuthenticateAsync(currentOptions.Smtp.Username, currentOptions.Smtp.Password, cancellationToken);
         _ = await client.SendAsync(mimeMessage, cancellationToken);
         await client.DisconnectAsync(true, cancellationToken);
