@@ -4,11 +4,15 @@ import { dirname } from "node:path";
 import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
 import { clinicMessageCatalogs } from "../../shared/clinic/src/localization/catalogs";
 import { twoHostE2eApiOriginEnvironmentKey, twoHostE2eProofScreenshotEnvironmentKey } from "../../scripts/two-host-e2e-artifacts.mjs";
+import { agentToolCallbackPath, signAgentCallback } from "./agentCallback";
 
 const ownerUsername = process.env.VITARISH_E2E_USERNAME ?? "e2e-owner";
 const password = process.env.VITARISH_E2E_PASSWORD;
 const apiOrigin = process.env[twoHostE2eApiOriginEnvironmentKey] ?? "https://localhost:7272";
+const agentSharedSecret = process.env.VITARISH_E2E_AGENT_SHARED_SECRET;
 // Seeded by the E2E host (E2eFixtureSeeder) for tenant A.
+const tenantAId = "9c8b6b3a-7d6e-4f75-a88d-7d3f5b1b0f92";
+const ownerUserId = "7b0f8d4d-3d6c-4d43-9f5e-9d5d3f9e6f4c";
 const seededPatientId = "2d7a3eb9-1d47-4c63-9a45-19d7e6a0fb18";
 const seededPatientName = "E2E Patient";
 const clinicApi = "/api/modules/clinic";
@@ -133,6 +137,50 @@ test("plans, lists, and cancels a surgery through the real Web and Main hosts", 
   expect(calendar.body).toEqual(expect.arrayContaining([
     expect.objectContaining({ patientDisplayName: seededPatientName, surgery: expect.objectContaining({ id: surgery.id }) }),
   ]));
+
+  // The operations assistant reads the same calendar through its signed tool callback; it names the patient but never returns a patient id.
+  expect(agentSharedSecret).toBeTruthy();
+  const callbackExpiry = new Date(Date.now() + 300_000);
+  const envelope: Record<string, unknown> = {
+    version: 1,
+    executionId: `e2e-surgery-calendar-${crypto.randomUUID()}`,
+    agentKey: "clinic.assistant.operations",
+    tenantId: tenantAId,
+    practiceId: tenantAId,
+    subjectKind: "practice",
+    subjectId: tenantAId,
+    authenticatedUserId: ownerUserId,
+    conversationId: "e2e-surgery-calendar-conversation",
+    toolCallId: "e2e-surgery-calendar-tool-call",
+    toolName: "list_operations_surgeries",
+    credentialVersion: 1,
+    expiresAt: callbackExpiry.toISOString(),
+    correlationId: "e2e-surgery-calendar-correlation",
+    role: "TenantOwner",
+    locale: "en-US",
+    timeZone: "Asia/Tehran",
+    calendar: "gregory",
+    currentUtc: new Date().toISOString(),
+    currentLocal: new Date().toISOString(),
+    permissions: [],
+  };
+  const credential = signAgentCallback(agentSharedSecret!, envelope);
+  const assistantCalendar = await request.post(`${apiOrigin}${agentToolCallbackPath}`, {
+    data: { executionEnvelope: envelope, argumentsJson: JSON.stringify({ from, to }) },
+    headers: {
+      "X-Vitarish-Tenant-Host": "localhost",
+      "X-Vitarish-Agent-Credential": credential,
+      "X-Request-Id": `e2e-${crypto.randomUUID()}`,
+    },
+    ignoreHTTPSErrors: true,
+  });
+  const assistantCalendarBody = await assistantCalendar.json() as { output: string; isError: boolean };
+  expect(assistantCalendar.status(), JSON.stringify(assistantCalendarBody)).toBe(200);
+  expect(assistantCalendarBody.isError).toBe(false);
+  expect(JSON.parse(assistantCalendarBody.output)).toEqual({
+    surgeries: expect.arrayContaining([expect.objectContaining({ id: surgery.id, patientDisplayName: seededPatientName, status: "Planned" })]),
+  });
+  expect(assistantCalendarBody.output).not.toContain(seededPatientId);
 
   const conflicts = await callApi(page, "GET", `${clinicApi}/surgeries/conflicts?scheduledAt=${encodeURIComponent(scheduledAt.toISOString())}&durationMinutes=30&location=${encodeURIComponent("  or 2 ")}`);
   expect(conflicts.status).toBe(200);

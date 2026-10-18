@@ -1,11 +1,17 @@
 "use client";
 
+import { Alert } from "@heroui/react";
 import {
   formatDate,
   formatDateTime,
   formatNumber,
   useLocalizedText,
+  type SupportedLocale,
+  type Translate,
 } from "../../localization";
+import { surgeryStatusLabelKeys } from "../../components/surgeries/SurgeryStatusChip";
+import type { SurgeryStatus } from "../../models/surgeries/surgeryModels";
+import { surgeryReminderOffsetLabel } from "../../models/surgeries/surgeryReminderOffset";
 import {
   asList,
   asNumber,
@@ -14,6 +20,7 @@ import {
   parseRecord,
   type AssistantReviewPayload,
 } from "./actionPayload";
+import { surgeryActionLabelKeys, type SurgeryActionType } from "./surgeryActionTypes";
 
 interface ActionCardProps {
   payload: AssistantReviewPayload;
@@ -275,5 +282,131 @@ export function OperationsActionCard({ payload, expiresAt }: ActionCardProps) {
       <ReviewField label={t("clinic.operationsAssistant.fields.timeZone")} value={asText(shift.timeZone)} />
       <ReviewField label={t("clinic.operationsAssistant.fields.expiration")} value={formatDateTime(expiresAt, locale)} />
     </dl>
+  );
+}
+
+type SurgeryReviewRow = { key: string; label: string; value: string | null };
+
+function joined(values: unknown[]): string | null {
+  const texts = values.map(asText).filter((value): value is string => value !== null);
+  return texts.length > 0 ? texts.join(", ") : null;
+}
+
+function surgeryReminderRows(reminders: unknown, t: Translate): string | null {
+  return joined(
+    asList(reminders).map(asRecord).map((reminder) =>
+      t("clinic.surgeries.assistant.reminder", {
+        offset: surgeryReminderOffsetLabel(asNumber(reminder.minutesBefore) ?? 0, t),
+        subject: asText(reminder.subject) ?? "",
+      }),
+    ),
+  );
+}
+
+function surgeryPlanRows(plan: Record<string, unknown>, t: Translate, locale: SupportedLocale): SurgeryReviewRow[] {
+  const status = asText(plan.status);
+  const scheduledAt = asText(plan.scheduledAt);
+  const duration = asNumber(plan.durationMinutes);
+  return [
+    { key: "name", label: t("clinic.surgeries.fields.name"), value: asText(plan.name) },
+    { key: "type", label: t("clinic.surgeries.fields.type"), value: asText(plan.typeName) },
+    {
+      key: "status",
+      label: t("clinic.surgeries.fields.status"),
+      value: status && status in surgeryStatusLabelKeys ? t(surgeryStatusLabelKeys[status as SurgeryStatus]) : status,
+    },
+    { key: "scheduledAt", label: t("clinic.surgeries.fields.scheduledAt"), value: scheduledAt ? formatDateTime(scheduledAt, locale) : null },
+    {
+      key: "duration",
+      label: t("clinic.surgeries.fields.duration"),
+      value: duration === null ? null : t("clinic.surgeries.durationValue", { minutes: formatNumber(duration, locale) }),
+    },
+    { key: "location", label: t("clinic.surgeries.fields.location"), value: asText(plan.location) },
+    {
+      key: "team",
+      label: t("clinic.surgeries.fields.team"),
+      value: joined(
+        asList(plan.team).map(asRecord).map((member) =>
+          t("clinic.surgeries.assistant.teamMember", { name: asText(member.displayName) ?? "", role: asText(member.role) ?? "" }),
+        ),
+      ),
+    },
+    { key: "tools", label: t("clinic.surgeries.fields.tools"), value: joined(asList(plan.tools)) },
+    { key: "reminders", label: t("clinic.surgeries.fields.reminders"), value: surgeryReminderRows(plan.reminders, t) },
+  ];
+}
+
+function surgeryTypeRows(type: Record<string, unknown>, t: Translate): SurgeryReviewRow[] {
+  return [
+    { key: "name", label: t("clinic.surgeries.fields.type"), value: asText(type.name) },
+    { key: "tools", label: t("clinic.surgeries.fields.tools"), value: joined(asList(type.tools)) },
+    { key: "roles", label: t("clinic.surgeries.assistant.fields.defaultTeamRoles"), value: joined(asList(type.defaultTeamRoles)) },
+    { key: "reminders", label: t("clinic.surgeries.fields.reminders"), value: surgeryReminderRows(type.reminders, t) },
+  ];
+}
+
+function surgeryMessageRows(message: Record<string, unknown>, t: Translate): SurgeryReviewRow[] {
+  return [
+    { key: "subject", label: t("clinic.surgeries.assistant.fields.cancellationSubject"), value: asText(message.subject) },
+    { key: "message", label: t("clinic.surgeries.assistant.fields.cancellationMessage"), value: asText(message.textBody) },
+  ];
+}
+
+/** The proposed state, or for an edit only the fields it changes, as before → after. */
+function surgeryChangeRows(
+  after: SurgeryReviewRow[] | null,
+  before: SurgeryReviewRow[] | null,
+  t: Translate,
+): SurgeryReviewRow[] {
+  if (!after) return before ?? [];
+  if (!before) return after;
+  const none = t("clinic.surgeries.assistant.none");
+  return after.flatMap((row) => {
+    const previous = before.find((item) => item.key === row.key)?.value ?? null;
+    return previous === row.value
+      ? []
+      : [{ ...row, value: t("clinic.surgeries.assistant.change", { before: previous ?? none, after: row.value ?? none }) }];
+  });
+}
+
+/** Every surgery-workflow action: a plan, edit, completion, or cancellation, a surgery type change, or the cancellation message. */
+export function SurgeryActionCard({
+  actionType,
+  payload,
+  expiresAt,
+}: ActionCardProps & { actionType: SurgeryActionType }) {
+  const { t, locale } = useLocalizedText();
+  const patient = asRecord(payload.patient);
+  const section = (key: string, toRows: (value: Record<string, unknown>) => SurgeryReviewRow[]) =>
+    payload[key] ? toRows(asRecord(payload[key])) : null;
+  const plan = (value: Record<string, unknown>) => surgeryPlanRows(value, t, locale);
+  const type = (value: Record<string, unknown>) => surgeryTypeRows(value, t);
+  const message = (value: Record<string, unknown>) => surgeryMessageRows(value, t);
+  const rows = [
+    ...surgeryChangeRows(section("surgery", plan), section("previousSurgery", plan), t),
+    ...surgeryChangeRows(section("surgeryType", type), section("previousSurgeryType", type), t),
+    ...surgeryChangeRows(section("cancellationMessage", message), section("previousCancellationMessage", message), t),
+  ];
+
+  return (
+    <div className="space-y-3">
+      {payload.notifiesPatientAndTeam === true ? (
+        <Alert status="warning">
+          <Alert.Indicator />
+          <Alert.Content>
+            <Alert.Title>{t("clinic.surgeries.assistant.notifiesPatientAndTeam")}</Alert.Title>
+          </Alert.Content>
+        </Alert>
+      ) : null}
+      <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <ReviewField label={t("clinic.surgeries.assistant.action")} value={t(surgeryActionLabelKeys[actionType])} />
+        <ReviewField label={t("clinic.surgeries.fields.patient")} value={asText(patient.displayName)} />
+        <ReviewField label={t("clinic.surgeries.assistant.fields.identification")} value={asText(patient.maskedIdentification)} />
+        {rows.map((row) => (
+          <ReviewField key={row.key} label={row.label} value={row.value} />
+        ))}
+        <ReviewField label={t("clinic.clinicAssistant.fields.expiration")} value={formatDateTime(expiresAt, locale)} />
+      </dl>
+    </div>
   );
 }

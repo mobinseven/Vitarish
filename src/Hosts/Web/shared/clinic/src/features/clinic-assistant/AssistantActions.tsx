@@ -9,8 +9,10 @@ import {
   ClinicalEventActionCard,
   OperationsActionCard,
   PrescriptionActionCard,
+  SurgeryActionCard,
 } from "./ActionCards";
 import { asRecord, asText } from "./actionPayload";
+import { isSurgeryActionType } from "./surgeryActionTypes";
 import type { AssistantAction } from "./hooks";
 import {
   useConfirmAssistantAction,
@@ -75,18 +77,24 @@ export function AssistantActionReview({
     asText(completion.appointmentId) ??
     asText(completion.prescriptionId) ??
     asText(completion.eventId) ??
-    asText(completion.trackingCode);
+    asText(completion.trackingCode) ??
+    asText(completion.entityId);
   const isAppointment = action.actionType === "create_appointment";
   const isPrescription = action.actionType === "create_prescription";
   const isClinicalEvent = action.actionType === "add_clinical_event";
-  const confirmLabel = isAppointment
+  const surgeryActionType = isSurgeryActionType(action.actionType) ? action.actionType : null;
+  const confirmLabel = surgeryActionType
+    ? t("clinic.surgeries.assistant.confirm")
+    : isAppointment
     ? t("clinic.clinicAssistant.actions.confirmAppointment")
     : isPrescription
       ? t("clinic.clinicAssistant.actions.confirmPrescription")
       : isClinicalEvent
         ? t("clinic.clinicAssistant.actions.confirmClinicalEvent")
         : null;
-  const review = isAppointment ? (
+  const review = surgeryActionType ? (
+    <SurgeryActionCard actionType={surgeryActionType} payload={payload} expiresAt={action.expiresAt} />
+  ) : isAppointment ? (
     <AppointmentActionCard payload={payload} expiresAt={action.expiresAt} />
   ) : isPrescription ? (
     <PrescriptionActionCard payload={payload} expiresAt={action.expiresAt} />
@@ -220,7 +228,11 @@ export function OperationsAssistantActionReview({ action }: { action: AssistantA
         <AssistantActionStatus status={pending ? "Confirming" : action.status} completionId={completionId} failure={action.failure?.message} />
       </Card.Header>
       <Card.Content className="space-y-4">
-        <OperationsActionCard payload={payload} expiresAt={action.expiresAt} />
+        {isSurgeryActionType(action.actionType) ? (
+          <SurgeryActionCard actionType={action.actionType} payload={payload} expiresAt={action.expiresAt} />
+        ) : (
+          <OperationsActionCard payload={payload} expiresAt={action.expiresAt} />
+        )}
         {requestError ? <p role="alert" className="text-sm text-danger">{t("clinic.operationsAssistant.actionError")}</p> : null}
         {action.status === "Proposed" ? (
           <div className="flex flex-wrap gap-2">

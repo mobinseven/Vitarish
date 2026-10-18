@@ -1,7 +1,6 @@
 import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { createHmac } from "node:crypto";
 import { usersGetProfile } from "../../shared/auth/src/api/generated/users/users";
 import {
   authenticationAccessHistoryGet,
@@ -14,6 +13,7 @@ import { ApiError, ANTIFORGERY_VALIDATION_FAILED_CODE, TENANT_HOST_HEADER } from
 import { localizePlatformAuditCategory, localizePlatformAuditEvent } from "../../shared/security/src/localization";
 import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
 import { twoHostE2eApiOriginEnvironmentKey, twoHostE2eProofScreenshotEnvironmentKey } from "../../scripts/two-host-e2e-artifacts.mjs";
+import { agentEnvelopeCanonical, base64UrlHmac } from "./agentCallback";
 
 // Main itself, for API-boundary checks made without the browser.
 const apiOrigin = process.env[twoHostE2eApiOriginEnvironmentKey] ?? "https://localhost:7272";
@@ -124,22 +124,6 @@ async function fetchText(page: Page, path: string) {
 function unsignedBearerToken(payload: Record<string, unknown>, header: Record<string, unknown> = { alg: "none", typ: "at+jwt" }) {
   const encode = (value: unknown) => Buffer.from(JSON.stringify(value)).toString("base64url");
   return `${encode(header)}.${encode(payload)}.`;
-}
-
-function base64UrlHmac(key: string, payload: string): string {
-  return createHmac("sha256", key).update(payload, "utf8").digest("base64url");
-}
-
-function agentEnvelopeCanonical(envelope: Record<string, unknown>, includeCallbackFields: boolean): string {
-  const permissions = [...(envelope.permissions as string[])].sort();
-  return [
-    envelope.version, envelope.executionId, envelope.agentKey, envelope.tenantId, envelope.practiceId,
-    envelope.subjectKind, envelope.subjectId, envelope.authenticatedUserId, envelope.conversationId,
-    includeCallbackFields ? envelope.toolCallId : "", includeCallbackFields ? envelope.toolName : "",
-    envelope.credentialVersion, new Date(envelope.expiresAt as string).getTime(), envelope.correlationId,
-    envelope.role, envelope.locale, envelope.timeZone, envelope.calendar, envelope.currentUtc,
-    envelope.currentLocal, JSON.stringify(permissions), envelope.patientNationalId ?? "",
-  ].join("\n");
 }
 
 

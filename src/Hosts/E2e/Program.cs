@@ -15,6 +15,7 @@ using Vitarish.E2e.Infrastructure.Storage;
 using Vitarish.E2e.Infrastructure.Events;
 using Vitarish.Clinic.Application.Events;
 using Vitarish.Clinic.Application.Assistant.Actions;
+using Vitarish.Clinic.Application.Assistant.Surgeries;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Vitarish.Authentication.Application.Abstractions;
 using Vitarish.Authentication.Infrastructure;
@@ -101,6 +102,7 @@ _ = builder.Services.AddAuditCapacityAlertMonitoring(builder.Environment, openAp
 builder.Services.AddSingleton<Hangfire.IBackgroundJobClient, E2eBackgroundJobClient>();
 builder.Services.Replace(ServiceDescriptor.Singleton<IClinicalEventProposalStore, E2eClinicalEventProposalStore>());
 builder.Services.Replace(ServiceDescriptor.Singleton<IAssistantActionStore, E2eAssistantActionStore>());
+builder.Services.Replace(ServiceDescriptor.Singleton<ISurgeryAssistantProposalStore, E2eSurgeryAssistantProposalStore>());
 
 ServiceDescriptor? productionSurgeryViewRefresher = builder.Services.SingleOrDefault(descriptor =>
     descriptor.ServiceType == typeof(IProjectObjectMaterializedViewRefresher)

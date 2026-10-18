@@ -119,6 +119,7 @@ export const mockFixtureIds = {
   surgeryType: "mock-surgery-type-default",
   surgery: "mock-surgery-today",
   pastSurgery: "mock-surgery-yesterday",
+  surgeryAssistantAction: "mock-surgery-assistant-action",
   shiftOccurrenceDate: "2026-08-11",
   serviceType: "mock-service-type",
   service: "mock-service",

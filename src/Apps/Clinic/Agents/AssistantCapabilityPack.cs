@@ -18,6 +18,7 @@ public static class AssistantCapabilityKeys
     public const string SeaPatientReads = "SeaPatientReads";
     public const string ClinicalEvents = "ClinicalEvents";
     public const string Surgeries = "Surgeries";
+    public const string SurgeryOperations = "SurgeryOperations";
     public const string SeaManagement = "SeaManagement";
     public const string Operations = "Operations";
     public const string Search = "Search";
@@ -26,7 +27,10 @@ public static class AssistantCapabilityKeys
     [Appointments, AppointmentReads, Prescriptions, PrescriptionReads, PatientReminderReads,
         ClinicPatientReads, SeaPatientReads, ClinicalEvents, Surgeries];
 
-    public static readonly string[] OperationsProfile = [Operations, SeaManagement, Search];
+    public static readonly string[] OperationsProfile = [Operations, SeaManagement, SurgeryOperations, Search];
+
+    /// <summary>Every key a profile composes; each one needs a registered capability pack.</summary>
+    public static IEnumerable<string> All => Patient.Concat(OperationsProfile).Distinct(StringComparer.Ordinal);
 }
 
 public sealed class AssistantCapabilityPack(string key) : IAgentCapabilityPack<AssistantCompositionContext>

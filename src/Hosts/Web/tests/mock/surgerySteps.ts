@@ -36,6 +36,7 @@ const reminderSubject = "Fasting from midnight";
 const reminderMessage = "Please do not eat or drink after midnight before your surgery.";
 const cancellationSubject = "Your surgery is cancelled";
 const cancellationMessage = "The clinic will call you to choose a new date.";
+const assistantRequest = "Cancel today's knee arthroscopy.";
 
 type SurgeryFlowContext = {
   page: Page;
@@ -332,6 +333,31 @@ export const surgeryStatusSteps: SurgeryFlowStep = async ({ page, locale, captur
     await expect(page.getByRole("button", { name: surgeries.actions.cancel })).toHaveCount(0);
     await expect(page.getByRole("button", { name: surgeries.actions.edit })).toHaveCount(0);
     await capture("surgery-cancelled");
+  });
+};
+
+/** The operations assistant prepares a surgery cancellation, which waits on its review card for confirmation. */
+export const surgeryAssistantSteps: SurgeryFlowStep = async ({ page, locale, capture }) => {
+  const clinic = clinicMessageCatalogs[locale].clinic;
+  const operations = clinic.operationsAssistant;
+
+  await test.step("assistant surgery review", async () => {
+    // Narrow screens offer no assistant toggle yet (#889), so the review card is captured on wide screens only.
+    if (test.info().project.use.isMobile) {
+      test.info().annotations.push({ type: "skipped-step", description: "The operations assistant has no toggle on narrow screens." });
+      return;
+    }
+    // The operations assistant sits beside the clinic pages, such as the surgery calendar.
+    await open(page, Routes.Clinic.Surgeries.Index);
+    await page.getByRole("button", { name: ownerMessages[locale].appShell.operationsAssistant }).first().click({ timeout: pageCompileTimeoutMilliseconds });
+    const assistant = page.getByRole("region", { name: operations.title });
+    await assistant.getByRole("textbox", { name: operations.composer.label }).fill(assistantRequest);
+    await assistant.getByRole("button", { name: operations.composer.send }).click();
+    const notice = assistant.getByText(clinic.surgeries.assistant.notifiesPatientAndTeam);
+    await expect(notice).toBeVisible({ timeout: pageCompileTimeoutMilliseconds });
+    await expect(assistant.getByRole("button", { name: operations.confirm })).toBeVisible();
+    await notice.scrollIntoViewIfNeeded();
+    await capture("assistant-surgery-cancellation");
   });
 };
 

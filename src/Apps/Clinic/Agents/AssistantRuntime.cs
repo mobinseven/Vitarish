@@ -37,18 +37,9 @@ public static class AssistantCompositionServiceCollectionExtensions
 {
     public static IServiceCollection AddAssistantComposition(this IServiceCollection services)
     {
+        // Registered from the profiles' own keys, so a profile never names a capability without a pack.
         _ = services.AddAgentComposition<AssistantCompositionContext>(
-            new AssistantCapabilityPack(AssistantCapabilityKeys.Appointments),
-            new AssistantCapabilityPack(AssistantCapabilityKeys.AppointmentReads),
-            new AssistantCapabilityPack(AssistantCapabilityKeys.Prescriptions),
-            new AssistantCapabilityPack(AssistantCapabilityKeys.PrescriptionReads),
-            new AssistantCapabilityPack(AssistantCapabilityKeys.PatientReminderReads),
-            new AssistantCapabilityPack(AssistantCapabilityKeys.ClinicPatientReads),
-            new AssistantCapabilityPack(AssistantCapabilityKeys.SeaPatientReads),
-            new AssistantCapabilityPack(AssistantCapabilityKeys.ClinicalEvents),
-            new AssistantCapabilityPack(AssistantCapabilityKeys.SeaManagement),
-            new AssistantCapabilityPack(AssistantCapabilityKeys.Operations),
-            new AssistantCapabilityPack(AssistantCapabilityKeys.Search));
+            [.. AssistantCapabilityKeys.All.Select(key => (IAgentCapabilityPack<AssistantCompositionContext>)new AssistantCapabilityPack(key))]);
         _ = services.AddTransient<IAssistantCapability, SearchAssistantCapability>();
         _ = services.AddTransient<AssistantExecutionContextFactory>();
         _ = services.AddTransient<AssistantManifestComposer>();

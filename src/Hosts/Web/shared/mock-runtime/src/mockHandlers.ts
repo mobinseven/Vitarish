@@ -1,6 +1,6 @@
 import { HttpResponse, http, type RequestHandler } from "msw";
 import { parseLocaleCookie } from "@vitarish/localization";
-import { createMockStore } from "./mockStore";
+import { createMockStore, mockFixtureIds } from "./mockStore";
 import { isMockAnonymousSession } from "./mockSession";
 import { createAuthMockHandlers } from "./mockAuthHandlers";
 import { createSeaMockHandlers } from "./mockSeaHandlers";
@@ -561,9 +561,10 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
       if (activeScenario === "error") return unavailable();
       return HttpResponse.json({ accepted: true, isSuccess: true, entityId: "mock-prescription" });
     }),
-    http.get(/\/api\/modules\/clinic\/(?:patients\/[^/]+\/assistant|assistant)\/actions\/[^/]+(?:\?|$)/, async () => {
+    http.get(/\/api\/modules\/clinic\/(?:patients\/[^/]+\/assistant|assistant)\/actions\/[^/]+(?:\?|$)/, async ({ request }) => {
       await withDelay();
       if (activeScenario === "error") return unavailable();
+      if (request.url.includes(mockFixtureIds.surgeryAssistantAction)) return HttpResponse.json(mockSurgeryCancellationAction(isPersianRequest(request)));
       return HttpResponse.json({
         actionId: "mock-agent-action",
         agentRunId: "mock-agent-run",
@@ -607,6 +608,20 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
       if (activeScenario === "error") return unavailable();
       const body = await request.json().catch(() => null) as { agentKey?: unknown } | null;
       const isClinic = body?.agentKey === "clinic.assistant.patient";
+      // The operations assistant prepares a surgery cancellation, so its review card can be captured.
+      if (body?.agentKey === "clinic.assistant.operations") {
+        return HttpResponse.json({
+          agentRunId: "mock-agent-run",
+          conversationId: "mock-agent-conversation",
+          result: {
+            agentRunId: "mock-agent-run",
+            conversationId: "mock-agent-conversation",
+            previousResponseId: null,
+            messages: [{ kind: "AssistantMessage", content: "I prepared cancelling today's knee arthroscopy. Review it before confirming." }],
+            actions: [{ id: mockFixtureIds.surgeryAssistantAction, capability: mockSurgeryAssistantCapability, actionType: mockSurgeryCancellationActionType, status: "Proposed", arguments: {}, summary: "Cancel surgery 'Knee arthroscopy'." }],
+          },
+        });
+      }
       return HttpResponse.json({
         agentRunId: "mock-agent-run",
         conversationId: "mock-agent-conversation",
@@ -620,4 +635,41 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
       });
     }),
   ];
+}
+
+// The clinic API's surgery operations capability and cancellation action type (`SurgeryAssistantActions` in the Clinic app).
+const mockSurgeryAssistantCapability = "SurgeryOperations";
+const mockSurgeryCancellationActionType = "cancel_surgery";
+
+/** A prepared cancellation of the seeded surgery at 13:00 today, shaped like the clinic API's surgery review. */
+function mockSurgeryCancellationAction(isPersian: boolean) {
+  const scheduledAt = new Date();
+  scheduledAt.setHours(13, 0, 0, 0);
+  return {
+    actionId: mockFixtureIds.surgeryAssistantAction,
+    agentRunId: "mock-agent-run",
+    conversationId: "mock-agent-conversation",
+    capability: mockSurgeryAssistantCapability,
+    actionType: mockSurgeryCancellationActionType,
+    status: "Proposed",
+    reviewPayload: {
+      actionType: mockSurgeryCancellationActionType,
+      patient: { displayName: isPersian ? "آدا لاولیس" : "Ada Lovelace" },
+      surgery: {
+        name: isPersian ? "آرتروسکوپی زانو" : "Knee arthroscopy",
+        typeName: isPersian ? "جراحی عمومی" : "General surgery",
+        status: "Planned",
+        scheduledAt: scheduledAt.toISOString(),
+        durationMinutes: 90,
+        location: "OR 1",
+        team: [],
+        tools: [],
+        reminders: [],
+      },
+      notifiesPatientAndTeam: true,
+    },
+    expiresAt: new Date(Date.now() + 30 * 60_000).toISOString(),
+    completionPayload: null,
+    failure: null,
+  };
 }
