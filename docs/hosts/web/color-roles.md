@@ -14,7 +14,7 @@ Decision and rationale:
 |---|---|---|
 | Neutral | `surface`, `default`, `foreground`, `muted` | Surfaces, text, header and sidebar icons, avatars, tiles, generic buttons |
 | Accent | `accent` | Current navigation item, focus, a page's one lead action, every form's commit button, a control whose state narrows what a list shows (soft accent) |
-| Anchor | `anchor`, `anchor-foreground` | The patient hero band, the tint of section header bands, the signed-out screens' background, and in light mode the hue of `foreground` |
+| Anchor | `anchor`, `anchor-foreground` | Page header bands (`AnchorPageHeader` from `@vitarish/ui`) and the patient hero band, the tint of section header bands, the signed-out screens' background, and in light mode the hue of `foreground` |
 | Chroma | `chroma-primary` to `chroma-senary` | Colors a feature package gives a fixed meaning, such as status chips, patient tags, and sign-in methods |
 | Status | `success`, `warning`, `danger` | Only where something has that status |
 

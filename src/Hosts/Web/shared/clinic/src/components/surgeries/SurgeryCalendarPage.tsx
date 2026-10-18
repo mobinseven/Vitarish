@@ -6,6 +6,7 @@ import type { CalendarDate } from "@internationalized/date";
 import { Button, Chip, Input, Label, ListBox, Select, Surface, Tag, TagGroup, TextField, Tooltip } from "@heroui/react";
 import { Segment } from "@heroui-pro/react";
 import {
+  AnchorPageHeader,
   EmptyStateSurface as ClinicEmptyState,
   ErrorStateSurface as ClinicErrorState,
   FaIcon,
@@ -23,7 +24,6 @@ import { surgeryStatuses } from "../../models/surgeries/surgeryModels";
 import type { Surgery, SurgeryStatus } from "../../models/surgeries/surgeryModels";
 import { SurgeryCalendarGrid } from "./SurgeryCalendarGrid";
 import { SurgeryList } from "./SurgeryList";
-import { SurgeryPageHeader } from "./SurgeryPageHeader";
 import { SurgeryStatusChip, surgeryStatusLabelKeys } from "./SurgeryStatusChip";
 
 export interface SurgeryCalendarPageProps {
@@ -167,12 +167,14 @@ export function SurgeryCalendarPage({ onNavigate }: SurgeryCalendarPageProps) {
 
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
-      <SurgeryPageHeader
+      <AnchorPageHeader
+        icon="scissors"
         title={t("clinic.surgeries.title")}
         details={t("clinic.surgeries.calendar.pageDescription")}
         actions={canPlan ? (
           <Tooltip>
             <Button
+              aria-label={t("clinic.surgeries.actions.plan")}
               variant="primary"
               onPress={() => onNavigate({ kind: "surgeryNew" })}
             >

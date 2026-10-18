@@ -1,3 +1,5 @@
+import type { PatientQuickAction } from "./components/patients/overview/PatientOverviewPage";
+
 export type NavigationIntent =
   | { kind: "dashboard" }
   | { kind: "ownerShiftIndex" }
@@ -11,7 +13,7 @@ export type NavigationIntent =
   | { kind: "userShiftDetail"; shiftId: string }
   | { kind: "userReservationIndex" }
   | { kind: "userReservationDetail"; reservationId: string }
-  | { kind: "patientDetail"; patientId: string }
+  | { kind: "patientDetail"; patientId: string; quickAction?: PatientQuickAction }
   | { kind: "patientNew" }
   | { kind: "patientEdit"; patientId: string }
   | { kind: "patientIndex" }

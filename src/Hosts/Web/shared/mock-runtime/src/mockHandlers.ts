@@ -151,7 +151,11 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
       if (activeScenario === "error") return unavailable();
       if (activeScenario === "empty") return HttpResponse.json([]);
 
-      const date = new URL(request.url).searchParams.get("dateFrom") ?? "2026-01-01";
+      const params = new URL(request.url).searchParams;
+      const dateFrom = params.get("dateFrom") ?? "2026-01-01";
+      const dayCount = Math.max(1, Math.round((Date.parse(params.get("dateTo") ?? dateFrom) - Date.parse(dateFrom)) / 86_400_000) + 1);
+      // A week or month spreads the visits over its days; a single day keeps them all.
+      const dateAt = (index: number) => new Date(Date.parse(dateFrom) + Math.floor((index * dayCount) / 4) * 86_400_000).toISOString().slice(0, 10);
       const isPersian = isPersianRequest(request);
       const localizedPatientNames = ["آدا لاولیس", "گریس هاپر", "کاترین جانسون", "ماری کوری"];
       const patientTags = [["VIP"], [], ["Follow-up", "Diabetes"], ["Allergy"]];
@@ -172,7 +176,7 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
           serviceDisplayName: isPersian
             ? index % 2 === 0 ? "ویزیت اولیه" : "ویزیت پیگیری"
             : index % 2 === 0 ? "Initial consultation" : "Follow-up visit",
-          date,
+          date: dateAt(index),
           startTime,
           timeZone: "UTC",
           status,
@@ -211,6 +215,13 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
       await withDelay();
       if (activeScenario === "error") return unavailable();
       return HttpResponse.json(store.patients.filter((patient) => !patient.isDeleted));
+    }),
+    http.post(/\/api\/modules\/clinic\/patients\/identification-lookup(?:\?|$)/, async ({ request }) => {
+      await withDelay();
+      if (activeScenario === "error") return unavailable();
+      const body = await request.json().catch(() => null) as { identificationCode?: unknown } | null;
+      const patient = store.patients.find((item) => item.identificationCode === body?.identificationCode && !item.isDeleted);
+      return patient ? HttpResponse.json(patient) : notFound("No patient has this identification code in the mock store.");
     }),
     http.post(/\/api\/modules\/clinic\/patients\/count(?:\?|$)/, async () => {
       await withDelay();
@@ -452,7 +463,7 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
     }),
     ...createAuthMockHandlers({ isUnavailable: activeScenario === "error", withDelay, unavailable }),
     ...createSeaMockHandlers({ store, isUnavailable: activeScenario === "error", withDelay, unavailable, notFound }),
-    ...createSurgeryMockHandlers({ isUnavailable: activeScenario === "error", withDelay, unavailable, notFound }),
+    ...createSurgeryMockHandlers({ store, isPersianRequest, isUnavailable: activeScenario === "error", withDelay, unavailable, notFound }),
     http.post(/\/api\/modules\/medical\/providers\/available(?:\?|$)/, async () => {
       await withDelay();
       if (activeScenario === "error") return unavailable();

@@ -62,6 +62,11 @@ export { OwnerShiftEditPage } from "./components/appointments/shifts/OwnerShiftE
 export { OwnerShiftOccurrencePage } from "./components/appointments/shifts/OwnerShiftOccurrencePage";
 export { OwnerReservationListPage } from "./components/appointments/reservations/OwnerReservationListPage";
 export { OwnerReservationDetailPage } from "./components/appointments/reservations/OwnerReservationDetailPage";
+export { VisitDateStepper } from "./components/appointments/visits/VisitDateStepper";
+export { VisitResults, VisitSearchField } from "./components/appointments/visits/VisitResults";
+export { emptyVisitFilters, selectVisits } from "./models/appointments/visitRows";
+export type { Visit, VisitFilters } from "./models/appointments/visitRows";
+export { visitPeriodRange } from "./models/appointments/visitPeriod";
 export { UserShiftListPage } from "./components/user-appointments/shifts/UserShiftListPage";
 export { UserShiftDetailPage } from "./components/user-appointments/shifts/UserShiftDetailPage";
 export { UserReservationListPage } from "./components/user-appointments/reservations/UserReservationListPage";

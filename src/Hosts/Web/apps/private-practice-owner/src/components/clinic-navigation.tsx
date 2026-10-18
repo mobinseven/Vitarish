@@ -15,7 +15,7 @@ export function useClinicNavigation() {
           router.push(Routes.Clinic.Index);
           break;
         case "patientDetail":
-          router.push(Routes.Clinic.Patients.Detail(intent.patientId));
+          router.push(Routes.Clinic.Patients.Detail(intent.patientId, intent.quickAction));
           break;
         case "patientNew":
           router.push(Routes.Clinic.Patients.New);

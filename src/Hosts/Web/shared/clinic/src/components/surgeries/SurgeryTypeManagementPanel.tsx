@@ -13,6 +13,7 @@ import {
 } from "@heroui/react";
 import { ItemCard, ItemCardGroup } from "@heroui-pro/react";
 import {
+  AnchorPageHeader,
   EmptyStateSurface,
   ErrorStateSurface,
   FaIcon,
@@ -36,7 +37,6 @@ import type {
   SurgeryType,
 } from "../../models/surgeries/surgeryModels";
 import { TemplateConfirmDialog } from "../procedures/TemplateConfirmDialog";
-import { SurgeryPageHeader } from "./SurgeryPageHeader";
 import {
   SurgeryTypeEditor,
   type SurgeryTypeEditorValues,
@@ -421,7 +421,8 @@ export function SurgeryTypeManagementPanel() {
 
   return (
     <div className="flex min-h-0 flex-col gap-6">
-      <SurgeryPageHeader
+      <AnchorPageHeader
+        icon="scissors"
         title={t("clinic.surgeries.types.title")}
         details={t("clinic.surgeries.types.settingsDescription")}
       />
