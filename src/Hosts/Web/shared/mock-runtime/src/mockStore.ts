@@ -113,8 +113,12 @@ function createMockAuditEvents(): MockAuditEvent[] {
 /** Ids of seeded ready-scenario records that previews and screenshot runs link to. */
 export const mockFixtureIds = {
   patient: "mock-patient-ada",
+  patientIdentificationCode: "mock-ada-001",
   reservation: "mock-reservation",
   shift: "mock-shift",
+  surgeryType: "mock-surgery-type-default",
+  surgery: "mock-surgery-today",
+  pastSurgery: "mock-surgery-yesterday",
   shiftOccurrenceDate: "2026-08-11",
   serviceType: "mock-service-type",
   service: "mock-service",
@@ -212,7 +216,7 @@ export function createMockStore(scenario: "ready" | "empty") {
       { userId: mockFixtureIds.assistant, tenantId: "mock-tenant", roleSuffix: tenantRoleSuffixes.user },
     ],
     patients: scenario === "empty" ? [] as MockPatient[] : [
-      { id: mockFixtureIds.patient, tenantId: "mock-tenant", name: "Ada Lovelace", firstName: "Ada", lastName: "Lovelace", identificationCode: "mock-ada-001", phone: "+10000000001", email: "ada@example.test", dateOfBirth: "1990-12-10", createdAt: "2026-01-01T00:00:00.000Z", isDeleted: false },
+      { id: mockFixtureIds.patient, tenantId: "mock-tenant", name: "Ada Lovelace", firstName: "Ada", lastName: "Lovelace", identificationCode: mockFixtureIds.patientIdentificationCode, phone: "+10000000001", email: "ada@example.test", dateOfBirth: "1990-12-10", createdAt: "2026-01-01T00:00:00.000Z", isDeleted: false },
       { id: "mock-patient-grace", tenantId: "mock-tenant", name: "Grace Hopper", firstName: "Grace", lastName: "Hopper", identificationCode: "mock-grace-002", phone: "+10000000002", email: "grace@example.test", dateOfBirth: "1985-12-09", createdAt: "2026-01-02T00:00:00.000Z", isDeleted: false },
       { id: "mock-patient-katherine", tenantId: "mock-tenant", name: "Katherine Johnson", firstName: "Katherine", lastName: "Johnson", identificationCode: "mock-katherine-003", phone: "+10000000003", email: "katherine@example.test", dateOfBirth: "1988-08-26", createdAt: "2026-01-03T00:00:00.000Z", isDeleted: false },
       { id: "mock-patient-marie", tenantId: "mock-tenant", name: "Marie Curie", firstName: "Marie", lastName: "Curie", identificationCode: "mock-marie-004", phone: "+10000000004", email: "marie@example.test", dateOfBirth: "1992-11-07", createdAt: "2026-01-04T00:00:00.000Z", isDeleted: false },

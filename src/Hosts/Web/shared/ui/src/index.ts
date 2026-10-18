@@ -74,6 +74,8 @@ export type {FaIconProps} from "./icons/FaIcon";
 export { chromaChipClassName, chromaColors, removeButtonClassName } from "./actions/chromaColor";
 export type { ChromaColor } from "./actions/chromaColor";
 export { HeaderIcon } from "./icons/HeaderIcon";
+export { AnchorPageHeader } from "./layout/AnchorPageHeader";
+export type { AnchorPageHeaderProps } from "./layout/AnchorPageHeader";
 export type { HeaderIconLevel, HeaderIconProps, HeaderIconTone } from "./icons/HeaderIcon";
 export { ViewportReveal } from "./motion/ViewportReveal";
 export type { ViewportRevealProps } from "./motion/ViewportReveal";

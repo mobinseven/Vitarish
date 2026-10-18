@@ -1,16 +1,16 @@
 import userEvent from "@testing-library/user-event";
-import { screen, within } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import { parseDate } from "@internationalized/date";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { renderWithLocalization } from "../localization/renderWithLocalization";
 
 const mocks = vi.hoisted(() => ({
   push: vi.fn(),
   appointments: vi.fn(),
+  surgeries: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: mocks.push }) }));
-vi.mock("@/features/home/widgets/surgeries/SurgeriesWidget", () => ({ SurgeriesWidget: () => null }));
 vi.mock("@vitarish/clinic", async () => {
   const actual =
     await vi.importActual<typeof import("@vitarish/clinic")>(
@@ -18,194 +18,115 @@ vi.mock("@vitarish/clinic", async () => {
     );
   return {
     ...actual,
+    useCanPlanSurgeries: () => true,
     useClinicListDashboardAppointments: mocks.appointments,
+    useSurgeryCalendar: mocks.surgeries,
   };
 });
 
 import { HomeDashboard } from "@/features/home/components/HomeDashboard";
 
+const patientId = "12345678-1234-1234-1234-123456789012";
+
+function answerVisits(data: unknown[]) {
+  mocks.appointments.mockReturnValue({ data, isLoading: false, error: null, refetch: vi.fn() });
+}
+
+function answerSurgeries(data: unknown[]) {
+  mocks.surgeries.mockReturnValue({ data, isLoading: false, error: null, refetch: vi.fn() });
+}
+
+function plannedSurgery(id: string, patientDisplayName: string, scheduledAt: Date) {
+  return {
+    id,
+    patientId,
+    patientDisplayName,
+    catalogId: "catalog-1",
+    name: "Knee arthroscopy",
+    status: "Planned",
+    scheduledAt: scheduledAt.toISOString(),
+    team: [],
+    tools: [],
+    personsToNotify: [],
+    contacts: [],
+    reminderPolicies: [],
+    concurrencyToken: `token-${id}`,
+    createdAt: scheduledAt.toISOString(),
+  };
+}
+
 describe("HomeDashboard", () => {
-  it("renders server-owned appointments and opens the patient profile or its quick actions", async () => {
-    mocks.appointments.mockReturnValue({
-      data: [
-        {
-          reservationId: "reservation-1",
-          status: 1,
-          date: "2026-08-27",
-          patientId: "12345678-1234-1234-1234-123456789012",
-          patientDisplayName: "Sara Ahmadi",
-          serviceId: null,
-          serviceDisplayName: "Consultation",
-          startTime: "09:30:00",
-          timeZone: "UTC",
-          patientTags: ["VIP", "Diabetes"],
-        },
-      ],
-      isLoading: false,
-      error: null,
-      refetch: vi.fn(),
-    });
+  afterEach(() => {
+    mocks.push.mockReset();
+    mocks.appointments.mockReset();
+    mocks.surgeries.mockReset();
+  });
 
+  it("shows the day's visits and opens the patient or a new note from a row", async () => {
+    answerVisits([
+      {
+        reservationId: "reservation-1",
+        status: 1,
+        date: "2026-08-27",
+        patientId,
+        patientDisplayName: "Sara Ahmadi",
+        serviceId: null,
+        serviceDisplayName: "Consultation",
+        startTime: "09:30:00",
+        timeZone: "UTC",
+        patientTags: ["VIP"],
+      },
+    ]);
+    answerSurgeries([]);
     const user = userEvent.setup();
     renderWithLocalization(<HomeDashboard />, { locale: "en" });
 
-    expect(mocks.appointments).toHaveBeenCalled();
-    expect(screen.getByRole("heading", { name: "Appointment review" })).toBeInTheDocument();
-    expect(screen.getAllByRole("button", { name: "View profile", hidden: true })).toHaveLength(1);
-    expect(screen.getAllByRole("button", { name: "New prescription", hidden: true })).toHaveLength(1);
-    expect(screen.getAllByRole("button", { name: "New note", hidden: true })).toHaveLength(1);
-    expect(screen.getByText("Confirmed")).toBeInTheDocument();
-    const tags = screen.getByRole("list", { name: "Patient tags" });
-    expect(within(tags).getAllByRole("listitem").map((item) => item.textContent)).toEqual(["VIP", "Diabetes"]);
-    expect(screen.queryByText("Time")).not.toBeInTheDocument();
-    expect(screen.queryByText("Schedule is current")).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "Dashboard" })).toBeVisible();
+    expect(screen.getByText("Confirmed")).toBeVisible();
 
-    await user.click(screen.getByRole("button", { name: "View profile" }));
-    expect(mocks.push).toHaveBeenCalledWith("/patients/12345678-1234-1234-1234-123456789012");
+    await user.click(screen.getByRole("button", { name: "Open Sara Ahmadi's profile" }));
+    expect(mocks.push).toHaveBeenLastCalledWith(`/patients/${patientId}`);
 
-    await user.click(screen.getByRole("button", { name: "New prescription" }));
-    expect(mocks.push).toHaveBeenLastCalledWith(
-      "/patients/12345678-1234-1234-1234-123456789012?action=prescription",
-    );
+    await user.click(screen.getByRole("button", { name: "New note for Sara Ahmadi" }));
+    expect(mocks.push).toHaveBeenLastCalledWith(`/patients/${patientId}?action=newVisit`);
 
-    await user.click(screen.getByRole("button", { name: "New note" }));
-    expect(mocks.push).toHaveBeenLastCalledWith(
-      "/patients/12345678-1234-1234-1234-123456789012?action=newVisit",
-    );
+    await user.click(screen.getByRole("button", { name: "See all visits" }));
+    expect(mocks.push).toHaveBeenLastCalledWith("/appointments");
   });
 
-  it("opens a month view and moves the appointment query by one day", async () => {
-    mocks.appointments.mockReturnValue({
-      data: [],
-      isLoading: false,
-      error: null,
-      refetch: vi.fn(),
-    });
-
+  it("moves both panels to the day chosen in the header", async () => {
+    answerVisits([]);
+    answerSurgeries([]);
     const user = userEvent.setup();
     renderWithLocalization(<HomeDashboard />, { locale: "en" });
 
-    const initialRange = mocks.appointments.mock.calls.at(-1)?.[0];
+    const initialVisits = mocks.appointments.mock.calls.at(-1)?.[0];
+    const initialSurgeries = mocks.surgeries.mock.calls.at(-1)?.[0];
 
-    await user.click(screen.getByRole("button", { name: "Previous" }));
+    await user.click(screen.getByRole("button", { name: "Previous day" }));
 
-    const previousRange = mocks.appointments.mock.calls.at(-1)?.[0];
-    expect(previousRange.dateFrom).toBe(
-      parseDate(initialRange.dateFrom).subtract({ days: 1 }).toString(),
-    );
-    expect(previousRange.dateTo).toBe(previousRange.dateFrom);
-
-    await user.click(screen.getByRole("button", { name: "Next" }));
-
-    const nextRange = mocks.appointments.mock.calls.at(-1)?.[0];
-    expect(nextRange.dateFrom).toBe(initialRange.dateFrom);
-    expect(nextRange.dateTo).toBe(initialRange.dateTo);
-
-    await user.click(screen.getByRole("button", { name: /Open date picker/ }));
-
-    expect(screen.getByRole("grid")).toBeInTheDocument();
-    expect(screen.getAllByRole("gridcell").length).toBeGreaterThan(7);
-    expect(screen.getByRole("button", { name: "Previous month" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Next month" })).toBeInTheDocument();
-
-    await user.click(screen.getByRole("button", { name: "Select year" }));
-
-    expect(screen.getAllByRole("button", { name: /^\d{4}$/ }).length).toBeGreaterThan(0);
+    const previousVisits = mocks.appointments.mock.calls.at(-1)?.[0];
+    expect(previousVisits).toEqual({
+      dateFrom: parseDate(initialVisits.dateFrom).subtract({ days: 1 }).toString(),
+      dateTo: parseDate(initialVisits.dateFrom).subtract({ days: 1 }).toString(),
+    });
+    const previousSurgeries = mocks.surgeries.mock.calls.at(-1)?.[0];
+    expect(Date.parse(previousSurgeries.from)).toBeLessThan(Date.parse(initialSurgeries.from));
   });
 
-  it("filters appointments by status and service and clears the selections", async () => {
-    mocks.appointments.mockReturnValue({
-      data: [
-        {
-          reservationId: "reservation-confirmed",
-          status: 1,
-          date: "2026-08-27",
-          patientId: "12345678-1234-1234-1234-123456789012",
-          patientDisplayName: "Sara Ahmadi",
-          serviceId: "service-consultation",
-          serviceDisplayName: "Consultation",
-          startTime: "09:30:00",
-          timeZone: "UTC",
-          patientTags: [],
-        },
-        {
-          reservationId: "reservation-pending",
-          status: 0,
-          date: "2026-08-27",
-          patientId: "22345678-1234-1234-1234-123456789012",
-          patientDisplayName: "Reza Karimi",
-          serviceId: "service-follow-up",
-          serviceDisplayName: "Follow-up visit",
-          startTime: "10:30:00",
-          timeZone: "UTC",
-          patientTags: [],
-        },
-        {
-          reservationId: "reservation-completed",
-          status: 7,
-          date: "2026-08-27",
-          patientId: "32345678-1234-1234-1234-123456789012",
-          patientDisplayName: "Mina Hosseini",
-          serviceId: "service-follow-up",
-          serviceDisplayName: "Follow-up visit",
-          startTime: "11:30:00",
-          timeZone: "UTC",
-          patientTags: [],
-        },
-      ],
-      isLoading: false,
-      error: null,
-      refetch: vi.fn(),
-    });
-
+  it("names the next planned surgery when the chosen day has none", async () => {
+    const inThreeDays = new Date();
+    inThreeDays.setDate(inThreeDays.getDate() + 3);
+    inThreeDays.setHours(9, 0, 0, 0);
+    answerVisits([]);
+    answerSurgeries([plannedSurgery("surgery-next", "Reza Karimi", inThreeDays)]);
     const user = userEvent.setup();
     renderWithLocalization(<HomeDashboard />, { locale: "en" });
 
-    await user.click(screen.getByRole("button", { name: "Filters" }));
-    await user.click(screen.getByRole("button", { name: /Status/ }));
-    await user.click(screen.getByRole("option", { name: "Confirmed" }));
-    await user.keyboard("{Escape}");
-    await user.keyboard("{Escape}");
+    expect(screen.getByText("No surgeries on this day.")).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Next surgery" })).toBeVisible();
 
-    expect(screen.getAllByRole("button", { name: "New prescription", hidden: true })).toHaveLength(1);
-    const serviceFilterButton = screen.getByRole("button", { name: "Filters", hidden: true });
-    if (serviceFilterButton.getAttribute("aria-expanded") !== "true") {
-      await user.click(serviceFilterButton);
-    }
-    await user.click(screen.getByRole("button", { name: /Service/ }));
-    await user.click(screen.getByRole("option", { name: "Consultation" }));
-    await user.keyboard("{Escape}");
-    await user.keyboard("{Escape}");
-
-    expect(screen.getAllByRole("button", { name: "New prescription", hidden: true })).toHaveLength(1);
-
-    const filterButton = screen.getByRole("button", { name: "Filters", hidden: true });
-    if (filterButton.getAttribute("aria-expanded") !== "true") {
-      await user.click(filterButton);
-    }
-    expect(screen.getByRole("button", { name: "Clear all filters", hidden: true })).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Clear all filters", hidden: true }));
-    await user.keyboard("{Escape}");
-
-    expect(screen.getAllByRole("button", { name: "New prescription", hidden: true })).toHaveLength(3);
-  });
-
-  it("uses culture-friendly calendar navigation icons in RTL", async () => {
-    mocks.appointments.mockReturnValue({
-      data: [],
-      isLoading: false,
-      error: null,
-      refetch: vi.fn(),
-    });
-
-    const user = userEvent.setup();
-    renderWithLocalization(<HomeDashboard />, { locale: "fa" });
-
-    await user.click(screen.getByRole("button", { name: /باز کردن انتخابگر تاریخ/ }));
-
-    expect(screen.getByRole("button", { name: "ماه قبل" }).querySelector("i"))
-      .toHaveClass("fa-chevron-right");
-    expect(screen.getByRole("button", { name: "ماه بعد" }).querySelector("i"))
-      .toHaveClass("fa-chevron-left");
+    await user.click(screen.getByRole("button", { name: /^Reza Karimi, Knee arthroscopy/ }));
+    expect(mocks.push).toHaveBeenLastCalledWith("/surgeries/surgery-next");
   });
 });

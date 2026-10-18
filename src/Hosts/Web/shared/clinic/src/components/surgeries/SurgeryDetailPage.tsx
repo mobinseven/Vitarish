@@ -3,6 +3,7 @@
 import { useState, type ReactNode } from "react";
 import { Button, Chip, Surface, Tooltip } from "@heroui/react";
 import {
+  AnchorPageHeader,
   DetailGrid,
   ErrorStateSurface,
   FaIcon,
@@ -27,7 +28,6 @@ import {
   surgeryStatuses,
 } from "../../models/surgeries/surgeryModels";
 import type { NavigationIntent } from "../../navigation";
-import { SurgeryPageHeader } from "./SurgeryPageHeader";
 import { SurgeryStatusChip } from "./SurgeryStatusChip";
 import {
   SurgeryStatusDialogs,
@@ -181,7 +181,8 @@ export function SurgeryDetailPage({
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
-      <SurgeryPageHeader
+      <AnchorPageHeader
+        icon="scissors"
         title={surgery.name}
         details={
           <div className="mt-1 flex flex-wrap items-center gap-2">

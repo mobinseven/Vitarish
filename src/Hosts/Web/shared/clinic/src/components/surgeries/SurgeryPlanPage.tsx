@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import { Alert, Button, Surface, Tooltip } from "@heroui/react";
 import { getLocalTimeZone } from "@internationalized/date";
 import {
+  AnchorPageHeader,
   ErrorStateSurface,
   FaIcon,
   HeaderIcon,
@@ -27,7 +28,6 @@ import {
 } from "../../hooks/surgeries/useSurgeryMutations";
 import { useClinicStaff } from "../../hooks/surgeries/useClinicStaff";
 import { PatientFindOrCreate } from "../patients/find-or-create/PatientFindOrCreate";
-import { SurgeryPageHeader } from "./SurgeryPageHeader";
 import { SurgeryPlanForm } from "./SurgeryPlanForm";
 
 export interface SurgeryPlanPageProps {
@@ -148,7 +148,8 @@ export function SurgeryPlanPage({
 
   // Once the patient is known, the header names both the task and the patient it is for.
   const header = (
-    <SurgeryPageHeader
+    <AnchorPageHeader
+      icon="scissors"
       title={mode === "create"
         ? t("clinic.surgeries.plan.createTitle")
         : t("clinic.surgeries.plan.editTitle")}
