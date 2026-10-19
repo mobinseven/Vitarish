@@ -98,7 +98,7 @@ public sealed class AssignNewTenantOwnerCommandHandlerTests
     public async Task Returns_user_not_found_for_an_unknown_user()
     {
         await using TestUsersDbContext dbContext = await CreateDbContextAsync();
-        AssignNewTenantOwnerCommandHandler handler = CreateHandler(dbContext, AuditWriter().Object);
+        AssignNewTenantOwnerCommandHandler handler = CreateHandler(dbContext, AuditWriter().Object, requestUserId: "missing-user");
 
         AssignNewTenantOwnerResult result = await handler.Handle(
             new AssignNewTenantOwnerCommand("missing-user", TenantId),
@@ -107,6 +107,27 @@ public sealed class AssignNewTenantOwnerCommandHandlerTests
         result.Should().Be(AssignNewTenantOwnerResult.UserNotFound);
         (await dbContext.Roles.CountAsync()).Should().Be(0);
         (await dbContext.UserRoles.CountAsync()).Should().Be(0);
+    }
+
+    [Fact]
+    public async Task Returns_unauthorized_and_creates_nothing_when_the_request_context_user_differs()
+    {
+        await using TestUsersDbContext dbContext = await CreateDbContextAsync();
+        Mock<ISecurityAuditWriter> audit = AuditWriter();
+        AssignNewTenantOwnerCommandHandler handler = CreateHandler(dbContext, audit.Object, requestUserId: "other");
+
+        AssignNewTenantOwnerResult result = await handler.Handle(
+            new AssignNewTenantOwnerCommand("creator", TenantId),
+            CancellationToken.None);
+
+        result.Should().Be(AssignNewTenantOwnerResult.Unauthorized);
+        (await dbContext.Roles.CountAsync()).Should().Be(0);
+        (await dbContext.UserRoles.CountAsync()).Should().Be(0);
+        audit.Verify(writer => writer.WriteAsync(
+            It.Is<SecurityAuditEvent>(entry =>
+                entry.Outcome == SecurityAuditOutcome.Denied &&
+                entry.TenantId == TenantId.ToString()),
+            It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -124,17 +145,27 @@ public sealed class AssignNewTenantOwnerCommandHandlerTests
     }
 
     [Fact]
-    public async Task Revokes_new_tenant_owner_memberships_and_roles_and_rejects_when_another_member_exists()
+    public async Task Revokes_new_tenant_owner_memberships_and_roles_audits_success_changes_concurrency_stamp_and_rejects_when_another_member_exists()
     {
         await using TestUsersDbContext dbContext = await CreateDbContextAsync();
         AssignNewTenantOwnerCommandHandler assignHandler = CreateHandler(dbContext, AuditWriter().Object);
-        RevokeNewTenantOwnerCommandHandler revokeHandler = new(dbContext);
+        Mock<ISecurityAuditWriter> revokeAudit = AuditWriter();
+        RevokeNewTenantOwnerCommandHandler revokeHandler = CreateRevokeHandler(dbContext, revokeAudit.Object);
 
         _ = await assignHandler.Handle(new AssignNewTenantOwnerCommand("creator", TenantId), CancellationToken.None);
+        string? stampBeforeRevoke = (await dbContext.Users.AsNoTracking().SingleAsync(user => user.Id == "creator")).ConcurrencyStamp;
+
         await revokeHandler.Handle(new RevokeNewTenantOwnerCommand("creator", TenantId), CancellationToken.None);
 
         (await dbContext.UserRoles.CountAsync()).Should().Be(0);
         (await dbContext.Roles.CountAsync()).Should().Be(0);
+        string? stampAfterRevoke = (await dbContext.Users.AsNoTracking().SingleAsync(user => user.Id == "creator")).ConcurrencyStamp;
+        stampAfterRevoke.Should().NotBeNullOrEmpty().And.NotBe(stampBeforeRevoke);
+        revokeAudit.Verify(writer => writer.WriteAsync(
+            It.Is<SecurityAuditEvent>(entry =>
+                entry.Outcome == SecurityAuditOutcome.Succeeded &&
+                entry.TenantId == TenantId.ToString()),
+            It.IsAny<CancellationToken>()), Times.Once);
 
         _ = await assignHandler.Handle(new AssignNewTenantOwnerCommand("creator", TenantId), CancellationToken.None);
         string userRoleName = TenantRoleDefinitions.BuildRoleName(TenantId, IdentityDefinitions.TenantUser);
@@ -148,24 +179,53 @@ public sealed class AssignNewTenantOwnerCommandHandlerTests
         (await dbContext.Roles.CountAsync()).Should().Be(2);
     }
 
+    [Fact]
+    public async Task Throws_when_revoking_new_tenant_owner_for_a_different_request_context_user()
+    {
+        await using TestUsersDbContext dbContext = await CreateDbContextAsync();
+        AssignNewTenantOwnerCommandHandler assignHandler = CreateHandler(dbContext, AuditWriter().Object);
+        _ = await assignHandler.Handle(new AssignNewTenantOwnerCommand("creator", TenantId), CancellationToken.None);
+
+        Mock<ISecurityAuditWriter> revokeAudit = AuditWriter();
+        RevokeNewTenantOwnerCommandHandler revokeHandler = CreateRevokeHandler(dbContext, revokeAudit.Object, requestUserId: "other");
+
+        Func<Task> act = () => revokeHandler.Handle(new RevokeNewTenantOwnerCommand("creator", TenantId), CancellationToken.None);
+
+        await act.Should().ThrowAsync<InvalidOperationException>();
+        (await dbContext.Roles.CountAsync()).Should().Be(2);
+        (await dbContext.UserRoles.CountAsync()).Should().Be(1);
+    }
+
     private static AssignNewTenantOwnerCommandHandler CreateHandler(
         UsersDbContext dbContext,
         ISecurityAuditWriter auditWriter,
-        bool hasActiveSession = false)
+        bool hasActiveSession = false,
+        string requestUserId = "creator")
     {
         Mock<IAuthenticationActiveSessionQuery> activeSessions = new();
         activeSessions.Setup(query => query.HasActiveSessionAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(hasActiveSession);
 
-        Mock<IRequestContext> requestContext = new();
-        requestContext.SetupGet(context => context.UserId).Returns("creator");
-        requestContext.SetupGet(context => context.RequestId).Returns(Guid.NewGuid().ToString("N"));
         return new AssignNewTenantOwnerCommandHandler(
             dbContext,
             new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions())),
             activeSessions.Object,
             auditWriter,
-            requestContext.Object);
+            CreateRequestContext(requestUserId));
+    }
+
+    private static RevokeNewTenantOwnerCommandHandler CreateRevokeHandler(
+        UsersDbContext dbContext,
+        ISecurityAuditWriter auditWriter,
+        string requestUserId = "creator") =>
+        new(dbContext, auditWriter, CreateRequestContext(requestUserId));
+
+    private static IRequestContext CreateRequestContext(string requestUserId)
+    {
+        Mock<IRequestContext> requestContext = new();
+        requestContext.SetupGet(context => context.UserId).Returns(requestUserId);
+        requestContext.SetupGet(context => context.RequestId).Returns(Guid.NewGuid().ToString("N"));
+        return requestContext.Object;
     }
 
     private static Mock<ISecurityAuditWriter> AuditWriter()

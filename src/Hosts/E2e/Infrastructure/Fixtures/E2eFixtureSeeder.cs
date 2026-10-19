@@ -140,7 +140,7 @@ internal static class E2eFixtureSeeder
         PartiesDbContext parties = scope.ServiceProvider.GetRequiredService<PartiesDbContext>();
         IRequestContextWriter requestContext = scope.ServiceProvider.GetRequiredService<IRequestContextWriter>();
         Console.WriteLine("E2E fixture seeding: preparing tenant A.");
-        Tenant? tenant = await parties.Tenants.SingleOrDefaultAsync(item => item.AppId == "private-practice-owner", cancellationToken);
+        Tenant? tenant = await parties.Tenants.SingleOrDefaultAsync(item => item.AppId == Vitarish.Clinic.Application.ClinicTenant.AppId, cancellationToken);
         if (tenant is null)
         {
             tenant = new Tenant
@@ -148,7 +148,7 @@ internal static class E2eFixtureSeeder
                 Id = Guid.Parse("9c8b6b3a-7d6e-4f75-a88d-7d3f5b1b0f92"),
                 OwnerId = ownerId,
                 Name = "E2E Clinic",
-                AppId = "private-practice-owner"
+                AppId = Vitarish.Clinic.Application.ClinicTenant.AppId
             };
             _ = parties.Tenants.Add(tenant);
             _ = parties.TenantIndicators.Add(new TenantIndicator

@@ -33,7 +33,25 @@ internal sealed class AssignNewTenantOwnerCommandHandler(
             TenantRoleDefinitions.BuildRoleName(request.TenantId, IdentityDefinitions.TenantUser)
         ];
         string operationKey = $"{request.TenantId:N}:{request.UserId}";
+        // A user makes only themselves the owner of a tenant they are creating.
+        if (!string.Equals(requestContext.UserId, request.UserId, StringComparison.Ordinal))
+        {
+            await WriteAuditAsync(request, operationKey, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.Unauthorized, cancellationToken);
+            return AssignNewTenantOwnerResult.Unauthorized;
+        }
 
+        IExecutionStrategy strategy = dbContext.Database.CreateExecutionStrategy();
+        return await strategy.ExecuteAsync(() => AssignAsync(request, ownerRoleName, roleNames, operationKey, cancellationToken));
+    }
+
+    private async Task<AssignNewTenantOwnerResult> AssignAsync(
+        AssignNewTenantOwnerCommand request,
+        string ownerRoleName,
+        string[] roleNames,
+        string operationKey,
+        CancellationToken cancellationToken)
+    {
+        dbContext.ChangeTracker.Clear();
         await using IDbContextTransaction? transaction = dbContext.Database.IsRelational()
             ? await dbContext.Database.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken)
             : null;
@@ -97,7 +115,21 @@ internal sealed class AssignNewTenantOwnerCommandHandler(
         return AssignNewTenantOwnerResult.Assigned;
     }
 
-    private async Task WriteAuditAsync(AssignNewTenantOwnerCommand request, string operationKey, string outcome, string reason, CancellationToken cancellationToken)
+    private Task WriteAuditAsync(AssignNewTenantOwnerCommand request, string operationKey, string outcome, string reason, CancellationToken cancellationToken) =>
+        NewTenantOwnerAudit.WriteAsync(securityAuditWriter, requestContext, request.UserId, request.TenantId, operationKey, outcome, reason, cancellationToken);
+}
+
+internal static class NewTenantOwnerAudit
+{
+    public static async Task WriteAsync(
+        ISecurityAuditWriter securityAuditWriter,
+        IRequestContext requestContext,
+        string userId,
+        Guid tenantId,
+        string operationKey,
+        string outcome,
+        string reason,
+        CancellationToken cancellationToken)
     {
         try
         {
@@ -107,9 +139,9 @@ internal sealed class AssignNewTenantOwnerCommandHandler(
                 EventCategory = SecurityAuditEventCatalog.ManagementCategory,
                 Outcome = outcome,
                 ActorId = requestContext.UserId,
-                SubjectId = request.UserId,
-                TenantId = request.TenantId.ToString(),
-                Resource = UsersSecurityAuditEvents.UserResourcePrefix + request.UserId,
+                SubjectId = userId,
+                TenantId = tenantId.ToString(),
+                Resource = UsersSecurityAuditEvents.UserResourcePrefix + userId,
                 Operation = UsersSecurityAuditEvents.TenantRoleReplacementOperation,
                 OccurredAt = DateTime.UtcNow,
                 CorrelationId = requestContext.TraceId ?? requestContext.RequestId ?? operationKey,
@@ -125,10 +157,20 @@ internal sealed class AssignNewTenantOwnerCommandHandler(
     }
 }
 
-internal sealed class RevokeNewTenantOwnerCommandHandler(UsersDbContext dbContext) : IRequestHandler<RevokeNewTenantOwnerCommand>
+internal sealed class RevokeNewTenantOwnerCommandHandler(
+    UsersDbContext dbContext,
+    ISecurityAuditWriter securityAuditWriter,
+    IRequestContext requestContext) : IRequestHandler<RevokeNewTenantOwnerCommand>
 {
     public async Task Handle(RevokeNewTenantOwnerCommand request, CancellationToken cancellationToken)
     {
+        string operationKey = $"{request.TenantId:N}:{request.UserId}:revoke";
+        if (!string.Equals(requestContext.UserId, request.UserId, StringComparison.Ordinal))
+        {
+            await NewTenantOwnerAudit.WriteAsync(securityAuditWriter, requestContext, request.UserId, request.TenantId, operationKey, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.Unauthorized, cancellationToken);
+            throw new InvalidOperationException("Only the creator can undo their own new-tenant ownership.");
+        }
+
         string[] roleNames =
         [
             TenantRoleDefinitions.BuildRoleName(request.TenantId, IdentityDefinitions.TenantOwner),
@@ -141,8 +183,23 @@ internal sealed class RevokeNewTenantOwnerCommandHandler(UsersDbContext dbContex
         if (memberships.Any(membership => membership.UserId != request.UserId))
             throw new InvalidOperationException("The tenant has members other than its creator, so its owner assignment cannot be undone.");
 
+        if (memberships.Count == 0 && roles.Count == 0)
+            return;
+
+        User? user = await dbContext.Users.SingleOrDefaultAsync(item => item.Id == request.UserId, cancellationToken);
+        if (user is not null)
+            user.ConcurrencyStamp = Guid.NewGuid().ToString("N");
         dbContext.UserRoles.RemoveRange(memberships);
         dbContext.Roles.RemoveRange(roles);
         _ = await dbContext.SaveChangesAsync(cancellationToken);
+        await NewTenantOwnerAudit.WriteAsync(
+            securityAuditWriter,
+            requestContext,
+            request.UserId,
+            request.TenantId,
+            operationKey,
+            SecurityAuditOutcome.Succeeded,
+            SecurityAuditReasonCatalog.TenantRoleReplacement(SecurityAuditReasonCatalog.TenantRoleStateOwner, SecurityAuditReasonCatalog.TenantRoleStateNone),
+            CancellationToken.None);
     }
 }

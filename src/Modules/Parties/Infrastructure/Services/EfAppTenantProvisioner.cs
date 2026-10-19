@@ -32,8 +32,15 @@ public sealed class EfAppTenantProvisioner(PartiesDbContext dbContext) : IAppTen
             .AsNoTracking()
             .SingleOrDefaultAsync(indicator => indicator.Value == hostname, cancellationToken);
 
+        // Owner names are not unique: a self-service tenant's owner carries a name its creator chose.
+        // A platform app's owner is the one whose tenant has that app id, else the earliest by that name.
         Owner? owner = await dbContext.Owners
-            .SingleOrDefaultAsync(item => item.Name == request.OwnerName, cancellationToken);
+            .Where(item => dbContext.Tenants.Any(existing => existing.OwnerId == item.Id && existing.AppId == request.AppId))
+            .FirstOrDefaultAsync(cancellationToken)
+            ?? await dbContext.Owners
+                .Where(item => item.Name == request.OwnerName)
+                .OrderBy(item => item.CreatedAt)
+                .FirstOrDefaultAsync(cancellationToken);
         if (owner is null)
         {
             owner = new Owner { Name = request.OwnerName };

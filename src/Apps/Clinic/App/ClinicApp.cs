@@ -27,7 +27,7 @@ public class ClinicApp : Vitarish.Apps.Base.Core.App
         _ = builder.Services.AddClinicInfrastructure();
         _ = builder.Services.AddClinicApiAuthorization();
         // People create their own clinics through self-service tenant onboarding.
-        _ = builder.Services.AddSingleton(new SelfServiceTenantProfile(ClinicTenant.AppId, ClinicTenant.ActiveModules));
+        _ = builder.Services.AddSingleton(new SelfServiceTenantProfile(ClinicTenant.AppId));
         _ = builder.Services.AddSingleton(new AssistantOptions(
             builder.Configuration[AgentRuntimeOptions.ModelConfigurationKey]
             ?? builder.Configuration[AiOptions.DefaultResponseModelConfigurationKey]

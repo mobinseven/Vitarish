@@ -15,7 +15,7 @@ public sealed class CreateOwnTenantCommandHandlerTests
     private const string CreatorUserId = "user-1";
     private const string IdempotencyKey = "idem-key-1234";
     private static readonly DateTimeOffset FixedNow = new(2026, 4, 20, 12, 0, 0, TimeSpan.Zero);
-    private static readonly SelfServiceTenantProfile Profile = new("clinic-app", ["Clinic"]);
+    private static readonly SelfServiceTenantProfile Profile = new("clinic-app");
 
     [Fact]
     public async Task Creates_a_tenant_with_trimmed_fields_and_records_a_succeeded_audit_event()
@@ -28,8 +28,6 @@ public sealed class CreateOwnTenantCommandHandlerTests
         Mock<ISelfServiceTenantStore> store = new();
         store.Setup(item => item.FindAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((ExistingSelfServiceTenant?)null);
-        store.Setup(item => item.CountCreatedByAsync(CreatorUserId, It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(0);
         store.Setup(item => item.CreateAsync(It.IsAny<NewSelfServiceTenant>(), It.IsAny<CancellationToken>()))
             .Callback<NewSelfServiceTenant, CancellationToken>((tenant, _) => captured = tenant)
             .ReturnsAsync(TenantProvisioningOutcome.Created);
@@ -232,10 +230,11 @@ public sealed class CreateOwnTenantCommandHandlerTests
         creators.Setup(item => item.FindAsync(CreatorUserId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new TenantCreator(CreatorUserId, HasVerifiedPhone: true));
 
-        DateTime expectedSince = FixedNow.UtcDateTime - TimeSpan.FromDays(1);
+        NewSelfServiceTenant? captured = null;
         Mock<ISelfServiceTenantStore> store = new();
-        store.Setup(item => item.CountCreatedByAsync(CreatorUserId, expectedSince, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(3);
+        store.Setup(item => item.CreateAsync(It.IsAny<NewSelfServiceTenant>(), It.IsAny<CancellationToken>()))
+            .Callback<NewSelfServiceTenant, CancellationToken>((tenant, _) => captured = tenant)
+            .ReturnsAsync(TenantProvisioningOutcome.LimitReached);
 
         Mock<ISecurityAuditWriter> audit = AuditWriter();
         CreateOwnTenantCommandHandler handler = CreateHandler(creators.Object, store.Object, audit.Object);
@@ -245,8 +244,9 @@ public sealed class CreateOwnTenantCommandHandlerTests
             CancellationToken.None);
 
         result.Status.Should().Be(CreateOwnTenantStatus.LimitReached);
-        store.Verify(item => item.CountCreatedByAsync(CreatorUserId, expectedSince, It.IsAny<CancellationToken>()), Times.Once);
-        store.Verify(item => item.CreateAsync(It.IsAny<NewSelfServiceTenant>(), It.IsAny<CancellationToken>()), Times.Never);
+        captured.Should().NotBeNull();
+        captured!.Allowance.Maximum.Should().Be(3);
+        captured.Allowance.SinceUtc.Should().Be(FixedNow.UtcDateTime - TimeSpan.FromDays(1));
         audit.Verify(writer => writer.WriteAsync(
             It.Is<SecurityAuditEvent>(entry => entry.Outcome == SecurityAuditOutcome.Denied),
             It.IsAny<CancellationToken>()), Times.Once);
@@ -262,8 +262,6 @@ public sealed class CreateOwnTenantCommandHandlerTests
         Mock<ISelfServiceTenantStore> store = new();
         store.Setup(item => item.FindAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((ExistingSelfServiceTenant?)null);
-        store.Setup(item => item.CountCreatedByAsync(CreatorUserId, It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(0);
         store.Setup(item => item.CreateAsync(It.IsAny<NewSelfServiceTenant>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(TenantProvisioningOutcome.AddressTaken);
 

@@ -81,13 +81,12 @@ public sealed class CreateOwnTenantCommandHandler(
         if (!creator.HasVerifiedPhone)
             return await DeniedAsync(CreateOwnTenantStatus.PhoneNotVerified, request, tenantId, SecurityAuditReasonCatalog.Unauthorized, cancellationToken);
 
-        DateTime since = timeProvider.GetUtcNow().UtcDateTime - CreationWindow;
-        if (await tenants.CountCreatedByAsync(creator.UserId, since, cancellationToken) >= CreationsPerWindow)
-            return await DeniedAsync(CreateOwnTenantStatus.LimitReached, request, tenantId, SecurityAuditReasonCatalog.MutationRejected, cancellationToken);
-
+        TenantCreationAllowance allowance = new(timeProvider.GetUtcNow().UtcDateTime - CreationWindow, CreationsPerWindow);
         TenantProvisioningOutcome outcome = await tenants.CreateAsync(
-            new NewSelfServiceTenant(tenantId, ownerId, creator.UserId, name, description, hostname, profile),
+            new NewSelfServiceTenant(tenantId, ownerId, creator.UserId, name, description, hostname, profile, allowance),
             cancellationToken);
+        if (outcome == TenantProvisioningOutcome.LimitReached)
+            return await DeniedAsync(CreateOwnTenantStatus.LimitReached, request, tenantId, SecurityAuditReasonCatalog.MutationRejected, cancellationToken);
         if (outcome == TenantProvisioningOutcome.AddressTaken)
         {
             // A concurrent identical request may have created this very tenant first.

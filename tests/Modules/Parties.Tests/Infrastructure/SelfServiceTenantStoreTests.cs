@@ -6,7 +6,6 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Vitarish.Authentication.Application.Abstractions;
 using Vitarish.Parties.Application.Onboarding;
-using Vitarish.Parties.Domain;
 using Vitarish.Parties.Domain.Entities;
 using Vitarish.Parties.Domain.Enums;
 using Vitarish.Parties.Infrastructure.Data;
@@ -17,7 +16,7 @@ namespace Vitarish.Parties.Tests.Infrastructure;
 
 public sealed class SelfServiceTenantStoreTests
 {
-    private static readonly SelfServiceTenantProfile Profile = new("clinic-app", ["Clinic", "Appointments"]);
+    private static readonly SelfServiceTenantProfile Profile = new("clinic-app");
 
     [Fact]
     public async Task Persists_owner_tenant_and_primary_subdomain_indicator_and_assigns_the_creator_as_owner()
@@ -31,7 +30,15 @@ public sealed class SelfServiceTenantStoreTests
         SelfServiceTenantStore store = CreateStore(db, sender.Object);
 
         TenantProvisioningOutcome outcome = await store.CreateAsync(
-            new NewSelfServiceTenant(tenantId, ownerId, "user-1", "Rezaei Clinic", "Dental care", "Rezaei.Clinic.Example.Test.", Profile),
+            new NewSelfServiceTenant(
+                tenantId,
+                ownerId,
+                "user-1",
+                "Rezaei Clinic",
+                "Dental care",
+                "Rezaei.Clinic.Example.Test.",
+                Profile,
+                new TenantCreationAllowance(DateTime.UtcNow.AddDays(-1), 3)),
             CancellationToken.None);
 
         outcome.Should().Be(TenantProvisioningOutcome.Created);
@@ -46,7 +53,6 @@ public sealed class SelfServiceTenantStoreTests
         tenant.Name.Should().Be("Rezaei Clinic");
         tenant.Description.Should().Be("Dental care");
         tenant.AppId.Should().Be("clinic-app");
-        TenantMetadata.GetActiveModules(tenant.Metadata).Should().Equal("Clinic", "Appointments");
 
         TenantIndicator indicator = await db.TenantIndicators.AsNoTracking().SingleAsync();
         indicator.TenantId.Should().Be(tenantId);
@@ -78,7 +84,15 @@ public sealed class SelfServiceTenantStoreTests
         SelfServiceTenantStore store = CreateStore(db, sender.Object);
 
         TenantProvisioningOutcome outcome = await store.CreateAsync(
-            new NewSelfServiceTenant(Guid.NewGuid(), Guid.NewGuid(), "user-1", "Clinic", null, "rezaei.clinic.example.test", Profile),
+            new NewSelfServiceTenant(
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                "user-1",
+                "Clinic",
+                null,
+                "rezaei.clinic.example.test",
+                Profile,
+                new TenantCreationAllowance(DateTime.UtcNow.AddDays(-1), 3)),
             CancellationToken.None);
 
         outcome.Should().Be(TenantProvisioningOutcome.AddressTaken);
@@ -99,13 +113,22 @@ public sealed class SelfServiceTenantStoreTests
         SelfServiceTenantStore store = CreateStore(db, sender.Object);
 
         Func<Task> act = () => store.CreateAsync(
-            new NewSelfServiceTenant(tenantId, Guid.NewGuid(), "user-1", "Clinic", null, "rezaei.clinic.example.test", Profile),
+            new NewSelfServiceTenant(
+                tenantId,
+                Guid.NewGuid(),
+                "user-1",
+                "Clinic",
+                null,
+                "rezaei.clinic.example.test",
+                Profile,
+                new TenantCreationAllowance(DateTime.UtcNow.AddDays(-1), 3)),
             CancellationToken.None);
 
         await act.Should().ThrowAsync<InvalidOperationException>();
         (await db.Owners.CountAsync()).Should().Be(0);
         (await db.Tenants.CountAsync()).Should().Be(0);
         (await db.TenantIndicators.CountAsync()).Should().Be(0);
+        sender.Verify(item => item.Send(new RevokeNewTenantOwnerCommand("user-1", tenantId), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -119,13 +142,22 @@ public sealed class SelfServiceTenantStoreTests
         SelfServiceTenantStore store = CreateStore(db, sender.Object);
 
         Func<Task> act = () => store.CreateAsync(
-            new NewSelfServiceTenant(tenantId, Guid.NewGuid(), "user-1", "Clinic", null, "rezaei.clinic.example.test", Profile),
+            new NewSelfServiceTenant(
+                tenantId,
+                Guid.NewGuid(),
+                "user-1",
+                "Clinic",
+                null,
+                "rezaei.clinic.example.test",
+                Profile,
+                new TenantCreationAllowance(DateTime.UtcNow.AddDays(-1), 3)),
             CancellationToken.None);
 
         await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("Simulated Users failure.");
         (await db.Owners.CountAsync()).Should().Be(0);
         (await db.Tenants.CountAsync()).Should().Be(0);
         (await db.TenantIndicators.CountAsync()).Should().Be(0);
+        sender.Verify(item => item.Send(new RevokeNewTenantOwnerCommand("user-1", tenantId), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -172,16 +204,105 @@ public sealed class SelfServiceTenantStoreTests
     }
 
     [Fact]
-    public async Task Counts_only_tenants_created_by_the_user_at_or_after_the_cutoff()
+    public async Task Returns_null_when_finding_a_soft_deleted_tenant()
     {
         await using PartiesDbContext db = CreateContext();
-        DateTime since = new(2026, 4, 19, 12, 0, 0, DateTimeKind.Utc);
+        Guid tenantId = Guid.NewGuid();
+        db.Tenants.Add(new Tenant
+        {
+            Id = tenantId,
+            OwnerId = Guid.NewGuid(),
+            Name = "Deleted Clinic",
+            AppId = "clinic-app",
+            DeletedAt = DateTime.UtcNow
+        });
+        db.TenantIndicators.Add(new TenantIndicator
+        {
+            Id = Guid.NewGuid(),
+            TenantId = tenantId,
+            Method = IndicatorMethod.Subdomain,
+            Value = "deleted.clinic.example.test",
+            Status = IndicatorStatus.Active,
+            IsPrimary = true
+        });
+        await db.SaveChangesAsync();
+
+        SelfServiceTenantStore store = CreateStore(db, Mock.Of<ISender>());
+
+        ExistingSelfServiceTenant? result = await store.FindAsync(tenantId, CancellationToken.None);
+
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task Returns_limit_reached_without_adding_rows_or_sending_commands_when_creator_has_reached_the_allowance()
+    {
+        await using PartiesDbContext db = CreateContext();
+        DateTime now = new(2026, 4, 20, 12, 0, 0, DateTimeKind.Utc);
         db.Tenants.AddRange(
             new Tenant
             {
                 Id = Guid.NewGuid(),
                 OwnerId = Guid.NewGuid(),
-                Name = "At Cutoff",
+                Name = "First",
+                AppId = "clinic-app",
+                CreatedBy = "user-1",
+                CreatedAt = now
+            },
+            new Tenant
+            {
+                Id = Guid.NewGuid(),
+                OwnerId = Guid.NewGuid(),
+                Name = "Second",
+                AppId = "clinic-app",
+                CreatedBy = "user-1",
+                CreatedAt = now
+            },
+            new Tenant
+            {
+                Id = Guid.NewGuid(),
+                OwnerId = Guid.NewGuid(),
+                Name = "Third",
+                AppId = "clinic-app",
+                CreatedBy = "user-1",
+                CreatedAt = now
+            });
+        await db.SaveChangesAsync();
+
+        Mock<ISender> sender = new(MockBehavior.Strict);
+        SelfServiceTenantStore store = CreateStore(db, sender.Object);
+
+        TenantProvisioningOutcome outcome = await store.CreateAsync(
+            new NewSelfServiceTenant(
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                "user-1",
+                "Fourth Clinic",
+                null,
+                "fourth.clinic.example.test",
+                Profile,
+                new TenantCreationAllowance(now.AddDays(-1), 3)),
+            CancellationToken.None);
+
+        outcome.Should().Be(TenantProvisioningOutcome.LimitReached);
+        (await db.Owners.CountAsync()).Should().Be(0);
+        (await db.Tenants.CountAsync()).Should().Be(3);
+        (await db.TenantIndicators.CountAsync()).Should().Be(0);
+        sender.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task Does_not_count_tenants_created_before_the_allowance_window_or_by_other_users()
+    {
+        await using PartiesDbContext db = CreateContext();
+        DateTime now = new(2026, 4, 20, 12, 0, 0, DateTimeKind.Utc);
+        DateTime since = now.AddDays(-1);
+        db.Tenants.AddRange(
+            new Tenant
+            {
+                Id = Guid.NewGuid(),
+                OwnerId = Guid.NewGuid(),
+                Name = "First Within Window",
                 AppId = "clinic-app",
                 CreatedBy = "user-1",
                 CreatedAt = since
@@ -190,10 +311,10 @@ public sealed class SelfServiceTenantStoreTests
             {
                 Id = Guid.NewGuid(),
                 OwnerId = Guid.NewGuid(),
-                Name = "After Cutoff",
+                Name = "Second Within Window",
                 AppId = "clinic-app",
                 CreatedBy = "user-1",
-                CreatedAt = since.AddHours(2)
+                CreatedAt = now
             },
             new Tenant
             {
@@ -211,15 +332,29 @@ public sealed class SelfServiceTenantStoreTests
                 Name = "Other User",
                 AppId = "clinic-app",
                 CreatedBy = "user-2",
-                CreatedAt = since.AddHours(1)
+                CreatedAt = now
             });
         await db.SaveChangesAsync();
 
-        SelfServiceTenantStore store = CreateStore(db, Mock.Of<ISender>());
+        Guid thirdTenantId = Guid.NewGuid();
+        Mock<ISender> sender = new();
+        sender.Setup(item => item.Send(new AssignNewTenantOwnerCommand("user-1", thirdTenantId), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(AssignNewTenantOwnerResult.Assigned);
+        SelfServiceTenantStore store = CreateStore(db, sender.Object);
 
-        int count = await store.CountCreatedByAsync("user-1", since, CancellationToken.None);
+        TenantProvisioningOutcome outcome = await store.CreateAsync(
+            new NewSelfServiceTenant(
+                thirdTenantId,
+                Guid.NewGuid(),
+                "user-1",
+                "Third Within Window",
+                null,
+                "third.clinic.example.test",
+                Profile,
+                new TenantCreationAllowance(since, 3)),
+            CancellationToken.None);
 
-        count.Should().Be(2);
+        outcome.Should().Be(TenantProvisioningOutcome.Created);
     }
 
     [Fact]
@@ -238,7 +373,15 @@ public sealed class SelfServiceTenantStoreTests
         SelfServiceTenantStore store = new(db, sender.Object, sessions.Object, NullLogger<SelfServiceTenantStore>.Instance);
 
         TenantProvisioningOutcome outcome = await store.CreateAsync(
-            new NewSelfServiceTenant(Guid.NewGuid(), Guid.NewGuid(), "user-1", "Clinic", null, "rezaei.clinic.example.test", Profile),
+            new NewSelfServiceTenant(
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                "user-1",
+                "Clinic",
+                null,
+                "rezaei.clinic.example.test",
+                Profile,
+                new TenantCreationAllowance(DateTime.UtcNow.AddDays(-1), 3)),
             CancellationToken.None);
 
         outcome.Should().Be(TenantProvisioningOutcome.Created);
