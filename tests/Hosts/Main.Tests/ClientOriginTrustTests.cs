@@ -150,6 +150,23 @@ public sealed class ClientOriginTrustTests
         public Task<System.Net.WebSockets.WebSocket> AcceptAsync(WebSocketAcceptContext context) => throw new NotSupportedException();
     }
 
+    [Fact]
+    public async Task Configured_origin_with_a_trailing_slash_or_default_port_still_matches_the_browser_origin()
+    {
+        WebApplicationBuilder builder = WebApplication.CreateBuilder();
+        _ = builder.Services.AddHttpContextAccessor();
+        builder.AddHostCors(["https://app.example.test/", "https://other.example.test:443"]);
+        using WebApplication app = builder.Build();
+
+        (string? appHost, bool appCors) = await InvokePipelineAsync(app, ExactOrigin);
+        (string? otherHost, bool otherCors) = await InvokePipelineAsync(app, "https://other.example.test");
+
+        Assert.Equal("app.example.test", appHost);
+        Assert.True(appCors);
+        Assert.Equal("other.example.test", otherHost);
+        Assert.True(otherCors);
+    }
+
     private static Mock<ITenantOriginTrust> CreateTenantTrustMock()
     {
         Mock<ITenantOriginTrust> mock = new();

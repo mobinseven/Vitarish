@@ -16,7 +16,8 @@ internal sealed record TrustedClientOrigin(string Origin, string Host);
 /// </summary>
 internal sealed class ClientOriginTrust(IReadOnlyCollection<string> exactOrigins)
 {
-    private readonly HashSet<string> exactOrigins = new(exactOrigins, StringComparer.OrdinalIgnoreCase);
+    // Normalized as CORS WithOrigins did, so "https://host/" or "https://host:443" still match the browser's origin.
+    private readonly HashSet<string> exactOrigins = new(exactOrigins.Select(Normalize), StringComparer.OrdinalIgnoreCase);
 
     public bool IsExact(string origin) => exactOrigins.Contains(origin);
 
@@ -75,6 +76,9 @@ internal sealed class ClientOriginTrust(IReadOnlyCollection<string> exactOrigins
         if (trusted)
             context.Features.Set(new TrustedClientOrigin(normalized, origin.Host));
     }
+
+    private static string Normalize(string origin) =>
+        Uri.TryCreate(origin, UriKind.Absolute, out Uri? parsed) ? parsed.GetLeftPart(UriPartial.Authority) : origin;
 
     public static bool IsTrustedForRequest(HttpContext? context, string origin) =>
         context?.Features.Get<TrustedClientOrigin>() is { } trusted
