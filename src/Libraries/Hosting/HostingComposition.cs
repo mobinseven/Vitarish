@@ -81,8 +81,9 @@ public static class HostingComposition
         _ = app.UseRouting();
         _ = app.UseMultiTenant();
         _ = app.UseInternalServiceEndpointBoundary();
+        _ = app.UseClientOriginTrust();
         _ = app.UseCors("WebHostCors");
-        app.UseHostWebSockets(security);
+        app.UseHostWebSockets();
         _ = app.UseRateLimiter();
         _ = app.UseSession();
         _ = app.UseIdentityServer();

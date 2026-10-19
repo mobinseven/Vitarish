@@ -1,12 +1,14 @@
 using System.Net.WebSockets;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using Vitarish.Intelligence.Application.LiveTranscription;
 using Vitarish.Intelligence.Contracts;
 using Vitarish.Modules.Base.Core.Endpoints;
+using Vitarish.Requests.Application.Abstractions;
 
 namespace Vitarish.Intelligence.Api;
 
@@ -50,13 +52,15 @@ internal static class RealtimeTranscriptionEndpointMapping
     private static async Task HandleWebSocketAsync(
         HttpContext context,
         RealtimeTranscriptionOriginPolicy originPolicy,
+        [FromServices] IClientInterfaceHostAccessor clientInterfaceHosts,
         LiveTranscriptionSessionFactory sessionFactory,
         LiveTranscriptionSettings settings,
         ILogger<RealtimeTranscriptionWebSocketSession> logger,
         CancellationToken cancellationToken)
     {
         StringValues origins = context.Request.Headers.Origin;
-        if (origins.Count != 1 || !originPolicy.IsTrusted(origins[0]))
+        // The host's origin trust also admits an active tenant's own address.
+        if (origins.Count != 1 || !(originPolicy.IsTrusted(origins[0]) || clientInterfaceHosts.ClientInterfaceHost is not null))
         {
             context.Response.StatusCode = StatusCodes.Status403Forbidden;
             return;

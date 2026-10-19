@@ -37,6 +37,7 @@ public static class IdentityPartiesExtensions
 
         _ = builder.Services.AddTransient<ITenantResolver, TenantResolver>();
         _ = builder.Services.AddTransient<ITenantHostnameRegistry, TenantHostnameRegistry>();
+        _ = builder.Services.AddTransient<ITenantOriginTrust, TenantOriginTrust>();
         _ = builder.Services.AddTransient<IAppTenantProvisioner, EfAppTenantProvisioner>();
         _ = builder.Services.AddTransient<IPartiesService, PartiesService>();
         _ = builder.Services.AddTransient<Vitarish.Users.Application.Abstractions.ITenantExistence, TenantExistence>();

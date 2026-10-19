@@ -106,6 +106,15 @@ public class PartiesDbContext(DbContextOptions<PartiesDbContext> options, Mediat
                 e.Entity.Method,
                 e.Entity.Value))];
 
+        HashSet<string> changedHostnames = new(StringComparer.Ordinal);
+        foreach (EntityEntry<TenantIndicator> entry in ChangeTracker.Entries<TenantIndicator>())
+        {
+            if (entry.State is EntityState.Added or EntityState.Modified)
+                changedHostnames.Add(entry.Entity.Value);
+            if (entry.State is EntityState.Modified or EntityState.Deleted)
+                changedHostnames.Add(entry.Property(indicator => indicator.Value).OriginalValue);
+        }
+
         int result = await base.SaveChangesAsync(cancellationToken);
 
         // Publish delete events after successful save
@@ -113,6 +122,9 @@ public class PartiesDbContext(DbContextOptions<PartiesDbContext> options, Mediat
         {
             await publisher.Publish(ev, cancellationToken);
         }
+
+        if (changedHostnames.Count > 0)
+            await publisher.Publish(new Domain.Events.TenantHostnamesChangedEvent([.. changedHostnames]), cancellationToken);
 
         return result;
     }

@@ -44,7 +44,7 @@ public class TenantResolver(PartiesDbContext dbContext, IMemoryCache cache) : IT
             return null;
         }
 
-        string cacheKey = $"cachedTenant-resolver::{normalized}";
+        string cacheKey = TenantHostCacheKeys.Resolver(normalized);
         bool cached = cache.TryGetValue(cacheKey, out object? cachedTenant);
         if (cached)
         {
