@@ -1,10 +1,15 @@
+using MediatR;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Vitarish.Modules.Base.Core.Endpoints;
 using Vitarish.Modules.Base.Core.Identity;
 using Vitarish.Parties.Application.Abstractions;
+using Vitarish.Parties.Application.Addresses;
 using Vitarish.Parties.Contracts.Errors;
 using Vitarish.Parties.Contracts.Routes;
 using C = Vitarish.Parties.Contracts.Tenants;
@@ -17,6 +22,9 @@ namespace Vitarish.Parties.Api;
 
 public static class PartiesApiEndpointMapping
 {
+    // One DNS label; anything longer cannot be an address, so it never reaches the query.
+    private const int SubdomainQueryMaximumLength = 63;
+
     public static IEndpointRouteBuilder MapPartiesApi(this IEndpointRouteBuilder endpoints)
     {
         RouteGroupBuilder group = endpoints.MapProtectedModuleGroup(PartiesApiRoutes.Base);
@@ -30,6 +38,18 @@ public static class PartiesApiEndpointMapping
             PartiesApiOperations.PlatformGetTenants,
             typeof(IEnumerable<C.TenantReadDto>))
             .RequireAuthorization(IdentityDefinitions.PlatformAdmin);
+        // A user creating a tenant has no role in the host's tenant yet, so onboarding
+        // requires authentication but not ambient tenant access.
+        RouteGroupBuilder onboardingGroup = endpoints
+            .MapProtectedModuleGroup($"{PartiesApiRoutes.Base}{PartiesApiRoutes.Onboarding}", requireTenantAccess: false)
+            .WithGroupName(PartiesApiRoutes.DocumentTag)
+            .WithTags(PartiesApiRoutes.DocumentTag);
+        _ = onboardingGroup.AddEndpointFilter(RequireTenantOnboardingAsync);
+        _ = onboardingGroup.MapModuleGet(
+            PartiesApiRoutes.SubdomainAvailability,
+            GetSubdomainAvailabilityAsync,
+            PartiesApiOperations.GetSubdomainAvailability,
+            typeof(C.TenantSubdomainAvailabilityResponse));
         _ = group.MapModuleGet(PartiesApiRoutes.UserTenants, GetUserTenantsAsync, "PartiesGetUserTenants");
         _ = group.MapModuleGet(PartiesApiRoutes.Owners, GetOwnersAsync, "PartiesGetOwners").RequireAuthorization(IdentityDefinitions.PlatformAdmin);
         _ = group.MapModuleGet(PartiesApiRoutes.OwnerById, GetOwnerAsync, "PartiesGetOwner").RequireAuthorization(IdentityDefinitions.PlatformAdmin);
@@ -62,6 +82,25 @@ public static class PartiesApiEndpointMapping
         _ = group.MapModulePost($"{PartiesApiRoutes.Administration}{PartiesApiRoutes.TenantIndicators}", CreateAdministrationTenantIndicatorAsync, "PartiesAdministrationCreateTenantIndicator").RequireAuthorization(IdentityDefinitions.PlatformAdmin);
         _ = group.MapModulePut($"{PartiesApiRoutes.Administration}{PartiesApiRoutes.AdministrationTenantIndicatorById}", UpdateAdministrationTenantIndicatorAsync, "PartiesAdministrationUpdateTenantIndicator").RequireAuthorization(IdentityDefinitions.PlatformAdmin);
         return endpoints;
+    }
+
+    private static ValueTask<object?> RequireTenantOnboardingAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
+    {
+        IServiceProvider services = context.HttpContext.RequestServices;
+        bool available = services.GetRequiredService<IConfiguration>().GetValue<bool>(Vitarish.Modules.Base.Core.Module.TenantOnboardingFeatureKey)
+            && services.GetRequiredService<IOptions<TenantAddressOptions>>().Value.IsConfigured;
+        return available ? next(context) : ValueTask.FromResult<object?>(NotFound("Tenant onboarding is not available."));
+    }
+
+    private static async Task<IResult> GetSubdomainAvailabilityAsync(
+        [FromQuery(Name = PartiesApiRoutes.SubdomainQueryParameter)] string? subdomain,
+        [FromServices] ISender sender,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(subdomain) || subdomain.Length > SubdomainQueryMaximumLength)
+            return BadRequest($"A subdomain of at most {SubdomainQueryMaximumLength} characters is required.");
+        TenantSubdomainAvailability availability = await sender.Send(new GetTenantSubdomainAvailabilityQuery(subdomain), cancellationToken);
+        return Results.Ok(new C.TenantSubdomainAvailabilityResponse(availability.Subdomain, availability.Hostname, (C.TenantSubdomainAvailabilityStatus)availability.Status));
     }
 
     private static async Task<IResult> GetUserTenantsAsync(IPartiesService service, CancellationToken cancellationToken) =>

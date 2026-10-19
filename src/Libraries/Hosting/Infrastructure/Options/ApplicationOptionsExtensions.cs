@@ -24,7 +24,7 @@ public static class ApplicationOptionsExtensions
         });
 
         _ = services.AddOptions<FeaturesOptions>()
-            .BindConfiguration($"{ApplicationOptions.Section}:Features");
+            .BindConfiguration(Vitarish.Modules.Base.Core.Module.FeaturesSection);
 
         _ = services.AddOptions<VerificationSmsShieldOptions>()
             .BindConfiguration(VerificationSmsShieldOptions.SectionName)

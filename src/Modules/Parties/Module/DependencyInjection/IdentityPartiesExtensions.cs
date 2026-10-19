@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Parties.Application;
 using Vitarish.Parties.Application.Abstractions;
+using Vitarish.Parties.Application.Addresses;
 using Vitarish.Parties.Infrastructure;
 using Vitarish.Parties.Infrastructure.Abstractions;
 using Vitarish.Parties.Infrastructure.Data;
@@ -25,8 +26,9 @@ public static class IdentityPartiesExtensions
         _ = builder.Services.AddVitarishPartiesInfrastructure();
         _ = builder.Services.AddTransientDbContext<PartiesDbContext>((_, options) => dbContextOptionsBuilder(options));
 
-        _ = builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
+        _ = builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(typeof(AssemblyMarker).Assembly, typeof(PlatformAdminTenant).Assembly));
         _ = builder.Services.AddOptions<PlatformAdminHostOptions>().BindConfiguration(Modules.Base.Core.Module.ApplicationSection);
+        _ = builder.Services.AddOptions<TenantAddressOptions>().BindConfiguration(Modules.Base.Core.Module.ApplicationSection);
 
         // Register Entity Services
         _ = builder.Services.AddTransient<OwnersService>();
@@ -34,6 +36,7 @@ public static class IdentityPartiesExtensions
         _ = builder.Services.AddTransient<TenantIndicatorService>();
 
         _ = builder.Services.AddTransient<ITenantResolver, TenantResolver>();
+        _ = builder.Services.AddTransient<ITenantHostnameRegistry, TenantHostnameRegistry>();
         _ = builder.Services.AddTransient<IAppTenantProvisioner, EfAppTenantProvisioner>();
         _ = builder.Services.AddTransient<IPartiesService, PartiesService>();
         _ = builder.Services.AddTransient<Vitarish.Users.Application.Abstractions.ITenantExistence, TenantExistence>();
