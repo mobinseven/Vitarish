@@ -10,6 +10,8 @@ using Vitarish.Modules.Base.Core.Endpoints;
 using Vitarish.Modules.Base.Core.Identity;
 using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Application.Addresses;
+using Vitarish.Parties.Application.Onboarding;
+using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Parties.Contracts.Errors;
 using Vitarish.Parties.Contracts.Routes;
 using C = Vitarish.Parties.Contracts.Tenants;
@@ -24,6 +26,8 @@ public static class PartiesApiEndpointMapping
 {
     // One DNS label; anything longer cannot be an address, so it never reaches the query.
     private const int SubdomainQueryMaximumLength = 63;
+    private const int IdempotencyKeyMinimumLength = 8;
+    private const int IdempotencyKeyMaximumLength = 100;
 
     public static IEndpointRouteBuilder MapPartiesApi(this IEndpointRouteBuilder endpoints)
     {
@@ -50,6 +54,14 @@ public static class PartiesApiEndpointMapping
             GetSubdomainAvailabilityAsync,
             PartiesApiOperations.GetSubdomainAvailability,
             typeof(C.TenantSubdomainAvailabilityResponse));
+        _ = onboardingGroup.MapModulePost(
+                PartiesApiRoutes.OnboardingTenants,
+                CreateOwnTenantAsync,
+                PartiesApiOperations.CreateOwnTenant,
+                typeof(C.CreateOwnTenantResponse),
+                StatusCodes.Status201Created)
+            .Produces<C.CreateOwnTenantResponse>(StatusCodes.Status200OK)
+            .RequireRateLimiting(PartiesRateLimitPolicies.SelfServiceTenantCreation);
         _ = group.MapModuleGet(PartiesApiRoutes.UserTenants, GetUserTenantsAsync, "PartiesGetUserTenants");
         _ = group.MapModuleGet(PartiesApiRoutes.Owners, GetOwnersAsync, "PartiesGetOwners").RequireAuthorization(IdentityDefinitions.PlatformAdmin);
         _ = group.MapModuleGet(PartiesApiRoutes.OwnerById, GetOwnerAsync, "PartiesGetOwner").RequireAuthorization(IdentityDefinitions.PlatformAdmin);
@@ -88,7 +100,8 @@ public static class PartiesApiEndpointMapping
     {
         IServiceProvider services = context.HttpContext.RequestServices;
         bool available = services.GetRequiredService<IConfiguration>().GetValue<bool>(Vitarish.Modules.Base.Core.Module.TenantOnboardingFeatureKey)
-            && services.GetRequiredService<IOptions<TenantAddressOptions>>().Value.IsConfigured;
+            && services.GetRequiredService<IOptions<TenantAddressOptions>>().Value.IsConfigured
+            && services.GetService<SelfServiceTenantProfile>() is not null;
         return available ? next(context) : ValueTask.FromResult<object?>(NotFound("Tenant onboarding is not available."));
     }
 
@@ -101,6 +114,41 @@ public static class PartiesApiEndpointMapping
             return BadRequest($"A subdomain of at most {SubdomainQueryMaximumLength} characters is required.");
         TenantSubdomainAvailability availability = await sender.Send(new GetTenantSubdomainAvailabilityQuery(subdomain), cancellationToken);
         return Results.Ok(new C.TenantSubdomainAvailabilityResponse(availability.Subdomain, availability.Hostname, (C.TenantSubdomainAvailabilityStatus)availability.Status));
+    }
+
+    private static async Task<IResult> CreateOwnTenantAsync(
+        C.CreateOwnTenantRequest request,
+        [FromHeader(Name = PartiesApiRoutes.IdempotencyKeyHeader)] string? idempotencyKey,
+        [FromServices] IRequestContext requestContext,
+        [FromServices] ISender sender,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(requestContext.UserId))
+            return Results.Unauthorized();
+        if (idempotencyKey is null || idempotencyKey.Length is < IdempotencyKeyMinimumLength or > IdempotencyKeyMaximumLength
+            || !idempotencyKey.All(character => char.IsAsciiLetterOrDigit(character) || character is '-' or '_'))
+            return BadRequest($"An {PartiesApiRoutes.IdempotencyKeyHeader} header of {IdempotencyKeyMinimumLength} to {IdempotencyKeyMaximumLength} letters, digits, hyphens, or underscores is required.");
+        if (request.Name is null || request.Subdomain is null || request.Subdomain.Length > SubdomainQueryMaximumLength)
+            return BadRequest("A name and a subdomain are required.");
+
+        CreateOwnTenantResult result = await sender.Send(
+            new CreateOwnTenantCommand(requestContext.UserId, request.Name, request.Subdomain, request.Description, idempotencyKey),
+            cancellationToken);
+        return result.Status switch
+        {
+            CreateOwnTenantStatus.Created => Results.Created((string?)null, new C.CreateOwnTenantResponse(result.TenantId!.Value, result.Hostname!)),
+            CreateOwnTenantStatus.Replayed => Results.Ok(new C.CreateOwnTenantResponse(result.TenantId!.Value, result.Hostname!)),
+            CreateOwnTenantStatus.Invalid => BadRequest(result.Error ?? "The request is invalid."),
+            CreateOwnTenantStatus.AddressMalformed => BadRequest("The subdomain must be 3 to 30 lowercase letters, digits, or inner single hyphens."),
+            CreateOwnTenantStatus.AddressReserved => BadRequest("This subdomain is reserved."),
+            CreateOwnTenantStatus.AddressTaken => Conflict("This subdomain is already taken."),
+            CreateOwnTenantStatus.IdempotencyConflict => Conflict($"This {PartiesApiRoutes.IdempotencyKeyHeader} was already used for a different request."),
+            CreateOwnTenantStatus.CreatorNotFound or CreateOwnTenantStatus.PhoneNotVerified =>
+                Results.Json(new PartiesError(PartiesErrorCode.Forbidden, "A verified phone number is required to create a clinic."), statusCode: StatusCodes.Status403Forbidden),
+            CreateOwnTenantStatus.LimitReached =>
+                Results.Json(new PartiesError(PartiesErrorCode.Conflict, "Too many clinics were created recently. Try again later."), statusCode: StatusCodes.Status429TooManyRequests),
+            _ => throw new InvalidOperationException($"Unhandled tenant creation status {result.Status}.")
+        };
     }
 
     private static async Task<IResult> GetUserTenantsAsync(IPartiesService service, CancellationToken cancellationToken) =>

@@ -14,6 +14,7 @@ using Vitarish.Modules.Base.Core.Endpoints;
 using Vitarish.Parties.Api;
 using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Application.Addresses;
+using Vitarish.Parties.Application.Onboarding;
 using Vitarish.Parties.Contracts.Routes;
 using BaseModule = Vitarish.Modules.Base.Core.Module;
 
@@ -101,6 +102,7 @@ public sealed class SubdomainAvailabilityEndpointTests
         builder.Services.AddSingleton(sender);
         builder.Services.AddSingleton<ILoggerFactory>(NullLoggerFactory.Instance);
         builder.Services.AddOptions<TenantAddressOptions>().Configure(options => options.TenantBaseDomain = baseDomain);
+        builder.Services.AddSingleton(new SelfServiceTenantProfile("clinic-app", ["Clinic"]));
         WebApplication app = builder.Build();
         _ = app.MapPartiesApi();
         return app;

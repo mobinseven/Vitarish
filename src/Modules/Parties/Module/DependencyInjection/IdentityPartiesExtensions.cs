@@ -1,10 +1,14 @@
+using System.Threading.RateLimiting;
 using DnsClient;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Parties.Application;
 using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Application.Addresses;
+using Vitarish.Parties.Application.Onboarding;
+using Vitarish.Parties.Api;
 using Vitarish.Parties.Infrastructure;
 using Vitarish.Parties.Infrastructure.Abstractions;
 using Vitarish.Parties.Infrastructure.Data;
@@ -29,6 +33,15 @@ public static class IdentityPartiesExtensions
         _ = builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(typeof(AssemblyMarker).Assembly, typeof(PlatformAdminTenant).Assembly));
         _ = builder.Services.AddOptions<PlatformAdminHostOptions>().BindConfiguration(Modules.Base.Core.Module.ApplicationSection);
         _ = builder.Services.AddOptions<TenantAddressOptions>().BindConfiguration(Modules.Base.Core.Module.ApplicationSection);
+        _ = builder.Services.AddOptions<OnboardingHostOptions>().BindConfiguration(Modules.Base.Core.Module.ApplicationSection);
+        _ = builder.Services.AddRateLimiter(options => options.AddPolicy(PartiesRateLimitPolicies.SelfServiceTenantCreation, context =>
+            RateLimitPartition.GetSlidingWindowLimiter(
+                context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                _ => new SlidingWindowRateLimiterOptions
+                {
+                    Window = TimeSpan.FromHours(1), PermitLimit = 10, SegmentsPerWindow = 6,
+                    QueueLimit = 0, QueueProcessingOrder = QueueProcessingOrder.OldestFirst
+                })));
 
         // Register Entity Services
         _ = builder.Services.AddTransient<OwnersService>();
@@ -38,6 +51,8 @@ public static class IdentityPartiesExtensions
         _ = builder.Services.AddTransient<ITenantResolver, TenantResolver>();
         _ = builder.Services.AddTransient<ITenantHostnameRegistry, TenantHostnameRegistry>();
         _ = builder.Services.AddTransient<ITenantOriginTrust, TenantOriginTrust>();
+        _ = builder.Services.AddTransient<ITenantCreatorDirectory, UsersTenantCreatorDirectory>();
+        _ = builder.Services.AddTransient<ISelfServiceTenantStore, SelfServiceTenantStore>();
         _ = builder.Services.AddTransient<IAppTenantProvisioner, EfAppTenantProvisioner>();
         _ = builder.Services.AddTransient<IPartiesService, PartiesService>();
         _ = builder.Services.AddTransient<Vitarish.Users.Application.Abstractions.ITenantExistence, TenantExistence>();
