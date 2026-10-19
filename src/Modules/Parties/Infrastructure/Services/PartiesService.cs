@@ -59,7 +59,7 @@ public sealed class PartiesService(
         else indicator.Status = Domain.Enums.IndicatorStatus.Active;
         await dbContext.SaveChangesAsync(ct);
         await transaction.CommitAsync(ct);
-        cache.Remove($"cachedTenant-resolver::{normalized}");
+        cache.Remove(TenantHostCacheKeys.Resolver(normalized));
         return new LandingHostBindingChange(normalized, previous, tenantId, previous != tenantId);
     }
     public async Task<IEnumerable<UserTenant>> GetUserTenantsAsync(CancellationToken ct = default)

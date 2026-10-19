@@ -19,3 +19,11 @@ or status, is taken.
 answers `Available`, `Malformed`, `Reserved`, or `Taken` for any signed-in
 user. It answers `404` while `Vitarish:Features:TenantOnboarding` is off or no
 base domain is configured.
+
+The host trusts an active tenant's own address as a browser origin, in addition to
+the exact `Cors:AllowedOrigins` list, for CORS, WebSocket upgrades, and the audited
+client host: `https://<subdomain>.<base domain>` on any port while an active
+subdomain indicator holds that hostname (`http` only under a `localhost` base
+domain). There is no wildcard origin. `TenantOriginTrust` caches each answer for a
+few minutes per instance; a save that changes an indicator drops the cached answers
+for its hostnames on that instance.

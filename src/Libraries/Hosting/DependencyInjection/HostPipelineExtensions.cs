@@ -24,19 +24,30 @@ public static class HostPipelineExtensions
                 "CORS policy 'WebHostCors' cannot allow the wildcard '*' origin when AllowCredentials() is enabled.");
         }
 
-        builder.Services.AddCors(options =>
-        {
-            options.AddPolicy("WebHostCors", policy =>
+        ClientOriginTrust originTrust = new(origins);
+        builder.Services.AddSingleton(originTrust);
+        builder.Services.AddCors();
+        // An exact configured origin, or the tenant address this request's origin trust admitted.
+        builder.Services.AddOptions<Microsoft.AspNetCore.Cors.Infrastructure.CorsOptions>()
+            .Configure<IHttpContextAccessor>((options, httpContextAccessor) => options.AddPolicy("WebHostCors", policy =>
             {
                 policy
-                    .WithOrigins(origins)
+                    .SetIsOriginAllowed(origin => originTrust.IsExact(origin) || ClientOriginTrust.IsTrustedForRequest(httpContextAccessor.HttpContext, origin))
                     .AllowAnyHeader()
                     .WithMethods("GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS")
                     .AllowCredentials();
-            });
+            }));
+        builder.Services.AddSingleton<IClientInterfaceHostAccessor, ClientInterfaceHostAccessor>();
+    }
+
+    public static IApplicationBuilder UseClientOriginTrust(this IApplicationBuilder app)
+    {
+        ClientOriginTrust originTrust = app.ApplicationServices.GetRequiredService<ClientOriginTrust>();
+        return app.Use(async (context, next) =>
+        {
+            await originTrust.EvaluateAsync(context);
+            await next(context);
         });
-        builder.Services.AddSingleton<IClientInterfaceHostAccessor>(services =>
-            new ClientInterfaceHostAccessor(origins, services.GetRequiredService<IHttpContextAccessor>()));
     }
 
     public static void AddHostPipeline(this WebApplicationBuilder builder, SecurityConfigurationOptions security)
@@ -130,15 +141,28 @@ public static class HostPipelineExtensions
             await next(context);
         });
 
-    public static void UseHostWebSockets(this WebApplication app, SecurityConfigurationOptions security)
+    public static void UseHostWebSockets(this WebApplication app)
     {
-        WebSocketOptions options = new() { KeepAliveInterval = TimeSpan.FromSeconds(30) };
-
-        foreach (string origin in security.AllowedCorsOrigins)
-        {
-            options.AllowedOrigins.Add(origin);
-        }
-
-        _ = app.UseWebSockets(options);
+        _ = app.UseWebSockets(new WebSocketOptions { KeepAliveInterval = TimeSpan.FromSeconds(30) });
+        _ = app.UseTrustedWebSocketOrigins();
     }
+
+    /// <summary>
+    /// Replaces <see cref="WebSocketOptions.AllowedOrigins"/>, which only takes a fixed list: a
+    /// browser upgrade must come from an origin this request's origin trust admitted. Runs after
+    /// <c>UseWebSockets</c> and <see cref="UseClientOriginTrust"/>.
+    /// </summary>
+    public static IApplicationBuilder UseTrustedWebSocketOrigins(this IApplicationBuilder app) =>
+        app.Use(async (context, next) =>
+        {
+            if (context.WebSockets.IsWebSocketRequest
+                && context.Request.Headers.ContainsKey(Microsoft.Net.Http.Headers.HeaderNames.Origin)
+                && context.Features.Get<TrustedClientOrigin>() is null)
+            {
+                context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                return;
+            }
+
+            await next(context);
+        });
 }

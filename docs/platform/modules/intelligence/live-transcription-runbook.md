@@ -14,7 +14,7 @@ This runbook covers the clinic procedure-note dictation path backed by Google Cl
 2. Set `Vitarish__Intelligence__Google__Speech__ProjectId` and `Vitarish__Intelligence__Google__Speech__Location`. The supported deployment location is `us-central1` for the configured `fa-IR` and `en-US` languages and `chirp_2` model.
 3. Provide Application Default Credentials to the host. Prefer the workload identity supplied by the deployment platform. If a credential file is unavoidable, set `GOOGLE_APPLICATION_CREDENTIALS` or `Vitarish__Intelligence__Google__Speech__CredentialsPath` to a mounted secret path; never commit the credential file.
 4. Set `Vitarish__Intelligence__LiveTranscription__Enabled=true` and retain bounded limits appropriate for the deployment. Defaults are documented in `src/Hosts/Main/appsettings.Template.json` and `.env`.
-5. Add every exact web origin to `Cors__AllowedOrigins`. WebSocket upgrades reject a missing, wildcard, malformed, or unlisted `Origin` before accepting the connection.
+5. Add every exact web origin to `Cors__AllowedOrigins`. A clinic's own address (`https://<subdomain>.<tenant base domain>`) is trusted without listing it while an active clinic holds it. WebSocket upgrades reject a missing, wildcard, malformed, or untrusted `Origin` before accepting the connection.
 6. Serve both the web application and API over HTTPS outside localhost. Dictation requires a browser secure context, microphone permission, `MediaRecorder`, WebSocket support, and a supported WebM MIME type.
 
 The protected capability endpoint is `GET /api/modules/intelligence/transcription/live/capabilities`. It reports `available: false` when the feature is disabled or Google configuration is unusable. The client must not attempt a WebSocket connection in that state.
@@ -22,7 +22,7 @@ The protected capability endpoint is `GET /api/modules/intelligence/transcriptio
 ## Privacy and security invariants
 
 - The capability endpoint and WebSocket require the host's authenticated API policy. The clinic UI exposes dictation only to users who can write the procedure event.
-- The WebSocket requires the `vitarish.live-transcription.v1` subprotocol and an exact configured origin.
+- The WebSocket requires the `vitarish.live-transcription.v1` subprotocol and an exact configured origin or an active clinic's own address.
 - Do not add audio bytes, transcript text, credential paths, provider payloads, or note contents to logs, metrics, traces, or exception messages.
 - Only final provider segments reach the note draft. Partial hypotheses are ignored.
 - Closing the panel, changing procedure scope, navigating away, cancellation, failure, and terminal completion must stop microphone tracks, the recorder, timers, provider work, and the socket.
@@ -40,7 +40,7 @@ Each accepted session emits one `started` message, zero or more ordered final `s
 | --- | --- | --- |
 | Microphone control is unavailable | Call the capability endpoint while authenticated; check `Enabled`, non-placeholder project/location, and whether a configured credential path exists. | Correct configuration or credentials, then restart the host. Do not bypass capability gating. |
 | Browser reports an insecure or unsupported environment | Check HTTPS, microphone permission, `navigator.mediaDevices`, `MediaRecorder`, WebM/Opus support, and WebSocket support in current Chrome or Edge. | Restore HTTPS/permission/browser support; use manual note entry meanwhile. |
-| Upgrade returns 401 or 403 | Confirm the browser is authenticated to the API and its exact scheme/host/port appears in `Cors__AllowedOrigins`. | Fix authentication or the exact origin allowlist. Never use a wildcard origin. |
+| Upgrade returns 401 or 403 | Confirm the browser is authenticated to the API and its exact scheme/host/port appears in `Cors__AllowedOrigins`, or that it is an active clinic's own `https` address under `Vitarish__TenantBaseDomain`. | Fix authentication or the exact origin allowlist. Never use a wildcard origin. |
 | `ProviderUnavailable` | Confirm the API is enabled, project/location are correct, ADC is visible to the host, the credential file exists when configured, IAM permits Speech V2, and Google is reachable. | Repair the provider boundary. Keep manual note entry available. |
 | `ProviderTimeout`, `IdleTimeout`, or a duration/payload failure | Compare the session with the configured timeout and byte limits; verify the browser is sending non-empty audio. | Retry as a new manual session after correcting connectivity or use shorter dictation. Do not add transport retries. |
 | `InvalidAudio` or `UnsupportedMediaType` | Confirm the negotiated MIME type is one returned by capabilities and the browser still supports it. | Use a supported current Chrome/Edge build or manual note entry. |
