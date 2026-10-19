@@ -43,7 +43,7 @@ internal abstract class AssistantProfile(
             profile.SetIdentity(AgentKey, DisplayName);
             profile.SetModel(options.Model);
             profile.SetResult(new AgentResultDefinition("clinic_assistant_result", AssistantRuntime.ResultSchema));
-            profile.SetLimits(new AgentExecutionLimits());
+            profile.SetLimits(new AgentExecutionLimits(MaxTokens: 128_000));
             foreach (string capabilityKey in capabilityKeys) profile.AddCapability(capabilityKey);
         });
     }
