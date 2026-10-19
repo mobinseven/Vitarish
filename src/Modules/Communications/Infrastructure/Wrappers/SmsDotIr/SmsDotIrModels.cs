@@ -6,12 +6,14 @@ public sealed record SmsDotIrSendResult(
     [property: JsonPropertyName("message")] string? Message)
 {
     [JsonIgnore]
-    public long PrimaryMessageId => Data?.MessageIds?.FirstOrDefault(id => id > 0) ?? 0;
+    public long PrimaryMessageId => Data?.MessageIds?.FirstOrDefault(id => id > 0) ?? Data?.MessageId ?? 0;
 }
 
+// Bulk sends return packId and messageIds; verify (templated) sends return a single messageId.
 public sealed record SmsDotIrSendResultData(
     [property: JsonPropertyName("packId")] Guid PackId,
     [property: JsonPropertyName("messageIds")] IReadOnlyList<long>? MessageIds,
+    [property: JsonPropertyName("messageId")] long? MessageId,
     [property: JsonPropertyName("cost")] decimal Cost);
 
 public sealed record SmsDotIrDeliveryState(
