@@ -123,6 +123,8 @@ public static class SecurityAuditEventCatalog
     public const string UserAccountEnableOperation = "users.account.enable";
     public const string UserSecurityAttributeChangeEvent = "users.security-attributes.changed";
     public const string UserSecurityAttributeChangeOperation = "users.security-attributes.change";
+    public const string SelfServiceTenantCreationEvent = "parties.tenant.self-service-created";
+    public const string SelfServiceTenantCreationOperation = "parties.tenant.self-service-create";
 
     public static IReadOnlyList<SecurityAuditCatalogEntry> Entries { get; } =
     [
@@ -168,7 +170,8 @@ public static class SecurityAuditEventCatalog
         new(SecurityFailureCategory, UserEditFailureEvent, UserEditFailureOperation, Controls: [SecurityAuditControl.SecurityFunctionFailure, SecurityAuditControl.SecurityAdministration]),
         new(SecurityAttributeCategory, UserSecurityAttributeChangeEvent, UserSecurityAttributeChangeOperation, Controls: [SecurityAuditControl.SecurityAttributeAssignment, SecurityAuditControl.SecurityAttributeChange]),
         new(ManagementCategory, UserAccountDisabledEvent, UserAccountDisableOperation, Controls: [SecurityAuditControl.SecurityAdministration, SecurityAuditControl.SecurityAttributeChange]),
-        new(ManagementCategory, UserAccountEnabledEvent, UserAccountEnableOperation, Controls: [SecurityAuditControl.SecurityAdministration, SecurityAuditControl.SecurityAttributeChange])
+        new(ManagementCategory, UserAccountEnabledEvent, UserAccountEnableOperation, Controls: [SecurityAuditControl.SecurityAdministration, SecurityAuditControl.SecurityAttributeChange]),
+        new(ManagementCategory, SelfServiceTenantCreationEvent, SelfServiceTenantCreationOperation, Controls: [SecurityAuditControl.SecurityAdministration, SecurityAuditControl.GroupRoleMembershipChange])
     ];
 
     public static SecurityAuditCatalogEntry? Find(string eventName, string operation) =>

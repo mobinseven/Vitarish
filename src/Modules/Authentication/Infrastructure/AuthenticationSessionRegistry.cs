@@ -520,12 +520,15 @@ public sealed class AuthenticationSessionRegistry(
             await CompleteAuditAsync(AuthenticationSecurityAuditEvents.SessionTerminated, SecurityAuditOutcome.Succeeded, userId, AuthenticationSecurityAuditEvents.SessionUserPolicyExpired, AuthenticationSecurityAuditEvents.SessionTerminatedOperation, session.Id.ToString("N"), cancellationToken);
     }
 
-    public async Task<int> RevokeActiveSessionsAsync(string userId, CancellationToken cancellationToken)
+    public Task<int> RevokeActiveSessionsAsync(string userId, CancellationToken cancellationToken) =>
+        RevokeActiveSessionsAsync(userId, AuthenticationSessionTerminationReason.AdministrativeRevocation, cancellationToken);
+
+    public async Task<int> RevokeActiveSessionsAsync(string userId, AuthenticationSessionTerminationReason terminationReason, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(userId))
             return 0;
 
-        string reason = AuthenticationSecurityAuditEvents.SessionTerminationReason(AuthenticationSessionTerminationReason.AdministrativeRevocation);
+        string reason = AuthenticationSecurityAuditEvents.SessionTerminationReason(terminationReason);
         List<AuthenticationSession> allSessions = await dbContext.AuthenticationSessions
             .Where(session => session.UserId == userId)
             .OrderBy(session => session.CreatedAt)
@@ -541,7 +544,7 @@ public sealed class AuthenticationSessionRegistry(
         foreach (AuthenticationSession session in sessions)
             await BeginTerminationAuditAsync(userId, reason, session.Id.ToString("N"), cancellationToken, resumePending: true);
         foreach (AuthenticationSession session in sessions)
-            Terminate(session, now, AuthenticationSessionTerminationReason.AdministrativeRevocation);
+            Terminate(session, now, terminationReason);
         await SaveAsync(cancellationToken);
         // The sessions are ended; cancellation must not leave their terminal audits open.
         foreach (AuthenticationSession session in sessions)

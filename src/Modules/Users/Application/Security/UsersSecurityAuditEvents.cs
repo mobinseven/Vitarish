@@ -13,6 +13,7 @@ public static class UsersSecurityAuditEvents
     public const string SourceBoundary = "users.application";
     public const string UserResourcePrefix = "user/";
     public const string IdempotencySuffix = ":tenant-role-replacement";
+    public const string NewTenantOwnerIdempotencySuffix = ":new-tenant-owner";
     public const string GlobalScope = "global";
     public const string GlobalRoleAssignmentIdempotencySuffix = ":global-role-assignment";
     public const string GlobalRoleRevocationIdempotencySuffix = ":global-role-revocation";

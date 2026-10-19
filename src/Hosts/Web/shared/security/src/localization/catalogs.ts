@@ -309,6 +309,7 @@ const platformAuditIdentifierLabels = {
       "users.account.disabled": "Account disabled",
       "users.account.enabled": "Account enabled",
       "users.security-attributes.changed": "User security attributes changed",
+      "parties.tenant.self-service-created": "Clinic created by its owner",
     },
   },
   fa: {
@@ -367,6 +368,7 @@ const platformAuditIdentifierLabels = {
       "users.account.disabled": "غیرفعال کردن حساب",
       "users.account.enabled": "فعال کردن حساب",
       "users.security-attributes.changed": "تغییر ویژگی‌های امنیتی کاربر",
+      "parties.tenant.self-service-created": "ساخت مطب به دست مالک آن",
     },
   },
 } as const;
