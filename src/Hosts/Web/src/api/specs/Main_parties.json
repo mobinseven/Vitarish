@@ -1946,6 +1946,71 @@
           }
         }
       }
+    },
+    "/api/modules/parties/onboarding/subdomain-availability": {
+      "get": {
+        "tags": [
+          "Parties"
+        ],
+        "operationId": "PartiesGetSubdomainAvailability",
+        "parameters": [
+          {
+            "name": "subdomain",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TenantSubdomainAvailabilityResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2378,6 +2443,36 @@
             "type": "object"
           }
         }
+      },
+      "TenantSubdomainAvailabilityResponse": {
+        "required": [
+          "subdomain",
+          "hostname",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "subdomain": {
+            "type": "string"
+          },
+          "hostname": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "$ref": "#/components/schemas/TenantSubdomainAvailabilityStatus"
+          }
+        }
+      },
+      "TenantSubdomainAvailabilityStatus": {
+        "enum": [
+          "Available",
+          "Malformed",
+          "Reserved",
+          "Taken"
+        ]
       },
       "TenantWriteDto": {
         "type": "object",

@@ -23,4 +23,7 @@ public static class PartiesApiRoutes
     public const string AdministrationTenantIndicatorById = "/tenant-indicators/{tenantIndicatorId:guid}";
     public const string Platform = "/platform";
     public const string PlatformTenants = "/tenants";
+    public const string Onboarding = "/onboarding";
+    public const string SubdomainAvailability = "/subdomain-availability";
+    public const string SubdomainQueryParameter = "subdomain";
 }
