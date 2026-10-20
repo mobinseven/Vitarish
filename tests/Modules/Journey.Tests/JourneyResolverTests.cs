@@ -14,6 +14,7 @@ public class JourneyResolverTests
     private readonly Mock<IJourneyReturnUrlPolicy> _returnUrlPolicyMock = new();
     private readonly Mock<IJourneyDestinationResolver> _destinationResolverMock = new();
     private readonly Mock<IProfileCompletionPolicy> _profileCompletionPolicyMock = new();
+    private readonly Mock<IJourneyHostReader> _hostReaderMock = new();
     private readonly JourneyResolver _sut;
 
     public JourneyResolverTests()
@@ -24,7 +25,8 @@ public class JourneyResolverTests
             _workspaceReaderMock.Object,
             _returnUrlPolicyMock.Object,
             _destinationResolverMock.Object,
-            _profileCompletionPolicyMock.Object);
+            _profileCompletionPolicyMock.Object,
+            _hostReaderMock.Object);
     }
 
     [Fact]
@@ -89,6 +91,58 @@ public class JourneyResolverTests
         result.HasBlockingGate.Should().BeTrue();
         result.BlockingGate!.Kind.Should().Be(JourneyGateKind.RequiredConsent);
         result.DestinationUrl.Should().Be("/account/consents");
+    }
+
+    [Fact]
+    public async Task ResolveAsync_OnTheSignUpHost_SendsACompleteAccountToTenantCreationBeforeAnyReturnUrl()
+    {
+        var request = new JourneyRequest("user1", "/patients", "/", null, null, true);
+        SetUpCompleteAccount();
+        _hostReaderMock.Setup(x => x.IsSignUpHostAsync(It.IsAny<CancellationToken>())).ReturnsAsync(true);
+        _returnUrlPolicyMock.Setup(x => x.Normalize("/patients")).Returns("/patients");
+
+        var result = await _sut.ResolveAsync(request);
+
+        result.HasBlockingGate.Should().BeTrue();
+        result.BlockingGate!.Kind.Should().Be(JourneyGateKind.TenantCreation);
+        result.DestinationUrl.Should().Be("/setup");
+    }
+
+    [Fact]
+    public async Task ResolveAsync_OnTheSignUpHost_ProfileCompletionStillComesFirst()
+    {
+        var request = new JourneyRequest("user1", null, "/", null, null, true);
+        _profileReaderMock.Setup(x => x.GetSnapshotAsync("user1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new JourneyProfileSnapshot("user1", null, null, null, null, null, true, false));
+        _profileCompletionPolicyMock.Setup(x => x.EvaluateAsync("user1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ProfileCompletionResult.Incomplete(new ProfileCompletionRequirement("FirstName", true)));
+        _hostReaderMock.Setup(x => x.IsSignUpHostAsync(It.IsAny<CancellationToken>())).ReturnsAsync(true);
+
+        var result = await _sut.ResolveAsync(request);
+
+        result.BlockingGate!.Kind.Should().Be(JourneyGateKind.ProfileCompletion);
+    }
+
+    [Fact]
+    public async Task ResolveAsync_OffTheSignUpHost_NeverAsksForTenantCreation()
+    {
+        var request = new JourneyRequest("user1", null, "/", null, null, true);
+        SetUpCompleteAccount();
+        _hostReaderMock.Setup(x => x.IsSignUpHostAsync(It.IsAny<CancellationToken>())).ReturnsAsync(false);
+
+        var result = await _sut.ResolveAsync(request);
+
+        result.BlockingGate?.Kind.Should().NotBe(JourneyGateKind.TenantCreation);
+    }
+
+    private void SetUpCompleteAccount()
+    {
+        _profileReaderMock.Setup(x => x.GetSnapshotAsync("user1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new JourneyProfileSnapshot("user1", "John", "Doe", "John Doe", null, null, true, false));
+        _profileCompletionPolicyMock.Setup(x => x.EvaluateAsync("user1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ProfileCompletionResult.Complete);
+        _consentReaderMock.Setup(x => x.GetSnapshotAsync("user1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new JourneyConsentSnapshot(true, true));
     }
 
     [Fact]

@@ -3,6 +3,7 @@ using Vitarish.Journey.Application;
 using Vitarish.Journey.Application.Abstractions;
 using Vitarish.Journey.Infrastructure.Consent;
 using Vitarish.Journey.Infrastructure.Destination;
+using Vitarish.Journey.Infrastructure.Host;
 using Vitarish.Journey.Infrastructure.Profile;
 using Vitarish.Journey.Infrastructure.ReturnUrl;
 using Vitarish.Journey.Infrastructure.Workspace;
@@ -19,6 +20,7 @@ public static class JourneyServiceCollectionExtensions
         services.AddScoped<IJourneyWorkspaceReader, JourneyWorkspaceReader>();
         services.AddScoped<IJourneyReturnUrlPolicy, JourneyReturnUrlPolicy>();
         services.AddScoped<IJourneyDestinationResolver, JourneyDestinationResolver>();
+        services.AddScoped<IJourneyHostReader, PartiesJourneyHostReader>();
 
         return services;
     }

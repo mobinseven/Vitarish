@@ -27,5 +27,8 @@ public enum JourneyGateKind
     PasskeyEnrollmentPrompt = 7,
 
     /// <summary>MFA enrollment prompt (non-blocking).</summary>
-    MfaEnrollmentPrompt = 8
+    MfaEnrollmentPrompt = 8,
+
+    /// <summary>The user is on the sign-up host, whose only purpose is creating their own tenant.</summary>
+    TenantCreation = 9
 }

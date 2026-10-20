@@ -21,7 +21,8 @@ public sealed class AspNetIdentitySignInService(
     UnknownPasswordVerifier unknownPasswordVerifier,
     IAuthenticationAttemptKeyFactory attemptKeyFactory,
     IAuthenticationSessionRegistry sessionRegistry,
-    IHttpContextAccessor httpContextAccessor) : IAuthenticationSignInService
+    IHttpContextAccessor httpContextAccessor,
+    IRoleFreeSessionPolicy? roleFreeSessions = null) : IAuthenticationSignInService
 {
     public Task<PasswordSignInResult> PasswordSignInAsync(string login, string password, CancellationToken cancellationToken) =>
         SignInCoreAsync(login, password, cancellationToken, signIn: true);
@@ -38,7 +39,7 @@ public sealed class AspNetIdentitySignInService(
             return AuthenticationSessionSignInResult.Failed(new(AuthenticationFailureReason.InvalidCredentials, "Cannot sign in an unknown user."));
         if (!user.IsEnabled)
             return AuthenticationSessionSignInResult.Failed(new(AuthenticationFailureReason.AccountDisabled, "The account is disabled."));
-        if (!await HasAccessLevelAsync(user))
+        if (!await MayStartSessionAsync(user, cancellationToken))
             return AuthenticationSessionSignInResult.Failed(new(AuthenticationFailureReason.NoAccess, "The account has no access level."));
 
         IAuthenticationSessionPreparation? preparation = null;
@@ -92,7 +93,7 @@ public sealed class AspNetIdentitySignInService(
         // The account may also have lost its last role while the session was
         // being committed. Role removal rejects active sessions; this re-check
         // closes the other ordering, so neither can be missed.
-        if (!await HasAccessLevelAsync(user))
+        if (!await MayStartSessionAsync(user, cancellationToken))
         {
             await sessionRegistry.RevokeAsync(established.SessionId!, AuthenticationSessionTerminationReason.SecurityAttributeChanged, CancellationToken.None);
             await httpContextAccessor.HttpContext!.SignOutAsync(IdentityConstants.ApplicationScheme);
@@ -102,10 +103,12 @@ public sealed class AspNetIdentitySignInService(
         return AuthenticationSessionSignInResult.Success();
     }
 
-    private async Task<bool> HasAccessLevelAsync(User user)
+    // A session needs a role, except on a tenant that admits role-free sessions (the sign-up host).
+    private async Task<bool> MayStartSessionAsync(User user, CancellationToken cancellationToken)
     {
         IList<string> roles = await userManager.GetRolesAsync(user);
-        return UserAccessLevelPolicy.HasAccessLevel(roles);
+        return UserAccessLevelPolicy.HasAccessLevel(roles)
+            || (roleFreeSessions is not null && await roleFreeSessions.AllowsRoleFreeSessionAsync(cancellationToken));
     }
 
     private Task<bool> IsAccountEnabledAsync(string userId, CancellationToken cancellationToken) =>
@@ -163,7 +166,7 @@ public sealed class AspNetIdentitySignInService(
                 return new PasswordSignInResult(PasswordSignInStatus.AccountDisabled, user.Id, RequiresProfileCompletion(user));
             // Like a disabled account, refuse right after the password verifies, before
             // any second-factor code is sent.
-            if (!await HasAccessLevelAsync(user))
+            if (!await MayStartSessionAsync(user, cancellationToken))
                 return new PasswordSignInResult(PasswordSignInStatus.NoAccess, user.Id, RequiresProfileCompletion(user));
             await ResetAsync(identifierKeys, cancellationToken);
             await ResetAsync(subjectKeys, cancellationToken);
