@@ -930,10 +930,13 @@ describe("clinic editors", () => {
       />,
       { wrapper: Wrapper },
     );
+    fireEvent.change(screen.getByRole("combobox", { name: "Day of Week" }), {
+      target: { value: "6" },
+    });
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
     expect(onSubmit).toHaveBeenCalledWith(
       expect.objectContaining({
-        dayOfWeek: 1,
+        dayOfWeek: 6,
         startTime: "09:00",
         endTime: "10:00",
         totalSeats: 10,

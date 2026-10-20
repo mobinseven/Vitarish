@@ -54,7 +54,7 @@ public class MessagesService(IOptionsMonitor<ProvidersOptions> providersOptions,
 
             if (template?.SmsTemplateId is not null)
             {
-                Dictionary<string, string> parameters = new() { ["CODE"] = message.Body ?? string.Empty };
+                Dictionary<string, string> parameters = new() { [VerificationCodeSmsTemplate.CodeParameter] = message.Body ?? string.Empty };
                 await smsProvider.SendTemplatedSms(message.Recipient!, template.SmsTemplateId, parameters, cancellationToken);
                 return;
             }

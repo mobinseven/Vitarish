@@ -1,3 +1,4 @@
+using MediatR;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -13,6 +14,7 @@ using Vitarish.Files.Application.Abstractions;
 using Vitarish.E2e.Infrastructure.Audit;
 using Vitarish.E2e.Infrastructure.Storage;
 using Vitarish.E2e.Infrastructure.Events;
+using Vitarish.Clinic.Application.Commands.Patients;
 using Vitarish.Clinic.Application.Events;
 using Vitarish.Clinic.Application.Assistant.Actions;
 using Vitarish.Clinic.Application.Assistant.Surgeries;
@@ -23,6 +25,11 @@ using Vitarish.Sea.Application.Abstractions;
 using Vitarish.Audit.Application;
 using Vitarish.Audit.Server;
 using Vitarish.Main.Infrastructure.BackgroundJobs;
+using Vitarish.Communications.Application.Abstractions;
+using Vitarish.E2e.Infrastructure.Communications;
+using Vitarish.Parties.Application.Addresses;
+using Vitarish.Parties.Application.Onboarding;
+using BaseModule = Vitarish.Modules.Base.Core.Module;
 
 const string apiOriginKey = "VITARISH_E2E_API_ORIGIN";
 const string webOriginKey = "VITARISH_E2E_WEB_ORIGIN";
@@ -30,6 +37,10 @@ const string platformWebOriginKey = "VITARISH_E2E_PLATFORM_ADMIN_ORIGIN";
 const string platformCorsOriginKey = "Cors:AllowedOrigins:2";
 const string platformWebAuthnOriginKey = "WebAuthn:Origins:1";
 const string passwordKey = "VITARISH_E2E_PASSWORD";
+const string smsCapturePathKey = "VITARISH_E2E_SMS_CAPTURE_PATH";
+// Clinics live at <subdomain>.localhost on the web port; people sign up and create them on start.localhost.
+const string tenantBaseDomain = "localhost";
+const string onboardingSubdomain = "start";
 const string surgeryMaterializedViewRefresherTypeName = "SurgeryMaterializedViewRefresher";
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -40,6 +51,7 @@ Uri apiOrigin = RequireLoopbackOrigin(builder.Configuration[apiOriginKey], apiOr
 Uri webOrigin = RequireLoopbackOrigin(builder.Configuration[webOriginKey], webOriginKey, requireHttps: false);
 Uri platformWebOrigin = RequireLoopbackOrigin(builder.Configuration[platformWebOriginKey] ?? webOrigin.ToString(), platformWebOriginKey, requireHttps: false);
 string password = builder.Configuration[passwordKey] ?? throw new InvalidOperationException("E2E password is required.");
+string smsCapturePath = builder.Configuration[smsCapturePathKey] ?? throw new InvalidOperationException("The E2E SMS capture path is required, so no message can reach a real SMS provider.");
 if (password.Length < 12)
     throw new InvalidOperationException("E2E password must be at least 12 characters.");
 
@@ -63,6 +75,10 @@ builder.Configuration["Vitarish:Files:BucketName"] = "e2e";
 builder.Configuration["Vitarish:Search:Url"] = "http://localhost:3997";
 builder.Configuration["Vitarish:Communications:Notifications:ContactEmailRecipient"] = "e2e-contact@example.test";
 builder.Configuration["Vitarish:Features:SocialIntegrations"] = "true";
+builder.Configuration[BaseModule.TenantOnboardingFeatureKey] = "true";
+builder.Configuration[$"{BaseModule.ApplicationSection}:{nameof(TenantAddressOptions.TenantBaseDomain)}"] = tenantBaseDomain;
+builder.Configuration[$"{BaseModule.ApplicationSection}:{nameof(OnboardingHostOptions.OnboardingUrl)}"] =
+    new UriBuilder(webOrigin) { Host = $"{onboardingSubdomain}.{tenantBaseDomain}" }.Uri.ToString().TrimEnd('/');
 builder.Configuration["Vitarish:Security:MandatoryAuditEnabled"] = "true";
 builder.Configuration["Vitarish:Security:Audit:CapacityWarningBytes"] = "1073741824";
 builder.Configuration["Vitarish:Security:AuthenticationAttempts:Realm"] = apiOrigin.Host;
@@ -96,6 +112,7 @@ _ = builder.Services.AddSingleton(
     typeof(IOperationReceiptStore<>),
     typeof(E2eInMemoryOperationReceiptStore<>));
 builder.Services.Replace(ServiceDescriptor.Singleton<IObjectStorageService, E2eObjectStorageService>());
+builder.Services.Replace(ServiceDescriptor.Singleton<ISmsProvider>(_ => new E2eSmsCapture(smsCapturePath)));
 _ = builder.Services.AddSingleton<E2eAuditCapacitySimulation>();
 builder.Services.Replace(ServiceDescriptor.Transient<IAuditStorageSizeReader, E2eAuditStorageSizeReader>());
 _ = builder.Services.AddAuditCapacityAlertMonitoring(builder.Environment, openApiGeneration: false);
@@ -110,6 +127,8 @@ ServiceDescriptor? productionSurgeryViewRefresher = builder.Services.SingleOrDef
 if (productionSurgeryViewRefresher is not null)
     _ = builder.Services.Remove(productionSurgeryViewRefresher);
 _ = builder.Services.AddTransient<IProjectObjectMaterializedViewRefresher, E2eSurgeryViewRefresher>();
+
+builder.Services.Replace(ServiceDescriptor.Transient<IRequestHandler<PatientViewRefreshCommand>, E2ePatientViewRefresher>());
 
 _ = builder.Services.AddScoped<ClinicDbContext>(services =>
     new E2eClinicDbContext(

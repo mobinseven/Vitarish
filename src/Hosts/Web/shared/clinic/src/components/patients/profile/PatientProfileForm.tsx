@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useId, useState } from "react";
 import {
   Button,
   Calendar,
@@ -409,11 +409,14 @@ function FormSelectField({
   options: { value: string; label: string }[];
 }) {
   const { t } = useLocalizedText();
+  // NativeSelect does not link its Label to the select, so the id names it.
+  const fieldId = useId();
 
   return (
     <NativeSelect fullWidth variant="secondary">
-      <Label>{label}</Label>
+      <Label htmlFor={fieldId}>{label}</Label>
       <NativeSelect.Trigger
+        id={fieldId}
         value={value}
         onChange={(e) => onChange(e.target.value)}
       >

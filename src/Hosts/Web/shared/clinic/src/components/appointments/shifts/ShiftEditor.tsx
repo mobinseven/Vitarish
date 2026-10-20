@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { Button, Input, Label, TextField } from "@heroui/react";
 import { NativeSelect } from "@heroui-pro/react";
 import { NumberStepper } from "@heroui-pro/react/number-stepper";
@@ -40,6 +40,8 @@ export function ShiftEditor({
   const [start, setStart] = useState(initialValue.startTime);
   const [end, setEnd] = useState(initialValue.endTime);
   const [seats, setSeats] = useState(initialValue.totalSeats);
+  // NativeSelect does not link its Label to the select, so the id names it.
+  const dayFieldId = useId();
   return (
     <form
       className="flex flex-col gap-4"
@@ -55,8 +57,9 @@ export function ShiftEditor({
       }}
     >
       <NativeSelect fullWidth>
-        <Label>{t("clinic.fields.dayOfWeek")}</Label>
+        <Label htmlFor={dayFieldId}>{t("clinic.fields.dayOfWeek")}</Label>
         <NativeSelect.Trigger
+          id={dayFieldId}
           name="dayOfWeek"
           value={day}
           onChange={(event) => setDay(event.target.value)}

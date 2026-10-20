@@ -101,6 +101,53 @@ public sealed class UserUpdateValidationTests
     }
 
     [Fact]
+    public async Task Name_update_succeeds_for_a_detached_copy_of_the_user()
+    {
+        string databaseName = Guid.NewGuid().ToString("N");
+        await using UsersDbContext dbContext = await CreateDbContextWithUserAsync(databaseName: databaseName);
+        // As in the host, the Users context is transient, so Identity's store has its own instance.
+        await using UsersDbContext storeContext = CreateDbContext(databaseName);
+        UserManager<User> userManager = CreateUserManager(storeContext);
+        // The user cache hands out copies no context tracks.
+        User request = await dbContext.Users.AsNoTracking().SingleAsync(user => user.Id == UserId);
+        request.FirstName = "Renamed";
+
+        IdentityResult result = await CreateUpdateHandler(dbContext, userManager)
+            .Handle(new UpdateUserCommand(request), CancellationToken.None);
+
+        result.Succeeded.Should().BeTrue(string.Join("; ", result.Errors.Select(error => $"{error.Code}:{error.Description}")));
+        User persisted = await dbContext.Users.AsNoTracking().SingleAsync(user => user.Id == UserId);
+        persisted.FirstName.Should().Be("Renamed");
+        persisted.LastName.Should().Be("Last");
+    }
+
+    [Fact]
+    public async Task Name_update_from_a_stale_detached_copy_is_refused_without_overwriting()
+    {
+        string databaseName = Guid.NewGuid().ToString("N");
+        await using UsersDbContext dbContext = await CreateDbContextWithUserAsync(databaseName: databaseName);
+        User stale = await dbContext.Users.AsNoTracking().SingleAsync(user => user.Id == UserId);
+        await using (UsersDbContext otherWriter = CreateDbContext(databaseName))
+        {
+            UserManager<User> otherManager = CreateUserManager(otherWriter);
+            User current = (await otherManager.FindByIdAsync(UserId))!;
+            current.LastName = "Changed";
+            (await otherManager.UpdateAsync(current)).Succeeded.Should().BeTrue();
+        }
+        await using UsersDbContext storeContext = CreateDbContext(databaseName);
+        stale.FirstName = "Renamed";
+
+        IdentityResult result = await CreateUpdateHandler(dbContext, CreateUserManager(storeContext))
+            .Handle(new UpdateUserCommand(stale), CancellationToken.None);
+
+        result.Succeeded.Should().BeFalse();
+        result.Errors.Should().ContainSingle(error => error.Code == nameof(UsersCommandFailureCode.ConcurrencyFailure));
+        User persisted = await dbContext.Users.AsNoTracking().SingleAsync(user => user.Id == UserId);
+        persisted.FirstName.Should().Be("First");
+        persisted.LastName.Should().Be("Changed");
+    }
+
+    [Fact]
     public async Task Name_update_to_an_over_length_value_is_rejected()
     {
         await using UsersDbContext dbContext = await CreateDbContextWithUserAsync();
@@ -211,12 +258,14 @@ public sealed class UserUpdateValidationTests
         new ServiceCollection().BuildServiceProvider(),
         NullLogger<UserManager<User>>.Instance);
 
-    private static async Task<UsersDbContext> CreateDbContextWithUserAsync(Action<User>? configure = null)
+    private static UsersDbContext CreateDbContext(string databaseName) => new(
+        new DbContextOptionsBuilder<UsersDbContext>()
+            .UseInMemoryDatabase(databaseName)
+            .Options);
+
+    private static async Task<UsersDbContext> CreateDbContextWithUserAsync(Action<User>? configure = null, string? databaseName = null)
     {
-        UsersDbContext dbContext = new(
-            new DbContextOptionsBuilder<UsersDbContext>()
-                .UseInMemoryDatabase(Guid.NewGuid().ToString("N"))
-                .Options);
+        UsersDbContext dbContext = CreateDbContext(databaseName ?? Guid.NewGuid().ToString("N"));
         User user = new()
         {
             Id = UserId,
