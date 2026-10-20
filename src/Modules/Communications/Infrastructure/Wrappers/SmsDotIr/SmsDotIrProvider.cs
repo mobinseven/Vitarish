@@ -101,7 +101,7 @@ public class SmsDotIrProvider : ISmsProvider
         {
             Mobile = message.Recipient ?? string.Empty,
             TemplateId = options.VerificationCodeTemplateId,
-            Parameters = [new NameValue { Name = "CODE", Value = message.Body ?? string.Empty }]
+            Parameters = [new NameValue { Name = VerificationCodeSmsTemplate.CodeParameter, Value = message.Body ?? string.Empty }]
         };
 
         using HttpResponseMessage response =

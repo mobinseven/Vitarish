@@ -2,6 +2,10 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Vitarish.Parties.Application.Abstractions;
+using Vitarish.Parties.Application.Onboarding;
+using Vitarish.Parties.Domain.Models;
 using Vitarish.Parties.Domain.Entities;
 using Vitarish.Parties.Domain.Enums;
 using Vitarish.Parties.Infrastructure.Data;
@@ -13,6 +17,8 @@ using Vitarish.Appointments.Infrastructure.Data;
 using Vitarish.Communications.Domain.Entities;
 using Vitarish.Communications.Domain.Enums;
 using Vitarish.Communications.Infrastructure.Data;
+using MediatR;
+using Vitarish.Clinic.Application.Commands.Patients;
 using Vitarish.Clinic.Domain.Models;
 using Vitarish.Clinic.Infrastructure.Data;
 using Vitarish.Sea.Infrastructure.Data;
@@ -201,40 +207,24 @@ internal static class E2eFixtureSeeder
 
         Console.WriteLine("E2E fixture seeding: preparing tenant A resources.");
         Guid patientId = Guid.Parse("2d7a3eb9-1d47-4c63-9a45-19d7e6a0fb18");
-        ClinicDbContext clinic = scope.ServiceProvider.GetRequiredService<ClinicDbContext>();
-        if (!await clinic.Set<PatientView>().AnyAsync(patient => patient.Id == patientId, cancellationToken))
-        {
-            _ = clinic.Set<PatientView>().Add(new PatientView
+        // In the product a patient is a procedure project; the clinic patient view is derived from it.
+        SeaDbContext sea = scope.ServiceProvider.GetRequiredService<SeaDbContext>();
+        await SeedPatientAsync(
+            sea,
+            scope.ServiceProvider.GetRequiredService<ISender>(),
+            new PatientWriteDto
             {
                 Id = patientId,
-                TenantId = tenant.Id.ToString(),
                 Name = PatientName,
+                IdentificationCode = "E2E-0001",
+                Template = false,
                 FirstName = PatientFirstName,
                 LastName = PatientLastName,
-                IdentificationCode = "E2E-0001",
                 Email = "patient@example.test",
                 Phone = "+989000000000",
-                Template = false,
-                Tags = ["افزایش قد", "پیگیری"],
-                CreatedAt = DateTime.UtcNow
-            });
-            _ = await clinic.SaveChangesAsync(cancellationToken);
-        }
-
-        // In the product a patient is a procedure project; the clinic patient view is derived from it.
-        // The in-memory E2E store cannot refresh that view, so seed the project the view row stands for.
-        SeaDbContext sea = scope.ServiceProvider.GetRequiredService<SeaDbContext>();
-        if (!await sea.Projects.AnyAsync(project => project.Id == patientId, cancellationToken))
-        {
-            _ = sea.Projects.Add(new Vitarish.Sea.Domain.Entities.Project
-            {
-                Id = patientId,
-                Name = PatientName,
-                IdentificationCode = "E2E-0001",
-                Template = false
-            });
-            _ = await sea.SaveChangesAsync(cancellationToken);
-        }
+                Tags = ["افزایش قد", "پیگیری"]
+            },
+            cancellationToken);
 
         DateOnly today = DateOnly.FromDateTime(DateTime.Now);
         DayOfWeek dayOfWeek = today.DayOfWeek;
@@ -347,27 +337,24 @@ internal static class E2eFixtureSeeder
         IdentityResult tenantBOwnerResult = await tenantBUsersService.ReplaceTenantRoleAsync(tenantBOwner.Id, tenantB.Id, IdentityDefinitions.TenantOwner, cancellationToken);
         if (!tenantBOwnerResult.Succeeded)
             throw new InvalidOperationException("E2E tenant-B owner role assignment failed.");
-        ClinicDbContext tenantBClinic = tenantBScope.ServiceProvider.GetRequiredService<ClinicDbContext>();
         AppointmentsDbContext tenantBAppointments = tenantBScope.ServiceProvider.GetRequiredService<AppointmentsDbContext>();
         CommunicationsDbContext tenantBCommunications = tenantBScope.ServiceProvider.GetRequiredService<CommunicationsDbContext>();
         Guid tenantBPatientId = Guid.Parse("f4c8109a-6f22-4a31-9ab8-48d7ad0d7e2f");
-        if (!await tenantBClinic.Set<PatientView>().AnyAsync(patient => patient.Id == tenantBPatientId, cancellationToken))
-        {
-            _ = tenantBClinic.Set<PatientView>().Add(new PatientView
+        await SeedPatientAsync(
+            tenantBScope.ServiceProvider.GetRequiredService<SeaDbContext>(),
+            tenantBScope.ServiceProvider.GetRequiredService<ISender>(),
+            new PatientWriteDto
             {
                 Id = tenantBPatientId,
-                TenantId = tenantB.Id.ToString(),
                 Name = "E2E Tenant B Patient",
+                IdentificationCode = "E2E-B-0001",
+                Template = false,
                 FirstName = "Tenant B",
                 LastName = "Patient",
-                IdentificationCode = "E2E-B-0001",
                 Email = "tenant-b-patient@example.test",
-                Phone = "+989000000001",
-                Template = false,
-                CreatedAt = DateTime.UtcNow
-            });
-            _ = await tenantBClinic.SaveChangesAsync(cancellationToken);
-        }
+                Phone = "+989000000001"
+            },
+            cancellationToken);
 
         Guid tenantBShiftId = Guid.Parse("ab41d5d7-7c11-45a5-b9dc-24f9aa01f2c7");
         if (!await tenantBAppointments.Shifts.AnyAsync(shift => shift.Id == tenantBShiftId, cancellationToken))
@@ -445,6 +432,18 @@ internal static class E2eFixtureSeeder
         if (!tenantBFileVerification.IsVerified)
             throw new InvalidOperationException("E2E tenant-B file integrity enrollment failed.");
 
+        // Production startup binds the onboarding host to its platform-owned tenant; the E2E host skips module startup.
+        Console.WriteLine("E2E fixture seeding: binding the onboarding host.");
+        string? onboardingUrl = scope.ServiceProvider.GetRequiredService<IOptions<OnboardingHostOptions>>().Value.OnboardingUrl;
+        if (!string.IsNullOrWhiteSpace(onboardingUrl))
+        {
+            _ = await scope.ServiceProvider.GetRequiredService<IAppTenantProvisioner>().EnsureAsync(new EnsureAppTenantRequest(
+                OnboardingTenant.OwnerName,
+                OnboardingTenant.AppId,
+                OnboardingTenant.Name,
+                new Uri(onboardingUrl, UriKind.Absolute).Host), cancellationToken);
+        }
+
         Console.WriteLine("E2E fixture seeding: assigning platform-admin access.");
         if (!await roles.RoleExistsAsync(IdentityDefinitions.PlatformAdmin))
             _ = (await roles.CreateAsync(new IdentityRole(IdentityDefinitions.PlatformAdmin))).Succeeded;
@@ -503,6 +502,25 @@ internal static class E2eFixtureSeeder
         if (!created.Succeeded)
             throw new InvalidOperationException($"E2E user creation failed: {string.Join(';', created.Errors.Select(error => error.Code))}");
         return user;
+    }
+
+    /// <summary>Writes the patient's procedure project and derives the clinic patient view from it.</summary>
+    private static async Task SeedPatientAsync(SeaDbContext sea, ISender sender, PatientWriteDto patient, CancellationToken cancellationToken)
+    {
+        if (!await sea.Projects.AnyAsync(project => project.Id == patient.Id, cancellationToken))
+        {
+            _ = sea.Projects.Add(new Vitarish.Sea.Domain.Entities.Project
+            {
+                Id = patient.Id,
+                Name = patient.Name ?? string.Empty,
+                IdentificationCode = patient.IdentificationCode,
+                Template = patient.Template,
+                Metadata = new Dictionary<string, object?>(patient.Metadata)
+            });
+            _ = await sea.SaveChangesAsync(cancellationToken);
+        }
+
+        await sender.Send(new PatientViewRefreshCommand(), cancellationToken);
     }
 
     private static async Task EnsureObjectAsync(IObjectStorageService storage, string checksum, string content, CancellationToken cancellationToken)

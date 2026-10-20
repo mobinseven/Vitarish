@@ -14,6 +14,7 @@ import {
   twoHostE2eNextDistDirectoryEnvironmentKey,
   twoHostE2eProofScreenshotEnvironmentKey,
   twoHostE2eProofStorageStateEnvironmentKey,
+  twoHostE2eSmsCapturePathEnvironmentKey,
 } from "./two-host-e2e-artifacts.mjs";
 
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
@@ -42,6 +43,7 @@ const mainOrigin = "https://localhost:7272";
 const webOrigin = "http://localhost:3005";
 const platformAdminOrigin = "http://localhost:3006";
 const smtpCapturePath = resolve(artifactDirectory, "e2e-smtp-capture.eml");
+const smsCapturePath = resolve(artifactDirectory, "e2e-sms-capture.jsonl");
 const smtpPort = 2525;
 const readinessProbeTimeoutMs = 5000;
 // next dev compiles the first page while it starts, into a new build folder each run.
@@ -303,6 +305,7 @@ async function run() {
     Vitarish__Communications__Providers__Smtp__Username: "e2e",
     Vitarish__Communications__Providers__Smtp__Password: "e2e",
     VITARISH_E2E_SMTP_CAPTURE_PATH: smtpCapturePath,
+    [twoHostE2eSmsCapturePathEnvironmentKey]: smsCapturePath,
     [twoHostE2eArtifactDirectoryEnvironmentKey]: artifactDirectory,
     [twoHostE2eProofScreenshotEnvironmentKey]: proofScreenshotPath,
   });
@@ -320,6 +323,7 @@ async function run() {
     VITARISH_E2E_PASSWORD: password,
     VITARISH_E2E_AGENT_SHARED_SECRET: agentSharedSecret,
     VITARISH_E2E_SMTP_CAPTURE_PATH: smtpCapturePath,
+    [twoHostE2eSmsCapturePathEnvironmentKey]: smsCapturePath,
     [twoHostE2eArtifactDirectoryEnvironmentKey]: artifactDirectory,
     [twoHostE2eProofStorageStateEnvironmentKey]: proofStorageStatePath,
     [twoHostE2eProofScreenshotEnvironmentKey]: proofScreenshotPath,

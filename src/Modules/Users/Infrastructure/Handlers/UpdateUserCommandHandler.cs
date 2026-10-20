@@ -110,10 +110,20 @@ public class UpdateUserCommandHandler(UsersDbContext dbContext, UserManager<User
             }
         }
 
+        User user = request.User;
         IdentityResult result;
         try
         {
-            result = await userManager.UpdateAsync(request.User);
+            User? stored = await StoredWithChangesAsync(request.User);
+            if (stored is null)
+            {
+                result = IdentityResult.Failed(userManager.ErrorDescriber.ConcurrencyFailure());
+            }
+            else
+            {
+                user = stored;
+                result = await userManager.UpdateAsync(user);
+            }
         }
         catch (DbUpdateException exception) when (ContactIdentifierUniqueViolation.Matches(exception))
         {
@@ -146,7 +156,7 @@ public class UpdateUserCommandHandler(UsersDbContext dbContext, UserManager<User
                     ? SecurityAuditReasonCatalog.UserContactIdentifierChanged
                     : null;
             await managementAudit.AccountEditedAsync(request.User.Id, securityAttributeChangeReason, CancellationToken.None);
-            await UserCacheExtensions.SetUserAsync(cache, request.User, cancellationToken);
+            await UserCacheExtensions.SetUserAsync(cache, user, cancellationToken);
             await UserCacheExtensions.RemoveUsersAsync(cache, cancellationToken);
         }
         else
@@ -160,5 +170,22 @@ public class UpdateUserCommandHandler(UsersDbContext dbContext, UserManager<User
         }
 
         return result;
+    }
+
+    // Callers may pass a detached copy (the user cache hands one out), while Identity's uniqueness
+    // validators load the stored row into Identity's own context, so attaching the copy beside it
+    // fails. Apply the copy to the row Identity tracks instead; a copy older than the stored row is
+    // refused (null) so it cannot overwrite newer changes.
+    private async Task<User?> StoredWithChangesAsync(User requested)
+    {
+        User? stored = await userManager.FindByIdAsync(requested.Id);
+        if (stored is null || ReferenceEquals(stored, requested))
+            return stored;
+        if (!string.Equals(stored.ConcurrencyStamp, requested.ConcurrencyStamp, StringComparison.Ordinal))
+            return null;
+
+        // Copies every mapped property through the Users model; this context does not start tracking either user.
+        dbContext.Entry(stored).CurrentValues.SetValues(requested);
+        return stored;
     }
 }

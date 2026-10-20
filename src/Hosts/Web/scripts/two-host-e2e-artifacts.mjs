@@ -7,3 +7,5 @@ export const twoHostE2eProofScreenshotEnvironmentKey = "VITARISH_E2E_PROOF_SCREE
 export const twoHostE2eSecurityPolicyScreenshotEnvironmentKey = "VITARISH_E2E_SECURITY_POLICY_PROOF_SCREENSHOT";
 export const twoHostE2eProofStorageStateEnvironmentKey = "VITARISH_E2E_PROOF_STORAGE_STATE";
 export const twoHostE2eLocaleEnvironmentKey = "VITARISH_E2E_LOCALE";
+/** Where the E2E host writes every SMS it would have sent, one JSON line each. */
+export const twoHostE2eSmsCapturePathEnvironmentKey = "VITARISH_E2E_SMS_CAPTURE_PATH";
