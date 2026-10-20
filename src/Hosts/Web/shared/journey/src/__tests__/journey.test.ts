@@ -30,6 +30,10 @@ describe("resolvePostLoginNavigation", () => {
   });
 });
 
+// Loading the barrel cold loads HeroUI and @vitarish/ui (several seconds on a busy machine),
+// which is module loading time, not behaviour under test.
+const coldBarrelImportTimeoutMilliseconds = 30_000;
+
 describe("journey barrel exports", () => {
   it("exports key components", async () => {
     const mod = await import("../index");
@@ -37,6 +41,9 @@ describe("journey barrel exports", () => {
     expect(mod.ProfileCompletionPage).toBeDefined();
     expect(mod.ContactConfirmationPage).toBeDefined();
     expect(mod.ConsentReviewPage).toBeDefined();
+    expect(mod.TenantSetupPage).toBeDefined();
+    expect(mod.TenantHandoffPage).toBeDefined();
+    expect(mod.TenantLogoPrompt).toBeDefined();
     expect(mod.useCurrentJourney).toBeDefined();
-  });
+  }, coldBarrelImportTimeoutMilliseconds);
 });

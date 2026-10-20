@@ -9,6 +9,7 @@ import {
   type CalendarDate,
 } from "@internationalized/date";
 import { VisitDateStepper } from "@vitarish/clinic";
+import { TenantLogoPrompt } from "@vitarish/journey";
 import { AnchorPageHeader } from "@vitarish/ui";
 import { useClinicNavigation } from "@/components/clinic-navigation";
 import { getDateCalendar, useLocalizedText } from "@/localization";
@@ -36,6 +37,7 @@ export function HomeDashboard() {
           </div>
         }
       />
+      <TenantLogoPrompt />
       <div className="grid gap-6 xl:grid-cols-2">
         <VisitsPanel focusedDate={focusedDate} onNavigate={onNavigate} />
         <SurgeriesPanel focusedDate={focusedDate} onNavigate={onNavigate} />

@@ -21,6 +21,7 @@ export const faMessages = {
     about: "درباره ما",
     portfolio: "نمونه‌کارها",
     contact: "ارتباط با ما",
+    createClinic: "مطب خود را بسازید",
     focusThread: "تمرکز امروز",
     ideaThread: "شکل‌دادن یک ایده کاربردی",
     library: "کتابخانه",

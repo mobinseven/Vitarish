@@ -291,4 +291,47 @@ describe("mock preview handlers", () => {
     expect(second).toMatchObject({ succeeded: true });
     expect(detail.stats).toMatchObject({ events: 2, committedEvents: 1, eventItems: 1, state: "Half" });
   });
+
+  it("classifies onboarding subdomain availability as malformed, reserved, taken, or available", async () => {
+    const check = (subdomain: string) =>
+      fetch(`https://mock.example.test/api/modules/parties/onboarding/subdomain-availability?subdomain=${encodeURIComponent(subdomain)}`).then((response) => response.json());
+
+    await expect(check("ab")).resolves.toEqual({ subdomain: "ab", hostname: null, status: "Malformed" });
+    await expect(check("admin")).resolves.toEqual({ subdomain: "admin", hostname: "admin.clinic.vitarish.test", status: "Reserved" });
+    await expect(check("rezaei-taken")).resolves.toEqual({ subdomain: "rezaei-taken", hostname: "rezaei-taken.clinic.vitarish.test", status: "Taken" });
+    await expect(check("rezaei")).resolves.toEqual({ subdomain: "rezaei", hostname: "rezaei.clinic.vitarish.test", status: "Available" });
+  });
+
+  it("creates an onboarding clinic with a handoff token and marks its address as taken", async () => {
+    const create = () => fetch("https://mock.example.test/api/modules/parties/onboarding/tenants", {
+      method: "POST",
+      headers: { "content-type": "application/json", "Idempotency-Key": "mock-onboarding-key" },
+      body: JSON.stringify({ name: "Rezaei Clinic", subdomain: "rezaei", description: null, category: "dermatology", businessDetails: null }),
+    });
+
+    const created = await create();
+    expect(created.status).toBe(201);
+    await expect(created.json()).resolves.toMatchObject({
+      tenantId: expect.any(String),
+      hostname: "rezaei.clinic.vitarish.test",
+      handoffToken: "mock-handoff-token-0000000000000000000000000",
+    });
+
+    const availability = await fetch("https://mock.example.test/api/modules/parties/onboarding/subdomain-availability?subdomain=rezaei");
+    await expect(availability.json()).resolves.toMatchObject({ subdomain: "rezaei", status: "Taken" });
+
+    const duplicate = await create();
+    expect(duplicate.status).toBe(409);
+  });
+
+  it("flips logoPromptDismissed on the next tenant profile read after dismissal", async () => {
+    const initial = await fetch("https://mock.example.test/api/modules/parties/tenant-profile");
+    await expect(initial.json()).resolves.toMatchObject({ logoUrl: null, logoPromptDismissed: false });
+
+    const dismissal = await fetch("https://mock.example.test/api/modules/parties/tenant-profile/logo-prompt-dismissal", { method: "PUT" });
+    expect(dismissal.status).toBe(204);
+
+    const updated = await fetch("https://mock.example.test/api/modules/parties/tenant-profile");
+    await expect(updated.json()).resolves.toMatchObject({ logoPromptDismissed: true });
+  });
 });

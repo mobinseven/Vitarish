@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ItemCard } from "@heroui-pro/react";
 import {
@@ -50,9 +51,26 @@ const authMethods: {
   },
 ];
 
-export default function LoginPage() {
+interface LoginMethodsPageProps {
+  /** The onboarding host's address, where people create their own clinic; null when not offered. */
+  onboardingUrl: string | null;
+}
+
+/** The onboarding link, unless this page already is the onboarding host. */
+function useCreateClinicHref(onboardingUrl: string | null): string | null {
+  const [href, setHref] = useState<string | null>(null);
+  useEffect(() => {
+    if (!onboardingUrl) return;
+    const target = new URL(onboardingUrl);
+    if (target.host !== window.location.host) setHref(target.toString());
+  }, [onboardingUrl]);
+  return href;
+}
+
+export function LoginMethodsPage({ onboardingUrl }: LoginMethodsPageProps) {
   const { t } = useLocalizedText();
   const { data: profile } = useAuthenticationProfile();
+  const createClinicHref = useCreateClinicHref(onboardingUrl);
   const enabledMethods = authMethods.filter((method) =>
     method.id === "password" ||
     (method.id === "phone" && profile?.allowPasswordlessPhoneLogin === true) ||
@@ -86,6 +104,15 @@ export default function LoginPage() {
           </ItemCard>
         ))}
       </div>
+      {createClinicHref ? (
+        <p className="mt-6 flex flex-wrap items-center justify-center gap-2 text-base text-muted">
+          {t("auth.login.noClinicYet")}
+          <Link href={createClinicHref} className="inline-flex items-center gap-2 font-medium text-accent hover:underline">
+            <FaIcon icon="hospital" aria-hidden="true" />
+            {t("auth.login.createClinic")}
+          </Link>
+        </p>
+      ) : null}
     </LoginPanel>
   );
 }

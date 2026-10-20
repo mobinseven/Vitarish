@@ -3,6 +3,7 @@ import { parseLocaleCookie } from "@vitarish/localization";
 import { createMockStore, mockFixtureIds } from "./mockStore";
 import { isMockAnonymousSession } from "./mockSession";
 import { createAuthMockHandlers } from "./mockAuthHandlers";
+import { createOnboardingMockHandlers } from "./mockOnboardingHandlers";
 import { createSeaMockHandlers } from "./mockSeaHandlers";
 import { createSurgeryMockHandlers } from "./mockSurgeryHandlers";
 
@@ -464,6 +465,7 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
     ...createAuthMockHandlers({ isUnavailable: activeScenario === "error", withDelay, unavailable }),
     ...createSeaMockHandlers({ store, isUnavailable: activeScenario === "error", withDelay, unavailable, notFound }),
     ...createSurgeryMockHandlers({ store, isPersianRequest, isUnavailable: activeScenario === "error", withDelay, unavailable, notFound }),
+    ...createOnboardingMockHandlers({ store, isPersianRequest, isUnavailable: activeScenario === "error", withDelay, unavailable, notFound }),
     http.post(/\/api\/modules\/medical\/providers\/available(?:\?|$)/, async () => {
       await withDelay();
       if (activeScenario === "error") return unavailable();

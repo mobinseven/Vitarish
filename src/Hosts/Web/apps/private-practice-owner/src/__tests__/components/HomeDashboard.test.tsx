@@ -11,6 +11,8 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: mocks.push }) }));
+// The logo prompt has its own tests in @vitarish/journey; this test covers the day panels.
+vi.mock("@vitarish/journey", () => ({ TenantLogoPrompt: () => null }));
 vi.mock("@vitarish/clinic", async () => {
   const actual =
     await vi.importActual<typeof import("@vitarish/clinic")>(

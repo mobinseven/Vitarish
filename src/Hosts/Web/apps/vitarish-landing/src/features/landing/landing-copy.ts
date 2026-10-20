@@ -9,6 +9,7 @@ export type LandingCopy = {
   about: string;
   portfolio: string;
   contact: string;
+  createClinic: string;
   explore: string;
   chatMode: string;
   workMode: string;
@@ -62,6 +63,7 @@ export function useLandingCopy() {
     about: translate("landing.about"),
     portfolio: translate("landing.portfolio"),
     contact: translate("landing.contact"),
+    createClinic: translate("landing.createClinic"),
     explore: translate("landing.explore"),
     chatMode: translate("landing.chatMode"),
     workMode: translate("landing.workMode"),

@@ -8,22 +8,32 @@ import {
   Input,
   Label,
   TextField,
+  Tooltip,
 } from "@heroui/react";
 import { useLocalizedText } from "@vitarish/localization";
+import { FaIcon } from "@vitarish/ui";
 import { useCompleteProfile } from "../hooks/useCompleteProfile";
 
-export function ProfileCompletionForm() {
-  const { values, errors, setField, isSubmitting, canSubmit } =
-    useCompleteProfile();
+interface ProfileCompletionFormProps {
+  /** The signed-in user; undefined while the session is still loading. */
+  userId: string | undefined;
+}
+
+export function ProfileCompletionForm({ userId }: ProfileCompletionFormProps) {
+  const { values, errors, setField, isSubmitting, canSubmit, submit } =
+    useCompleteProfile(userId);
   const { t } = useLocalizedText();
 
   return (
     <Form
-      onSubmit={(event) => event.preventDefault()}
+      onSubmit={(event) => {
+        event.preventDefault();
+        submit();
+      }}
       className="flex flex-col gap-4"
     >
       {errors.form ? (
-        <Alert status="warning">
+        <Alert status="danger">
           <Alert.Indicator />
           <Alert.Content>{errors.form}</Alert.Content>
         </Alert>
@@ -56,14 +66,18 @@ export function ProfileCompletionForm() {
         />
         {errors.lastName ? <FieldError>{errors.lastName}</FieldError> : null}
       </TextField>
-      <Button
-        type="submit"
-        isDisabled={!canSubmit}
-        isPending={isSubmitting}
-        className="w-full"
-      >
-        {t("journey.gates.profile.saveAndContinue")}
-      </Button>
+      <Tooltip>
+        <Button
+          type="submit"
+          isDisabled={!canSubmit}
+          isPending={isSubmitting}
+          className="w-full"
+        >
+          <FaIcon icon="floppy-disk" aria-hidden="true" />
+          {t("journey.gates.profile.saveAndContinue")}
+        </Button>
+        <Tooltip.Content>{t("journey.gates.profile.saveAndContinue")}</Tooltip.Content>
+      </Tooltip>
     </Form>
   );
 }

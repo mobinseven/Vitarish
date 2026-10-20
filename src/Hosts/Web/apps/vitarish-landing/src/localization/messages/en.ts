@@ -21,6 +21,7 @@ export const enMessages = {
     about: "About us",
     portfolio: "Portfolio",
     contact: "Contact us",
+    createClinic: "Create your clinic",
     focusThread: "Today’s focus",
     ideaThread: "Shape a useful idea",
     library: "Library",
