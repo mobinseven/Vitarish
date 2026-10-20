@@ -10,7 +10,8 @@ export interface JourneyGate {
     | "AccountRecovery"
     | "SuspiciousLogin"
     | "PasskeyEnrollmentPrompt"
-    | "MfaEnrollmentPrompt";
+    | "MfaEnrollmentPrompt"
+    | "TenantCreation";
   isBlocking: boolean;
   destinationUrl: string;
   message?: string;

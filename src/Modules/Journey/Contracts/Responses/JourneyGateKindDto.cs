@@ -13,5 +13,6 @@ public enum JourneyGateKindDto
     AccountRecovery = 5,
     SuspiciousLogin = 6,
     PasskeyEnrollmentPrompt = 7,
-    MfaEnrollmentPrompt = 8
+    MfaEnrollmentPrompt = 8,
+    TenantCreation = 9
 }

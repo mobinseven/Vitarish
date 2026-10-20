@@ -26,6 +26,21 @@ public static class JourneyPolicy
         return null;
     }
 
+    /// <summary>The page where a user on the sign-up host creates their own tenant.</summary>
+    public const string TenantCreationUrl = "/setup";
+
+    /// <summary>
+    /// Sends a user on the sign-up host, which serves nothing else, to create their own tenant.
+    /// </summary>
+    public static JourneyGate? EvaluateTenantCreation(bool isSignUpHost) =>
+        isSignUpHost
+            ? new JourneyGate(
+                JourneyGateKind.TenantCreation,
+                IsBlocking: true,
+                DestinationUrl: TenantCreationUrl,
+                Message: "Create your own tenant to continue.")
+            : null;
+
     /// <summary>
     /// Evaluates consent gates.
     /// </summary>

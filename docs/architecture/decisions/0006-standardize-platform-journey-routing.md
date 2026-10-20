@@ -92,11 +92,12 @@ Journey resolves destinations in this order:
 3. Required contact confirmation
 4. Required profile completion
 5. Required legal consent
-6. Required workspace or app selection
-7. Safe requested return URL
-8. Last used app or workspace dashboard
-9. User home
-10. Global dashboard
+6. Tenant creation on the sign-up host (the onboarding host serves nothing else; see issue #906)
+7. Required workspace or app selection
+8. Safe requested return URL
+9. Last used app or workspace dashboard
+10. User home
+11. Global dashboard
 
 The first blocking requirement wins.
 

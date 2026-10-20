@@ -130,7 +130,8 @@
           "AccountRecovery",
           "SuspiciousLogin",
           "PasskeyEnrollmentPrompt",
-          "MfaEnrollmentPrompt"
+          "MfaEnrollmentPrompt",
+          "TenantCreation"
         ]
       },
       "JourneyStepDto": {

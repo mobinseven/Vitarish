@@ -8,6 +8,7 @@
     <ProjectReference Include="..\Contracts\Journey.Contracts.csproj" />
     <ProjectReference Include="..\..\Base\Core\Modules.Base.Core.csproj" />
     <ProjectReference Include="..\..\Users\Application\Users.Application.csproj" />
+    <ProjectReference Include="..\..\Parties\Application\Parties.Application.csproj" />
     <ProjectReference Include="..\..\Users\Domain\Users.Domain.csproj" />
   </ItemGroup>
 </Project>

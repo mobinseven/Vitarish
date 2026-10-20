@@ -13,11 +13,12 @@ namespace Vitarish.Journey.Application;
 /// 3. Required contact confirmation
 /// 4. Required profile completion
 /// 5. Required legal consent
-/// 6. Required workspace or app selection
-/// 7. Safe requested return URL
-/// 8. Last used app or workspace dashboard
-/// 9. User home
-/// 10. Global dashboard (final fallback)
+/// 6. Tenant creation on the sign-up host
+/// 7. Required workspace or app selection
+/// 8. Safe requested return URL
+/// 9. Last used app or workspace dashboard
+/// 10. User home
+/// 11. Global dashboard (final fallback)
 /// </summary>
 public sealed class JourneyResolver(
     IJourneyProfileReader profileReader,
@@ -25,7 +26,8 @@ public sealed class JourneyResolver(
     IJourneyWorkspaceReader workspaceReader,
     IJourneyReturnUrlPolicy returnUrlPolicy,
     IJourneyDestinationResolver destinationResolver,
-    IProfileCompletionPolicy profileCompletionPolicy
+    IProfileCompletionPolicy profileCompletionPolicy,
+    IJourneyHostReader hostReader
 ) : IJourneyResolver
 {
     public async Task<JourneyStep> ResolveAsync(JourneyRequest request, CancellationToken cancellationToken = default)
@@ -62,17 +64,22 @@ public sealed class JourneyResolver(
         if (consentGate is not null)
             return new JourneyStep(JourneyDestinationKind.Gate, consentGate.DestinationUrl, consentGate);
 
-        // Priority 6: Workspace selection
+        // Priority 6: Tenant creation on the sign-up host
+        var tenantCreationGate = JourneyPolicy.EvaluateTenantCreation(await hostReader.IsSignUpHostAsync(cancellationToken));
+        if (tenantCreationGate is not null)
+            return new JourneyStep(JourneyDestinationKind.Gate, tenantCreationGate.DestinationUrl, tenantCreationGate);
+
+        // Priority 7: Workspace selection
         var workspaceGate = JourneyPolicy.EvaluateWorkspaceSelection(workspace);
         if (workspaceGate is not null)
             return new JourneyStep(JourneyDestinationKind.Gate, workspaceGate.DestinationUrl, workspaceGate);
 
-        // Priority 7: Safe return URL
+        // Priority 8: Safe return URL
         var safeReturnUrl = returnUrlPolicy.Normalize(request.RequestedReturnUrl);
         if (safeReturnUrl is not null)
             return new JourneyStep(JourneyDestinationKind.ReturnUrl, safeReturnUrl);
 
-        // Priority 8: Last used app/workspace dashboard
+        // Priority 9: Last used app/workspace dashboard
         if (workspace?.LastUsedAppKey is not null)
         {
             var appDashboardUrl = destinationResolver.GetAppDashboardUrl(workspace.LastUsedAppKey);
@@ -85,12 +92,12 @@ public sealed class JourneyResolver(
             return new JourneyStep(JourneyDestinationKind.AppDashboard, workspaceDashboardUrl);
         }
 
-        // Priority 9: User home
+        // Priority 10: User home
         var userHomeUrl = destinationResolver.GetUserHomeUrl(request.UserId);
         if (!string.IsNullOrWhiteSpace(userHomeUrl))
             return new JourneyStep(JourneyDestinationKind.UserHome, userHomeUrl);
 
-        // Priority 10: Global dashboard (final fallback)
+        // Priority 11: Global dashboard (final fallback)
         var globalDashboardUrl = destinationResolver.GetGlobalDashboardUrl();
         return new JourneyStep(JourneyDestinationKind.GlobalDashboard, globalDashboardUrl);
     }
