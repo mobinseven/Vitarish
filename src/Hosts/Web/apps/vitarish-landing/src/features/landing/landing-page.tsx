@@ -18,7 +18,12 @@ import { useLandingCopy } from "./landing-copy";
 
 const guidedPaths = ["/about", "/portfolio", "/contact", "/explore"] as const;
 
-export function LandingPage() {
+interface LandingPageProps {
+  /** Where people create their own clinic; null when this deployment offers none. */
+  onboardingUrl: string | null;
+}
+
+export function LandingPage({ onboardingUrl }: LandingPageProps) {
   const { direction, t, translate } = useLandingCopy();
   const pathname = usePathname();
   const router = useRouter();
@@ -48,15 +53,18 @@ export function LandingPage() {
         items: [
           { href: "/portfolio", icon: "images", label: t.portfolio },
           { href: "/contact", icon: "envelope", label: t.contact },
+          ...(onboardingUrl ? [{ href: onboardingUrl, icon: "hospital", label: t.createClinic }] : []),
         ],
       },
     ],
-    [t],
+    [onboardingUrl, t],
   );
 
   function openPath(path: string) {
     conversation.cancel();
-    router.push(path);
+    // The onboarding host is another site, so it needs a full page load.
+    if (path === onboardingUrl) window.location.assign(path);
+    else router.push(path);
   }
 
   async function submit(text: string) {
@@ -65,7 +73,7 @@ export function LandingPage() {
   }
 
   if (currentPath === "/" && conversation.messages.length === 0) {
-    return <LandingInitialHome copy={t} direction={direction} submit={submit} />;
+    return <LandingInitialHome copy={t} direction={direction} onboardingUrl={onboardingUrl} submit={submit} />;
   }
 
   return (
@@ -126,10 +134,12 @@ type LandingMode = "chat" | "work";
 function LandingInitialHome({
   copy,
   direction,
+  onboardingUrl,
   submit,
 }: {
   copy: ReturnType<typeof useLandingCopy>["t"];
   direction: "ltr" | "rtl";
+  onboardingUrl: string | null;
   submit: (text: string) => Promise<void>;
 }) {
   const [value, setValue] = useState("");
@@ -148,6 +158,9 @@ function LandingInitialHome({
           <a href="/explore" aria-label={copy.explore} title={copy.explore}><i className="fa-light fa-magnifying-glass" aria-hidden="true" /></a>
           <a href="/portfolio" aria-label={copy.portfolio} title={copy.portfolio}><i className="fa-light fa-thumbtack" aria-hidden="true" /></a>
           <a href="/contact" aria-label={copy.contact} title={copy.contact}><i className="fa-light fa-message" aria-hidden="true" /></a>
+          {onboardingUrl ? (
+            <a href={onboardingUrl} aria-label={copy.createClinic} title={copy.createClinic}><i className="fa-light fa-hospital" aria-hidden="true" /></a>
+          ) : null}
         </nav>
         <span className="landing-rail-avatar" role="img" aria-label={copy.app}>V</span>
       </aside>

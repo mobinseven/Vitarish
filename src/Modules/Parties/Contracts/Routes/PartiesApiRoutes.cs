@@ -30,5 +30,6 @@ public static class PartiesApiRoutes
     public const string OnboardingCategories = "/categories";
     public const string TenantProfile = "/tenant-profile";
     public const string TenantProfileLogo = "/tenant-profile/logo";
+    public const string TenantProfileLogoPromptDismissal = "/tenant-profile/logo-prompt-dismissal";
     public const string IdempotencyKeyHeader = "Idempotency-Key";
 }

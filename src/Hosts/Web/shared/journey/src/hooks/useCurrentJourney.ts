@@ -48,9 +48,12 @@ async function fetchCurrentJourney(
   return apiFetch<JourneyDecision>(url);
 }
 
+/** Every current-journey query starts with this key, whatever its return URL. */
+export const currentJourneyQueryKeyPrefix = ["journey", "current"] as const;
+
 export function useCurrentJourney(returnUrl?: string) {
   return useQuery({
-    queryKey: ["journey", "current", returnUrl],
+    queryKey: [...currentJourneyQueryKeyPrefix, returnUrl],
     queryFn: () => fetchCurrentJourney(returnUrl),
     staleTime: 30_000,
     retry: false,

@@ -15,6 +15,7 @@
     "@heroui/react": "^3.2.2",
     "@heroui/styles": "^3.2.1",
     "@vitarish/communications": "0.1.0",
+    "@vitarish/journey": "0.1.0",
     "@vitarish/localization": "0.1.0",
     "@vitarish/mock-runtime": "0.1.0",
     "@vitarish/ui": "0.1.0",

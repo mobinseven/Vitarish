@@ -22,6 +22,12 @@ export const Routes = {
   },
   Logout: "/logout",
 
+  /** Creating your own clinic, on the onboarding host */
+  Setup: "/setup",
+
+  /** Public: redeems the one-time sign-in link from setup on the new clinic's own host */
+  Handoff: "/handoff",
+
   /** Authenticated account routes */
   Account: {
     Index: "/account",

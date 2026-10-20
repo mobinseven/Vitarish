@@ -83,10 +83,14 @@ public sealed class TenantBusinessProfileUseCaseTests
         TenantBusinessProfileUpdateResult update = await new UpdateTenantBusinessProfileCommandHandler(
                 store.Object, Mock.Of<ITenantImageFiles>(), RequestContext(tenantId), new FixedTimeProvider(FixedNow), Profile)
             .Handle(new UpdateTenantBusinessProfileCommand(null, null, null), CancellationToken.None);
+        TenantBusinessProfileUpdateResult dismiss = await new DismissTenantLogoPromptCommandHandler(
+                store.Object, RequestContext(tenantId), new FixedTimeProvider(FixedNow))
+            .Handle(new DismissTenantLogoPromptCommand(), CancellationToken.None);
         TenantBusinessProfileView? view = await new GetTenantBusinessProfileQueryHandler(store.Object, RequestContext(tenantId))
             .Handle(new GetTenantBusinessProfileQuery(), CancellationToken.None);
 
         update.Status.Should().Be(TenantBusinessProfileUpdateStatus.NotFound);
+        dismiss.Status.Should().Be(TenantBusinessProfileUpdateStatus.NotFound);
         view.Should().BeNull();
         store.VerifyNoOtherCalls();
     }
@@ -136,6 +140,23 @@ public sealed class TenantBusinessProfileUseCaseTests
         foreign.Status.Should().Be(TenantBusinessProfileUpdateStatus.Invalid);
         empty.Status.Should().Be(TenantBusinessProfileUpdateStatus.Invalid);
         store.VerifyNoOtherCalls();
+    }
+
+    [Theory]
+    [InlineData(true, TenantBusinessProfileUpdateStatus.Updated)]
+    [InlineData(false, TenantBusinessProfileUpdateStatus.NotFound)]
+    public async Task Dismisses_the_logo_prompt_for_the_request_tenant_at_the_current_time(bool saved, TenantBusinessProfileUpdateStatus expected)
+    {
+        Mock<ITenantBusinessProfileStore> store = new();
+        store.Setup(item => item.DismissLogoPromptAsync(TenantId, FixedNow.UtcDateTime, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(saved);
+
+        TenantBusinessProfileUpdateResult result = await new DismissTenantLogoPromptCommandHandler(
+                store.Object, RequestContext(TenantId.ToString()), new FixedTimeProvider(FixedNow))
+            .Handle(new DismissTenantLogoPromptCommand(), CancellationToken.None);
+
+        result.Status.Should().Be(expected);
+        store.VerifyAll();
     }
 
     private static UpdateTenantBusinessProfileCommandHandler UpdateHandler(

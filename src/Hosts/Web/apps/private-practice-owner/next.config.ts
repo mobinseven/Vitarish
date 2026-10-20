@@ -1,9 +1,12 @@
 import type { NextConfig } from "next";
 import { resolve } from "node:path";
 import { apiProxyRewrites } from "../../scripts/api-proxy-rewrites.mjs";
+import { mapLibreWorkerPublicPath, syncMapLibreWorker } from "../../scripts/sync-maplibre-worker.mjs";
 import { twoHostE2eNextDistDirectoryEnvironmentKey } from "../../scripts/two-host-e2e-artifacts.mjs";
 
 const webWorkspaceRoot = resolve(process.cwd(), "../..");
+// The clinic setup map needs MapLibre's worker served from this host.
+const mapLibreVersion = syncMapLibreWorker(process.cwd());
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -12,6 +15,7 @@ const nextConfig: NextConfig = {
   outputFileTracingRoot: webWorkspaceRoot,
   turbopack: { root: webWorkspaceRoot },
   rewrites: apiProxyRewrites,
+  env: { NEXT_PUBLIC_MAPLIBRE_WORKER_URL: mapLibreWorkerPublicPath(mapLibreVersion) },
 };
 
 export default nextConfig;

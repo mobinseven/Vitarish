@@ -218,6 +218,9 @@ namespace Vitarish.Parties.Infrastructure.Migrations.PartiesDb
                     b.Property<string>("Details")
                         .HasColumnType("jsonb");
 
+                    b.Property<DateTime?>("LogoPromptDismissedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 

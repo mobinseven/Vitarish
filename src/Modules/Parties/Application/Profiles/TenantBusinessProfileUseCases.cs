@@ -11,7 +11,8 @@ public sealed record TenantBusinessProfileView(
     string? Description,
     string? LogoUrl,
     string? Category,
-    TenantBusinessDetails? Details);
+    TenantBusinessDetails? Details,
+    bool LogoPromptDismissed);
 
 public interface ITenantBusinessProfileStore
 {
@@ -22,6 +23,9 @@ public interface ITenantBusinessProfileStore
 
     /// <summary>False when the tenant does not exist.</summary>
     Task<bool> SetLogoUrlAsync(Guid tenantId, string logoUrl, CancellationToken cancellationToken = default);
+
+    /// <summary>Records that the owner dismissed the logo prompt; keeps the first time. False when the tenant does not exist.</summary>
+    Task<bool> DismissLogoPromptAsync(Guid tenantId, DateTime nowUtc, CancellationToken cancellationToken = default);
 }
 
 /// <summary>The current tenant's own uploaded images, as far as its business profile cares.</summary>
@@ -52,6 +56,9 @@ public sealed record UpdateTenantBusinessProfileCommand(string? Description, str
 
 /// <summary>Makes one of the current tenant's uploaded images its logo.</summary>
 public sealed record SetTenantLogoCommand(Guid FileId) : IRequest<TenantBusinessProfileUpdateResult>;
+
+/// <summary>Stops prompting the current tenant's owner to add a logo.</summary>
+public sealed record DismissTenantLogoPromptCommand : IRequest<TenantBusinessProfileUpdateResult>;
 
 public sealed class GetTenantBusinessProfileQueryHandler(ITenantBusinessProfileStore profiles, IRequestContext requestContext)
     : IRequestHandler<GetTenantBusinessProfileQuery, TenantBusinessProfileView?>
@@ -107,6 +114,22 @@ public sealed class SetTenantLogoCommandHandler(
             return new(TenantBusinessProfileUpdateStatus.Invalid, "The logo must be an image uploaded to this tenant.");
 
         bool saved = await profiles.SetLogoUrlAsync(tenantId, images.ContentUrl(request.FileId), cancellationToken);
+        return new(saved ? TenantBusinessProfileUpdateStatus.Updated : TenantBusinessProfileUpdateStatus.NotFound);
+    }
+}
+
+public sealed class DismissTenantLogoPromptCommandHandler(
+    ITenantBusinessProfileStore profiles,
+    IRequestContext requestContext,
+    TimeProvider timeProvider)
+    : IRequestHandler<DismissTenantLogoPromptCommand, TenantBusinessProfileUpdateResult>
+{
+    public async Task<TenantBusinessProfileUpdateResult> Handle(DismissTenantLogoPromptCommand request, CancellationToken cancellationToken)
+    {
+        if (!Guid.TryParse(requestContext.TenantId, out Guid tenantId))
+            return new(TenantBusinessProfileUpdateStatus.NotFound);
+
+        bool saved = await profiles.DismissLogoPromptAsync(tenantId, timeProvider.GetUtcNow().UtcDateTime, cancellationToken);
         return new(saved ? TenantBusinessProfileUpdateStatus.Updated : TenantBusinessProfileUpdateStatus.NotFound);
     }
 }

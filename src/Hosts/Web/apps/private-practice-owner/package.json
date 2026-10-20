@@ -44,7 +44,7 @@
     "@vitarish/users": "0.1.0",
     "embla-carousel": "^8.6.0",
     "embla-carousel-react": "^8.6.0",
-    "maplibre-gl": "^5.24.0",
+    "maplibre-gl": "6.12.0",
     "marked": "^18.0.5",
     "motion": "^12.12.0",
     "next": "^15.3.3",

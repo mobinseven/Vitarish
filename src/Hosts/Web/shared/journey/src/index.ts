@@ -24,3 +24,8 @@ export { WorkspaceSelectionPage } from "./pages/WorkspaceSelectionPage";
 export { ProfileCompletionPage } from "./pages/ProfileCompletionPage";
 export { ContactConfirmationPage } from "./pages/ContactConfirmationPage";
 export { ConsentReviewPage } from "./pages/ConsentReviewPage";
+export { TenantSetupPage } from "./pages/TenantSetupPage";
+export { TenantHandoffPage } from "./pages/TenantHandoffPage";
+
+// Clinic home
+export { TenantLogoPrompt } from "./features/tenantLogo/TenantLogoPrompt";

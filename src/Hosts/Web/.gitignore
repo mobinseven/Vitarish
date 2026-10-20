@@ -4,3 +4,6 @@ node_modules/
 .env*.local
 out/
 src/api/generated/
+
+# MapLibre worker files copied in by scripts/sync-maplibre-worker.mjs
+apps/*/public/vendor/maplibre/

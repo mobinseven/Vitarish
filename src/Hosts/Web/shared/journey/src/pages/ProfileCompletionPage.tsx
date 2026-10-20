@@ -6,7 +6,12 @@ import { JourneyGateHeader } from "../components/JourneyGateHeader";
 import { JourneyGateLayout } from "../components/JourneyGateLayout";
 import { ProfileCompletionForm } from "../components/ProfileCompletionForm";
 
-export function ProfileCompletionPage() {
+interface ProfileCompletionPageProps {
+  /** The signed-in user; undefined while the session is still loading. */
+  userId: string | undefined;
+}
+
+export function ProfileCompletionPage({ userId }: ProfileCompletionPageProps) {
   const { t } = useLocalizedText();
 
   return (
@@ -20,7 +25,7 @@ export function ProfileCompletionPage() {
           />
         }
       >
-        <ProfileCompletionForm />
+        <ProfileCompletionForm userId={userId} />
       </JourneyGateCard>
     </JourneyGateLayout>
   );
