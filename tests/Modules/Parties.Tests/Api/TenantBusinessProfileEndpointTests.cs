@@ -37,6 +37,7 @@ public sealed class TenantBusinessProfileEndpointTests
     [InlineData(PartiesApiOperations.GetTenantProfile, "GET")]
     [InlineData(PartiesApiOperations.UpdateTenantProfile, "PUT")]
     [InlineData(PartiesApiOperations.SetTenantLogo, "PUT")]
+    [InlineData(PartiesApiOperations.DismissTenantLogoPrompt, "PUT")]
     public void Owner_endpoints_require_the_tenant_owner_policy_and_tenant_access(string operationId, string method)
     {
         using WebApplication app = CreateApp(Mock.Of<ISender>());
@@ -113,7 +114,7 @@ public sealed class TenantBusinessProfileEndpointTests
             null, out _)!;
         Mock<ISender> sender = new();
         sender.Setup(item => item.Send(It.IsAny<GetTenantBusinessProfileQuery>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new TenantBusinessProfileView("Rezaei Clinic", null, null, "dermatology", details));
+            .ReturnsAsync(new TenantBusinessProfileView("Rezaei Clinic", null, null, "dermatology", details, true));
         using WebApplication app = CreateApp(sender.Object);
 
         HttpContext context = await InvokeAsync(app, PartiesApiOperations.GetTenantProfile, HttpMethods.Get);

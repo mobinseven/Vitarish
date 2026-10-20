@@ -40,7 +40,7 @@ internal static class TenantBusinessProfileMapping
     }
 
     public static C.TenantBusinessProfileResponse ToContract(TenantBusinessProfileView view) =>
-        new(view.Name, view.Description, view.LogoUrl, view.Category, view.Details is { } details ? ToContract(details) : null);
+        new(view.Name, view.Description, view.LogoUrl, view.Category, view.Details is { } details ? ToContract(details) : null, view.LogoPromptDismissed);
 
     private static C.TenantBusinessDetailsDto ToContract(TenantBusinessDetails details) => new(
         details.Address is { } address

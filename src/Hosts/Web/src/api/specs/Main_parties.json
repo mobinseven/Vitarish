@@ -177,6 +177,55 @@
         }
       }
     },
+    "/api/modules/parties/tenant-profile/logo-prompt-dismissal": {
+      "put": {
+        "tags": [
+          "Parties"
+        ],
+        "operationId": "PartiesDismissTenantLogoPrompt",
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/modules/parties/user-tenants": {
       "get": {
         "tags": [
@@ -2732,7 +2781,8 @@
           "description",
           "logoUrl",
           "category",
-          "businessDetails"
+          "businessDetails",
+          "logoPromptDismissed"
         ],
         "type": "object",
         "properties": {
@@ -2766,6 +2816,9 @@
                 "$ref": "#/components/schemas/TenantBusinessDetailsDto"
               }
             ]
+          },
+          "logoPromptDismissed": {
+            "type": "boolean"
           }
         }
       },

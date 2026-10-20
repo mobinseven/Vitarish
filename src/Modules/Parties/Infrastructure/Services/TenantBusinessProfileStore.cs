@@ -15,7 +15,7 @@ public sealed class TenantBusinessProfileStore(PartiesDbContext dbContext) : ITe
             return null;
         TenantBusinessProfile? profile = await dbContext.TenantBusinessProfiles.AsNoTracking()
             .SingleOrDefaultAsync(item => item.TenantId == tenantId, cancellationToken);
-        return new TenantBusinessProfileView(tenant.Name, tenant.Description, tenant.LogoUrl, profile?.Category, profile?.Details);
+        return new TenantBusinessProfileView(tenant.Name, tenant.Description, tenant.LogoUrl, profile?.Category, profile?.Details, profile?.LogoPromptDismissedAt is not null);
     }
 
     public async Task<bool> SaveAsync(Guid tenantId, string? description, string? category, TenantBusinessDetails? details, DateTime nowUtc, CancellationToken cancellationToken = default)
@@ -45,6 +45,24 @@ public sealed class TenantBusinessProfileStore(PartiesDbContext dbContext) : ITe
         if (tenant is null)
             return false;
         tenant.LogoUrl = logoUrl;
+        _ = await dbContext.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    public async Task<bool> DismissLogoPromptAsync(Guid tenantId, DateTime nowUtc, CancellationToken cancellationToken = default)
+    {
+        Tenant? tenant = await FindTenantAsync(tenantId, tracked: false, cancellationToken);
+        if (tenant is null)
+            return false;
+        TenantBusinessProfile? profile = await dbContext.TenantBusinessProfiles
+            .SingleOrDefaultAsync(item => item.TenantId == tenantId, cancellationToken);
+        if (profile is null)
+        {
+            profile = new TenantBusinessProfile { TenantId = tenantId, UpdatedAt = nowUtc };
+            dbContext.TenantBusinessProfiles.Add(profile);
+        }
+
+        profile.LogoPromptDismissedAt ??= nowUtc;
         _ = await dbContext.SaveChangesAsync(cancellationToken);
         return true;
     }

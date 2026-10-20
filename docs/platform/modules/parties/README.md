@@ -79,5 +79,8 @@ Creation may carry a category and details but no photos, because files are
 stored per tenant. Afterwards the tenant owner reads and replaces them with
 `GET`/`PUT /api/modules/parties/tenant-profile` (the last save wins) and sets the
 logo with `PUT /api/modules/parties/tenant-profile/logo`, which stores the Files
-content address in `Tenant.LogoUrl`. Photos and logos must be JPEG, PNG, or WebP
-images the Files module finds in the same tenant.
+content address in `Tenant.LogoUrl`.
+`PUT /api/modules/parties/tenant-profile/logo-prompt-dismissal` records that the
+owner dismissed the clinic home's prompt to add a logo, keeping the first time;
+the profile read reports it as `logoPromptDismissed`. Photos and logos must be
+JPEG, PNG, or WebP images the Files module finds in the same tenant.

@@ -37,7 +37,8 @@ public sealed record TenantBusinessProfileResponse(
     string? Description,
     string? LogoUrl,
     string? Category,
-    TenantBusinessDetailsDto? BusinessDetails);
+    TenantBusinessDetailsDto? BusinessDetails,
+    bool LogoPromptDismissed);
 
 /// <summary>Replaces the current tenant's description, category, and business details.</summary>
 public sealed record UpdateTenantBusinessProfileRequest(

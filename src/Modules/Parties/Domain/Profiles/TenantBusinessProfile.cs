@@ -15,5 +15,8 @@ public sealed class TenantBusinessProfile
 
     public TenantBusinessDetails? Details { get; set; }
 
+    /// <summary>When the owner dismissed the prompt to add a logo; null while it shows.</summary>
+    public DateTime? LogoPromptDismissedAt { get; set; }
+
     public DateTime UpdatedAt { get; set; }
 }

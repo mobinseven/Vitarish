@@ -75,6 +75,8 @@ public static class PartiesApiEndpointMapping
             .RequireAuthorization(IdentityDefinitions.TenantOwner);
         _ = group.MapModulePut(PartiesApiRoutes.TenantProfileLogo, SetTenantLogoAsync, PartiesApiOperations.SetTenantLogo, successStatusCode: StatusCodes.Status204NoContent)
             .RequireAuthorization(IdentityDefinitions.TenantOwner);
+        _ = group.MapModulePut(PartiesApiRoutes.TenantProfileLogoPromptDismissal, DismissTenantLogoPromptAsync, PartiesApiOperations.DismissTenantLogoPrompt, successStatusCode: StatusCodes.Status204NoContent)
+            .RequireAuthorization(IdentityDefinitions.TenantOwner);
         _ = group.MapModuleGet(PartiesApiRoutes.UserTenants, GetUserTenantsAsync, "PartiesGetUserTenants");
         _ = group.MapModuleGet(PartiesApiRoutes.Owners, GetOwnersAsync, "PartiesGetOwners").RequireAuthorization(IdentityDefinitions.PlatformAdmin);
         _ = group.MapModuleGet(PartiesApiRoutes.OwnerById, GetOwnerAsync, "PartiesGetOwner").RequireAuthorization(IdentityDefinitions.PlatformAdmin);
@@ -191,6 +193,9 @@ public static class PartiesApiEndpointMapping
 
     private static async Task<IResult> SetTenantLogoAsync(C.SetTenantLogoRequest request, [FromServices] ISender sender, CancellationToken cancellationToken) =>
         ToResult(await sender.Send(new SetTenantLogoCommand(request.FileId), cancellationToken));
+
+    private static async Task<IResult> DismissTenantLogoPromptAsync([FromServices] ISender sender, CancellationToken cancellationToken) =>
+        ToResult(await sender.Send(new DismissTenantLogoPromptCommand(), cancellationToken));
 
     private static IResult ToResult(TenantBusinessProfileUpdateResult result) => result.Status switch
     {
