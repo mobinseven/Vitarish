@@ -1,10 +1,10 @@
 using System.Security.Cryptography;
 using System.Text;
-using Vitarish.Audit.Application;
 using Vitarish.Audit.Domain;
 using Vitarish.Authentication.Application.Abstractions;
 using Vitarish.Authentication.Application.Results;
 using Vitarish.Authentication.Application.Security;
+using Vitarish.Authentication.Application.Services;
 using Vitarish.Authentication.Domain.Methods;
 using Vitarish.Authentication.Domain.Security;
 using Vitarish.Authentication.Domain.Sessions;
@@ -36,7 +36,7 @@ public sealed class IssueTenantHandoffHandler(
     IAuthenticationSecurityPolicyProvider securityPolicyProvider,
     IRequestContext requestContext,
     IAuthenticationUtcClock clock,
-    TenantHandoffAuditor auditor)
+    AuthenticationAttemptAuditor auditor)
 {
     /// <returns>The raw token, shown once, or null when the handoff is not allowed.</returns>
     public async Task<string?> Handle(IssueTenantHandoffCommand command, CancellationToken cancellationToken)
@@ -77,8 +77,10 @@ public sealed class RedeemTenantHandoffHandler(
     IClientInterfaceHostAccessor clientInterfaceHosts,
     IAuthenticationAttemptTracker attemptTracker,
     IAuthenticationAttemptKeyFactory attemptKeyFactory,
+    IAuthenticationUserDirectory users,
+    IAuthenticationRedirectResolver redirects,
     IAuthenticationUtcClock clock,
-    TenantHandoffAuditor auditor)
+    AuthenticationAttemptAuditor auditor)
 {
     public const string RefusalMessage = "The sign-in link is invalid or has expired. Sign in to continue.";
 
@@ -96,10 +98,12 @@ public sealed class RedeemTenantHandoffHandler(
         if (ticket is null || host is null || !ticket.CanBeRedeemedOn(host, now))
             return await RefuseAsync(ticket?.UserId, AuthenticationFailureReason.InvalidCredential, RefusalMessage, SecurityAuditReasonCatalog.AuthenticationFailed, cancellationToken);
 
-        foreach (AuthenticationMethod mechanism in policy.EnabledAuthenticationMechanisms)
+        if (await IsDeniedAsync(policy, ticket.UserId, cancellationToken))
         {
-            if (await attemptTracker.IsDeniedAsync(attemptKeyFactory.Subject(mechanism, ticket.UserId), cancellationToken))
-                return await RefuseAsync(ticket.UserId, AuthenticationFailureReason.LockedOut, "Authentication is temporarily locked out.", SecurityAuditReasonCatalog.AuthenticationFailed, cancellationToken);
+            AuthenticationFailure denied = policy.FailedAttemptResponse is FailedAttemptResponse.Lockout
+                ? new(AuthenticationFailureReason.LockedOut, "Authentication is temporarily locked out.")
+                : new(AuthenticationFailureReason.TooManyAttempts, "Too many authentication attempts.");
+            return await RefuseAsync(ticket.UserId, denied.Reason, denied.Message, SecurityAuditReasonCatalog.AuthenticationFailed, cancellationToken);
         }
 
         if (!await tickets.TryMarkRedeemedAsync(ticket, now, cancellationToken))
@@ -110,44 +114,24 @@ public sealed class RedeemTenantHandoffHandler(
             return await RefuseAsync(ticket.UserId, session.Failure!.Reason, session.Failure.Message, SecurityAuditReasonCatalog.AuthenticationFailed, cancellationToken);
 
         await auditor.RecordAsync(AuthenticationSecurityAuditEvents.TenantHandoffRedeem, AuthenticationSecurityAuditEvents.TenantHandoffRedeemOperation, ticket.UserId, null, cancellationToken);
-        return new AuthenticationResult<LoginResult>.Success(new LoginResult(ticket.UserId, "/", RequiresProfileCompletion: false));
+        bool requiresProfileCompletion = (await users.FindByIdAsync(ticket.UserId, cancellationToken))?.RequiresProfileCompletion ?? false;
+        string returnUrl = await redirects.ResolveAsync(null, requiresProfileCompletion, ticket.UserId, cancellationToken);
+        return new AuthenticationResult<LoginResult>.Success(new LoginResult(ticket.UserId, returnUrl, requiresProfileCompletion));
+    }
+
+    // Checks the previous attempt-key version too, so a denial survives key rotation.
+    private async Task<bool> IsDeniedAsync(SecurityAccessPolicy policy, string userId, CancellationToken cancellationToken)
+    {
+        foreach (AuthenticationMethod mechanism in policy.EnabledAuthenticationMechanisms)
+            foreach (string key in attemptKeyFactory.SubjectCandidates(mechanism, userId))
+                if (await attemptTracker.IsDeniedAsync(key, cancellationToken))
+                    return true;
+        return false;
     }
 
     private async Task<AuthenticationResult<LoginResult>> RefuseAsync(string? subjectId, AuthenticationFailureReason reason, string message, string auditReason, CancellationToken cancellationToken)
     {
         await auditor.RecordAsync(AuthenticationSecurityAuditEvents.TenantHandoffRedeem, AuthenticationSecurityAuditEvents.TenantHandoffRedeemOperation, subjectId, auditReason, cancellationToken);
         return new AuthenticationResult<LoginResult>.Failure(new AuthenticationFailure(reason, message));
-    }
-}
-
-public sealed class TenantHandoffAuditor(ISecurityAuditWriter auditWriter, IRequestContext requestContext, IAuthenticationUtcClock clock)
-{
-    /// <param name="failureReason">Null when the step succeeded.</param>
-    public async Task RecordAsync(string eventName, string operation, string? subjectId, string? failureReason, CancellationToken cancellationToken)
-    {
-        string requestKey = requestContext.RequestId ?? requestContext.TraceId ?? Guid.NewGuid().ToString("N");
-        try
-        {
-            _ = await auditWriter.WriteAsync(new SecurityAuditEvent
-            {
-                EventName = eventName,
-                EventCategory = SecurityAuditEventCatalog.AuthenticationCategory,
-                Outcome = failureReason is null ? SecurityAuditOutcome.Succeeded : SecurityAuditOutcome.Denied,
-                ActorId = requestContext.UserId,
-                SubjectId = subjectId,
-                TenantId = requestContext.TenantId ?? SecurityAuditScopeCatalog.PlatformScopeId,
-                Resource = AuthenticationSecurityAuditEvents.Resource,
-                Operation = operation,
-                OccurredAt = clock.UtcNow,
-                CorrelationId = requestContext.TraceId ?? requestKey,
-                SourceBoundary = AuthenticationSecurityAuditEvents.SourceBoundary,
-                RedactedReason = failureReason,
-                IdempotencyKey = requestKey + AuthenticationSecurityAuditEvents.AuthenticationAttemptIdempotencySuffix + operation
-            }, cancellationToken);
-        }
-        catch (SecurityAuditStoreException)
-        {
-            // AU-8 preserves the authentication result when the audit store is unavailable.
-        }
     }
 }

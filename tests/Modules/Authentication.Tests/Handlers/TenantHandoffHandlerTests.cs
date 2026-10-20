@@ -6,6 +6,7 @@ using Vitarish.Authentication.Application.Abstractions;
 using Vitarish.Authentication.Application.Handlers;
 using Vitarish.Authentication.Application.Results;
 using Vitarish.Authentication.Application.Security;
+using Vitarish.Authentication.Application.Services;
 using Vitarish.Authentication.Domain.Methods;
 using Vitarish.Authentication.Domain.Security;
 using Vitarish.Authentication.Domain.Sessions;
@@ -17,7 +18,13 @@ public sealed class TenantHandoffHandlerTests
 {
     private const string UserId = "user-1";
     private const string TargetHost = "rezaei.clinic.example.test";
+    private const string HomeUrl = "/home";
+    private const string ProfileCompletionUrl = "/profile/complete";
     private static readonly DateTime FixedNow = new(2026, 4, 20, 12, 0, 0, DateTimeKind.Utc);
+
+    private static string CurrentSubjectKey(AuthenticationMethod method) => $"v2:subject:{method}:{UserId}";
+
+    private static string PreviousSubjectKey(AuthenticationMethod method) => $"v1:subject:{method}:{UserId}";
 
     [Fact]
     public async Task Redeems_a_ticket_once_on_its_own_host_and_starts_a_session()
@@ -29,8 +36,10 @@ public sealed class TenantHandoffHandlerTests
 
         AuthenticationResult<LoginResult> firstRedeem = await rig.RedeemHandler.Handle(new RedeemTenantHandoffCommand(token!), CancellationToken.None);
 
-        firstRedeem.Should().BeOfType<AuthenticationResult<LoginResult>.Success>()
-            .Which.Value.UserId.Should().Be(UserId);
+        LoginResult login = firstRedeem.Should().BeOfType<AuthenticationResult<LoginResult>.Success>().Which.Value;
+        login.UserId.Should().Be(UserId);
+        login.RequiresProfileCompletion.Should().BeFalse();
+        login.ReturnUrl.Should().Be(HomeUrl);
         rig.SignIn.Verify(service => service.SignInAsync(UserId, It.IsAny<CancellationToken>()), Times.Once);
         rig.AuditEvents.Should().Contain(entry =>
             entry.EventName == AuthenticationSecurityAuditEvents.TenantHandoffRedeem &&
@@ -166,20 +175,51 @@ public sealed class TenantHandoffHandlerTests
         AssertRefused(rig, result, AuthenticationFailureReason.InvalidCredential);
     }
 
-    [Fact]
-    public async Task Redeem_refuses_when_user_is_denied_by_attempt_tracker()
+    [Theory]
+    [InlineData(FailedAttemptResponse.Lockout, AuthenticationFailureReason.LockedOut)]
+    [InlineData(FailedAttemptResponse.Deny, AuthenticationFailureReason.TooManyAttempts)]
+    public async Task Redeem_refuses_with_the_policy_response_when_user_is_denied_by_attempt_tracker(FailedAttemptResponse response, AuthenticationFailureReason expectedReason)
     {
         TestRig rig = new();
         string token = (await rig.IssueHandler.Handle(new IssueTenantHandoffCommand(UserId, TargetHost), CancellationToken.None))!;
         rig.AuditEvents.Clear();
-        string subjectKey = rig.KeyFactory.Object.Subject(AuthenticationMethod.Password, UserId);
+        rig.Policy = rig.Policy with { FailedAttemptResponse = response };
         rig.AttemptTracker
-            .Setup(tracker => tracker.IsDeniedAsync(subjectKey, It.IsAny<CancellationToken>()))
+            .Setup(tracker => tracker.IsDeniedAsync(CurrentSubjectKey(AuthenticationMethod.Password), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+
+        AuthenticationResult<LoginResult> result = await rig.RedeemHandler.Handle(new RedeemTenantHandoffCommand(token), CancellationToken.None);
+
+        AssertRefused(rig, result, expectedReason);
+        rig.Tickets.Tickets.Single().RedeemedAt.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task Redeem_refuses_when_user_is_denied_under_the_previous_attempt_key_version()
+    {
+        TestRig rig = new();
+        string token = (await rig.IssueHandler.Handle(new IssueTenantHandoffCommand(UserId, TargetHost), CancellationToken.None))!;
+        rig.AuditEvents.Clear();
+        rig.AttemptTracker
+            .Setup(tracker => tracker.IsDeniedAsync(PreviousSubjectKey(AuthenticationMethod.Phone), It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
         AuthenticationResult<LoginResult> result = await rig.RedeemHandler.Handle(new RedeemTenantHandoffCommand(token), CancellationToken.None);
 
         AssertRefused(rig, result, AuthenticationFailureReason.LockedOut);
+    }
+
+    [Fact]
+    public async Task Redeem_sends_a_user_without_a_complete_profile_to_profile_completion()
+    {
+        TestRig rig = new() { RequiresProfileCompletion = true };
+        string token = (await rig.IssueHandler.Handle(new IssueTenantHandoffCommand(UserId, TargetHost), CancellationToken.None))!;
+
+        AuthenticationResult<LoginResult> result = await rig.RedeemHandler.Handle(new RedeemTenantHandoffCommand(token), CancellationToken.None);
+
+        LoginResult login = result.Should().BeOfType<AuthenticationResult<LoginResult>.Success>().Which.Value;
+        login.RequiresProfileCompletion.Should().BeTrue();
+        login.ReturnUrl.Should().Be(ProfileCompletionUrl);
     }
 
     [Fact]
@@ -240,6 +280,7 @@ public sealed class TenantHandoffHandlerTests
         public string? RequestContextUserId { get; set; } = UserId;
         public string? ClientInterfaceHost { get; set; } = TargetHost;
         public DateTime UtcNow { get; set; } = FixedNow;
+        public bool RequiresProfileCompletion { get; set; }
         public List<SecurityAuditEvent> AuditEvents { get; } = [];
         public Mock<IAuthenticationSignInService> SignIn { get; } = new();
         public Mock<IAuthenticationAttemptTracker> AttemptTracker { get; } = new();
@@ -260,8 +301,16 @@ public sealed class TenantHandoffHandlerTests
             hostAccessor.SetupGet(accessor => accessor.ClientInterfaceHost)
                 .Returns(() => ClientInterfaceHost);
 
-            KeyFactory.Setup(factory => factory.Subject(It.IsAny<AuthenticationMethod>(), It.IsAny<string>()))
-                .Returns((AuthenticationMethod method, string userId) => $"subject:{method}:{userId}");
+            KeyFactory.Setup(factory => factory.SubjectCandidates(It.IsAny<AuthenticationMethod>(), It.IsAny<string>()))
+                .Returns((AuthenticationMethod method, string userId) => [$"v2:subject:{method}:{userId}", $"v1:subject:{method}:{userId}"]);
+
+            Mock<IAuthenticationUserDirectory> users = new();
+            users.Setup(directory => directory.FindByIdAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((string userId, CancellationToken _) => new AuthenticationUserDescriptor(userId, null, null, null, null, null, null, RequiresProfileCompletion));
+
+            Mock<IAuthenticationRedirectResolver> redirects = new();
+            redirects.Setup(resolver => resolver.ResolveAsync(null, It.IsAny<bool>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((string? _, bool requiresProfileCompletion, string? _, CancellationToken _) => requiresProfileCompletion ? ProfileCompletionUrl : HomeUrl);
 
             Mock<IAuthenticationUtcClock> clock = new();
             clock.SetupGet(item => item.UtcNow).Returns(() => UtcNow);
@@ -277,7 +326,7 @@ public sealed class TenantHandoffHandlerTests
                 .Callback<SecurityAuditEvent, CancellationToken>((entry, _) => AuditEvents.Add(entry))
                 .ReturnsAsync(SecurityAuditWriteResult.Recorded);
 
-            TenantHandoffAuditor auditor = new(auditWriter.Object, requestContext.Object, clock.Object);
+            AuthenticationAttemptAuditor auditor = new(auditWriter.Object, requestContext.Object, clock.Object);
             IssueHandler = new IssueTenantHandoffHandler(Tickets, policyProvider.Object, requestContext.Object, clock.Object, auditor);
             RedeemHandler = new RedeemTenantHandoffHandler(
                 Tickets,
@@ -286,6 +335,8 @@ public sealed class TenantHandoffHandlerTests
                 hostAccessor.Object,
                 AttemptTracker.Object,
                 KeyFactory.Object,
+                users.Object,
+                redirects.Object,
                 clock.Object,
                 auditor);
         }

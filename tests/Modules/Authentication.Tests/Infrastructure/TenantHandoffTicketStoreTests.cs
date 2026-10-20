@@ -54,9 +54,26 @@ public sealed class TenantHandoffTicketStoreTests
     }
 
     [Fact]
-    public async Task TryMarkRedeemedAsync_succeeds_for_first_context_and_returns_false_for_concurrent_second_context()
+    public Task TryMarkRedeemedAsync_succeeds_for_first_context_and_returns_false_for_concurrent_second_context() =>
+        AssertOnlyFirstConcurrentRedemptionSucceedsAsync(CreateOptions());
+
+    [PostgresFact]
+    public async Task Postgres_allows_only_the_first_of_two_concurrent_redemptions()
     {
-        DbContextOptions<AuthenticationDbContext> options = CreateOptions();
+        DbContextOptions<AuthenticationDbContext> options = new DbContextOptionsBuilder<AuthenticationDbContext>()
+            .UseNpgsql(Environment.GetEnvironmentVariable(PostgresFactAttribute.ConnectionVariable))
+            .Options;
+        await using (AuthenticationDbContext setup = new(options))
+        {
+            await setup.Database.MigrateAsync();
+            _ = await setup.TenantHandoffTickets.ExecuteDeleteAsync();
+        }
+
+        await AssertOnlyFirstConcurrentRedemptionSucceedsAsync(options);
+    }
+
+    private static async Task AssertOnlyFirstConcurrentRedemptionSucceedsAsync(DbContextOptions<AuthenticationDbContext> options)
+    {
         await using (AuthenticationDbContext seedDb = new(options))
         {
             TenantHandoffTicketStore seedStore = new(seedDb);
@@ -92,4 +109,15 @@ public sealed class TenantHandoffTicketStoreTests
         new DbContextOptionsBuilder<AuthenticationDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString("N"))
             .Options;
+
+    private sealed class PostgresFactAttribute : FactAttribute
+    {
+        public const string ConnectionVariable = "VITARISH_AUTH_TEST_CONNECTION";
+
+        public PostgresFactAttribute()
+        {
+            if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(ConnectionVariable)))
+                Skip = $"PostgreSQL integration coverage requires {ConnectionVariable}.";
+        }
+    }
 }
