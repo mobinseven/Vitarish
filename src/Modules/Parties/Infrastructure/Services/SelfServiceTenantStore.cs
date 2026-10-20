@@ -8,6 +8,7 @@ using Vitarish.Authentication.Domain.Sessions;
 using Vitarish.Parties.Application.Onboarding;
 using Vitarish.Parties.Domain.Entities;
 using Vitarish.Parties.Domain.Enums;
+using Vitarish.Parties.Domain.Profiles;
 using Vitarish.Parties.Infrastructure.Data;
 using Vitarish.Parties.Infrastructure.Extensions;
 using Vitarish.Users.Application.Commands;
@@ -28,6 +29,7 @@ public sealed class SelfServiceTenantStore(
     PartiesDbContext dbContext,
     ISender sender,
     IAuthenticationSessionRegistry sessions,
+    TimeProvider timeProvider,
     ILogger<SelfServiceTenantStore> logger) : ISelfServiceTenantStore
 {
     public async Task<ExistingSelfServiceTenant?> FindAsync(Guid tenantId, CancellationToken cancellationToken = default)
@@ -35,13 +37,17 @@ public sealed class SelfServiceTenantStore(
         Tenant? tenant = await dbContext.Tenants.AsNoTracking()
             .Include(item => item.Indicators)
             .SingleOrDefaultAsync(item => item.Id == tenantId && item.DeletedAt == null, cancellationToken);
-        return tenant is null
-            ? null
-            : new ExistingSelfServiceTenant(
-                tenant.Id,
-                tenant.Name,
-                tenant.Description,
-                tenant.Indicators.SingleOrDefault(indicator => indicator.IsPrimary && indicator.DeletedAt == null)?.Value);
+        if (tenant is null)
+            return null;
+        TenantBusinessProfile? profile = await dbContext.TenantBusinessProfiles.AsNoTracking()
+            .SingleOrDefaultAsync(item => item.TenantId == tenantId, cancellationToken);
+        return new ExistingSelfServiceTenant(
+            tenant.Id,
+            tenant.Name,
+            tenant.Description,
+            tenant.Indicators.SingleOrDefault(indicator => indicator.IsPrimary && indicator.DeletedAt == null)?.Value,
+            profile?.Category,
+            profile?.Details);
     }
 
     public Task<TenantProvisioningOutcome> CreateAsync(NewSelfServiceTenant tenant, CancellationToken cancellationToken = default)
@@ -85,9 +91,20 @@ public sealed class SelfServiceTenantStore(
             Status = IndicatorStatus.Active,
             IsPrimary = true
         };
+        TenantBusinessProfile? profile = tenant.Category is null && tenant.BusinessDetails is null
+            ? null
+            : new TenantBusinessProfile
+            {
+                TenantId = tenant.TenantId,
+                Category = tenant.Category,
+                Details = tenant.BusinessDetails,
+                UpdatedAt = timeProvider.GetUtcNow().UtcDateTime
+            };
         dbContext.Owners.Add(owner);
         dbContext.Tenants.Add(createdTenant);
         dbContext.TenantIndicators.Add(address);
+        if (profile is not null)
+            dbContext.TenantBusinessProfiles.Add(profile);
 
         try
         {
@@ -112,7 +129,7 @@ public sealed class SelfServiceTenantStore(
         }
         catch
         {
-            await DiscardAsync(transaction, owner, createdTenant, address);
+            await DiscardAsync(transaction, owner, createdTenant, address, profile);
             // Users may have committed before failing (for example, while refreshing its cache).
             await RevokeOwnerAsync(tenant);
             throw;
@@ -139,7 +156,7 @@ public sealed class SelfServiceTenantStore(
 
     // Without a relational transaction (the in-memory E2E store) the rows were already saved;
     // removing them soft-deletes them, which every query here ignores.
-    private async Task DiscardAsync(IDbContextTransaction? transaction, Owner owner, Tenant tenant, TenantIndicator address)
+    private async Task DiscardAsync(IDbContextTransaction? transaction, Owner owner, Tenant tenant, TenantIndicator address, TenantBusinessProfile? profile)
     {
         if (transaction is not null)
         {
@@ -147,6 +164,8 @@ public sealed class SelfServiceTenantStore(
             return;
         }
 
+        if (profile is not null)
+            dbContext.TenantBusinessProfiles.Remove(profile);
         dbContext.TenantIndicators.Remove(address);
         dbContext.Tenants.Remove(tenant);
         dbContext.Owners.Remove(owner);

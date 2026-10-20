@@ -11,6 +11,8 @@ using Vitarish.Modules.Base.Core.Identity;
 using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Application.Addresses;
 using Vitarish.Parties.Application.Onboarding;
+using Vitarish.Parties.Application.Profiles;
+using Vitarish.Parties.Domain.Profiles;
 using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Parties.Contracts.Errors;
 using Vitarish.Parties.Contracts.Routes;
@@ -62,6 +64,17 @@ public static class PartiesApiEndpointMapping
                 StatusCodes.Status201Created)
             .Produces<C.CreateOwnTenantResponse>(StatusCodes.Status200OK)
             .RequireRateLimiting(PartiesRateLimitPolicies.SelfServiceTenantCreation);
+        _ = onboardingGroup.MapModuleGet(
+            PartiesApiRoutes.OnboardingCategories,
+            GetOnboardingCategories,
+            PartiesApiOperations.GetOnboardingCategories,
+            typeof(C.TenantCategoriesResponse));
+        _ = group.MapModuleGet(PartiesApiRoutes.TenantProfile, GetTenantProfileAsync, PartiesApiOperations.GetTenantProfile, typeof(C.TenantBusinessProfileResponse))
+            .RequireAuthorization(IdentityDefinitions.TenantOwner);
+        _ = group.MapModulePut(PartiesApiRoutes.TenantProfile, UpdateTenantProfileAsync, PartiesApiOperations.UpdateTenantProfile, successStatusCode: StatusCodes.Status204NoContent)
+            .RequireAuthorization(IdentityDefinitions.TenantOwner);
+        _ = group.MapModulePut(PartiesApiRoutes.TenantProfileLogo, SetTenantLogoAsync, PartiesApiOperations.SetTenantLogo, successStatusCode: StatusCodes.Status204NoContent)
+            .RequireAuthorization(IdentityDefinitions.TenantOwner);
         _ = group.MapModuleGet(PartiesApiRoutes.UserTenants, GetUserTenantsAsync, "PartiesGetUserTenants");
         _ = group.MapModuleGet(PartiesApiRoutes.Owners, GetOwnersAsync, "PartiesGetOwners").RequireAuthorization(IdentityDefinitions.PlatformAdmin);
         _ = group.MapModuleGet(PartiesApiRoutes.OwnerById, GetOwnerAsync, "PartiesGetOwner").RequireAuthorization(IdentityDefinitions.PlatformAdmin);
@@ -130,9 +143,12 @@ public static class PartiesApiEndpointMapping
             return BadRequest($"An {PartiesApiRoutes.IdempotencyKeyHeader} header of {IdempotencyKeyMinimumLength} to {IdempotencyKeyMaximumLength} letters, digits, hyphens, or underscores is required.");
         if (request.Name is null || request.Subdomain is null || request.Subdomain.Length > SubdomainQueryMaximumLength)
             return BadRequest("A name and a subdomain are required.");
+        TenantBusinessDetails? details = TenantBusinessProfileMapping.ToDomain(request.BusinessDetails, out string? detailsError);
+        if (detailsError is not null)
+            return BadRequest(detailsError);
 
         CreateOwnTenantResult result = await sender.Send(
-            new CreateOwnTenantCommand(requestContext.UserId, request.Name, request.Subdomain, request.Description, idempotencyKey),
+            new CreateOwnTenantCommand(requestContext.UserId, request.Name, request.Subdomain, request.Description, idempotencyKey, request.Category, details),
             cancellationToken);
         return result.Status switch
         {
@@ -150,6 +166,39 @@ public static class PartiesApiEndpointMapping
             _ => throw new InvalidOperationException($"Unhandled tenant creation status {result.Status}.")
         };
     }
+
+    // Arguments bind before the onboarding filter runs, so a missing profile must not fail binding.
+    private static IResult GetOnboardingCategories([FromServices] SelfServiceTenantProfile? profile) =>
+        profile is null
+            ? NotFound("Tenant onboarding is not available.")
+            : Results.Ok(new C.TenantCategoriesResponse(profile.Categories));
+
+    private static async Task<IResult> GetTenantProfileAsync([FromServices] ISender sender, CancellationToken cancellationToken) =>
+        await sender.Send(new GetTenantBusinessProfileQuery(), cancellationToken) is { } profile
+            ? Results.Ok(TenantBusinessProfileMapping.ToContract(profile))
+            : NotFound("The tenant was not found.");
+
+    private static async Task<IResult> UpdateTenantProfileAsync(
+        C.UpdateTenantBusinessProfileRequest request,
+        [FromServices] ISender sender,
+        CancellationToken cancellationToken)
+    {
+        TenantBusinessDetails? details = TenantBusinessProfileMapping.ToDomain(request.BusinessDetails, out string? detailsError);
+        if (detailsError is not null)
+            return BadRequest(detailsError);
+        return ToResult(await sender.Send(new UpdateTenantBusinessProfileCommand(request.Description, request.Category, details), cancellationToken));
+    }
+
+    private static async Task<IResult> SetTenantLogoAsync(C.SetTenantLogoRequest request, [FromServices] ISender sender, CancellationToken cancellationToken) =>
+        ToResult(await sender.Send(new SetTenantLogoCommand(request.FileId), cancellationToken));
+
+    private static IResult ToResult(TenantBusinessProfileUpdateResult result) => result.Status switch
+    {
+        TenantBusinessProfileUpdateStatus.Updated => Results.NoContent(),
+        TenantBusinessProfileUpdateStatus.NotFound => NotFound("The tenant was not found."),
+        TenantBusinessProfileUpdateStatus.Invalid => BadRequest(result.Error ?? "The request is invalid."),
+        _ => throw new InvalidOperationException($"Unhandled tenant profile status {result.Status}.")
+    };
 
     private static async Task<IResult> GetUserTenantsAsync(IPartiesService service, CancellationToken cancellationToken) =>
         Results.Ok((await service.GetUserTenantsAsync(cancellationToken)).Select(ToContract));

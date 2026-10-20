@@ -8,6 +8,7 @@ using Vitarish.Authentication.Application.Abstractions;
 using Vitarish.Parties.Application.Onboarding;
 using Vitarish.Parties.Domain.Entities;
 using Vitarish.Parties.Domain.Enums;
+using Vitarish.Parties.Domain.Profiles;
 using Vitarish.Parties.Infrastructure.Data;
 using Vitarish.Parties.Infrastructure.Services;
 using Vitarish.Users.Application.Commands;
@@ -16,7 +17,7 @@ namespace Vitarish.Parties.Tests.Infrastructure;
 
 public sealed class SelfServiceTenantStoreTests
 {
-    private static readonly SelfServiceTenantProfile Profile = new("clinic-app");
+    private static readonly SelfServiceTenantProfile Profile = new("clinic-app", []);
 
     [Fact]
     public async Task Persists_owner_tenant_and_primary_subdomain_indicator_and_assigns_the_creator_as_owner()
@@ -62,6 +63,50 @@ public sealed class SelfServiceTenantStoreTests
         indicator.Value.Should().Be("rezaei.clinic.example.test");
 
         sender.Verify(item => item.Send(new AssignNewTenantOwnerCommand("user-1", tenantId), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Persists_the_category_and_business_details_with_the_tenant_and_finds_them_for_replay()
+    {
+        await using PartiesDbContext db = CreateContext();
+        Mock<ISender> sender = new();
+        Guid tenantId = Guid.NewGuid();
+        sender.Setup(item => item.Send(new AssignNewTenantOwnerCommand("user-1", tenantId), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(AssignNewTenantOwnerResult.Assigned);
+        TenantBusinessDetails details = TenantBusinessDetails.TryCreate(
+            new TenantBusinessAddress("Tehran", null, null, null, 35.7, 51.4), ["021 1234 5678"], null, null, null, null, out _)!;
+
+        TenantProvisioningOutcome outcome = await CreateStore(db, sender.Object).CreateAsync(
+            new NewSelfServiceTenant(
+                tenantId, Guid.NewGuid(), "user-1", "Rezaei Clinic", null, "rezaei.clinic.example.test", Profile,
+                new TenantCreationAllowance(DateTime.UtcNow.AddDays(-1), 3), "dermatology", details),
+            CancellationToken.None);
+        ExistingSelfServiceTenant? existing = await CreateStore(db, sender.Object).FindAsync(tenantId);
+
+        outcome.Should().Be(TenantProvisioningOutcome.Created);
+        TenantBusinessProfile profile = await db.TenantBusinessProfiles.AsNoTracking().SingleAsync();
+        profile.TenantId.Should().Be(tenantId);
+        profile.Category.Should().Be("dermatology");
+        existing!.Category.Should().Be("dermatology");
+        existing.BusinessDetails!.IsEquivalentTo(details).Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Writes_no_profile_row_when_neither_category_nor_details_are_given()
+    {
+        await using PartiesDbContext db = CreateContext();
+        Mock<ISender> sender = new();
+        Guid tenantId = Guid.NewGuid();
+        sender.Setup(item => item.Send(new AssignNewTenantOwnerCommand("user-1", tenantId), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(AssignNewTenantOwnerResult.Assigned);
+
+        _ = await CreateStore(db, sender.Object).CreateAsync(
+            new NewSelfServiceTenant(
+                tenantId, Guid.NewGuid(), "user-1", "Rezaei Clinic", null, "rezaei.clinic.example.test", Profile,
+                new TenantCreationAllowance(DateTime.UtcNow.AddDays(-1), 3)),
+            CancellationToken.None);
+
+        (await db.TenantBusinessProfiles.AnyAsync()).Should().BeFalse();
     }
 
     [Fact]
@@ -150,13 +195,15 @@ public sealed class SelfServiceTenantStoreTests
                 null,
                 "rezaei.clinic.example.test",
                 Profile,
-                new TenantCreationAllowance(DateTime.UtcNow.AddDays(-1), 3)),
+                new TenantCreationAllowance(DateTime.UtcNow.AddDays(-1), 3),
+                "dermatology"),
             CancellationToken.None);
 
         await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("Simulated Users failure.");
         (await db.Owners.CountAsync()).Should().Be(0);
         (await db.Tenants.CountAsync()).Should().Be(0);
         (await db.TenantIndicators.CountAsync()).Should().Be(0);
+        (await db.TenantBusinessProfiles.CountAsync()).Should().Be(0);
         sender.Verify(item => item.Send(new RevokeNewTenantOwnerCommand("user-1", tenantId), It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -370,7 +417,7 @@ public sealed class SelfServiceTenantStoreTests
         sender.Setup(item => item.Send(It.IsAny<AssignNewTenantOwnerCommand>(), It.IsAny<CancellationToken>()))
             .Callback(() => calls.Add("assign"))
             .ReturnsAsync(AssignNewTenantOwnerResult.Assigned);
-        SelfServiceTenantStore store = new(db, sender.Object, sessions.Object, NullLogger<SelfServiceTenantStore>.Instance);
+        SelfServiceTenantStore store = new(db, sender.Object, sessions.Object, TimeProvider.System, NullLogger<SelfServiceTenantStore>.Instance);
 
         TenantProvisioningOutcome outcome = await store.CreateAsync(
             new NewSelfServiceTenant(
@@ -389,7 +436,7 @@ public sealed class SelfServiceTenantStoreTests
     }
 
     private static SelfServiceTenantStore CreateStore(PartiesDbContext db, ISender sender) =>
-        new(db, sender, Mock.Of<IAuthenticationSessionRegistry>(), NullLogger<SelfServiceTenantStore>.Instance);
+        new(db, sender, Mock.Of<IAuthenticationSessionRegistry>(), TimeProvider.System, NullLogger<SelfServiceTenantStore>.Instance);
 
     private static PartiesDbContext CreateContext() => new(
         new DbContextOptionsBuilder<PartiesDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString("N")).Options,

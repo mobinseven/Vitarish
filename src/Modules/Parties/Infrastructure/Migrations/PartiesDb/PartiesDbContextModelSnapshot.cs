@@ -18,7 +18,7 @@ namespace Vitarish.Parties.Infrastructure.Migrations.PartiesDb
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("Parties")
-                .HasAnnotation("ProductVersion", "10.0.8")
+                .HasAnnotation("ProductVersion", "10.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -206,6 +206,26 @@ namespace Vitarish.Parties.Infrastructure.Migrations.PartiesDb
                     b.ToView("vw_UserTenant", "Parties");
                 });
 
+            modelBuilder.Entity("Vitarish.Parties.Domain.Profiles.TenantBusinessProfile", b =>
+                {
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Category")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Details")
+                        .HasColumnType("jsonb");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("TenantId");
+
+                    b.ToTable("TenantBusinessProfiles", "Parties");
+                });
+
             modelBuilder.Entity("Vitarish.Parties.Domain.Entities.TenantIndicator", b =>
                 {
                     b.HasOne("Vitarish.Parties.Domain.Entities.Tenant", "Tenant")
@@ -247,6 +267,15 @@ namespace Vitarish.Parties.Infrastructure.Migrations.PartiesDb
                     b.Navigation("Tenant");
 
                     b.Navigation("Verification");
+                });
+
+            modelBuilder.Entity("Vitarish.Parties.Domain.Profiles.TenantBusinessProfile", b =>
+                {
+                    b.HasOne("Vitarish.Parties.Domain.Entities.Tenant", null)
+                        .WithOne()
+                        .HasForeignKey("Vitarish.Parties.Domain.Profiles.TenantBusinessProfile", "TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Vitarish.Parties.Domain.Entities.Tenant", b =>

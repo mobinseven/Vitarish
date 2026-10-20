@@ -5,6 +5,7 @@ using Vitarish.Apps.Base.Core;
 using Microsoft.AspNetCore.Builder;
 using Vitarish.Clinic.Api;
 using Vitarish.Clinic.Application;
+using Vitarish.Clinic.Contracts;
 using Vitarish.Clinic.Api.Assistant;
 using Vitarish.Clinic.Api.Authorization;
 using Vitarish.Clinic.Infrastructure.Data;
@@ -27,7 +28,7 @@ public class ClinicApp : Vitarish.Apps.Base.Core.App
         _ = builder.Services.AddClinicInfrastructure();
         _ = builder.Services.AddClinicApiAuthorization();
         // People create their own clinics through self-service tenant onboarding.
-        _ = builder.Services.AddSingleton(new SelfServiceTenantProfile(ClinicTenant.AppId));
+        _ = builder.Services.AddSingleton(new SelfServiceTenantProfile(ClinicTenant.AppId, ClinicSpecialties.All));
         _ = builder.Services.AddSingleton(new AssistantOptions(
             builder.Configuration[AgentRuntimeOptions.ModelConfigurationKey]
             ?? builder.Configuration[AiOptions.DefaultResponseModelConfigurationKey]

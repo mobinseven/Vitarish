@@ -7,6 +7,7 @@ using System.Text.Json;
 using Vitarish.Parties.Domain.Entities;
 using Vitarish.Parties.Domain.Events;
 using Vitarish.Parties.Domain.Models;
+using Vitarish.Parties.Domain.Profiles;
 using Vitarish.Parties.Infrastructure.Extensions;
 
 namespace Vitarish.Parties.Infrastructure.Data;
@@ -23,6 +24,9 @@ public class PartiesDbContext(DbContextOptions<PartiesDbContext> options, Mediat
 
     /// <summary>Tenant indicators set.</summary>
     public DbSet<TenantIndicator> TenantIndicators => Set<TenantIndicator>();
+
+    /// <summary>Tenants' business categories and public listing details.</summary>
+    public DbSet<TenantBusinessProfile> TenantBusinessProfiles => Set<TenantBusinessProfile>();
 
     /// <summary>User tenants view (cross-schema view based on current user).</summary>
     public DbSet<UserTenant> UserTenants => Set<UserTenant>();
@@ -51,6 +55,22 @@ public class PartiesDbContext(DbContextOptions<PartiesDbContext> options, Mediat
                             v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
                             v => JsonSerializer.Deserialize<Dictionary<string, object>>(v, (JsonSerializerOptions)null))
                         .HasDefaultValueSql("'{}'");
+        });
+
+        _ = modelBuilder.Entity<TenantBusinessProfile>(entity =>
+        {
+            _ = entity.HasKey(profile => profile.TenantId);
+            _ = entity.HasOne<Tenant>().WithOne().HasForeignKey<TenantBusinessProfile>(profile => profile.TenantId);
+            _ = entity.Property(profile => profile.Category).HasMaxLength(TenantBusinessProfile.CategoryMaximumLength);
+            _ = entity.Property(profile => profile.Details)
+                .HasColumnType("jsonb")
+                .HasConversion(
+                    details => details == null ? null : TenantBusinessDetailsDocument.Serialize(details),
+                    json => json == null ? null : TenantBusinessDetailsDocument.Deserialize(json),
+                    new ValueComparer<TenantBusinessDetails?>(
+                        (left, right) => left == null ? right == null : left.IsEquivalentTo(right),
+                        details => details == null ? 0 : TenantBusinessDetailsDocument.Serialize(details).GetHashCode(),
+                        details => details));
         });
 
         _ = modelBuilder.Entity<TenantIndicator>(entity =>

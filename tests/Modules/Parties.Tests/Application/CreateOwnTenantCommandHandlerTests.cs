@@ -5,6 +5,7 @@ using Vitarish.Audit.Application;
 using Vitarish.Audit.Domain;
 using Vitarish.Parties.Application.Addresses;
 using Vitarish.Parties.Application.Onboarding;
+using Vitarish.Parties.Domain.Profiles;
 using Vitarish.Requests.Application.Abstractions;
 
 namespace Vitarish.Parties.Tests.Application;
@@ -15,7 +16,8 @@ public sealed class CreateOwnTenantCommandHandlerTests
     private const string CreatorUserId = "user-1";
     private const string IdempotencyKey = "idem-key-1234";
     private static readonly DateTimeOffset FixedNow = new(2026, 4, 20, 12, 0, 0, TimeSpan.Zero);
-    private static readonly SelfServiceTenantProfile Profile = new("clinic-app");
+    private const string OfferedCategory = "dermatology";
+    private static readonly SelfServiceTenantProfile Profile = new("clinic-app", [OfferedCategory, "other"]);
 
     [Fact]
     public async Task Creates_a_tenant_with_trimmed_fields_and_records_a_succeeded_audit_event()
@@ -368,6 +370,97 @@ public sealed class CreateOwnTenantCommandHandlerTests
 
         await act.Should().ThrowAsync<InvalidOperationException>();
     }
+
+    [Fact]
+    public async Task Passes_an_offered_category_and_business_details_to_the_store()
+    {
+        Mock<ITenantCreatorDirectory> creators = VerifiedCreator();
+        NewSelfServiceTenant? captured = null;
+        Mock<ISelfServiceTenantStore> store = new();
+        store.Setup(item => item.CreateAsync(It.IsAny<NewSelfServiceTenant>(), It.IsAny<CancellationToken>()))
+            .Callback<NewSelfServiceTenant, CancellationToken>((tenant, _) => captured = tenant)
+            .ReturnsAsync(TenantProvisioningOutcome.Created);
+        TenantBusinessDetails details = Details();
+        CreateOwnTenantCommandHandler handler = CreateHandler(creators.Object, store.Object, AuditWriter().Object);
+
+        CreateOwnTenantResult result = await handler.Handle(
+            new CreateOwnTenantCommand(CreatorUserId, "Clinic", "rezaei", null, IdempotencyKey, $" {OfferedCategory} ", details),
+            CancellationToken.None);
+
+        result.Status.Should().Be(CreateOwnTenantStatus.Created);
+        captured!.Category.Should().Be(OfferedCategory);
+        captured.BusinessDetails.Should().BeSameAs(details);
+    }
+
+    [Fact]
+    public async Task Rejects_a_category_the_app_does_not_offer_before_touching_the_store()
+    {
+        Mock<ISelfServiceTenantStore> store = new(MockBehavior.Strict);
+        CreateOwnTenantCommandHandler handler = CreateHandler(Mock.Of<ITenantCreatorDirectory>(), store.Object, AuditWriter().Object);
+
+        CreateOwnTenantResult result = await handler.Handle(
+            new CreateOwnTenantCommand(CreatorUserId, "Clinic", "rezaei", null, IdempotencyKey, "astrology"),
+            CancellationToken.None);
+
+        result.Status.Should().Be(CreateOwnTenantStatus.Invalid);
+        store.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task Rejects_photos_at_creation_because_files_belong_to_an_existing_tenant()
+    {
+        Mock<ISelfServiceTenantStore> store = new(MockBehavior.Strict);
+        CreateOwnTenantCommandHandler handler = CreateHandler(Mock.Of<ITenantCreatorDirectory>(), store.Object, AuditWriter().Object);
+
+        CreateOwnTenantResult result = await handler.Handle(
+            new CreateOwnTenantCommand(CreatorUserId, "Clinic", "rezaei", null, IdempotencyKey, null, Details(photoFileIds: [Guid.NewGuid()])),
+            CancellationToken.None);
+
+        result.Status.Should().Be(CreateOwnTenantStatus.Invalid);
+        store.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task Replays_the_same_listing_and_refuses_a_different_one_under_the_same_key()
+    {
+        Mock<ISelfServiceTenantStore> store = new();
+        store.Setup(item => item.FindAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Guid tenantId, CancellationToken _) => new ExistingSelfServiceTenant(tenantId, "Clinic", null, "rezaei.clinic.example.test", OfferedCategory, Details()));
+        CreateOwnTenantCommandHandler handler = CreateHandler(Mock.Of<ITenantCreatorDirectory>(), store.Object, AuditWriter().Object);
+
+        CreateOwnTenantResult same = await handler.Handle(
+            new CreateOwnTenantCommand(CreatorUserId, "Clinic", "rezaei", null, IdempotencyKey, OfferedCategory, Details()),
+            CancellationToken.None);
+        CreateOwnTenantResult otherDetails = await handler.Handle(
+            new CreateOwnTenantCommand(CreatorUserId, "Clinic", "rezaei", null, IdempotencyKey, OfferedCategory, Details(phone: "021 5555 0000")),
+            CancellationToken.None);
+        CreateOwnTenantResult otherCategory = await handler.Handle(
+            new CreateOwnTenantCommand(CreatorUserId, "Clinic", "rezaei", null, IdempotencyKey, "other", Details()),
+            CancellationToken.None);
+
+        same.Status.Should().Be(CreateOwnTenantStatus.Replayed);
+        otherDetails.Status.Should().Be(CreateOwnTenantStatus.IdempotencyConflict);
+        otherCategory.Status.Should().Be(CreateOwnTenantStatus.IdempotencyConflict);
+        store.Verify(item => item.CreateAsync(It.IsAny<NewSelfServiceTenant>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    private static Mock<ITenantCreatorDirectory> VerifiedCreator()
+    {
+        Mock<ITenantCreatorDirectory> creators = new();
+        creators.Setup(item => item.FindAsync(CreatorUserId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new TenantCreator(CreatorUserId, HasVerifiedPhone: true));
+        return creators;
+    }
+
+    private static TenantBusinessDetails Details(string phone = "021 1234 5678", Guid[]? photoFileIds = null) =>
+        TenantBusinessDetails.TryCreate(
+            new TenantBusinessAddress("Tehran", "Tehran", "Valiasr St.", null, 35.7, 51.4),
+            [phone],
+            "https://rezaei.example.test",
+            null,
+            [new TenantWorkingDay(DayOfWeek.Saturday, [new TenantOpeningInterval(new TimeOnly(9, 0), new TimeOnly(13, 0))])],
+            photoFileIds,
+            out _)!;
 
     private static CreateOwnTenantCommandHandler CreateHandler(
         ITenantCreatorDirectory creators,

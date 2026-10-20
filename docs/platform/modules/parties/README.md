@@ -56,3 +56,24 @@ before the same key replays the result. Creation and its refusals are audited as
 People sign up and create a tenant on the onboarding host,
 `Vitarish:OnboardingUrl`, which startup binds to the platform-owned
 `OnboardingTenant`; it holds no practice data.
+
+## Business profile
+
+A tenant's business category and public listing details live in
+`Parties.TenantBusinessProfiles`, one row per tenant, apart from the tenant row
+that administration replaces as a whole. The category is a code from the
+self-service app's own list (`SelfServiceTenantProfile.Categories`; the Clinic
+app registers `ClinicSpecialties`), listed by
+`GET /api/modules/parties/onboarding/categories`. `TenantBusinessDetails` owns
+the details and their rules: an address with an optional map pin, public
+phones, website and social links, weekly opening hours with up to three
+periods a day (an empty day is closed, a missing day unknown), and photo file
+ids. They are stored as `jsonb` in camelCase with named weekdays; read models
+query that shape, so it changes only additively.
+
+Creation may carry a category and details but no photos, because files are
+stored per tenant. Afterwards the tenant owner reads and replaces them with
+`GET`/`PUT /api/modules/parties/tenant-profile` (the last save wins) and sets the
+logo with `PUT /api/modules/parties/tenant-profile/logo`, which stores the Files
+content address in `Tenant.LogoUrl`. Photos and logos must be JPEG, PNG, or WebP
+images the Files module finds in the same tenant.

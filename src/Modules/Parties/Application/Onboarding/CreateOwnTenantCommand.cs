@@ -6,6 +6,7 @@ using Vitarish.Audit.Application;
 using Vitarish.Audit.Domain;
 using Vitarish.Parties.Application.Addresses;
 using Vitarish.Parties.Domain.Addresses;
+using Vitarish.Parties.Domain.Profiles;
 using Vitarish.Requests.Application.Abstractions;
 
 namespace Vitarish.Parties.Application.Onboarding;
@@ -32,13 +33,17 @@ public sealed record CreateOwnTenantResult(CreateOwnTenantStatus Status, Guid? T
 /// <summary>
 /// A signed-in user creates their own tenant at <c>&lt;subdomain&gt;.&lt;base domain&gt;</c> and becomes
 /// its owner. <paramref name="CreatorUserId"/> comes from the session, never from the request body.
+/// <paramref name="Category"/> must be one the app offers; photos come after creation, because
+/// files are stored per tenant.
 /// </summary>
 public sealed record CreateOwnTenantCommand(
     string CreatorUserId,
     string Name,
     string Subdomain,
     string? Description,
-    string IdempotencyKey) : IRequest<CreateOwnTenantResult>;
+    string IdempotencyKey,
+    string? Category = null,
+    TenantBusinessDetails? BusinessDetails = null) : IRequest<CreateOwnTenantResult>;
 
 public sealed class CreateOwnTenantCommandHandler(
     IOptions<TenantAddressOptions> addressOptions,
@@ -67,6 +72,11 @@ public sealed class CreateOwnTenantCommandHandler(
             return new(CreateOwnTenantStatus.Invalid, Error: $"A name of 1 to {NameMaximumLength} characters is required.");
         if (description?.Length > DescriptionMaximumLength)
             return new(CreateOwnTenantStatus.Invalid, Error: $"The description can have at most {DescriptionMaximumLength} characters.");
+        string? category = string.IsNullOrWhiteSpace(request.Category) ? null : request.Category.Trim();
+        if (category is not null && !profile.AllowsCategory(category))
+            return new(CreateOwnTenantStatus.Invalid, Error: "The category is not one this app offers.");
+        if (request.BusinessDetails?.HasPhotos == true)
+            return new(CreateOwnTenantStatus.Invalid, Error: "Photos can be added after the tenant is created.");
 
         TenantSubdomainRejection rejection = TenantSubdomain.TryCreate(request.Subdomain, out TenantSubdomain? subdomain);
         if (subdomain is null)
@@ -74,7 +84,8 @@ public sealed class CreateOwnTenantCommandHandler(
         string hostname = subdomain.ToHostname(addresses.TenantBaseDomain!);
 
         (Guid tenantId, Guid ownerId) = DeriveIdentifiers(request.CreatorUserId, request.IdempotencyKey);
-        if (await FindReplayAsync(tenantId, name, description, hostname, cancellationToken) is { } replay)
+        NewTenantListing listing = new(name, description, hostname, category, request.BusinessDetails);
+        if (await FindReplayAsync(tenantId, listing, cancellationToken) is { } replay)
             return await WithHandoffAsync(replay, request.CreatorUserId, cancellationToken);
 
         TenantCreator? creator = await creators.FindAsync(request.CreatorUserId, cancellationToken);
@@ -85,14 +96,14 @@ public sealed class CreateOwnTenantCommandHandler(
 
         TenantCreationAllowance allowance = new(timeProvider.GetUtcNow().UtcDateTime - CreationWindow, CreationsPerWindow);
         TenantProvisioningOutcome outcome = await tenants.CreateAsync(
-            new NewSelfServiceTenant(tenantId, ownerId, creator.UserId, name, description, hostname, profile, allowance),
+            new NewSelfServiceTenant(tenantId, ownerId, creator.UserId, name, description, hostname, profile, allowance, category, request.BusinessDetails),
             cancellationToken);
         if (outcome == TenantProvisioningOutcome.LimitReached)
             return await DeniedAsync(CreateOwnTenantStatus.LimitReached, request, tenantId, SecurityAuditReasonCatalog.MutationRejected, cancellationToken);
         if (outcome == TenantProvisioningOutcome.AddressTaken)
         {
             // A concurrent identical request may have created this very tenant first.
-            return await FindReplayAsync(tenantId, name, description, hostname, cancellationToken) is { } concurrent
+            return await FindReplayAsync(tenantId, listing, cancellationToken) is { } concurrent
                 ? await WithHandoffAsync(concurrent, request.CreatorUserId, cancellationToken)
                 : await DeniedAsync(CreateOwnTenantStatus.AddressTaken, request, tenantId, SecurityAuditReasonCatalog.MutationRejected, cancellationToken);
         }
@@ -106,14 +117,24 @@ public sealed class CreateOwnTenantCommandHandler(
             ? result with { HandoffToken = await handoffs.IssueAsync(creatorUserId, result.Hostname!, cancellationToken) }
             : result;
 
-    private async Task<CreateOwnTenantResult?> FindReplayAsync(Guid tenantId, string name, string? description, string hostname, CancellationToken cancellationToken)
+    private async Task<CreateOwnTenantResult?> FindReplayAsync(Guid tenantId, NewTenantListing listing, CancellationToken cancellationToken)
     {
         if (await tenants.FindAsync(tenantId, cancellationToken) is not { } existing)
             return null;
-        return existing.Name == name && existing.Description == description && existing.PrimaryHostname == hostname
-            ? new(CreateOwnTenantStatus.Replayed, tenantId, hostname)
+        bool sameDetails = existing.BusinessDetails is null
+            ? listing.BusinessDetails is null
+            : existing.BusinessDetails.IsEquivalentTo(listing.BusinessDetails);
+        return existing.Name == listing.Name
+            && existing.Description == listing.Description
+            && existing.PrimaryHostname == listing.Hostname
+            && existing.Category == listing.Category
+            && sameDetails
+            ? new(CreateOwnTenantStatus.Replayed, tenantId, listing.Hostname)
             : new(CreateOwnTenantStatus.IdempotencyConflict);
     }
+
+    /// <summary>What a request asks the new tenant to be, compared against a replayed one.</summary>
+    private sealed record NewTenantListing(string Name, string? Description, string Hostname, string? Category, TenantBusinessDetails? BusinessDetails);
 
     /// <summary>
     /// The same creator and idempotency key always name the same tenant and owner, so a

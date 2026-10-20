@@ -8,6 +8,7 @@ using Vitarish.Parties.Application;
 using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Application.Addresses;
 using Vitarish.Parties.Application.Onboarding;
+using Vitarish.Parties.Application.Profiles;
 using Vitarish.Parties.Api;
 using Vitarish.Parties.Infrastructure;
 using Vitarish.Parties.Infrastructure.Abstractions;
@@ -54,6 +55,8 @@ public static class IdentityPartiesExtensions
         _ = builder.Services.AddTransient<ITenantCreatorDirectory, UsersTenantCreatorDirectory>();
         _ = builder.Services.AddTransient<ISelfServiceTenantStore, SelfServiceTenantStore>();
         _ = builder.Services.AddTransient<ITenantHandoffIssuer, AuthenticationTenantHandoffIssuer>();
+        _ = builder.Services.AddTransient<ITenantBusinessProfileStore, TenantBusinessProfileStore>();
+        _ = builder.Services.AddTransient<ITenantImageFiles, FilesTenantImageFiles>();
         _ = builder.Services.AddTransient<IAppTenantProvisioner, EfAppTenantProvisioner>();
         _ = builder.Services.AddTransient<IPartiesService, PartiesService>();
         _ = builder.Services.AddTransient<Vitarish.Users.Application.Abstractions.ITenantExistence, TenantExistence>();
