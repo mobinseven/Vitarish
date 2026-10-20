@@ -204,7 +204,9 @@ validates protected server env files, starts missing dependencies on a fresh
 host, and gates reference updates on container health and HTTPS probes. Its
 rollback restores prior configuration and running services on failure. See
 [`docs/hosts/server-deployment-bundles.md`](hosts/server-deployment-bundles.md)
-for bootstrap, secrets, health checks, and recovery. Use
+for bootstrap, secrets, health checks, and recovery, and
+[`docs/runbooks/clinic-onboarding.md`](runbooks/clinic-onboarding.md) to switch
+self-service clinic onboarding (ADR-0016) on or off. Use
 `src/Hosts/scripts/Install-UbuntuServer.ps1` once to provision Docker/Compose
 and the server's GHCR read login. Run local Web development through the npm
 workspace and a separately started Main host.
@@ -364,6 +366,11 @@ flagged command for the selection it used. Each E2E theme, viewport, and locale
 combination starts fresh hosts, and its screenshots and videos land in that
 run's `artifacts/two-host-e2e/runs/<run>/test-results/`. It captures selected
 flows only and does not replace the two-host proof.
+
+The E2E host serves clinics at `<subdomain>.localhost:3005` and onboarding at
+`start.localhost:3005`, and writes every SMS it would send to the run's
+`e2e-sms-capture.jsonl` (`twoHostE2eSmsCapturePathEnvironmentKey`), where
+`tests/e2e/clinic-onboarding-walkthrough.spec.ts` reads sign-up codes.
 
 Use the owning package's `generate:api` script after an OpenAPI change. Do not
 assume every workspace exposes every root script; inspect its `package.json`.

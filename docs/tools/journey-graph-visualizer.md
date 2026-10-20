@@ -19,9 +19,11 @@ This page visualizes the complete journey map inventory from `docs/apps/` and `d
 flowchart LR
     %% Entry and current-state setup
     Start([Authenticated user]):::entry
-    Home[Home page<br/>Create Workspace CTA]:::current
-    Onboarding[Owner onboarding<br/>Current-state setup flow<br/><code>owner-onboarding-journey.md</code>]:::current
-    TenantCreated[(Owner + tenant + primary indicator<br/>active modules + roles)]:::state
+    Visitor([New person with a phone number]):::entry
+    SignIn[Sign-in page<br/>Create your clinic link]:::current
+    Home[Home page]:::current
+    Onboarding[Self-service clinic onboarding<br/>Onboarding host, /setup<br/><code>owner-onboarding-journey.md</code>]:::current
+    TenantCreated[(Clinic + address + owner role<br/>business profile)]:::state
     ModuleShortcuts[Home module dashboard shortcuts<br/>Sea / Medical / Commerce / Appointments]:::current
 
     %% Core future owner shell
@@ -67,10 +69,11 @@ flowchart LR
     AuditEvents[(Audit events for sensitive actions)]:::state
 
     Start --> Home
-    Home -->|feature flag enabled| Onboarding
+    Visitor --> SignIn
+    SignIn -->|feature flag enabled| Onboarding
     Onboarding --> TenantCreated
     TenantCreated --> OwnerData
-    TenantCreated --> Home
+    TenantCreated -->|one-time handoff to the clinic's host| Home
     Home -->|tenant context resolved| ModuleShortcuts
     Home -. future owner entry .-> Dashboard
     ModuleShortcuts -->|Medical module| MedicalDashboard
@@ -179,7 +182,7 @@ flowchart LR
 
 ## Reading the Map
 
-1. The current platform setup journey is the self-service owner onboarding flow. It starts from the home page, creates the owner/tenant/indicator/module metadata/role assignments, and returns the user to the home experience.
+1. The current platform setup journey is self-service clinic onboarding. A new person follows **Create your clinic** from the sign-in page to the onboarding host, signs up by phone, creates the clinic (address, owner role, business profile), and a one-time handoff signs them in on the new clinic's home page.
 2. The future owner dashboard becomes the hub above tenant and module dashboards. It should stay a navigation and summary surface, not a place for hidden state-changing logic.
 3. Tenant overview is the future tenant-scoped command page. It links to focused journeys and keeps destructive work outside the overview itself.
 4. Global tenant list and tenant switcher are read/navigation journeys that help users understand or change the active tenant context before taking tenant-scoped actions.

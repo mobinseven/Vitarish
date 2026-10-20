@@ -113,6 +113,10 @@ proxy subnets that do not conflict with the host LAN, VPN, or other Docker
 networks. Main trusts only the fixed Caddy IPv4 address on its environment
 proxy network.
 
+Self-service clinic onboarding uses the `*.clinic.vitarish.com` host and is off
+until its settings are set; see the
+[clinic onboarding runbook](../runbooks/clinic-onboarding.md).
+
 The repository's examples use deliberately invalid image and credential
 values. They are for Compose rendering only; replace them in the protected
 operator files before bringing services up. The security baseline validates
