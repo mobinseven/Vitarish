@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthSession } from "@vitarish/auth";
+import { BrandedPageFrame } from "@/components/branding/BrandedPageFrame";
 import { JourneyGateBoundary } from "@/components/journey/JourneyGateBoundary";
 import { LoadingScreen } from "@/components/loading/LoadingScreen";
 import { Routes } from "@/app/routes";
@@ -28,8 +29,10 @@ export default function SetupLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <StandaloneCenteredPage width="reading">
-      <JourneyGateBoundary>{children}</JourneyGateBoundary>
-    </StandaloneCenteredPage>
+    <BrandedPageFrame>
+      <StandaloneCenteredPage width="reading">
+        <JourneyGateBoundary>{children}</JourneyGateBoundary>
+      </StandaloneCenteredPage>
+    </BrandedPageFrame>
   );
 }
