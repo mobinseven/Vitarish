@@ -1,0 +1,34 @@
+using Vitarish.Entities.Server.Extensions;
+using Vitarish.Files.Application.Abstractions;
+using Vitarish.Files.Contracts.Routes;
+using Vitarish.Files.Domain.Models;
+using Vitarish.Parties.Application.Profiles;
+
+namespace Vitarish.Parties.Infrastructure.Services;
+
+/// <summary>
+/// Checks file references against the Files module. Its file lookups only see the request's
+/// own tenant, so another tenant's file is indistinguishable from a missing one.
+/// </summary>
+public sealed class FilesTenantImageFiles(IFileInformationService files) : ITenantImageFiles
+{
+    // Images every browser shows; HEIC/HEIF uploads are accepted by Files but not shown everywhere.
+    private static readonly HashSet<string> DisplayableImageTypes = new(
+        FileTransferPolicy.UploadFormats
+            .Where(format => format.Signature is FileSignature.Jpeg or FileSignature.Png or FileSignature.WebP)
+            .Select(format => format.MediaType),
+        StringComparer.OrdinalIgnoreCase);
+
+    public async Task<bool> AreOwnImagesAsync(IReadOnlyCollection<Guid> fileIds, CancellationToken cancellationToken = default)
+    {
+        foreach (Guid fileId in fileIds)
+        {
+            FileInformationReadDto? file = await files.GetAsync(fileId, cancellationToken).GetValueOrDefaultAsync();
+            if (file is null || !DisplayableImageTypes.Contains(file.ContentType))
+                return false;
+        }
+        return true;
+    }
+
+    public string ContentUrl(Guid fileId) => FilesApiRoutes.ContentPath(fileId);
+}

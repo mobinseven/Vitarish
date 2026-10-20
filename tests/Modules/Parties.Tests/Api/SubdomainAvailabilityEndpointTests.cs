@@ -102,7 +102,7 @@ public sealed class SubdomainAvailabilityEndpointTests
         builder.Services.AddSingleton(sender);
         builder.Services.AddSingleton<ILoggerFactory>(NullLoggerFactory.Instance);
         builder.Services.AddOptions<TenantAddressOptions>().Configure(options => options.TenantBaseDomain = baseDomain);
-        builder.Services.AddSingleton(new SelfServiceTenantProfile("clinic-app"));
+        builder.Services.AddSingleton(new SelfServiceTenantProfile("clinic-app", []));
         WebApplication app = builder.Build();
         _ = app.MapPartiesApi();
         return app;

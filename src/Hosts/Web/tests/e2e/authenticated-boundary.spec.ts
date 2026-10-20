@@ -784,6 +784,54 @@ test("enforces tenant-user and tenant-owner authorization through the API", asyn
   expect(otherUserProfile.status).toBe(403);
 });
 
+// authorization-matrix:tenant-business-profile
+test("only the tenant owner reads and replaces the tenant business profile", async ({ browser }) => {
+  const profilePath = "/api/modules/parties/tenant-profile";
+  const profile = {
+    description: "E2E business profile",
+    category: "dermatology",
+    businessDetails: {
+      address: { province: "Tehran", city: "Tehran", street: null, postalCode: null, latitude: 35.7, longitude: 51.4 },
+      phones: ["021 1234 5678"],
+      website: "https://e2e.example.test",
+      socialLinks: [],
+      workingHours: [{ day: "Saturday", intervals: [{ opens: "09:00", closes: "13:00" }, { opens: "16:00", closes: "20:00" }] }],
+      photoFileIds: [],
+    },
+  };
+
+  const tenantUserPage = await browser.newPage();
+  await login(tenantUserPage, tenantUserUsername, "", e2ePassword, "198.51.100.26");
+  expect((await fetchJson(tenantUserPage, profilePath)).status).toBe(403);
+  expect((await putJson(tenantUserPage, profilePath, profile)).status).toBe(403);
+  expect((await putJson(tenantUserPage, `${profilePath}/logo`, { fileId: crypto.randomUUID() })).status).toBe(403);
+  await tenantUserPage.close();
+
+  const ownerPage = await browser.newPage();
+  await login(ownerPage, e2eUsername, "", e2ePassword, "198.51.100.27");
+  const original = await fetchJson(ownerPage, profilePath);
+  expect(original.status).toBe(200);
+  expect((await putJson(ownerPage, profilePath, { ...profile, category: "astrology" })).status).toBe(400);
+  expect((await putJson(ownerPage, profilePath, {
+    ...profile,
+    businessDetails: { ...profile.businessDetails, photoFileIds: [crypto.randomUUID()] },
+  })).status).toBe(400);
+  expect((await putJson(ownerPage, `${profilePath}/logo`, { fileId: crypto.randomUUID() })).status).toBe(400);
+  expect((await putJson(ownerPage, profilePath, profile)).status).toBe(204);
+  const saved = await fetchJson(ownerPage, profilePath);
+  expect(saved.status).toBe(200);
+  expect(saved.body).toMatchObject({
+    description: profile.description,
+    category: profile.category,
+    businessDetails: { phones: profile.businessDetails.phones, workingHours: profile.businessDetails.workingHours },
+  });
+
+  // The owner tenant is shared fixture state, so put back what it had.
+  const { description, category, businessDetails } = original.body as Record<string, unknown>;
+  expect((await putJson(ownerPage, profilePath, { description, category, businessDetails })).status).toBe(204);
+  await ownerPage.close();
+});
+
 test("UsersSearchUsers requires the platform administrator policy", async ({ browser }) => {
   const tenantUserPage = await browser.newPage();
   await login(tenantUserPage, tenantUserUsername, "", e2ePassword, "198.51.100.25");

@@ -1,3 +1,5 @@
+using Vitarish.Parties.Domain.Profiles;
+
 namespace Vitarish.Parties.Application.Onboarding;
 
 /// <summary>The account asking to create a tenant, as far as creation cares.</summary>
@@ -20,10 +22,18 @@ public sealed record NewSelfServiceTenant(
     string? Description,
     string Hostname,
     SelfServiceTenantProfile Profile,
-    TenantCreationAllowance Allowance);
+    TenantCreationAllowance Allowance,
+    string? Category = null,
+    TenantBusinessDetails? BusinessDetails = null);
 
 /// <summary>A tenant that self-service creation already made.</summary>
-public sealed record ExistingSelfServiceTenant(Guid TenantId, string Name, string? Description, string? PrimaryHostname);
+public sealed record ExistingSelfServiceTenant(
+    Guid TenantId,
+    string Name,
+    string? Description,
+    string? PrimaryHostname,
+    string? Category = null,
+    TenantBusinessDetails? BusinessDetails = null);
 
 public enum TenantProvisioningOutcome
 {

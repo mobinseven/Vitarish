@@ -10,11 +10,15 @@
     <PackageReference Include="Injectio" />
     <PackageReference Include="MediatR" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Requests\Application\Requests.Application.csproj" />
     <ProjectReference Include="..\..\Users\Application\Users.Application.csproj" />
     <ProjectReference Include="..\..\Authentication\Application\Authentication.Application.csproj" />
+    <ProjectReference Include="..\..\Files\Application\Files.Application.csproj" />
+    <ProjectReference Include="..\..\Files\Contracts\Files.Contracts.csproj" />
     <ProjectReference Include="..\Application\Parties.Application.csproj" />
     <ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
     <ProjectReference Include="..\..\..\Libraries\Entities\Entities.Generators\Entities.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />

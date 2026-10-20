@@ -27,5 +27,8 @@ public static class PartiesApiRoutes
     public const string SubdomainAvailability = "/subdomain-availability";
     public const string SubdomainQueryParameter = "subdomain";
     public const string OnboardingTenants = "/tenants";
+    public const string OnboardingCategories = "/categories";
+    public const string TenantProfile = "/tenant-profile";
+    public const string TenantProfileLogo = "/tenant-profile/logo";
     public const string IdempotencyKeyHeader = "Idempotency-Key";
 }

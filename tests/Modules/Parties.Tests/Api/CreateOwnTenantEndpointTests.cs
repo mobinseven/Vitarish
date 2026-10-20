@@ -198,7 +198,7 @@ public sealed class CreateOwnTenantEndpointTests
         builder.Services.AddSingleton(requestContext.Object);
 
         if (registerProfile)
-            builder.Services.AddSingleton(new SelfServiceTenantProfile("clinic-app"));
+            builder.Services.AddSingleton(new SelfServiceTenantProfile("clinic-app", []));
 
         WebApplication app = builder.Build();
         _ = app.MapPartiesApi();
