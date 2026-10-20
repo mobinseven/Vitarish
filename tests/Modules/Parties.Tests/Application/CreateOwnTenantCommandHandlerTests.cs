@@ -33,7 +33,10 @@ public sealed class CreateOwnTenantCommandHandlerTests
             .ReturnsAsync(TenantProvisioningOutcome.Created);
 
         Mock<ISecurityAuditWriter> audit = AuditWriter();
-        CreateOwnTenantCommandHandler handler = CreateHandler(creators.Object, store.Object, audit.Object);
+        Mock<ITenantHandoffIssuer> handoffs = new();
+        handoffs.Setup(item => item.IssueAsync(CreatorUserId, "rezaei.clinic.example.test", It.IsAny<CancellationToken>()))
+            .ReturnsAsync("handoff-token-1");
+        CreateOwnTenantCommandHandler handler = CreateHandler(creators.Object, store.Object, audit.Object, handoffs.Object);
 
         CreateOwnTenantResult result = await handler.Handle(
             new CreateOwnTenantCommand(CreatorUserId, "  Rezaei Clinic  ", " Rezaei ", "   ", IdempotencyKey),
@@ -43,17 +46,46 @@ public sealed class CreateOwnTenantCommandHandlerTests
         result.Status.Should().Be(CreateOwnTenantStatus.Created);
         result.Hostname.Should().Be("rezaei.clinic.example.test");
         result.TenantId.Should().Be(captured!.TenantId);
+        result.HandoffToken.Should().Be("handoff-token-1");
         captured.Name.Should().Be("Rezaei Clinic");
         captured.Description.Should().BeNull();
         captured.Profile.Should().BeSameAs(Profile);
         captured.CreatorUserId.Should().Be(CreatorUserId);
 
+        handoffs.Verify(item => item.IssueAsync(CreatorUserId, "rezaei.clinic.example.test", It.IsAny<CancellationToken>()), Times.Once);
         audit.Verify(writer => writer.WriteAsync(
             It.Is<SecurityAuditEvent>(entry =>
                 entry.Outcome == SecurityAuditOutcome.Succeeded &&
                 entry.EventName == PartiesSecurityAuditEvents.SelfServiceTenantCreation &&
                 entry.TenantId == captured.TenantId.ToString()),
             It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Returns_created_with_null_handoff_token_when_the_issuer_returns_null()
+    {
+        Mock<ITenantCreatorDirectory> creators = new();
+        creators.Setup(item => item.FindAsync(CreatorUserId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new TenantCreator(CreatorUserId, HasVerifiedPhone: true));
+
+        Mock<ISelfServiceTenantStore> store = new();
+        store.Setup(item => item.CreateAsync(It.IsAny<NewSelfServiceTenant>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(TenantProvisioningOutcome.Created);
+
+        Mock<ITenantHandoffIssuer> handoffs = new();
+        handoffs.Setup(item => item.IssueAsync(CreatorUserId, "rezaei.clinic.example.test", It.IsAny<CancellationToken>()))
+            .ReturnsAsync((string?)null);
+
+        CreateOwnTenantCommandHandler handler = CreateHandler(creators.Object, store.Object, AuditWriter().Object, handoffs.Object);
+
+        CreateOwnTenantResult result = await handler.Handle(
+            new CreateOwnTenantCommand(CreatorUserId, "Rezaei Clinic", "rezaei", null, IdempotencyKey),
+            CancellationToken.None);
+
+        result.Status.Should().Be(CreateOwnTenantStatus.Created);
+        result.Hostname.Should().Be("rezaei.clinic.example.test");
+        result.HandoffToken.Should().BeNull();
+        handoffs.Verify(item => item.IssueAsync(CreatorUserId, "rezaei.clinic.example.test", It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -103,7 +135,11 @@ public sealed class CreateOwnTenantCommandHandlerTests
                 "Care",
                 "rezaei.clinic.example.test"));
 
-        CreateOwnTenantCommandHandler handler = CreateHandler(creators.Object, store.Object, AuditWriter().Object);
+        Mock<ITenantHandoffIssuer> handoffs = new();
+        handoffs.Setup(item => item.IssueAsync(CreatorUserId, "rezaei.clinic.example.test", It.IsAny<CancellationToken>()))
+            .ReturnsAsync("fresh-handoff-token");
+
+        CreateOwnTenantCommandHandler handler = CreateHandler(creators.Object, store.Object, AuditWriter().Object, handoffs.Object);
 
         CreateOwnTenantResult result = await handler.Handle(
             new CreateOwnTenantCommand(CreatorUserId, "Clinic", "rezaei", "Care", IdempotencyKey),
@@ -112,6 +148,8 @@ public sealed class CreateOwnTenantCommandHandlerTests
         result.Status.Should().Be(CreateOwnTenantStatus.Replayed);
         result.TenantId.Should().Be(existingId);
         result.Hostname.Should().Be("rezaei.clinic.example.test");
+        result.HandoffToken.Should().Be("fresh-handoff-token");
+        handoffs.Verify(item => item.IssueAsync(CreatorUserId, "rezaei.clinic.example.test", It.IsAny<CancellationToken>()), Times.Once);
         store.Verify(item => item.CreateAsync(It.IsAny<NewSelfServiceTenant>(), It.IsAny<CancellationToken>()), Times.Never);
         creators.VerifyNoOtherCalls();
     }
@@ -210,14 +248,17 @@ public sealed class CreateOwnTenantCommandHandlerTests
             .ReturnsAsync(new TenantCreator(CreatorUserId, HasVerifiedPhone: false));
         Mock<ISelfServiceTenantStore> store = new();
         Mock<ISecurityAuditWriter> audit = AuditWriter();
-        CreateOwnTenantCommandHandler handler = CreateHandler(creators.Object, store.Object, audit.Object);
+        Mock<ITenantHandoffIssuer> handoffs = new(MockBehavior.Strict);
+        CreateOwnTenantCommandHandler handler = CreateHandler(creators.Object, store.Object, audit.Object, handoffs.Object);
 
         CreateOwnTenantResult result = await handler.Handle(
             new CreateOwnTenantCommand(CreatorUserId, "Clinic", "rezaei", null, IdempotencyKey),
             CancellationToken.None);
 
         result.Status.Should().Be(CreateOwnTenantStatus.PhoneNotVerified);
+        result.HandoffToken.Should().BeNull();
         store.Verify(item => item.CreateAsync(It.IsAny<NewSelfServiceTenant>(), It.IsAny<CancellationToken>()), Times.Never);
+        handoffs.Verify(item => item.IssueAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
         audit.Verify(writer => writer.WriteAsync(
             It.Is<SecurityAuditEvent>(entry => entry.Outcome == SecurityAuditOutcome.Denied),
             It.IsAny<CancellationToken>()), Times.Once);
@@ -237,7 +278,8 @@ public sealed class CreateOwnTenantCommandHandlerTests
             .ReturnsAsync(TenantProvisioningOutcome.LimitReached);
 
         Mock<ISecurityAuditWriter> audit = AuditWriter();
-        CreateOwnTenantCommandHandler handler = CreateHandler(creators.Object, store.Object, audit.Object);
+        Mock<ITenantHandoffIssuer> handoffs = new(MockBehavior.Strict);
+        CreateOwnTenantCommandHandler handler = CreateHandler(creators.Object, store.Object, audit.Object, handoffs.Object);
 
         CreateOwnTenantResult result = await handler.Handle(
             new CreateOwnTenantCommand(CreatorUserId, "Clinic", "rezaei", null, IdempotencyKey),
@@ -247,6 +289,7 @@ public sealed class CreateOwnTenantCommandHandlerTests
         captured.Should().NotBeNull();
         captured!.Allowance.Maximum.Should().Be(3);
         captured.Allowance.SinceUtc.Should().Be(FixedNow.UtcDateTime - TimeSpan.FromDays(1));
+        handoffs.Verify(item => item.IssueAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
         audit.Verify(writer => writer.WriteAsync(
             It.Is<SecurityAuditEvent>(entry => entry.Outcome == SecurityAuditOutcome.Denied),
             It.IsAny<CancellationToken>()), Times.Once);
@@ -266,13 +309,16 @@ public sealed class CreateOwnTenantCommandHandlerTests
             .ReturnsAsync(TenantProvisioningOutcome.AddressTaken);
 
         Mock<ISecurityAuditWriter> audit = AuditWriter();
-        CreateOwnTenantCommandHandler handler = CreateHandler(creators.Object, store.Object, audit.Object);
+        Mock<ITenantHandoffIssuer> handoffs = new(MockBehavior.Strict);
+        CreateOwnTenantCommandHandler handler = CreateHandler(creators.Object, store.Object, audit.Object, handoffs.Object);
 
         CreateOwnTenantResult result = await handler.Handle(
             new CreateOwnTenantCommand(CreatorUserId, "Clinic", "rezaei", null, IdempotencyKey),
             CancellationToken.None);
 
         result.Status.Should().Be(CreateOwnTenantStatus.AddressTaken);
+        result.HandoffToken.Should().BeNull();
+        handoffs.Verify(item => item.IssueAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
         audit.Verify(writer => writer.WriteAsync(
             It.Is<SecurityAuditEvent>(entry => entry.Outcome == SecurityAuditOutcome.Denied),
             It.IsAny<CancellationToken>()), Times.Once);
@@ -312,6 +358,7 @@ public sealed class CreateOwnTenantCommandHandlerTests
             Mock.Of<ITenantCreatorDirectory>(),
             Mock.Of<ISelfServiceTenantStore>(),
             Mock.Of<ISecurityAuditWriter>(),
+            Mock.Of<ITenantHandoffIssuer>(),
             Mock.Of<IRequestContext>(),
             new FixedTimeProvider(FixedNow));
 
@@ -325,7 +372,8 @@ public sealed class CreateOwnTenantCommandHandlerTests
     private static CreateOwnTenantCommandHandler CreateHandler(
         ITenantCreatorDirectory creators,
         ISelfServiceTenantStore store,
-        ISecurityAuditWriter auditWriter)
+        ISecurityAuditWriter auditWriter,
+        ITenantHandoffIssuer? handoffs = null)
     {
         Mock<IRequestContext> requestContext = new();
         requestContext.SetupGet(context => context.UserId).Returns(CreatorUserId);
@@ -335,6 +383,7 @@ public sealed class CreateOwnTenantCommandHandlerTests
             creators,
             store,
             auditWriter,
+            handoffs ?? Mock.Of<ITenantHandoffIssuer>(),
             requestContext.Object,
             new FixedTimeProvider(FixedNow));
     }

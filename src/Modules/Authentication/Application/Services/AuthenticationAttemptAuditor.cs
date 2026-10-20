@@ -27,6 +27,12 @@ public sealed class AuthenticationAttemptAuditor(
             _ => throw new ArgumentOutOfRangeException(nameof(method), method, "This attempt method uses a dedicated audit handler.")
         };
 
+        await RecordAsync(eventName, operation, subjectId, succeeded ? null : failureReason ?? SecurityAuditReasonCatalog.AuthenticationFailed, cancellationToken);
+    }
+
+    /// <param name="failureReason">Null when the attempt succeeded.</param>
+    public async Task RecordAsync(string eventName, string operation, string? subjectId, string? failureReason, CancellationToken cancellationToken)
+    {
         string requestKey = requestContext.RequestId ?? requestContext.TraceId ?? Guid.NewGuid().ToString("N");
         try
         {
@@ -34,7 +40,7 @@ public sealed class AuthenticationAttemptAuditor(
             {
                 EventName = eventName,
                 EventCategory = SecurityAuditEventCatalog.AuthenticationCategory,
-                Outcome = succeeded ? SecurityAuditOutcome.Succeeded : SecurityAuditOutcome.Denied,
+                Outcome = failureReason is null ? SecurityAuditOutcome.Succeeded : SecurityAuditOutcome.Denied,
                 ActorId = requestContext.UserId,
                 SubjectId = subjectId,
                 TenantId = requestContext.TenantId ?? SecurityAuditScopeCatalog.PlatformScopeId,
@@ -43,7 +49,7 @@ public sealed class AuthenticationAttemptAuditor(
                 OccurredAt = clock.UtcNow,
                 CorrelationId = requestContext.TraceId ?? requestKey,
                 SourceBoundary = AuthenticationSecurityAuditEvents.SourceBoundary,
-                RedactedReason = succeeded ? null : failureReason ?? SecurityAuditReasonCatalog.AuthenticationFailed,
+                RedactedReason = failureReason,
                 IdempotencyKey = requestKey + AuthenticationSecurityAuditEvents.AuthenticationAttemptIdempotencySuffix + operation
             }, cancellationToken);
         }

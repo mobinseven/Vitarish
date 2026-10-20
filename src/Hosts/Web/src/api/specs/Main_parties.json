@@ -2135,6 +2135,12 @@
           },
           "hostname": {
             "type": "string"
+          },
+          "handoffToken": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },

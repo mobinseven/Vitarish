@@ -101,5 +101,7 @@ public enum PreAuthenticationAction
     PhoneLogin,
     EmailLogin,
     PasskeyLogin,
-    PasswordPlusPhoneOtp
+    PasswordPlusPhoneOtp,
+    /// <summary>Continue on a just-created tenant's own host with a one-time handoff ticket.</summary>
+    TenantHandoff
 }

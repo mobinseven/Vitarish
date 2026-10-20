@@ -129,6 +129,47 @@ namespace Vitarish.Authentication.Infrastructure.Migrations.AuthenticationDb
                     b.ToTable("AuthenticationSessionNotices", "Authentication");
                 });
 
+            modelBuilder.Entity("Vitarish.Authentication.Domain.Sessions.TenantHandoffTicket", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("IssuedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("RedeemedAt")
+                        .IsConcurrencyToken()
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("TargetHost")
+                        .IsRequired()
+                        .HasMaxLength(253)
+                        .HasColumnType("character varying(253)");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.HasIndex("UserId", "ExpiresAt");
+
+                    b.ToTable("TenantHandoffTickets", "Authentication");
+                });
+
             modelBuilder.Entity("Vitarish.Authentication.Infrastructure.AuthenticationUserSessionPolicyRecord", b =>
                 {
                     b.Property<string>("UserId")

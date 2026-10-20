@@ -228,6 +228,51 @@ public class ProtectedAuthenticationEndpointAuthorizationTests
             .OrderBy(name => name, StringComparer.Ordinal)
             .ToArray();
         recoveryOperations.Should().Equal(AuthenticationPasswordRecoveryOperationIds.Begin, AuthenticationPasswordRecoveryOperationIds.Complete);
+
+        ((IEndpointRouteBuilder)app).DataSources
+            .SelectMany(source => source.Endpoints)
+            .OfType<RouteEndpoint>()
+            .Select(endpoint => endpoint.Metadata.GetMetadata<IEndpointNameMetadata>()?.EndpointName)
+            .Should().NotContain(AuthenticationTenantHandoffOperationIds.Redeem);
+    }
+
+    [Fact]
+    public void Default_profile_maps_anonymous_tenant_handoff_redeem_with_justification_audit_and_rate_limiting()
+    {
+        WebApplicationBuilder builder = WebApplication.CreateBuilder();
+        builder.Services.AddAntiforgery();
+        using WebApplication app = builder.Build();
+
+        app.MapAuthenticationApi(AuthenticationProfilePolicy.Default);
+
+        RouteEndpoint endpoint = FindRouteEndpoint(app, AuthenticationRoutes.TenantHandoffRedeem);
+
+        endpoint.Metadata.GetMetadata<IEndpointNameMetadata>()?.EndpointName
+            .Should().Be(AuthenticationTenantHandoffOperationIds.Redeem);
+        endpoint.Metadata.GetMetadata<IAllowAnonymous>().Should().NotBeNull();
+        endpoint.Metadata.GetMetadata<AnonymousModuleEndpointMetadata>()?.Justification
+            .Should().Be(AuthenticationAnonymousEndpointJustifications.TenantHandoff);
+        endpoint.Metadata.GetMetadata<SecurityAuditRequiredMetadata>().Should().NotBeNull();
+        endpoint.Metadata.GetMetadata<ProtectedModuleEndpointMetadata>().Should().BeNull();
+        endpoint.Metadata.GetOrderedMetadata<Microsoft.AspNetCore.RateLimiting.EnableRateLimitingAttribute>()
+            .Should().ContainSingle()
+            .Which.PolicyName.Should().Be(AuthenticationRateLimitPolicies.OtpComplete);
+    }
+
+    [Fact]
+    public void Profile_policies_include_tenant_handoff_only_when_allowed()
+    {
+        AuthenticationProfilePolicy.Default.AllowTenantHandoff.Should().BeTrue();
+        AuthenticationProfilePolicy.Default.PermittedPreAuthenticationActions
+            .Should().Contain(PreAuthenticationAction.TenantHandoff);
+
+        AuthenticationProfilePolicy.OpenApi.AllowTenantHandoff.Should().BeTrue();
+        AuthenticationProfilePolicy.OpenApi.PermittedPreAuthenticationActions
+            .Should().Contain(PreAuthenticationAction.TenantHandoff);
+
+        AuthenticationProfilePolicy.ProductEvaluated.AllowTenantHandoff.Should().BeFalse();
+        AuthenticationProfilePolicy.ProductEvaluated.PermittedPreAuthenticationActions
+            .Should().NotContain(PreAuthenticationAction.TenantHandoff);
     }
 
     private static WebApplication CreateAppWithProtectedAuthenticationEndpoints()

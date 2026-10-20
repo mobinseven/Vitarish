@@ -310,6 +310,8 @@ const platformAuditIdentifierLabels = {
       "users.account.enabled": "Account enabled",
       "users.security-attributes.changed": "User security attributes changed",
       "parties.tenant.self-service-created": "Clinic created by its owner",
+      "authentication.tenant-handoff.issued": "Sign-in link to a new clinic issued",
+      "authentication.tenant-handoff.redeemed": "Sign-in link to a new clinic used",
     },
   },
   fa: {
@@ -369,6 +371,8 @@ const platformAuditIdentifierLabels = {
       "users.account.enabled": "فعال کردن حساب",
       "users.security-attributes.changed": "تغییر ویژگی‌های امنیتی کاربر",
       "parties.tenant.self-service-created": "ساخت مطب به دست مالک آن",
+      "authentication.tenant-handoff.issued": "صدور پیوند ورود به مطب تازه",
+      "authentication.tenant-handoff.redeemed": "استفاده از پیوند ورود به مطب تازه",
     },
   },
 } as const;

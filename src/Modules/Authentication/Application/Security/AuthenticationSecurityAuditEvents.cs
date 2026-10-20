@@ -18,6 +18,10 @@ public static class AuthenticationSecurityAuditEvents
     public const string PhoneLoginOperation = SecurityAuditEventCatalog.PhoneLoginOperation;
     public const string EmailLoginOperation = SecurityAuditEventCatalog.EmailLoginOperation;
     public const string PasskeyLoginOperation = SecurityAuditEventCatalog.PasskeyLoginOperation;
+    public const string TenantHandoffIssue = SecurityAuditEventCatalog.AuthenticationTenantHandoffIssueEvent;
+    public const string TenantHandoffRedeem = SecurityAuditEventCatalog.AuthenticationTenantHandoffRedeemEvent;
+    public const string TenantHandoffIssueOperation = SecurityAuditEventCatalog.TenantHandoffIssueOperation;
+    public const string TenantHandoffRedeemOperation = SecurityAuditEventCatalog.TenantHandoffRedeemOperation;
     public const string AuthenticationAttemptIdempotencySuffix = ":authentication-attempt:";
     public const string OtpSmsSend = SecurityAuditEventCatalog.AuthenticationOtpSmsSendEvent;
     public const string OtpEmailSend = SecurityAuditEventCatalog.AuthenticationOtpEmailSendEvent;

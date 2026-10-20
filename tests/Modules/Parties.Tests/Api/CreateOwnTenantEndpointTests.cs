@@ -117,7 +117,7 @@ public sealed class CreateOwnTenantEndpointTests
         Mock<ISender> sender = new();
         sender.Setup(item => item.Send(It.IsAny<CreateOwnTenantCommand>(), It.IsAny<CancellationToken>()))
             .Callback<IRequest<CreateOwnTenantResult>, CancellationToken>((command, _) => captured = (CreateOwnTenantCommand)command)
-            .ReturnsAsync(new CreateOwnTenantResult(CreateOwnTenantStatus.Created, tenantId, "rezaei.clinic.example.test"));
+            .ReturnsAsync(new CreateOwnTenantResult(CreateOwnTenantStatus.Created, tenantId, "rezaei.clinic.example.test", HandoffToken: "handoff-token-1"));
 
         using WebApplication app = CreateMappedApp(
             onboardingEnabled: true,
@@ -140,7 +140,9 @@ public sealed class CreateOwnTenantEndpointTests
 
         context.Response.Body.Position = 0;
         string body = await new StreamReader(context.Response.Body).ReadToEndAsync();
-        body.Should().Contain(tenantId.ToString()).And.Contain("rezaei.clinic.example.test");
+        body.Should().Contain(tenantId.ToString())
+            .And.Contain("rezaei.clinic.example.test")
+            .And.Contain("\"handoffToken\":\"handoff-token-1\"");
     }
 
     [Theory]
