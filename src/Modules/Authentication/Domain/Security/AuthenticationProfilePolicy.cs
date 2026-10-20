@@ -6,13 +6,15 @@ public sealed record AuthenticationProfilePolicy(
     bool UsePhoneOtpForTwoFactorAccounts,
     bool AllowPasswordlessPhoneLogin,
     bool AllowPasswordlessEmailLogin,
-    bool AllowPasskeyLogin)
+    bool AllowPasskeyLogin,
+    bool AllowTenantHandoff = false)
 {
     public static AuthenticationProfilePolicy Default { get; } = new(
         UsePhoneOtpForTwoFactorAccounts: false,
         AllowPasswordlessPhoneLogin: true,
         AllowPasswordlessEmailLogin: true,
-        AllowPasskeyLogin: true);
+        AllowPasskeyLogin: true,
+        AllowTenantHandoff: true);
 
     public static AuthenticationProfilePolicy ProductEvaluated { get; } = new(
         UsePhoneOtpForTwoFactorAccounts: true,
@@ -24,7 +26,8 @@ public sealed record AuthenticationProfilePolicy(
         UsePhoneOtpForTwoFactorAccounts: true,
         AllowPasswordlessPhoneLogin: true,
         AllowPasswordlessEmailLogin: true,
-        AllowPasskeyLogin: true);
+        AllowPasskeyLogin: true,
+        AllowTenantHandoff: true);
 
     public IReadOnlySet<AuthenticationMethod> EnabledAuthenticationMechanisms
     {
@@ -59,6 +62,8 @@ public sealed record AuthenticationProfilePolicy(
                 actions.Add(PreAuthenticationAction.PasskeyLogin);
             if (UsePhoneOtpForTwoFactorAccounts)
                 actions.Add(PreAuthenticationAction.PasswordPlusPhoneOtp);
+            if (AllowTenantHandoff)
+                actions.Add(PreAuthenticationAction.TenantHandoff);
             return actions;
         }
     }

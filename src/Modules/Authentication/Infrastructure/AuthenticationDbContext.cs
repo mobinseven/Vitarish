@@ -9,6 +9,7 @@ public sealed class AuthenticationDbContext(DbContextOptions<AuthenticationDbCon
 {
     public DbSet<SecurityAccessPolicyRecord> SecurityAccessPolicies => Set<SecurityAccessPolicyRecord>();
     public DbSet<AuthenticationSession> AuthenticationSessions => Set<AuthenticationSession>();
+    public DbSet<TenantHandoffTicket> TenantHandoffTickets => Set<TenantHandoffTicket>();
     public DbSet<AuthenticationSessionNotice> AuthenticationSessionNotices => Set<AuthenticationSessionNotice>();
     public DbSet<AuthenticationAccessHistory> AuthenticationAccessHistories => Set<AuthenticationAccessHistory>();
     public DbSet<AuthenticationUserSessionPolicyRecord> AuthenticationUserSessionPolicies => Set<AuthenticationUserSessionPolicyRecord>();
@@ -38,6 +39,16 @@ public sealed class AuthenticationDbContext(DbContextOptions<AuthenticationDbCon
             _ = entity.Property(session => session.ClientIpAddress).HasMaxLength(45);
             _ = entity.HasIndex(session => new { session.UserId, session.TerminatedAt });
             _ = entity.HasIndex(session => session.LastActivityAt);
+        });
+        _ = modelBuilder.Entity<TenantHandoffTicket>(entity =>
+        {
+            _ = entity.HasKey(ticket => ticket.Id);
+            _ = entity.Property(ticket => ticket.TokenHash).IsRequired().HasMaxLength(TenantHandoffTicket.TokenHashLength);
+            _ = entity.Property(ticket => ticket.UserId).IsRequired().HasMaxLength(450);
+            _ = entity.Property(ticket => ticket.TargetHost).IsRequired().HasMaxLength(TenantHandoffTicket.TargetHostMaximumLength);
+            _ = entity.Property(ticket => ticket.RedeemedAt).IsConcurrencyToken();
+            _ = entity.HasIndex(ticket => ticket.TokenHash).IsUnique();
+            _ = entity.HasIndex(ticket => new { ticket.UserId, ticket.ExpiresAt });
         });
         _ = modelBuilder.Entity<AuthenticationSessionNotice>(entity =>
         {

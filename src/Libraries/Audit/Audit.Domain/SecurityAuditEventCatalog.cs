@@ -124,6 +124,10 @@ public static class SecurityAuditEventCatalog
     public const string UserSecurityAttributeChangeEvent = "users.security-attributes.changed";
     public const string UserSecurityAttributeChangeOperation = "users.security-attributes.change";
     public const string SelfServiceTenantCreationEvent = "parties.tenant.self-service-created";
+    public const string AuthenticationTenantHandoffIssueEvent = "authentication.tenant-handoff.issued";
+    public const string AuthenticationTenantHandoffRedeemEvent = "authentication.tenant-handoff.redeemed";
+    public const string TenantHandoffIssueOperation = "authentication.tenant-handoff.issue";
+    public const string TenantHandoffRedeemOperation = "authentication.tenant-handoff.redeem";
     public const string SelfServiceTenantCreationOperation = "parties.tenant.self-service-create";
 
     public static IReadOnlyList<SecurityAuditCatalogEntry> Entries { get; } =
@@ -171,7 +175,9 @@ public static class SecurityAuditEventCatalog
         new(SecurityAttributeCategory, UserSecurityAttributeChangeEvent, UserSecurityAttributeChangeOperation, Controls: [SecurityAuditControl.SecurityAttributeAssignment, SecurityAuditControl.SecurityAttributeChange]),
         new(ManagementCategory, UserAccountDisabledEvent, UserAccountDisableOperation, Controls: [SecurityAuditControl.SecurityAdministration, SecurityAuditControl.SecurityAttributeChange]),
         new(ManagementCategory, UserAccountEnabledEvent, UserAccountEnableOperation, Controls: [SecurityAuditControl.SecurityAdministration, SecurityAuditControl.SecurityAttributeChange]),
-        new(ManagementCategory, SelfServiceTenantCreationEvent, SelfServiceTenantCreationOperation, Controls: [SecurityAuditControl.SecurityAdministration, SecurityAuditControl.GroupRoleMembershipChange])
+        new(ManagementCategory, SelfServiceTenantCreationEvent, SelfServiceTenantCreationOperation, Controls: [SecurityAuditControl.SecurityAdministration, SecurityAuditControl.GroupRoleMembershipChange]),
+        new(AuthenticationCategory, AuthenticationTenantHandoffIssueEvent, TenantHandoffIssueOperation, Controls: [SecurityAuditControl.AuthenticationMechanismUse]),
+        new(AuthenticationCategory, AuthenticationTenantHandoffRedeemEvent, TenantHandoffRedeemOperation, Controls: [SecurityAuditControl.AuthenticationMechanismUse, SecurityAuditControl.AuthenticationOutcome])
     ];
 
     public static SecurityAuditCatalogEntry? Find(string eventName, string operation) =>

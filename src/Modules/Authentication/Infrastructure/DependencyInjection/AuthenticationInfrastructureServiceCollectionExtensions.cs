@@ -46,6 +46,7 @@ public static class AuthenticationInfrastructureServiceCollectionExtensions
         services.AddScoped<IAuthenticationUserDirectory, AspNetIdentityAuthenticationUserDirectory>();
         services.AddScoped<IInitialPlatformAdministratorGrant, UsersInitialPlatformAdministratorGrant>();
         services.AddScoped<IAuthenticationSignInService, AspNetIdentitySignInService>();
+        services.AddScoped<ITenantHandoffTicketStore, TenantHandoffTicketStore>();
         services.AddScoped<AuthenticationSessionRegistry>();
         services.AddScoped<IAuthenticationSessionRegistry>(provider => provider.GetRequiredService<AuthenticationSessionRegistry>());
         services.AddScoped<IAuthenticationActiveSessionQuery>(provider => provider.GetRequiredService<AuthenticationSessionRegistry>());

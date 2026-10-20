@@ -22,6 +22,9 @@ public static class AuthenticationModuleServiceCollectionExtensions
         services.AddScoped<CompleteChangePhoneHandler>();
         services.AddScoped<BeginPhoneLoginHandler>();
         services.AddScoped<CompletePhoneLoginHandler>();
+        services.AddScoped<TenantHandoffAuditor>();
+        services.AddScoped<IssueTenantHandoffHandler>();
+        services.AddScoped<RedeemTenantHandoffHandler>();
         services.AddScoped<BeginEmailLoginHandler>();
         services.AddScoped<CompleteEmailLoginHandler>();
         services.AddScoped<BeginPasskeyLoginHandler>();

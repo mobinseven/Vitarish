@@ -26,7 +26,8 @@ public enum CreateOwnTenantStatus
     IdempotencyConflict = 10
 }
 
-public sealed record CreateOwnTenantResult(CreateOwnTenantStatus Status, Guid? TenantId = null, string? Hostname = null, string? Error = null);
+/// <param name="HandoffToken">One-time token to continue signed in on <paramref name="Hostname"/>; null when none could be issued.</param>
+public sealed record CreateOwnTenantResult(CreateOwnTenantStatus Status, Guid? TenantId = null, string? Hostname = null, string? Error = null, string? HandoffToken = null);
 
 /// <summary>
 /// A signed-in user creates their own tenant at <c>&lt;subdomain&gt;.&lt;base domain&gt;</c> and becomes
@@ -45,6 +46,7 @@ public sealed class CreateOwnTenantCommandHandler(
     ITenantCreatorDirectory creators,
     ISelfServiceTenantStore tenants,
     ISecurityAuditWriter securityAuditWriter,
+    ITenantHandoffIssuer handoffs,
     IRequestContext requestContext,
     TimeProvider timeProvider) : IRequestHandler<CreateOwnTenantCommand, CreateOwnTenantResult>
 {
@@ -73,7 +75,7 @@ public sealed class CreateOwnTenantCommandHandler(
 
         (Guid tenantId, Guid ownerId) = DeriveIdentifiers(request.CreatorUserId, request.IdempotencyKey);
         if (await FindReplayAsync(tenantId, name, description, hostname, cancellationToken) is { } replay)
-            return replay;
+            return await WithHandoffAsync(replay, request.CreatorUserId, cancellationToken);
 
         TenantCreator? creator = await creators.FindAsync(request.CreatorUserId, cancellationToken);
         if (creator is null)
@@ -90,13 +92,19 @@ public sealed class CreateOwnTenantCommandHandler(
         if (outcome == TenantProvisioningOutcome.AddressTaken)
         {
             // A concurrent identical request may have created this very tenant first.
-            return await FindReplayAsync(tenantId, name, description, hostname, cancellationToken)
-                ?? await DeniedAsync(CreateOwnTenantStatus.AddressTaken, request, tenantId, SecurityAuditReasonCatalog.MutationRejected, cancellationToken);
+            return await FindReplayAsync(tenantId, name, description, hostname, cancellationToken) is { } concurrent
+                ? await WithHandoffAsync(concurrent, request.CreatorUserId, cancellationToken)
+                : await DeniedAsync(CreateOwnTenantStatus.AddressTaken, request, tenantId, SecurityAuditReasonCatalog.MutationRejected, cancellationToken);
         }
 
         await WriteAuditAsync(request, tenantId, SecurityAuditOutcome.Succeeded, null, CancellationToken.None);
-        return new(CreateOwnTenantStatus.Created, tenantId, hostname);
+        return await WithHandoffAsync(new(CreateOwnTenantStatus.Created, tenantId, hostname), request.CreatorUserId, cancellationToken);
     }
+
+    private async Task<CreateOwnTenantResult> WithHandoffAsync(CreateOwnTenantResult result, string creatorUserId, CancellationToken cancellationToken) =>
+        result.Status is CreateOwnTenantStatus.Created or CreateOwnTenantStatus.Replayed
+            ? result with { HandoffToken = await handoffs.IssueAsync(creatorUserId, result.Hostname!, cancellationToken) }
+            : result;
 
     private async Task<CreateOwnTenantResult?> FindReplayAsync(Guid tenantId, string name, string? description, string hostname, CancellationToken cancellationToken)
     {

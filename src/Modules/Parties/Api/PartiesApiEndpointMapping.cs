@@ -136,8 +136,8 @@ public static class PartiesApiEndpointMapping
             cancellationToken);
         return result.Status switch
         {
-            CreateOwnTenantStatus.Created => Results.Created((string?)null, new C.CreateOwnTenantResponse(result.TenantId!.Value, result.Hostname!)),
-            CreateOwnTenantStatus.Replayed => Results.Ok(new C.CreateOwnTenantResponse(result.TenantId!.Value, result.Hostname!)),
+            CreateOwnTenantStatus.Created => Results.Created((string?)null, new C.CreateOwnTenantResponse(result.TenantId!.Value, result.Hostname!, result.HandoffToken)),
+            CreateOwnTenantStatus.Replayed => Results.Ok(new C.CreateOwnTenantResponse(result.TenantId!.Value, result.Hostname!, result.HandoffToken)),
             CreateOwnTenantStatus.Invalid => BadRequest(result.Error ?? "The request is invalid."),
             CreateOwnTenantStatus.AddressMalformed => BadRequest("The subdomain must be 3 to 30 lowercase letters, digits, or inner single hyphens."),
             CreateOwnTenantStatus.AddressReserved => BadRequest("This subdomain is reserved."),
