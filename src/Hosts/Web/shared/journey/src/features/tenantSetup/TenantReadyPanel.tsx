@@ -3,6 +3,7 @@
 import { Button, Tooltip } from "@heroui/react";
 import { useLocalizedText } from "@vitarish/localization";
 import { FaIcon } from "@vitarish/ui";
+import { handoffUrl, hostUrl } from "../handoff/hostUrl";
 import type { CreatedTenant } from "./useTenantSetup";
 
 interface TenantReadyPanelProps {
@@ -13,24 +14,13 @@ interface TenantReadyPanelProps {
   signInPath: string;
 }
 
-/** The new clinic's own address, on the scheme and port this page was served from. */
-function clinicUrl(hostname: string, path: string): URL {
-  const url = new URL(window.location.href);
-  url.hostname = hostname;
-  url.pathname = path;
-  url.search = "";
-  url.hash = "";
-  return url;
-}
-
 export function TenantReadyPanel({ tenant, handoffPath, signInPath }: TenantReadyPanelProps) {
   const { t } = useLocalizedText();
 
   const goToClinic = () => {
-    // The token travels in the fragment, which browsers never send to servers or in Referer.
-    const url = tenant.handoffToken ? clinicUrl(tenant.hostname, handoffPath) : clinicUrl(tenant.hostname, signInPath);
-    if (tenant.handoffToken) url.hash = tenant.handoffToken;
-    window.location.assign(url.toString());
+    window.location.assign(tenant.handoffToken
+      ? handoffUrl(tenant.hostname, handoffPath, tenant.handoffToken)
+      : hostUrl(tenant.hostname, signInPath).toString());
   };
 
   return (

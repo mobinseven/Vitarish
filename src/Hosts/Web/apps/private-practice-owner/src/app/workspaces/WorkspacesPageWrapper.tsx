@@ -1,23 +1,8 @@
 "use client";
 
-import { DashboardShell } from "@/components/shell";
-import {
-  dashboardFooterItems,
-  mainDashboardNavGroups,
-} from "@/components/shell/dashboardShellNavigation";
-import { ContainedPage } from "@vitarish/ui/layout";
+import { StandaloneJourneyFrame } from "@/components/journey/StandaloneJourneyFrame";
 
-export function WorkspacesPageWrapper({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <DashboardShell
-      footerItems={dashboardFooterItems}
-      navGroups={mainDashboardNavGroups}
-    >
-      <ContainedPage>{children}</ContainedPage>
-    </DashboardShell>
-  );
+/** Clinic selection runs on the shared sign-in host, where no clinic is open yet, so there is no clinic shell. */
+export function WorkspacesPageWrapper({ children }: { children: React.ReactNode }) {
+  return <StandaloneJourneyFrame>{children}</StandaloneJourneyFrame>;
 }

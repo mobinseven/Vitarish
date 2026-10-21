@@ -43,7 +43,12 @@ const clinicSpecialties = [
 
 const text = (body: Body | null, key: string) => (typeof body?.[key] === "string" ? (body[key] as string) : "");
 
-/** Self-service clinic onboarding, handoff redemption, and tenant profile/logo answers for mock hosts. */
+const signInClinicIds = {
+  owned: "6f1d3c52-8a4e-4b7a-9c21-3d5e7f9a1b24",
+  joined: "b3e8a917-2c6d-4f05-8e14-9a7c5d2f6e83",
+} as const;
+
+/** Self-service clinic onboarding, shared sign-in clinic choice, handoff redemption, and tenant profile/logo answers for mock hosts. */
 export function createOnboardingMockHandlers({
   isPersianRequest,
   isUnavailable,
@@ -104,6 +109,22 @@ export function createOnboardingMockHandlers({
         { status: 201 },
       );
     })),
+    // The shared sign-in host: the signed-in person owns one clinic and works at another.
+    http.get(/\/api\/modules\/parties\/sign-in\/clinics(?:\?|$)/, answer((request) => {
+      const persian = isPersianRequest(request);
+      return HttpResponse.json({
+        clinics: [
+          { tenantId: signInClinicIds.owned, name: persian ? "مطب دکتر رضایی" : "Dr. Rezaei's Clinic", hostname: `rezaei.${baseDomain}`, role: "TenantOwner" },
+          { tenantId: signInClinicIds.joined, name: persian ? "کلینیک زیبایی آرا" : "Ara Beauty Clinic", hostname: `ara.${baseDomain}`, role: "TenantUser" },
+        ],
+      });
+    })),
+    http.post(/\/api\/modules\/parties\/sign-in\/clinics\/[^/]+\/handoff(?:\?|$)/, answer(() =>
+      HttpResponse.json({ hostname: `rezaei.${baseDomain}`, token: mockHandoffToken }),
+    )),
+    http.post(/\/api\/modules\/parties\/sign-in\/onboarding-handoff(?:\?|$)/, answer(() =>
+      HttpResponse.json({ hostname: `start.${baseDomain}`, token: mockHandoffToken }),
+    )),
     http.get(/\/api\/modules\/parties\/tenant-profile(?:\?|$)/, answer((request) =>
       HttpResponse.json({
         name: isPersianRequest(request) ? "مطب دکتر رضایی" : "Dr. Rezaei's Clinic",
