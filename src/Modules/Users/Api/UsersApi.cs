@@ -122,20 +122,27 @@ public static class UsersApi
     private static async Task<IResult> UpdateManagedUserAsync(string userId, UpdateManagedUserRequest request, ISender sender, CancellationToken ct)
     {
         IdentityResult result = await sender.Send(new UpdateManagedUserCommand(userId, request.Email, request.PhoneNumber, request.FirstName, request.LastName, request.Revision), ct);
-        if (!result.Succeeded)
-        {
-            UsersCommandError[] errors = result.Errors.Select(ToManagedUserError).ToArray();
-            if (result.Errors.Any(error => string.Equals(error.Code, nameof(UsersCommandFailureCode.UserNotFound), StringComparison.Ordinal)))
-                return Results.NotFound(UsersCommandResponse.Failed(errors));
-            if (result.Errors.Any(error => string.Equals(error.Code, nameof(UsersCommandFailureCode.ConcurrencyFailure), StringComparison.Ordinal)))
-                return Results.Conflict(UsersCommandResponse.Failed(errors));
-            if (result.Errors.Any(error => string.Equals(error.Code, nameof(UsersCommandFailureCode.Unauthorized), StringComparison.Ordinal)))
-                return Results.Forbid();
-            return Results.BadRequest(UsersCommandResponse.Failed(errors));
-        }
-
-        return Results.Ok(UsersCommandResponse.Success());
+        return ToManagedUserUpdateResult(result);
     }
+
+    internal static IResult ToManagedUserUpdateResult(IdentityResult result)
+    {
+        if (result.Succeeded)
+            return Results.Ok(UsersCommandResponse.Success());
+
+        UsersCommandError[] errors = result.Errors.Select(ToManagedUserError).ToArray();
+        if (HasFailure(result, UsersCommandFailureCode.UserNotFound))
+            return Results.NotFound(UsersCommandResponse.Failed(errors));
+        // A contact another account uses is a conflict, as it is when creating a user.
+        if (HasFailure(result, UsersCommandFailureCode.ConcurrencyFailure) || HasFailure(result, UsersCommandFailureCode.ContactIdentifierInUse))
+            return Results.Conflict(UsersCommandResponse.Failed(errors));
+        if (HasFailure(result, UsersCommandFailureCode.Unauthorized))
+            return Results.Forbid();
+        return Results.BadRequest(UsersCommandResponse.Failed(errors));
+    }
+
+    private static bool HasFailure(IdentityResult result, UsersCommandFailureCode code) =>
+        result.Errors.Any(error => string.Equals(error.Code, code.ToString(), StringComparison.Ordinal));
 
     private static async Task<IResult> DisableUserAsync(string userId, ISender sender, CancellationToken ct) =>
         ToAccountStatusResult(await sender.Send(new ChangeUserAccountStatusCommand(userId, Enabled: false), ct));

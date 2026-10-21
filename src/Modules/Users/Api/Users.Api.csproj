@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup>
   <ItemGroup><FrameworkReference Include="Microsoft.AspNetCore.App" /></ItemGroup>
+  <ItemGroup><InternalsVisibleTo Include="Users.Tests" /></ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Base\Core\Modules.Base.Core.csproj" />
     <ProjectReference Include="..\Contracts\Users.Contracts.csproj" />
