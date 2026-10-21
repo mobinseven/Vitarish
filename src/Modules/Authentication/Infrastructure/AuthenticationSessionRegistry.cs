@@ -644,7 +644,8 @@ public sealed class AuthenticationSessionRegistry(
             (saved, invalidated) =
                 await dbContext.Database.CreateExecutionStrategy().ExecuteAsync(SaveCoreAsync, cancellationToken);
         }
-        catch (Exception exception) when (exception is DbException or RetryLimitExceededException)
+        // EF wraps a database error from SaveChanges in DbUpdateException, which is not a DbException.
+        catch (Exception exception) when (exception is DbException or DbUpdateException or RetryLimitExceededException)
         {
             throw new SecurityAccessPolicyPersistenceException(
                 "The security access policy change and its session revocation could not be persisted.",

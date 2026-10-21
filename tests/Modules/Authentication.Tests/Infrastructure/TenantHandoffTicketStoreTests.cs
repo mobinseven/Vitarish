@@ -5,6 +5,7 @@ using Vitarish.Authentication.Infrastructure;
 
 namespace Authentication.Tests.Infrastructure;
 
+[Collection(AuthenticationPostgresCollection.Name)]
 public sealed class TenantHandoffTicketStoreTests
 {
     private static readonly DateTime FixedNow = new(2026, 4, 20, 12, 0, 0, DateTimeKind.Utc);

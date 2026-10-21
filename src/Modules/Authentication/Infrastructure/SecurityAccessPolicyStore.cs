@@ -46,7 +46,11 @@ public sealed class SecurityAccessPolicyStore(
             {
                 if (expectedVersion != 0)
                     throw ConcurrentUpdate();
-                record = SecurityAccessPolicyRecord.FromDomain(policy);
+                // A missing row reads as the default policy at version 0, so the first save is a
+                // change to that version like any other and moves it to 1. Storing it as 0 would
+                // let a second save that also read the missing row overwrite it undetected.
+                record = SecurityAccessPolicyRecord.FromDomain(SecurityAccessPolicy.Default);
+                record.Apply(policy);
                 _ = dbContext.SecurityAccessPolicies.Add(record);
             }
             else

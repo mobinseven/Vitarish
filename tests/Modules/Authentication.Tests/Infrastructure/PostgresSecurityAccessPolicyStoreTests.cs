@@ -6,22 +6,40 @@ using Vitarish.Authentication.Domain.Security;
 using Vitarish.Authentication.Infrastructure;
 using Xunit;
 
+using Authentication.Tests.Infrastructure;
+
 namespace Vitarish.Authentication.Tests.Infrastructure;
 
+[Collection(AuthenticationPostgresCollection.Name)]
 public sealed class PostgresSecurityAccessPolicyStoreTests
 {
     [PostgresFact]
-    public async Task First_save_creates_a_version_zero_policy()
+    public async Task First_save_moves_the_missing_policy_from_version_zero_to_one()
     {
         string connectionString = ConnectionString();
 
         DbContextOptions<AuthenticationDbContext> options = await PrepareAsync(connectionString);
         await using AuthenticationDbContext context = new(options);
-        SecurityAccessPolicyState result = await new SecurityAccessPolicyStore(context)
-            .SaveAsync(SecurityAccessPolicy.Default, 0, CancellationToken.None);
+        SecurityAccessPolicyStore store = new(context);
+        (await store.GetStateAsync(CancellationToken.None)).Version.Should().Be(0);
 
-        result.Version.Should().Be(0);
-        (await context.SecurityAccessPolicies.AsNoTracking().SingleAsync()).Version.Should().Be(0);
+        SecurityAccessPolicyState result = await store.SaveAsync(SecurityAccessPolicy.Default, 0, CancellationToken.None);
+
+        result.Version.Should().Be(1);
+        (await context.SecurityAccessPolicies.AsNoTracking().SingleAsync()).Version.Should().Be(1);
+    }
+
+    [PostgresFact]
+    public async Task A_second_save_based_on_the_missing_policy_is_refused()
+    {
+        string connectionString = ConnectionString();
+
+        DbContextOptions<AuthenticationDbContext> options = await PrepareAsync(connectionString);
+        _ = await SaveAsync(options, SecurityAccessPolicy.Default, 0);
+
+        Func<Task> staleFirstSave = () => SaveAsync(options, SecurityAccessPolicy.ProductEvaluated, 0);
+
+        await staleFirstSave.Should().ThrowAsync<SecurityAccessPolicyConcurrencyException>();
     }
 
     [PostgresFact]
@@ -30,8 +48,9 @@ public sealed class PostgresSecurityAccessPolicyStoreTests
         string connectionString = ConnectionString();
 
         DbContextOptions<AuthenticationDbContext> options = await PrepareAsync(connectionString);
+        // Startup initialization stores the default policy at version 0, which both writers then edit.
         await using (AuthenticationDbContext seed = new(options))
-            _ = await new SecurityAccessPolicyStore(seed).SaveAsync(SecurityAccessPolicy.Default, 0, CancellationToken.None);
+            await new SecurityAccessPolicyStore(seed).InitializeAsync(CancellationToken.None);
 
         Task<SecurityAccessPolicyState> first = SaveAsync(options, SecurityAccessPolicy.Default with { FailedAttemptThreshold = 3 });
         Task<SecurityAccessPolicyState> second = SaveAsync(options, SecurityAccessPolicy.Default with { FailedAttemptThreshold = 4 });
