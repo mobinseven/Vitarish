@@ -169,7 +169,7 @@ internal sealed class SurgeryToolchain(
         }
 
         surgery = surgery with { IdempotencyKey = NormalizeIdempotencyKey(surgery.IdempotencyKey) };
-        surgery = await PrepareAsync(surgery, null, cancellationToken);
+        (surgery, IReadOnlyList<SurgeryTeamContact> teamContacts) = await PrepareAsync(surgery, null, cancellationToken);
         JsonElement objectData = JsonSerializer.SerializeToElement(
             surgery with { Id = Guid.Empty, ConcurrencyToken = Guid.Empty },
             SurgeryJsonSerializerContext.Default.SurgeryWriteModel);
@@ -268,7 +268,7 @@ internal sealed class SurgeryToolchain(
         }
         try
         {
-            await RebuildRemindersAsync(result, cancellationToken);
+            await RebuildRemindersAsync(result, teamContacts, cancellationToken);
         }
         catch (Exception exception)
         {
@@ -313,7 +313,7 @@ internal sealed class SurgeryToolchain(
             PatientId = current.OwnerEntityId,
             IdempotencyKey = ReadIdempotencyKey(current.Data)
         };
-        surgery = await PrepareAsync(surgery, currentSurgery.CatalogId, cancellationToken);
+        (surgery, IReadOnlyList<SurgeryTeamContact> teamContacts) = await PrepareAsync(surgery, currentSurgery.CatalogId, cancellationToken);
         ProjectObjectReadDto? value;
         try
         {
@@ -337,7 +337,7 @@ internal sealed class SurgeryToolchain(
         SurgeryReadModel result = ToRead(value);
         try
         {
-            await RebuildRemindersAsync(result, cancellationToken);
+            await RebuildRemindersAsync(result, teamContacts, cancellationToken);
         }
         catch (Exception exception)
         {
@@ -382,7 +382,7 @@ internal sealed class SurgeryToolchain(
         SurgeryReadModel result = ToRead(value);
         try
         {
-            await RebuildRemindersAsync(result, cancellationToken);
+            await RebuildRemindersAsync(result, null, cancellationToken);
         }
         catch (Exception exception)
         {
@@ -434,7 +434,7 @@ internal sealed class SurgeryToolchain(
         SurgeryReadModel result = ToRead(value);
         try
         {
-            await RebuildRemindersAsync(result, cancellationToken);
+            await RebuildRemindersAsync(result, null, cancellationToken);
         }
         catch (Exception exception)
         {
@@ -449,7 +449,8 @@ internal sealed class SurgeryToolchain(
         if (!authorization.CanPlan()) throw new SurgeryPlanningForbiddenException();
     }
 
-    private async Task<SurgeryWriteModel> PrepareAsync(SurgeryWriteModel surgery, string? previousCatalogId, CancellationToken cancellationToken)
+    /// <summary>Validates and completes a plan, and returns the team contacts it resolved for the reminders.</summary>
+    private async Task<(SurgeryWriteModel Surgery, IReadOnlyList<SurgeryTeamContact> TeamContacts)> PrepareAsync(SurgeryWriteModel surgery, string? previousCatalogId, CancellationToken cancellationToken)
     {
         surgery = surgery with { Location = SurgeryPlanRules.NormalizeText(surgery.Location) };
         IReadOnlyList<SurgeryTeamMember> providedTeam = surgery.Team ?? [];
@@ -473,9 +474,10 @@ internal sealed class SurgeryToolchain(
                 ?? throw new ArgumentException("The surgery type does not exist.", nameof(surgery.CatalogId));
         }
 
+        IReadOnlyList<SurgeryTeamContact> members = [];
         if (team.Count > 0)
         {
-            IReadOnlyList<SurgeryTeamContact> members = await teamDirectory.FindMembersAsync(
+            members = await teamDirectory.FindMembersAsync(
                 team.Select(member => member.UserId).ToArray(),
                 cancellationToken);
             Dictionary<string, SurgeryTeamContact> membersById = members.ToDictionary(member => member.UserId, StringComparer.Ordinal);
@@ -499,7 +501,7 @@ internal sealed class SurgeryToolchain(
         }
 
         SurgeryPlanRules.ValidatePlan(surgery);
-        return surgery;
+        return (surgery, members);
     }
 
     /// <summary>
@@ -521,7 +523,8 @@ internal sealed class SurgeryToolchain(
         }
     }
 
-    private async Task RebuildRemindersAsync(SurgeryReadModel surgery, CancellationToken cancellationToken)
+    /// <param name="teamContacts">The team's contacts when the caller already resolved them; otherwise they are looked up.</param>
+    private async Task RebuildRemindersAsync(SurgeryReadModel surgery, IReadOnlyList<SurgeryTeamContact>? teamContacts, CancellationToken cancellationToken)
     {
         if (surgery.Status == SurgeryStatus.Completed)
         {
@@ -541,7 +544,7 @@ internal sealed class SurgeryToolchain(
 
         if (surgery.Team.Count > 0)
         {
-            IReadOnlyList<SurgeryTeamContact> members = await teamDirectory.FindMembersAsync(
+            IReadOnlyList<SurgeryTeamContact> members = teamContacts ?? await teamDirectory.FindMembersAsync(
                 surgery.Team.Select(member => member.UserId).ToArray(),
                 cancellationToken);
             foreach (SurgeryTeamContact member in members)
