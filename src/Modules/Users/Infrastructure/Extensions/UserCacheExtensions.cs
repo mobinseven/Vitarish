@@ -1,6 +1,8 @@
 
 using Microsoft.Extensions.Caching.Distributed;
+using System.Reflection;
 using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 using Vitarish.Users.Domain.Entities;
 
 namespace Vitarish.Users.Infrastructure.Extensions;
@@ -9,7 +11,23 @@ internal static class UserCacheExtensions
 {
     private const string UsersKey = "users:all";
     private static readonly DistributedCacheEntryOptions CacheOptions = new() { AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5) };
-    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
+    {
+        TypeInfoResolver = new DefaultJsonTypeInfoResolver { Modifiers = { ExcludeCredentialProperties } }
+    };
+
+    /// <summary>
+    /// Identity-owned credential and lockout state. The shared cache never holds it, so a cached
+    /// user has none of it, and writers keep the stored values when they apply a cached copy.
+    /// </summary>
+    internal static readonly IReadOnlyList<string> CredentialProperties =
+    [
+        nameof(User.PasswordHash),
+        nameof(User.SecurityStamp),
+        nameof(User.LockoutEnd),
+        nameof(User.LockoutEnabled),
+        nameof(User.AccessFailedCount)
+    ];
 
     internal static async Task<User[]?> GetUsersAsync(IDistributedCache cache, CancellationToken ct) =>
         Deserialize<User[]>(await cache.GetAsync(UsersKey, ct));
@@ -51,6 +69,17 @@ internal static class UserCacheExtensions
     private static string UserKey(string id) => $"users:{id}";
 
     private static string NormalizedUserNameKey(string normalizedUserName) => $"users:normalized-name:{normalizedUserName}";
+
+    private static void ExcludeCredentialProperties(JsonTypeInfo typeInfo)
+    {
+        if (!typeof(User).IsAssignableFrom(typeInfo.Type))
+            return;
+        for (int index = typeInfo.Properties.Count - 1; index >= 0; index--)
+        {
+            if (typeInfo.Properties[index].AttributeProvider is PropertyInfo property && CredentialProperties.Contains(property.Name))
+                typeInfo.Properties.RemoveAt(index);
+        }
+    }
 
     private static byte[] Serialize<T>(T value) => JsonSerializer.SerializeToUtf8Bytes(value, JsonOptions);
 

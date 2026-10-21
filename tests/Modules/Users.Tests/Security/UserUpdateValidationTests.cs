@@ -18,6 +18,7 @@ using Vitarish.Users.Application.Security;
 using Vitarish.Users.Contracts.Responses;
 using Vitarish.Users.Domain.Entities;
 using Vitarish.Users.Infrastructure.Data;
+using Vitarish.Users.Infrastructure.Extensions;
 using Vitarish.Users.Infrastructure.Handlers;
 
 namespace Vitarish.Users.Tests.Security;
@@ -119,6 +120,67 @@ public sealed class UserUpdateValidationTests
         User persisted = await dbContext.Users.AsNoTracking().SingleAsync(user => user.Id == UserId);
         persisted.FirstName.Should().Be("Renamed");
         persisted.LastName.Should().Be("Last");
+    }
+
+    [Fact]
+    public async Task The_user_cache_holds_no_credential_or_lockout_state()
+    {
+        IDistributedCache cache = CreateCache();
+        User user = new()
+        {
+            Id = UserId,
+            UserName = "cached-user",
+            Email = "cached@example.test",
+            PasswordHash = "stored-password-hash",
+            SecurityStamp = "stored-security-stamp",
+            LockoutEnabled = true,
+            LockoutEnd = DateTimeOffset.UtcNow.AddMinutes(5),
+            AccessFailedCount = 3,
+            ConcurrencyStamp = "concurrency-stamp"
+        };
+
+        await UserCacheExtensions.SetUserAsync(cache, user, CancellationToken.None);
+        string payload = System.Text.Encoding.UTF8.GetString((await cache.GetAsync($"users:{UserId}"))!);
+        User cached = (await UserCacheExtensions.GetUserAsync(cache, UserId, CancellationToken.None))!;
+
+        payload.Should().NotContain("stored-password-hash").And.NotContain("stored-security-stamp");
+        cached.PasswordHash.Should().BeNull();
+        // IdentityUser's constructor gives every new instance a random stamp; the stored one never reaches the cache.
+        cached.SecurityStamp.Should().NotBe("stored-security-stamp");
+        cached.LockoutEnd.Should().BeNull();
+        cached.AccessFailedCount.Should().Be(0);
+        cached.Email.Should().Be("cached@example.test");
+        cached.ConcurrencyStamp.Should().Be("concurrency-stamp");
+    }
+
+    [Fact]
+    public async Task Name_update_from_a_cached_copy_keeps_the_stored_credentials()
+    {
+        string databaseName = Guid.NewGuid().ToString("N");
+        await using UsersDbContext dbContext = await CreateDbContextWithUserAsync(databaseName: databaseName);
+        await using (UsersDbContext seed = CreateDbContext(databaseName))
+        {
+            User stored = await seed.Users.SingleAsync(user => user.Id == UserId);
+            stored.PasswordHash = "stored-password-hash";
+            stored.SecurityStamp = "stored-security-stamp";
+            stored.AccessFailedCount = 2;
+            _ = await seed.SaveChangesAsync();
+        }
+        IDistributedCache cache = CreateCache();
+        await UserCacheExtensions.SetUserAsync(cache, await dbContext.Users.AsNoTracking().SingleAsync(user => user.Id == UserId), CancellationToken.None);
+        User request = (await UserCacheExtensions.GetUserAsync(cache, UserId, CancellationToken.None))!;
+        request.FirstName = "Renamed";
+        await using UsersDbContext storeContext = CreateDbContext(databaseName);
+
+        IdentityResult result = await CreateUpdateHandler(dbContext, CreateUserManager(storeContext))
+            .Handle(new UpdateUserCommand(request), CancellationToken.None);
+
+        result.Succeeded.Should().BeTrue(string.Join("; ", result.Errors.Select(error => $"{error.Code}:{error.Description}")));
+        User persisted = await dbContext.Users.AsNoTracking().SingleAsync(user => user.Id == UserId);
+        persisted.FirstName.Should().Be("Renamed");
+        persisted.PasswordHash.Should().Be("stored-password-hash");
+        persisted.SecurityStamp.Should().Be("stored-security-stamp");
+        persisted.AccessFailedCount.Should().Be(2);
     }
 
     [Fact]

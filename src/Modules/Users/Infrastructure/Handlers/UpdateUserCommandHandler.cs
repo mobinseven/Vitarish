@@ -185,7 +185,13 @@ public class UpdateUserCommandHandler(UsersDbContext dbContext, UserManager<User
             return null;
 
         // Copies every mapped property through the Users model; this context does not start tracking either user.
-        dbContext.Entry(stored).CurrentValues.SetValues(requested);
+        // A cached copy carries no credential or lockout state, so the stored values are kept.
+        Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry<User> entry = dbContext.Entry(stored);
+        Dictionary<string, object?> credentials = UserCacheExtensions.CredentialProperties
+            .ToDictionary(property => property, property => entry.Property(property).CurrentValue, StringComparer.Ordinal);
+        entry.CurrentValues.SetValues(requested);
+        foreach ((string property, object? value) in credentials)
+            entry.Property(property).CurrentValue = value;
         return stored;
     }
 }

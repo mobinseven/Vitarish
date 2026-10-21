@@ -24,7 +24,9 @@ public class UpdateUserClaimsCommandHandler(UsersDbContext dbContext, UserManage
 
     public async Task<IdentityResult> Handle(UpdateUserClaimsCommand request, CancellationToken cancellationToken)
     {
-        IList<Claim> oldClaims = await userManager.GetClaimsAsync(request.User);
+        // Claim changes save the user through Identity, so they use the stored user rather than a cached copy.
+        User user = await userManager.FindByIdAsync(request.User.Id) ?? request.User;
+        IList<Claim> oldClaims = await userManager.GetClaimsAsync(user);
         List<Claim> claimsToRemove = [.. oldClaims.Except(request.Claims, new ClaimEqualityComparer())];
         List<Claim> claimsToAdd = [.. request.Claims.Except(oldClaims, new ClaimEqualityComparer())];
         if (claimsToRemove.Count == 0 && claimsToAdd.Count == 0)
@@ -47,9 +49,9 @@ public class UpdateUserClaimsCommandHandler(UsersDbContext dbContext, UserManage
             await strategy.ExecuteAsync(async ct =>
             {
                 await using IDbContextTransaction transaction = await dbContext.Database.BeginTransactionAsync(ct);
-                IdentityResult result = await userManager.RemoveClaimsAsync(request.User, claimsToRemove);
+                IdentityResult result = await userManager.RemoveClaimsAsync(user, claimsToRemove);
                 if (result.Succeeded)
-                    result = await userManager.AddClaimsAsync(request.User, claimsToAdd);
+                    result = await userManager.AddClaimsAsync(user, claimsToAdd);
                 if (!result.Succeeded)
                 {
                     await transaction.RollbackAsync(CancellationToken.None);
