@@ -1,4 +1,6 @@
+using System.Data.Common;
 using System.Net;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
@@ -74,18 +76,18 @@ internal sealed class SecurityAuditWriter(
             catch (Exception duplicateCheckException) when (duplicateCheckException is not OperationCanceledException)
             {
                 SecurityAuditStoreException failure = new("The mandatory security audit store could not confirm a duplicate.", duplicateCheckException);
-                LogWriteFailure(auditEvent);
+                LogWriteFailure(auditEvent, duplicateCheckException);
                 throw failure;
             }
 
             SecurityAuditStoreException persistenceFailure = new("The mandatory security audit event could not be persisted.", exception);
-            LogWriteFailure(auditEvent);
+            LogWriteFailure(auditEvent, exception);
             throw persistenceFailure;
         }
         catch (Exception exception) when (exception is not SecurityAuditStoreException)
         {
             SecurityAuditStoreException failure = new("The mandatory security audit event could not be persisted.", exception);
-            LogWriteFailure(auditEvent);
+            LogWriteFailure(auditEvent, exception);
             throw failure;
         }
     }
@@ -146,7 +148,7 @@ internal sealed class SecurityAuditWriter(
         {
             SecurityAuditStoreException failure = exception as SecurityAuditStoreException
                 ?? new SecurityAuditStoreException("The mandatory security audit event could not be updated.", exception);
-            LogWriteFailure(pending);
+            LogWriteFailure(pending, exception);
             throw failure;
         }
     }
@@ -220,14 +222,28 @@ internal sealed class SecurityAuditWriter(
             .AnyAsync(existing => existing.TenantId == auditEvent.TenantId && existing.IdempotencyKey == auditEvent.IdempotencyKey, cancellationToken);
     }
 
-    private void LogWriteFailure(SecurityAuditEvent? auditEvent)
+    // Exception messages can carry tenant, user or SQL values, so only the cause's
+    // type, the method that threw it and any database SQLSTATE are logged.
+    private void LogWriteFailure(SecurityAuditEvent? auditEvent, Exception exception)
     {
+        Exception cause = exception;
+        string? sqlState = null;
+        for (Exception? current = exception; current is not null; current = current.InnerException)
+        {
+            cause = current;
+            sqlState = (current as DbException)?.SqlState ?? sqlState;
+        }
+
+        MethodBase? site = cause.TargetSite;
         logger?.LogError(
-            "Security audit write unavailable. Code={Code} Category={Category} Event={Event} Operation={Operation}",
+            "Security audit write unavailable. Code={Code} Category={Category} Event={Event} Operation={Operation} Cause={Cause} Site={Site} SqlState={SqlState}",
             SecurityAuditEventCatalog.WriteFailureCode,
             auditEvent?.EventCategory ?? SecurityAuditRedaction.Replacement,
             auditEvent?.EventName ?? SecurityAuditRedaction.Replacement,
-            auditEvent?.Operation ?? SecurityAuditRedaction.Replacement);
+            auditEvent?.Operation ?? SecurityAuditRedaction.Replacement,
+            cause.GetType().FullName,
+            site is null ? null : $"{site.DeclaringType?.FullName}.{site.Name}",
+            sqlState);
     }
 
     private static string TerminalKey(string tenantId, string idempotencyKey)

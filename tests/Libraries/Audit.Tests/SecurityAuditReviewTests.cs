@@ -653,7 +653,10 @@ public sealed class SecurityAuditReviewTests
         await write.Should().ThrowAsync<SecurityAuditStoreException>();
         logs.Should().ContainSingle();
         logs.Single().Should().Contain(SecurityAuditEventCatalog.WriteFailureCode)
-            .And.NotContain("patient payload");
+            .And.Contain("Cause=" + typeof(ObjectDisposedException).FullName)
+            .And.Contain("Site=")
+            .And.NotContain("patient payload")
+            .And.NotContain("Cannot access a disposed");
 
         await using AuditDbContext recovered = CreateContext(options, "tenant-a");
         SecurityAuditEvent restored = CreateEvent("tenant-a", "recovered-event", SecurityAuditEventCatalog.AuthenticationPasswordLoginEvent, DateTime.UtcNow);
