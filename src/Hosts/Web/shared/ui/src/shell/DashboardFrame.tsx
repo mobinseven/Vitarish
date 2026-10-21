@@ -136,6 +136,7 @@ export function DashboardFrame({
         aside={aside}
         asideMobile={asideMobile}
         asideOpen={asideOpen}
+        data-aside-mobile={asideMobile}
         data-content-mode={contentMode}
         data-direction={direction}
         data-mobile-navigation={mobileNavigation}
