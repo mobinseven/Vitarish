@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
 import {
   DashboardFrame,
   type DashboardContentMode,
@@ -18,6 +18,17 @@ import { ClinicAssistantAside, type ClinicAssistantScope } from "@vitarish/clini
 import { useLocalizedText, type MessageKey } from "@/localization";
 import { BreadcrumbUpButton } from "./BreadcrumbUpButton";
 import { CommandPalette } from "./CommandPalette/CommandPalette";
+
+const subscribeToNothing = () => () => {};
+
+/**
+ * False while the server-rendered markup is hydrated and true afterwards. The page streams behind
+ * `loading.tsx`, so the session can already be known on the client when the shell hydrates; the
+ * shell keeps the server's loading identity until then so the first client render matches it.
+ */
+function useIsHydrated() {
+  return useSyncExternalStore(subscribeToNothing, () => true, () => false);
+}
 
 export interface DashboardShellItem {
   href: string;
@@ -53,6 +64,7 @@ export function DashboardShell({
   const router = useRouter();
   const pathname = usePathname();
   const { displayProfile, isAuthenticated, isLoading } = useAuthSession();
+  const isHydrated = useIsHydrated();
   const { t } = useLocalizedText();
   const { hasAccess: canUseOperationsAssistant } = useTenantAuthorization("owner");
   const [operationsAssistantOpen, setOperationsAssistantOpen] = useState(false);
@@ -63,7 +75,7 @@ export function DashboardShell({
   const navigate = useCallback((href: string) => router.push(href), [router]);
 
   const sidebarIdentity = useMemo<DashboardIdentity>(() => {
-    if (isLoading) {
+    if (isLoading || !isHydrated) {
       return {
         accountHref: Routes.Account.Index,
         accountLabel: t("appShell.userMenu.account"),
@@ -92,7 +104,7 @@ export function DashboardShell({
       label: displayProfile?.displayLabel ?? "",
       subtitle: t("appShell.userMenu.account"),
     };
-  }, [displayProfile, isAuthenticated, isLoading, t]);
+  }, [displayProfile, isAuthenticated, isHydrated, isLoading, t]);
 
   const navigationGroups = useMemo(
     () => navGroups.map((group) => toNavigationGroup(group, t)),
