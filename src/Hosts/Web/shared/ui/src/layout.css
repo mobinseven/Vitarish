@@ -154,6 +154,14 @@
   }
 }
 
+/* HeroUI Pro hides the aside trigger wherever it hides the aside (1024px and below). A frame whose
+   aside opens as a sheet there keeps the trigger, because the trigger is what opens that sheet. */
+@media (max-width: 1024px) {
+  [data-vitarish-layout="dashboard-frame"][data-aside-mobile="sheet"] .app-layout__aside-trigger {
+    display: inline-flex;
+  }
+}
+
 [data-vitarish-layout="dashboard-frame"] .app-layout__body,
 [data-vitarish-layout="dashboard-frame"] .app-layout__main {
   min-block-size: 0;

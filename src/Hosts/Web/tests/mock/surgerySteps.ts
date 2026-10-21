@@ -342,11 +342,6 @@ export const surgeryAssistantSteps: SurgeryFlowStep = async ({ page, locale, cap
   const operations = clinic.operationsAssistant;
 
   await test.step("assistant surgery review", async () => {
-    // Narrow screens offer no assistant toggle yet (#889), so the review card is captured on wide screens only.
-    if (test.info().project.use.isMobile) {
-      test.info().annotations.push({ type: "skipped-step", description: "The operations assistant has no toggle on narrow screens." });
-      return;
-    }
     // The operations assistant sits beside the clinic pages, such as the surgery calendar.
     await open(page, Routes.Clinic.Surgeries.Index);
     await page.getByRole("button", { name: ownerMessages[locale].appShell.operationsAssistant }).first().click({ timeout: pageCompileTimeoutMilliseconds });
