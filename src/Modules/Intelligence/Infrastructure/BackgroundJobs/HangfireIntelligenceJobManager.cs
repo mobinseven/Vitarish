@@ -22,7 +22,11 @@ public class HangfireIntelligenceJobManager(
     public void ScheduleConversationCleanup() => recurringJobManager.AddOrUpdate<AgentConversationRetentionCleanup>(
         ConversationCleanupJobId,
         cleanup => cleanup.RunAsync(),
-        Cron.HourInterval(Math.Clamp(retentionOptions.Value.CleanupIntervalHours, 1, 24)));
+        ConversationCleanupCron(retentionOptions.Value.CleanupIntervalHours));
+
+    // Cron hour steps must be 1-23, so an interval of a day or more runs daily.
+    private static string ConversationCleanupCron(int intervalHours) =>
+        intervalHours >= 24 ? Cron.Daily() : Cron.HourInterval(Math.Max(intervalHours, 1));
 
     /// <summary>
     /// Triggers the job immediately.
