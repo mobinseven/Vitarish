@@ -53,12 +53,6 @@ public sealed class CompletePasswordLoginOtpHandler(
         }
 
         string? knownUserId = null;
-        if (!string.IsNullOrWhiteSpace(command.ChallengeId))
-        {
-            AuthenticationChallenge? challenge = await store.GetAsync(AuthenticationChallengeId.Create(command.ChallengeId), cancellationToken);
-            knownUserId = challenge?.UserId;
-        }
-
         AuthenticationResult<LoginResult> result = await ChallengeCompletionHelper.CompleteChallengeAsync(
             command.ChallengeId,
             command.Code,
@@ -71,7 +65,8 @@ public sealed class CompletePasswordLoginOtpHandler(
             cancellationToken,
             attemptTracker,
             securityPolicy,
-            attemptKeyFactory);
+            attemptKeyFactory,
+            onChallengeLoaded: userId => knownUserId = userId);
 
         try
         {

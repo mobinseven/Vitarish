@@ -23,7 +23,7 @@ public sealed class CompletePasskeyLoginHandlerTests
     {
         Mock<IWebAuthnAuthenticationService> webAuthn = new();
         IAuthenticationAttemptKeyFactory keys = CreateKeys();
-        webAuthn.Setup(item => item.GetAttemptKeyAsync("challenge-1", It.IsAny<CancellationToken>()))
+        webAuthn.Setup(item => item.GetAttemptKeyAsync("challenge-1", "credential", It.IsAny<CancellationToken>()))
             .ReturnsAsync(keys.Identifier(AuthenticationMethod.Passkey, "user@example.test"));
         Mock<IAuthenticationAttemptTracker> tracker = new();
         tracker.Setup(item => item.IsDeniedAsync(
@@ -60,7 +60,7 @@ public sealed class CompletePasskeyLoginHandlerTests
         IAuthenticationAttemptKeyFactory keys = CreateKeys();
         string attemptKey = keys.Identifier(AuthenticationMethod.Passkey, "user@example.test");
         Mock<IWebAuthnAuthenticationService> webAuthn = new();
-        webAuthn.Setup(item => item.GetAttemptKeyAsync("challenge-1", It.IsAny<CancellationToken>())).ReturnsAsync(attemptKey);
+        webAuthn.Setup(item => item.GetAttemptKeyAsync("challenge-1", "credential", It.IsAny<CancellationToken>())).ReturnsAsync(attemptKey);
         webAuthn.Setup(item => item.CompleteAsync("challenge-1", "credential", It.IsAny<CancellationToken>()))
             .ReturnsAsync(new WebAuthnCompleteResult(false, null, new(AuthenticationFailureReason.InvalidCredential, "failed")));
         Mock<IAuthenticationAttemptTracker> tracker = new();
