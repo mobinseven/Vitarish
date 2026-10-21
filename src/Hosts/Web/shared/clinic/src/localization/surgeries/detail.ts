@@ -38,13 +38,11 @@ export const surgeryDetailMessages = {
     dialogs: {
       completeTitle: "Mark this surgery as completed",
       completeMessage:
-        "The surgery is marked as done and its pending reminders stop. You can still cancel it later to correct a mistake.",
+        "The surgery is marked as done and its pending reminders stop. A completed surgery can no longer be cancelled.",
       completeConfirm: "Mark completed",
       cancelTitle: "Cancel this surgery",
       cancelMessage:
         "The patient and the team are notified that the surgery is cancelled, and pending reminders stop.",
-      cancelCompletedMessage:
-        "This corrects a mistaken completion. The surgery becomes cancelled, the patient and team are notified, and pending reminders stop.",
       cancelConfirm: "Yes, cancel surgery",
       conflict:
         "This surgery changed elsewhere. Review the latest version and try again.",
@@ -88,13 +86,11 @@ export const surgeryDetailMessages = {
     dialogs: {
       completeTitle: "ثبت انجام این جراحی",
       completeMessage:
-        "جراحی به‌عنوان انجام‌شده ثبت می‌شود و یادآوری‌های در انتظار متوقف می‌شوند. در صورت اشتباه می‌توانید بعداً آن را لغو کنید.",
+        "جراحی به‌عنوان انجام‌شده ثبت می‌شود و یادآوری‌های در انتظار متوقف می‌شوند. جراحی انجام‌شده دیگر لغو نمی‌شود.",
       completeConfirm: "ثبت انجام",
       cancelTitle: "لغو این جراحی",
       cancelMessage:
         "به بیمار و تیم اطلاع داده می‌شود که جراحی لغو شده است و یادآوری‌های در انتظار متوقف می‌شوند.",
-      cancelCompletedMessage:
-        "این کار یک ثبت اشتباه انجام‌شده را اصلاح می‌کند. جراحی لغوشده می‌شود، به بیمار و تیم اطلاع داده می‌شود و یادآوری‌های در انتظار متوقف می‌شوند.",
       cancelConfirm: "بله، لغو شود",
       conflict:
         "این جراحی جای دیگری تغییر کرده است. آخرین نسخه را بررسی کنید و دوباره تلاش کنید.",

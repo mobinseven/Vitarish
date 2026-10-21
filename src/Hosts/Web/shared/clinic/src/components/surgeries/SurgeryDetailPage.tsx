@@ -12,7 +12,7 @@ import {
   removeButtonClassName,
 } from "@vitarish/ui";
 import { ApiError } from "../../api/client/apiFetch";
-import { formatDateTime, useLocalizedText } from "../../localization";
+import { formatDateTime, formatNumber, useLocalizedText } from "../../localization";
 import { useCanPlanSurgeries } from "../../hooks/surgeries/useCanPlanSurgeries";
 import { useSurgery } from "../../hooks/surgeries/useSurgery";
 import { useSurgeryTypes } from "../../hooks/surgeries/useSurgeryTypes";
@@ -139,7 +139,7 @@ export function SurgeryDetailPage({
       value:
         surgery.durationMinutes !== undefined
           ? t("clinic.surgeries.durationValue", {
-              minutes: String(surgery.durationMinutes),
+              minutes: formatNumber(surgery.durationMinutes, locale),
             })
           : notSet,
     },
@@ -319,7 +319,7 @@ export function SurgeryDetailPage({
                   className="text-sm text-foreground"
                 >
                   <span className="font-medium">
-                    {surgeryReminderOffsetLabel(policy.minutesBefore, t)}
+                    {surgeryReminderOffsetLabel(policy.minutesBefore, t, locale)}
                   </span>
                   {`: ${policy.subject.trim() || policy.name}`}
                 </li>

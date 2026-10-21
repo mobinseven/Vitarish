@@ -292,11 +292,11 @@ function joined(values: unknown[]): string | null {
   return texts.length > 0 ? texts.join(", ") : null;
 }
 
-function surgeryReminderRows(reminders: unknown, t: Translate): string | null {
+function surgeryReminderRows(reminders: unknown, t: Translate, locale: SupportedLocale): string | null {
   return joined(
     asList(reminders).map(asRecord).map((reminder) =>
       t("clinic.surgeries.assistant.reminder", {
-        offset: surgeryReminderOffsetLabel(asNumber(reminder.minutesBefore) ?? 0, t),
+        offset: surgeryReminderOffsetLabel(asNumber(reminder.minutesBefore) ?? 0, t, locale),
         subject: asText(reminder.subject) ?? "",
       }),
     ),
@@ -332,16 +332,16 @@ function surgeryPlanRows(plan: Record<string, unknown>, t: Translate, locale: Su
       ),
     },
     { key: "tools", label: t("clinic.surgeries.fields.tools"), value: joined(asList(plan.tools)) },
-    { key: "reminders", label: t("clinic.surgeries.fields.reminders"), value: surgeryReminderRows(plan.reminders, t) },
+    { key: "reminders", label: t("clinic.surgeries.fields.reminders"), value: surgeryReminderRows(plan.reminders, t, locale) },
   ];
 }
 
-function surgeryTypeRows(type: Record<string, unknown>, t: Translate): SurgeryReviewRow[] {
+function surgeryTypeRows(type: Record<string, unknown>, t: Translate, locale: SupportedLocale): SurgeryReviewRow[] {
   return [
     { key: "name", label: t("clinic.surgeries.fields.type"), value: asText(type.name) },
     { key: "tools", label: t("clinic.surgeries.fields.tools"), value: joined(asList(type.tools)) },
     { key: "roles", label: t("clinic.surgeries.assistant.fields.defaultTeamRoles"), value: joined(asList(type.defaultTeamRoles)) },
-    { key: "reminders", label: t("clinic.surgeries.fields.reminders"), value: surgeryReminderRows(type.reminders, t) },
+    { key: "reminders", label: t("clinic.surgeries.fields.reminders"), value: surgeryReminderRows(type.reminders, t, locale) },
   ];
 }
 
@@ -380,7 +380,7 @@ export function SurgeryActionCard({
   const section = (key: string, toRows: (value: Record<string, unknown>) => SurgeryReviewRow[]) =>
     payload[key] ? toRows(asRecord(payload[key])) : null;
   const plan = (value: Record<string, unknown>) => surgeryPlanRows(value, t, locale);
-  const type = (value: Record<string, unknown>) => surgeryTypeRows(value, t);
+  const type = (value: Record<string, unknown>) => surgeryTypeRows(value, t, locale);
   const message = (value: Record<string, unknown>) => surgeryMessageRows(value, t);
   const rows = [
     ...surgeryChangeRows(section("surgery", plan), section("previousSurgery", plan), t),

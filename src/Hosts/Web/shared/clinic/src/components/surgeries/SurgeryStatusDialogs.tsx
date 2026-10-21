@@ -9,10 +9,7 @@ import {
   isSurgeryForbiddenError,
   useSurgeryMutations,
 } from "../../hooks/surgeries/useSurgeryMutations";
-import {
-  surgeryStatuses,
-  type Surgery,
-} from "../../models/surgeries/surgeryModels";
+import type { Surgery } from "../../models/surgeries/surgeryModels";
 
 /** The status change a surgery detail dialog confirms. */
 export type SurgeryStatusAction = "complete" | "cancel";
@@ -79,9 +76,7 @@ export function SurgeryStatusDialogs({
     : t("clinic.surgeries.detail.dialogs.cancelTitle");
   const message = isComplete
     ? t("clinic.surgeries.detail.dialogs.completeMessage")
-    : surgery.status === surgeryStatuses.completed
-      ? t("clinic.surgeries.detail.dialogs.cancelCompletedMessage")
-      : t("clinic.surgeries.detail.dialogs.cancelMessage");
+    : t("clinic.surgeries.detail.dialogs.cancelMessage");
   const confirmLabel = isComplete
     ? t("clinic.surgeries.detail.dialogs.completeConfirm")
     : t("clinic.surgeries.detail.dialogs.cancelConfirm");

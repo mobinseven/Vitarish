@@ -5,12 +5,12 @@ import {
 } from "../../models/surgeries/surgeryModels";
 
 export type SurgeryStatusChipProps = {
-  color?: "accent" | "danger" | "success" | "warning";
+  color?: "accent" | "danger" | "default" | "success" | "warning";
   variant?: "soft";
   className?: string;
 };
 
-const neutral: SurgeryStatusChipProps = {};
+const neutral: SurgeryStatusChipProps = { color: "default", variant: "soft" };
 
 /**
  * A surgery status shown together with others keeps its own color, so planned

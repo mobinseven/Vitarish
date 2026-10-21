@@ -12,8 +12,14 @@ export type MockHandlerFactory = (scenario: MockScenario) => readonly RequestHan
 
 const scenarios = new Set<MockScenario>(["ready", "empty", "loading", "error"]);
 
+// Requests the service worker hands to the browser handlers carry no Cookie header,
+// so there the page's own cookies are read.
+function requestCookies(request: Request): string | null {
+  return request.headers.get("cookie") || (typeof document === "undefined" ? null : document.cookie);
+}
+
 function isPersianRequest(request: Request) {
-  return (parseLocaleCookie(request.headers.get("cookie")) ?? "fa") === "fa";
+  return (parseLocaleCookie(requestCookies(request)) ?? "fa") === "fa";
 }
 
 export function resolveMockScenario(value: string | undefined): MockScenario {
@@ -84,7 +90,7 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
     http.get(/\/api\/modules\/authentication\/session(?:\?|$)/, async ({ request }) => {
       await withDelay();
       if (activeScenario === "error") return unavailable();
-      if (isMockAnonymousSession(request.headers.get("cookie"))) {
+      if (isMockAnonymousSession(requestCookies(request))) {
         return HttpResponse.json({
           isAuthenticated: false,
           user: null,

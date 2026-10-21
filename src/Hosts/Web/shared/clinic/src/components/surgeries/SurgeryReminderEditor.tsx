@@ -11,7 +11,7 @@ import {
   Tooltip,
 } from "@heroui/react";
 import { FaIcon, removeButtonClassName } from "@vitarish/ui";
-import { useLocalizedText, type Translate } from "../../localization/index";
+import { formatNumber, useLocalizedText, type SupportedLocale, type Translate } from "../../localization/index";
 import type { SurgeryReminderPolicy } from "../../models/surgeries/surgeryModels";
 
 export interface SurgeryReminderEditorProps {
@@ -20,22 +20,22 @@ export interface SurgeryReminderEditorProps {
   onChange: (reminders: SurgeryReminderPolicy[]) => void;
 }
 
-function reminderOffsetLabel(minutes: number, t: Translate): string {
+function reminderOffsetLabel(minutes: number, t: Translate, locale: SupportedLocale): string {
   if (!Number.isFinite(minutes) || minutes <= 0) {
     return t("clinic.surgeries.plan.reminderAtStart");
   }
   if (minutes % 1440 === 0) {
     return t("clinic.surgeries.plan.reminderDaysBefore", {
-      count: String(minutes / 1440),
+      count: formatNumber(minutes / 1440, locale),
     });
   }
   if (minutes % 60 === 0) {
     return t("clinic.surgeries.plan.reminderHoursBefore", {
-      count: String(minutes / 60),
+      count: formatNumber(minutes / 60, locale),
     });
   }
   return t("clinic.surgeries.plan.reminderMinutesBefore", {
-    count: String(minutes),
+    count: formatNumber(minutes, locale),
   });
 }
 
@@ -45,7 +45,7 @@ export function SurgeryReminderEditor({
   error,
   onChange,
 }: SurgeryReminderEditorProps) {
-  const { t } = useLocalizedText();
+  const { t, locale } = useLocalizedText();
 
   const updateRow = (index: number, patch: Partial<SurgeryReminderPolicy>) => {
     onChange(
@@ -96,7 +96,7 @@ export function SurgeryReminderEditor({
                 <NumberField.Input />
               </NumberField>
               <p className="text-sm text-muted">
-                {reminderOffsetLabel(reminder.minutesBefore, t)}
+                {reminderOffsetLabel(reminder.minutesBefore, t, locale)}
               </p>
             </div>
             <TextField variant="secondary">
