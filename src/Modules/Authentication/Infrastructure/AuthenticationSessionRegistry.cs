@@ -568,11 +568,9 @@ public sealed class AuthenticationSessionRegistry(
             {
                 SecurityAccessPolicyState saved = await SecurityAccessPolicyStore.SaveAsync(dbContext, policy, expectedVersion, operationToken);
                 DateTime now = timeProvider.GetUtcNow().UtcDateTime;
-                List<AuthenticationSession> terminatedSessions = await dbContext.AuthenticationSessions
-                    .Where(session => session.TerminatedAt != null)
-                    .ToListAsync(operationToken);
-                foreach (AuthenticationSession session in terminatedSessions)
-                    await ReconcilePendingTerminationAuditAsync(session.UserId, AuthenticationSecurityAuditEvents.SessionPolicyInvalidated, session.Id.ToString("N"), operationToken);
+                // Only active sessions are read. A save terminates sessions in the transaction that also
+                // moves the policy version, so a retry of this request that gets past the version check
+                // has ended no session yet, and there is no earlier termination audit of its own to finish.
 
                 List<AuthenticationSession> sessions = await dbContext.AuthenticationSessions
                     .Where(session => session.TerminatedAt == null)
