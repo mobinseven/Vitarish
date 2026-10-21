@@ -6,8 +6,11 @@ using Vitarish.Authentication.Domain.Security;
 using Vitarish.Authentication.Infrastructure;
 using Xunit;
 
+using Authentication.Tests.Infrastructure;
+
 namespace Vitarish.Authentication.Tests.Infrastructure;
 
+[Collection(AuthenticationPostgresCollection.Name)]
 public sealed class PostgresSecurityAccessPolicyStoreTests
 {
     [PostgresFact]

@@ -12,6 +12,7 @@ using Xunit;
 
 namespace Authentication.Tests.Infrastructure;
 
+[Collection(AuthenticationPostgresCollection.Name)]
 public sealed class PostgresAuthenticationSessionRegistryTests
 {
     [PostgresFact]

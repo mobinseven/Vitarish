@@ -169,6 +169,20 @@ jobs:
     if: ${{ needs.changes.outputs.dotnet == 'true' || needs.changes.outputs.main == 'true' || needs.changes.outputs.unknown_source == 'true' || needs.changes.outputs.full_suite == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    # A disposable database for the PostgreSQL-backed Authentication tests, which skip without it.
+    services:
+      postgres:
+        image: postgres:18.0
+        env:
+          POSTGRES_DB: authentication_tests
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d authentication_tests"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
@@ -183,6 +197,8 @@ jobs:
       - name: Build solution
         run: dotnet build Vitarish.slnx -p:OpenApiGenerateDocumentsOnBuild=false
       - name: Test solution
+        env:
+          VITARISH_AUTH_TEST_CONNECTION: Host=localhost;Port=5432;Database=authentication_tests;Username=postgres
         run: dotnet test Vitarish.slnx --no-build
 
   web:
