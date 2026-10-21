@@ -60,7 +60,8 @@ async function signInWithEmailCode(browser: Browser, clientIp: string): Promise<
 
 // A platform admin without a password reaches the admin app through the email-code
 // method: signed-out visitors land on the method picker, and the verified code opens
-// an authorized session on the admin host. Each test uses its own client IP so the
+// an authorized session on the admin host. The admin's email is unconfirmed, and the
+// owner app's contact-confirmation page must not be chosen on the admin host (#902). Each test uses its own client IP so the
 // begin rate-limit partition is shared with no earlier scenario.
 test("a platform admin signs in to the admin app with an email code", async ({ browser }) => {
   expect(smtpCapturePath, "VITARISH_E2E_SMTP_CAPTURE_PATH must be supplied by the two-host runner").toBeTruthy();

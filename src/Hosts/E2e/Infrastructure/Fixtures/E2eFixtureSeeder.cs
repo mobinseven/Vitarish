@@ -139,7 +139,10 @@ internal static class E2eFixtureSeeder
             EmailSignInPlatformAdminEmail,
             "E2E",
             "Email Sign-In Platform Admin",
-            password);
+            password,
+            // Like production's first admin, whose address is never confirmed
+            // before the first email-code sign-in.
+            emailConfirmed: false);
 
         Console.WriteLine("E2E fixture seeding: identity accounts are ready.");
         Guid ownerId = Guid.Parse(user.Id);
@@ -481,7 +484,8 @@ internal static class E2eFixtureSeeder
         string email,
         string firstName,
         string lastName,
-        string password)
+        string password,
+        bool emailConfirmed = true)
     {
         User? user = await users.FindByNameAsync(userName);
         if (user is not null)
@@ -494,7 +498,7 @@ internal static class E2eFixtureSeeder
             NormalizedUserName = userName.ToUpperInvariant(),
             Email = email,
             NormalizedEmail = email.ToUpperInvariant(),
-            EmailConfirmed = true,
+            EmailConfirmed = emailConfirmed,
             FirstName = firstName,
             LastName = lastName
         };

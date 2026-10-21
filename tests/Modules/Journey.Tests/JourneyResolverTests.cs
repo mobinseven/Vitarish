@@ -135,6 +135,35 @@ public class JourneyResolverTests
         result.BlockingGate?.Kind.Should().NotBe(JourneyGateKind.TenantCreation);
     }
 
+    [Fact]
+    public async Task ResolveAsync_OnTheAdminHost_SkipsOwnerAppGatesForTheRequestedReturnUrl()
+    {
+        var request = new JourneyRequest("user1", "/audit", "/", null, null, true);
+        _profileReaderMock.Setup(x => x.GetSnapshotAsync("user1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new JourneyProfileSnapshot("user1", null, null, null, null, null, false, false));
+        _hostReaderMock.Setup(x => x.IsPlatformAdminHostAsync(It.IsAny<CancellationToken>())).ReturnsAsync(true);
+        _returnUrlPolicyMock.Setup(x => x.Normalize("/audit")).Returns("/audit");
+
+        var result = await _sut.ResolveAsync(request);
+
+        result.HasBlockingGate.Should().BeFalse();
+        result.DestinationKind.Should().Be(JourneyDestinationKind.ReturnUrl);
+        result.DestinationUrl.Should().Be("/audit");
+    }
+
+    [Fact]
+    public async Task ResolveAsync_OnTheAdminHost_WithoutASafeReturnUrl_GoesToTheAppRoot()
+    {
+        var request = new JourneyRequest("user1", "https://evil.example/", "/", null, null, true);
+        _hostReaderMock.Setup(x => x.IsPlatformAdminHostAsync(It.IsAny<CancellationToken>())).ReturnsAsync(true);
+        _returnUrlPolicyMock.Setup(x => x.Normalize(It.IsAny<string?>())).Returns((string?)null);
+
+        var result = await _sut.ResolveAsync(request);
+
+        result.HasBlockingGate.Should().BeFalse();
+        result.DestinationUrl.Should().Be("/");
+    }
+
     private void SetUpCompleteAccount()
     {
         _profileReaderMock.Setup(x => x.GetSnapshotAsync("user1", It.IsAny<CancellationToken>()))

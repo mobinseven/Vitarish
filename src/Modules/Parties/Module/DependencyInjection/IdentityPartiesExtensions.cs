@@ -56,7 +56,7 @@ public static class IdentityPartiesExtensions
         _ = builder.Services.AddTransient<ISelfServiceTenantStore, SelfServiceTenantStore>();
         _ = builder.Services.AddTransient<ITenantHandoffIssuer, AuthenticationTenantHandoffIssuer>();
         _ = builder.Services.AddTransient<Vitarish.Authentication.Application.Abstractions.IRoleFreeSessionPolicy, OnboardingRoleFreeSessionPolicy>();
-        _ = builder.Services.AddTransient<IOnboardingTenantDirectory, OnboardingTenantDirectory>();
+        _ = builder.Services.AddTransient<IAppTenantDirectory, AppTenantDirectory>();
         _ = builder.Services.AddTransient<ITenantBusinessProfileStore, TenantBusinessProfileStore>();
         _ = builder.Services.AddTransient<ITenantImageFiles, FilesTenantImageFiles>();
         _ = builder.Services.AddTransient<IAppTenantProvisioner, EfAppTenantProvisioner>();

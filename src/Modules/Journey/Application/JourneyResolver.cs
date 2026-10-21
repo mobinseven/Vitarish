@@ -7,7 +7,8 @@ namespace Vitarish.Journey.Application;
 
 /// <summary>
 /// Resolves the next valid destination for an authenticated user.
-/// Priority order:
+/// On the platform admin host only the safe requested return URL or the app's
+/// root applies. Elsewhere, in priority order:
 /// 1. Account recovery / disabled account (delegated to Authentication)
 /// 2. Suspicious login / reauthentication (delegated to Authentication)
 /// 3. Required contact confirmation
@@ -32,6 +33,15 @@ public sealed class JourneyResolver(
 {
     public async Task<JourneyStep> ResolveAsync(JourneyRequest request, CancellationToken cancellationToken = default)
     {
+        // The admin app has none of the gate or dashboard pages below, so it
+        // goes to its safe requested page or its own home.
+        if (await hostReader.IsPlatformAdminHostAsync(cancellationToken))
+        {
+            return returnUrlPolicy.Normalize(request.RequestedReturnUrl) is { } adminReturnUrl
+                ? new JourneyStep(JourneyDestinationKind.ReturnUrl, adminReturnUrl)
+                : new JourneyStep(JourneyDestinationKind.UserHome, JourneyPolicy.AppRootUrl);
+        }
+
         // Read snapshots
         var profile = await profileReader.GetSnapshotAsync(request.UserId, cancellationToken);
         var consent = await consentReader.GetSnapshotAsync(request.UserId, cancellationToken);
