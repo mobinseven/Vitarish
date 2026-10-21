@@ -480,6 +480,8 @@ public sealed class SurgeryToolchainTests
         sent!.Should().Contain(reminder => reminder.Kind == ReminderKind.Email && reminder.Recipient == "patient@example.com");
         sent!.Should().Contain(reminder => reminder.Kind == ReminderKind.Email && reminder.Recipient == "doc@example.com");
         sent!.Should().Contain(reminder => reminder.Kind == ReminderKind.Sms && reminder.Recipient == "+222");
+        // The reminders reuse the team resolved for validation.
+        teamDirectory.Verify(value => value.FindMembersAsync(It.IsAny<IReadOnlyCollection<string>>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
