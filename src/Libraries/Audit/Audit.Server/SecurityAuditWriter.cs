@@ -21,6 +21,7 @@ internal sealed class SecurityAuditWriter(
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
         ArgumentException.ThrowIfNullOrWhiteSpace(idempotencyKey);
+        dbContext.UseRowScope(tenantId);
 
         try
         {
@@ -50,6 +51,7 @@ internal sealed class SecurityAuditWriter(
         ArgumentNullException.ThrowIfNull(auditEvent);
         Normalize(auditEvent);
         Validate(auditEvent);
+        dbContext.UseRowScope(auditEvent.TenantId);
         if (auditEvent.Id == Guid.Empty)
             auditEvent.Id = Guid.NewGuid();
 
@@ -102,6 +104,7 @@ internal sealed class SecurityAuditWriter(
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
         ArgumentException.ThrowIfNullOrWhiteSpace(idempotencyKey);
         ArgumentException.ThrowIfNullOrWhiteSpace(outcome);
+        dbContext.UseRowScope(tenantId);
 
         SecurityAuditEvent? pending = null;
         try

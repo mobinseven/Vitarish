@@ -124,6 +124,7 @@ active session.
 
 - Open: the business listing data model (#917) should be settled before the
   listing is shown publicly.
-- Known gap: entity audit entries for the new clinic's rows are dropped because
-  they belong to a different tenant than the request (#918).
+- Audit rows for the new clinic, both entity audit entries and the creation
+  security event, are written under the new clinic's tenant, not the onboarding
+  request's (owner decision on #918).
 - Clinic settings editing and photos: #915.

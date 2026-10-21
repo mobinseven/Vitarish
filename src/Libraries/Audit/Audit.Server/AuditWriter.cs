@@ -12,6 +12,7 @@ internal sealed class AuditWriter(AuditDbContext dbContext) : IAuditWriter
             entry.Id = Guid.NewGuid();
         }
 
+        dbContext.UseRowScope(entry.TenantId);
         _ = await dbContext.AuditEntries.AddAsync(entry, cancellationToken);
         _ = await dbContext.SaveChangesAsync(cancellationToken);
     }
@@ -31,7 +32,14 @@ internal sealed class AuditWriter(AuditDbContext dbContext) : IAuditWriter
             }
         }
 
-        await dbContext.AuditEntries.AddRangeAsync(entries, cancellationToken);
-        _ = await dbContext.SaveChangesAsync(cancellationToken);
+        // Each entry belongs to the tenant of the entity it describes, so a
+        // request that writes another tenant's entities audits them there.
+        foreach (IGrouping<string, AuditEntry> scope in entries.GroupBy(entry => entry.TenantId, StringComparer.Ordinal))
+        {
+            dbContext.ChangeTracker.Clear();
+            dbContext.UseRowScope(scope.Key);
+            await dbContext.AuditEntries.AddRangeAsync(scope, cancellationToken);
+            _ = await dbContext.SaveChangesAsync(cancellationToken);
+        }
     }
 }

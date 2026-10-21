@@ -12,6 +12,7 @@ public sealed class AuditDbContext : DbContext, IMultiTenantDbContext
 {
     private readonly IRequestContext _requestContext;
     private readonly IMultiTenantContextAccessor<TenantInfo>? _multiTenantContextAccessor;
+    private string? _rowScopeTenantId;
 
     public AuditDbContext(
         DbContextOptions<AuditDbContext> options,
@@ -28,7 +29,8 @@ public sealed class AuditDbContext : DbContext, IMultiTenantDbContext
     {
         get
         {
-            string? tenantId = _multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id
+            string? tenantId = _rowScopeTenantId
+                ?? _multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id
                 ?? _requestContext.TenantId;
             if (string.IsNullOrWhiteSpace(tenantId))
                 throw new InvalidOperationException("Tenant ID cannot be recognized.");
@@ -39,6 +41,18 @@ public sealed class AuditDbContext : DbContext, IMultiTenantDbContext
                 Name = tenantId
             };
         }
+    }
+
+    /// <summary>
+    /// Scopes this context to the tenant that owns the audit rows being written,
+    /// which can differ from the request's tenant: a clinic created from the
+    /// onboarding host, or a platform-scoped event from a request with no tenant.
+    /// Only audit writers call this, with the scope of the rows they write.
+    /// </summary>
+    internal void UseRowScope(string tenantId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
+        _rowScopeTenantId = tenantId;
     }
 
     public TenantMismatchMode TenantMismatchMode { get; set; } = TenantMismatchMode.Throw;
