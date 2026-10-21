@@ -120,10 +120,11 @@ function ClinicRow({ clinic, isOpening, isDisabled, onOpen }: ClinicRowProps) {
         <Avatar.Fallback className="bg-accent text-accent-foreground">{initials(clinic.name)}</Avatar.Fallback>
       </Avatar>
       <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <span className="truncate text-base font-semibold text-foreground">{clinic.name}</span>
-        <span dir="ltr" className="truncate text-start text-sm text-muted">{clinic.hostname}</span>
+        <span className="truncate text-lg font-semibold text-foreground">{clinic.name}</span>
+        {/* The address reads left to right but sits at the start of the line in either direction. */}
+        <span dir="ltr" className="max-w-full self-start truncate text-base text-muted">{clinic.hostname}</span>
         {roleKey ? (
-          <Chip size="sm" variant="soft" className="self-start">
+          <Chip size="md" variant="soft" className="self-start">
             <Chip.Label>{t(roleKey)}</Chip.Label>
           </Chip>
         ) : null}
