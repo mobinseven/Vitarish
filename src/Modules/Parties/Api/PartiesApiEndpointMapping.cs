@@ -11,6 +11,7 @@ using Vitarish.Modules.Base.Core.Identity;
 using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Application.Addresses;
 using Vitarish.Parties.Application.Onboarding;
+using Vitarish.Parties.Application.SignIn;
 using Vitarish.Parties.Application.Profiles;
 using Vitarish.Parties.Domain.Profiles;
 using Vitarish.Requests.Application.Abstractions;
@@ -69,6 +70,28 @@ public static class PartiesApiEndpointMapping
             GetOnboardingCategories,
             PartiesApiOperations.GetOnboardingCategories,
             typeof(C.TenantCategoriesResponse));
+        // On the shared sign-in host the user holds no role in the host's tenant, so these
+        // require authentication but not ambient tenant access, and answer only on that host.
+        RouteGroupBuilder signInGroup = endpoints
+            .MapProtectedModuleGroup($"{PartiesApiRoutes.Base}{PartiesApiRoutes.SignIn}", requireTenantAccess: false)
+            .WithGroupName(PartiesApiRoutes.DocumentTag)
+            .WithTags(PartiesApiRoutes.DocumentTag);
+        _ = signInGroup.AddEndpointFilter(RequireSignInHostAsync);
+        _ = signInGroup.MapModuleGet(
+            PartiesApiRoutes.SignInClinics,
+            GetSignInClinicsAsync,
+            PartiesApiOperations.GetSignInClinics,
+            typeof(C.SignInClinicsResponse));
+        _ = signInGroup.MapModulePost(
+            PartiesApiRoutes.SignInClinicHandoff,
+            IssueSignInClinicHandoffAsync,
+            PartiesApiOperations.IssueSignInClinicHandoff,
+            typeof(C.SignInHandoffResponse));
+        _ = signInGroup.MapModulePost(
+            PartiesApiRoutes.SignInOnboardingHandoff,
+            IssueSignInOnboardingHandoffAsync,
+            PartiesApiOperations.IssueSignInOnboardingHandoff,
+            typeof(C.SignInHandoffResponse));
         _ = group.MapModuleGet(PartiesApiRoutes.TenantProfile, GetTenantProfileAsync, PartiesApiOperations.GetTenantProfile, typeof(C.TenantBusinessProfileResponse))
             .RequireAuthorization(IdentityDefinitions.TenantOwner);
         _ = group.MapModulePut(PartiesApiRoutes.TenantProfile, UpdateTenantProfileAsync, PartiesApiOperations.UpdateTenantProfile, successStatusCode: StatusCodes.Status204NoContent)
@@ -110,6 +133,26 @@ public static class PartiesApiEndpointMapping
         _ = group.MapModulePut($"{PartiesApiRoutes.Administration}{PartiesApiRoutes.AdministrationTenantIndicatorById}", UpdateAdministrationTenantIndicatorAsync, "PartiesAdministrationUpdateTenantIndicator").RequireAuthorization(IdentityDefinitions.PlatformAdmin);
         return endpoints;
     }
+
+    private static async ValueTask<object?> RequireSignInHostAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next) =>
+        await context.HttpContext.RequestServices.GetRequiredService<ISender>().Send(new IsSignInHostQuery(), context.HttpContext.RequestAborted)
+            ? await next(context)
+            : NotFound("This is not the sign-in host.");
+
+    private static async Task<IResult> GetSignInClinicsAsync([FromServices] ISender sender, CancellationToken cancellationToken) =>
+        await sender.Send(new ListSignInClinicsQuery(), cancellationToken) is { } clinics
+            ? Results.Ok(new C.SignInClinicsResponse([.. clinics.Select(clinic => new C.SignInClinicDto(clinic.TenantId, clinic.Name, clinic.Hostname, clinic.Role))]))
+            : Results.Unauthorized();
+
+    // A clinic that is not the user's answers the same as one that does not exist.
+    private static async Task<IResult> IssueSignInClinicHandoffAsync(Guid tenantId, [FromServices] ISender sender, CancellationToken cancellationToken) =>
+        ToHandoffResult(await sender.Send(new IssueSignInHandoffCommand(tenantId), cancellationToken), "No clinic of yours was found.");
+
+    private static async Task<IResult> IssueSignInOnboardingHandoffAsync([FromServices] ISender sender, CancellationToken cancellationToken) =>
+        ToHandoffResult(await sender.Send(new IssueSignInHandoffCommand(null), cancellationToken), "Clinic creation is not available.");
+
+    private static IResult ToHandoffResult(SignInHandoff? handoff, string notFound) =>
+        handoff is null ? NotFound(notFound) : Results.Ok(new C.SignInHandoffResponse(handoff.Hostname, handoff.Token));
 
     private static ValueTask<object?> RequireTenantOnboardingAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
     {

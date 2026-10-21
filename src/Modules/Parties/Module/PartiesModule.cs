@@ -5,6 +5,7 @@ using Microsoft.Extensions.Options;
 using Vitarish.Parties.Application;
 using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Application.Onboarding;
+using Vitarish.Parties.Application.SignIn;
 using Vitarish.Parties.Domain.Models;
 using Vitarish.Parties.Module.DependencyInjection;
 using Vitarish.Parties.Infrastructure.Services;
@@ -34,6 +35,21 @@ public sealed class PartiesModule : Modules.Base.Core.Module
         await app.InitializeViews();
         await EnsurePlatformAdminTenantAsync(app);
         await EnsureOnboardingTenantAsync(app);
+        await EnsureSignInTenantAsync(app);
+    }
+
+    private static async Task EnsureSignInTenantAsync(WebApplication app)
+    {
+        await using AsyncServiceScope scope = app.Services.CreateAsyncScope();
+        string? url = scope.ServiceProvider.GetRequiredService<IOptions<SignInHostOptions>>().Value.SignInUrl;
+        if (string.IsNullOrWhiteSpace(url))
+            return;
+
+        _ = await scope.ServiceProvider.GetRequiredService<IAppTenantProvisioner>().EnsureAsync(new EnsureAppTenantRequest(
+            SignInTenant.OwnerName,
+            SignInTenant.AppId,
+            SignInTenant.Name,
+            new Uri(url, UriKind.Absolute).Host), CancellationToken.None);
     }
 
     private static async Task EnsureOnboardingTenantAsync(WebApplication app)

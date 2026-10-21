@@ -32,4 +32,8 @@ public static class PartiesApiRoutes
     public const string TenantProfileLogo = "/tenant-profile/logo";
     public const string TenantProfileLogoPromptDismissal = "/tenant-profile/logo-prompt-dismissal";
     public const string IdempotencyKeyHeader = "Idempotency-Key";
+    public const string SignIn = "/sign-in";
+    public const string SignInClinics = "/clinics";
+    public const string SignInClinicHandoff = "/clinics/{tenantId:guid}/handoff";
+    public const string SignInOnboardingHandoff = "/onboarding-handoff";
 }
