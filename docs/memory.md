@@ -179,14 +179,6 @@ Use dated entries only. Each entry must include:
   HAVING COUNT(*) > 1;
   ```
 
-### Persian-digit change-phone E2E deferred
-
-- Status: active debt.
-- Added date: 2026-10-03.
-- Owning module/doc: E2E host (`src/Hosts/E2e`), two-host Web tests.
-- Remove condition: an E2E fake `ISmsProvider` outer adapter exists at E2E composition and the Persian-digit change-phone scenario passes in the two-host suite.
-- Lesson for Codex: `BeginChangePhoneHandler` sends the SMS synchronously, so without a fake SMS provider every phone-change begin fails with `ProviderFailure`. The conversion itself is covered by `PhoneNumberFormatHandlerTests.Phone_change_converts_a_local_format_number_before_the_challenge_and_sms`. Do not add a production test-mode branch to unblock this.
-
 ### Production registry hosts pinned in /etc/hosts
 
 - Status: active workaround.
