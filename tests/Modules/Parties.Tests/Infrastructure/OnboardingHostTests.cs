@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Moq;
+using Vitarish.Parties.Application;
 using Vitarish.Parties.Application.Onboarding;
 using Vitarish.Parties.Domain.Entities;
 using Vitarish.Parties.Infrastructure.Data;
@@ -29,12 +30,35 @@ public sealed class OnboardingHostTests
         (await AllowsAsync(database, "not-a-tenant-id")).Should().BeFalse();
     }
 
+    [Fact]
+    public async Task Recognizes_only_the_live_admin_tenant_as_the_admin_host()
+    {
+        string database = Guid.NewGuid().ToString("N");
+        Guid admin = await SeedAsync(database, PlatformAdminTenant.AppId);
+        Guid onboarding = await SeedAsync(database, OnboardingTenant.AppId);
+        Guid deletedAdmin = await SeedAsync(database, PlatformAdminTenant.AppId, deleted: true);
+
+        (await IsAdminHostAsync(database, admin.ToString())).Should().BeTrue();
+        (await IsAdminHostAsync(database, onboarding.ToString())).Should().BeFalse();
+        (await IsAdminHostAsync(database, deletedAdmin.ToString())).Should().BeFalse();
+        (await IsAdminHostAsync(database, null)).Should().BeFalse();
+    }
+
+    private static async Task<bool> IsAdminHostAsync(string database, string? tenantId)
+    {
+        Mock<IRequestContext> requestContext = new();
+        requestContext.SetupGet(context => context.TenantId).Returns(tenantId);
+        await using PartiesDbContext db = CreateContext(database);
+        return await new IsPlatformAdminHostQueryHandler(new AppTenantDirectory(db), requestContext.Object)
+            .Handle(new IsPlatformAdminHostQuery(), CancellationToken.None);
+    }
+
     private static async Task<bool> AllowsAsync(string database, string? tenantId)
     {
         Mock<IRequestContext> requestContext = new();
         requestContext.SetupGet(context => context.TenantId).Returns(tenantId);
         await using PartiesDbContext db = CreateContext(database);
-        return await new IsOnboardingHostQueryHandler(new OnboardingTenantDirectory(db), requestContext.Object)
+        return await new IsOnboardingHostQueryHandler(new AppTenantDirectory(db), requestContext.Object)
             .Handle(new IsOnboardingHostQuery(), CancellationToken.None);
     }
 

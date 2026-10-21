@@ -26,6 +26,9 @@ public static class JourneyPolicy
         return null;
     }
 
+    /// <summary>The root page of the app the user signed in to.</summary>
+    public const string AppRootUrl = "/";
+
     /// <summary>The page where a user on the sign-up host creates their own tenant.</summary>
     public const string TenantCreationUrl = "/setup";
 
