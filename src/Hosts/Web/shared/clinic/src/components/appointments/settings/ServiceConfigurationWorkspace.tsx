@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useId, useMemo } from "react";
 import { getLocalTimeZone } from "@internationalized/date";
 import { Button, Input, Label, Surface, TextField } from "@heroui/react";
 import { ListView } from "@heroui-pro/react";
@@ -906,6 +906,7 @@ function ServiceEditor({
   const [serviceTypeId, setServiceTypeId] = useState(
     initialValue.serviceTypeId,
   );
+  const serviceTypeFieldId = useId();
 
   return (
     <Surface className="rounded-lg p-4" variant="secondary">
@@ -928,8 +929,9 @@ function ServiceEditor({
           />
         </TextField>
         <div className="flex flex-col gap-1">
-          <Label>{t("clinic.fields.serviceType")}</Label>
+          <Label htmlFor={serviceTypeFieldId}>{t("clinic.fields.serviceType")}</Label>
           <select
+            id={serviceTypeFieldId}
             value={serviceTypeId}
             onChange={(event) => setServiceTypeId(event.target.value)}
             className="rounded-md border border-border bg-surface px-3 py-2 text-sm"
@@ -983,6 +985,7 @@ function ShiftEditor({
   const [totalSeats, setTotalSeats] = useState(10);
   const [serviceProviderId, setServiceProviderId] = useState<string>("");
   const [serviceId, setServiceId] = useState<string>("");
+  const fieldId = useId();
   const timeZone = getLocalTimeZone();
 
   const dayNameKeys = [
@@ -1014,8 +1017,9 @@ function ShiftEditor({
       >
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="flex flex-col gap-1">
-            <Label>{t("clinic.fields.dayOfWeek")}</Label>
+            <Label htmlFor={`${fieldId}-day`}>{t("clinic.fields.dayOfWeek")}</Label>
             <select
+              id={`${fieldId}-day`}
               value={dayOfWeek}
               onChange={(event) => setDayOfWeek(Number(event.target.value))}
               className="rounded-md border border-border bg-surface px-3 py-2 text-sm"
@@ -1028,24 +1032,27 @@ function ShiftEditor({
             </select>
           </div>
           <div className="flex flex-col gap-1">
-            <Label>{t("clinic.fields.totalSeats")}</Label>
+            <Label htmlFor={`${fieldId}-seats`}>{t("clinic.fields.totalSeats")}</Label>
             <Input
+              id={`${fieldId}-seats`}
               type="number"
               value={totalSeats}
               onChange={(event) => setTotalSeats(Number(event.target.value))}
             />
           </div>
           <div className="flex flex-col gap-1">
-            <Label>{t("clinic.fields.startTime")}</Label>
+            <Label htmlFor={`${fieldId}-start`}>{t("clinic.fields.startTime")}</Label>
             <Input
+              id={`${fieldId}-start`}
               type="time"
               value={startTime}
               onChange={(event) => setStartTime(event.target.value)}
             />
           </div>
           <div className="flex flex-col gap-1">
-            <Label>{t("clinic.fields.endTime")}</Label>
+            <Label htmlFor={`${fieldId}-end`}>{t("clinic.fields.endTime")}</Label>
             <Input
+              id={`${fieldId}-end`}
               type="time"
               value={endTime}
               onChange={(event) => setEndTime(event.target.value)}
@@ -1054,8 +1061,9 @@ function ShiftEditor({
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="flex flex-col gap-1">
-            <Label>{t("clinic.serviceProviders.title")}</Label>
+            <Label htmlFor={`${fieldId}-provider`}>{t("clinic.serviceProviders.title")}</Label>
             <select
+              id={`${fieldId}-provider`}
               value={serviceProviderId}
               onChange={(event) => setServiceProviderId(event.target.value)}
               className="rounded-md border border-border bg-surface px-3 py-2 text-sm"
@@ -1069,8 +1077,9 @@ function ShiftEditor({
             </select>
           </div>
           <div className="flex flex-col gap-1">
-            <Label>{t("clinic.services.title")}</Label>
+            <Label htmlFor={`${fieldId}-service`}>{t("clinic.services.title")}</Label>
             <select
+              id={`${fieldId}-service`}
               value={serviceId}
               onChange={(event) => setServiceId(event.target.value)}
               className="rounded-md border border-border bg-surface px-3 py-2 text-sm"

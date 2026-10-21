@@ -9,7 +9,7 @@ export { resolveLocale } from "./resolveLocale";
 export type { ResolveLocaleInput, ResolvedLocale, LocaleResolutionSource } from "./resolveLocale";
 export { parseLocaleCookie, serializeLocaleCookie, setLocaleCookie, localeCookieName } from "./localeCookie";
 export { parseAcceptLanguage } from "./acceptLanguage";
-export { formatDate, formatDateTime, formatNumber, formatPercent, formatCurrency, formatList, formatRelativeTime, formatFileSize } from "./format";
+export { formatDate, formatDateTime, formatTimeOfDay, formatNumber, formatPercent, formatCurrency, formatList, formatRelativeTime, formatFileSize } from "./format";
 export { getReactAriaLocale, getDateCalendar } from "./dateLocale";
 export type { SupportedDateCalendar } from "./dateLocale";
 export {

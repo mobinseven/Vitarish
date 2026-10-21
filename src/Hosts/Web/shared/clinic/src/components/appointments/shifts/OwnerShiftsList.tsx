@@ -11,7 +11,7 @@ import {
   HeaderIcon,
 } from "@vitarish/ui";
 import { useOwnerShifts } from "../../../hooks/appointments/shifts/useOwnerShifts";
-import { useLocalizedText, type MessageKey } from "../../../localization/index";
+import { formatNumber, formatTimeOfDay, useLocalizedText, type MessageKey } from "../../../localization/index";
 
 const dayNameKeys = [
   "clinic.weekdays.sunday",
@@ -28,7 +28,7 @@ interface OwnerShiftsListProps {
 }
 
 export function OwnerShiftsList({ onNavigate }: OwnerShiftsListProps) {
-  const { t } = useLocalizedText();
+  const { t, locale } = useLocalizedText();
   const { data: shifts, isLoading, error } = useOwnerShifts();
 
   const handleSelect = useCallback(
@@ -75,15 +75,15 @@ export function OwnerShiftsList({ onNavigate }: OwnerShiftsListProps) {
             <ListView.Item
               key={s.id}
               id={s.id}
-              textValue={`${t(dayNameKeys[s.dayOfWeek])} ${s.startTime}`}
+              textValue={`${t(dayNameKeys[s.dayOfWeek])} ${formatTimeOfDay(s.startTime, locale)}`}
             >
               <ListView.ItemContent>
                 <div className="flex flex-col gap-1">
                   <ListView.Title>
-                    {t(dayNameKeys[s.dayOfWeek])} {s.startTime} - {s.endTime}
+                    {t(dayNameKeys[s.dayOfWeek])} {formatTimeOfDay(s.startTime, locale)} - {formatTimeOfDay(s.endTime, locale)}
                   </ListView.Title>
                   <ListView.Description>
-                    {t("clinic.fields.totalSeats")}: {s.totalSeats}
+                    {t("clinic.fields.totalSeats")}: {formatNumber(s.totalSeats, locale)}
                   </ListView.Description>
                 </div>
               </ListView.ItemContent>

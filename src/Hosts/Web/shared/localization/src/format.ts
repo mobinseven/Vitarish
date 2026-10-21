@@ -6,6 +6,12 @@ export function formatDate(value: Date | string | number, locale: SupportedLocal
   return new Intl.DateTimeFormat(locale, options).format(date);
 }
 export function formatDateTime(value: Date | string | number, locale: SupportedLocale = defaultLocale, options?: Intl.DateTimeFormatOptions): string { return formatDate(value, locale, { dateStyle: "medium", timeStyle: "short", ...options }); }
+/** Formats a time of day sent as "HH:mm" or "HH:mm:ss" in the locale's digits and clock, without seconds. */
+export function formatTimeOfDay(value: string, locale: SupportedLocale = defaultLocale): string {
+  const [hours, minutes] = value.split(":").map(Number);
+  if (!Number.isInteger(hours) || !Number.isInteger(minutes)) return value;
+  return new Intl.DateTimeFormat(locale, { hour: "numeric", minute: "2-digit", timeZone: "UTC" }).format(new Date(Date.UTC(2000, 0, 1, hours, minutes)));
+}
 export function formatNumber(value: number, locale: SupportedLocale = defaultLocale, options?: Intl.NumberFormatOptions): string { return new Intl.NumberFormat(locale, options).format(value); }
 export function formatPercent(value: number, locale: SupportedLocale = defaultLocale, options?: Intl.NumberFormatOptions): string { return formatNumber(value, locale, { style: "percent", ...options }); }
 export function formatCurrency(value: number, currency: string, locale: SupportedLocale = defaultLocale, options?: Intl.NumberFormatOptions): string { return formatNumber(value, locale, { style: "currency", currency, ...options }); }

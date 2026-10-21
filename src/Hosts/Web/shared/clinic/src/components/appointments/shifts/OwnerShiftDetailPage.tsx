@@ -8,6 +8,8 @@ import {
 import type { NavigationIntent } from "../../../navigation";
 import {
   formatDateTime,
+  formatNumber,
+  formatTimeOfDay,
   useLocalizedText,
   type MessageKey,
 } from "../../../localization/index";
@@ -66,7 +68,7 @@ export function OwnerShiftDetailPage({
             <HeaderIcon icon="clock" level="page" />
             <div className="min-w-0">
               <h1 id="clinic-owner-shift-title" className="text-2xl font-bold">
-                {day} {shift.startTime} - {shift.endTime}
+                {day} {formatTimeOfDay(shift.startTime, locale)} - {formatTimeOfDay(shift.endTime, locale)}
               </h1>
             </div>
           </div>
@@ -86,9 +88,9 @@ export function OwnerShiftDetailPage({
       <DetailGrid
         items={[
           { label: t("clinic.fields.day"), value: day },
-          { label: t("clinic.fields.start"), value: shift.startTime },
-          { label: t("clinic.fields.end"), value: shift.endTime },
-          { label: t("clinic.fields.totalSeats"), value: shift.totalSeats },
+          { label: t("clinic.fields.start"), value: formatTimeOfDay(shift.startTime, locale) },
+          { label: t("clinic.fields.end"), value: formatTimeOfDay(shift.endTime, locale) },
+          { label: t("clinic.fields.totalSeats"), value: formatNumber(shift.totalSeats, locale) },
           { label: t("clinic.fields.timezone"), value: shift.timeZone },
           {
             label: t("clinic.fields.created"),
