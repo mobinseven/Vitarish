@@ -14,6 +14,7 @@ import {
 import { TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
 import { clinicMessageCatalogs } from "../../shared/clinic/src/localization/catalogs";
 import { getDateCalendar } from "../../shared/localization/src/dateLocale";
+import { formatTimeOfDay } from "../../shared/localization/src/format";
 import { localeCookieName } from "../../shared/localization/src/localeCookie";
 import type { SupportedLocale } from "../../shared/localization/src/locales";
 
@@ -47,9 +48,18 @@ let step = 0;
 // A missing control fails within a minute instead of waiting out the whole walkthrough.
 test.use({ actionTimeout: 60_000 });
 
+function escapeRegExp(text: string) {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 /** Matches a field's accessible name, which carries a trailing "*" when the field is required. */
 function fieldName(label: string) {
-  return new RegExp(`^${label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\*?$`);
+  return new RegExp(`^${escapeRegExp(label)}\\*?$`);
+}
+
+/** Matches the whole text, letting each space be any whitespace, such as the narrow space before "AM". */
+function spacedText(text: string) {
+  return new RegExp(`^${text.split(/\s+/).map(escapeRegExp).join("\\s+")}$`);
 }
 
 function randomDigits(length: number): string {
@@ -424,7 +434,8 @@ test("a new phone number signs up, creates a clinic, lands signed in on it, and 
   await expect(
     page.getByRole("heading", {
       level: 1,
-      name: new RegExp(`^${clinicMessages.weekdays.saturday}\\s+${shiftStartTime}(?::00)?\\s+-\\s+${shiftEndTime}(?::00)?$`),
+      // Shift times are written in the locale's digits and clock, without seconds.
+      name: spacedText(`${clinicMessages.weekdays.saturday} ${formatTimeOfDay(shiftStartTime, locale)} - ${formatTimeOfDay(shiftEndTime, locale)}`),
     }),
   ).toBeVisible({ timeout: pageCompileTimeoutMilliseconds });
   await captureStep(page, "shift-created");

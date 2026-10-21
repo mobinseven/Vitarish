@@ -16,6 +16,7 @@ export {
   localeCookieName,
   formatDate,
   formatDateTime,
+  formatTimeOfDay,
   formatNumber,
   formatPercent,
   formatCurrency,

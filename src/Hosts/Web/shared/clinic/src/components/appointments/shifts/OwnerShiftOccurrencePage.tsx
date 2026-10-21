@@ -1,7 +1,7 @@
 "use client";
 import { Button } from "@heroui/react";
 import type { NavigationIntent } from "../../../navigation";
-import { useLocalizedText } from "../../../localization/index";
+import { formatTimeOfDay, useLocalizedText } from "../../../localization/index";
 import {
   EmptyStateSurface as ClinicEmptyState,
   ErrorStateSurface as ClinicErrorState,
@@ -19,7 +19,7 @@ export function OwnerShiftOccurrencePage({
   occurrenceDate,
   onNavigate,
 }: OwnerShiftOccurrencePageProps) {
-  const { t } = useLocalizedText();
+  const { t, locale } = useLocalizedText();
   const query = useOwnerShiftDetail(shiftId);
   if (query.isLoading)
     return <ClinicLoadingState label={t("common.states.loading")} />;
@@ -40,7 +40,7 @@ export function OwnerShiftOccurrencePage({
           <HeaderIcon icon="clock" level="page" />
           <div className="min-w-0">
             <h1 className="text-2xl font-bold">
-              {query.data.startTime} - {query.data.endTime}
+              {formatTimeOfDay(query.data.startTime, locale)} - {formatTimeOfDay(query.data.endTime, locale)}
             </h1>
             <p className="text-sm text-muted">{occurrenceDate}</p>
           </div>

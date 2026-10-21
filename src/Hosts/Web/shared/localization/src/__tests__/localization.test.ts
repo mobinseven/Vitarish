@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { resolveLocale } from "../resolveLocale";
 import { parseAcceptLanguage } from "../acceptLanguage";
 import { resolveI18nAppLocale } from "../I18nAppLayout";
-import { formatDate, formatFileSize, formatNumber } from "../format";
+import { formatDate, formatFileSize, formatNumber, formatTimeOfDay } from "../format";
 import { dateValueToIsoDate, parseIsoDateValue, toLocalizedDateValue } from "../dateValue";
 
 describe("resolveLocale", () => {
@@ -88,6 +88,17 @@ describe("formatNumber", () => {
     const result = formatNumber(1234.56, "en");
     expect(result).toContain("1");
     expect(result).toContain("234");
+  });
+});
+
+describe("formatTimeOfDay", () => {
+  it("writes a server time of day in the locale's digits without seconds", () => {
+    expect(formatTimeOfDay("09:00:00", "fa")).toBe(formatTimeOfDay("09:00", "fa"));
+    expect(formatTimeOfDay("09:00:00", "fa")).toMatch(/^[۰-۹]{1,2}:[۰-۹]{2}$/);
+    expect(formatTimeOfDay("13:05:00", "en")).toMatch(/^1:05\sPM$/);
+  });
+  it("leaves a value it cannot read unchanged", () => {
+    expect(formatTimeOfDay("not-a-time", "en")).toBe("not-a-time");
   });
 });
 
