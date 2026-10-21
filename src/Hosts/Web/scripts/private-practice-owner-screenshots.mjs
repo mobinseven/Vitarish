@@ -3,7 +3,7 @@
 // Screenshots every private-practice-owner page against the mock API, once per mock scenario.
 // Usage: node scripts/private-practice-owner-screenshots.mjs [--scenarios ready,empty,loading,error] [-- <playwright test args>]
 
-import { spawn } from "node:child_process";
+import { execFileSync, spawn } from "node:child_process";
 import { createRequire } from "node:module";
 import { rm } from "node:fs/promises";
 import path from "node:path";
@@ -96,9 +96,51 @@ function run(args, env) {
 }
 
 async function stopTree(child) {
-  if (child.exitCode !== null) return;
-  const exited = new Promise((resolve) => child.once("exit", resolve));
-  if (isWindows) spawn("taskkill", ["/pid", String(child.pid), "/T", "/F"], { stdio: "ignore" });
-  else process.kill(-child.pid, "SIGTERM");
-  await exited;
+  if (child.exitCode === null) {
+    const exited = new Promise((resolve) => child.once("exit", resolve));
+    killTree(child.pid);
+    await exited;
+  }
+  await releaseAppPort();
+}
+
+function killTree(pid) {
+  if (isWindows) execFileSync("taskkill", ["/pid", String(pid), "/T", "/F"], { stdio: "ignore" });
+  else process.kill(-pid, "SIGTERM");
+}
+
+// The port was free before this run started its server, so whatever still listens on it once the
+// server's process tree is gone was started by this run: a Next worker can outlive the tree kill.
+async function releaseAppPort() {
+  for (let attempt = 0; attempt < 10 && await isServing(); attempt += 1) {
+    if (attempt === 0) {
+      for (const pid of listeningProcessIds(new URL(appUrl).port)) {
+        try {
+          killTree(pid);
+        } catch {
+          // The process may have exited on its own in the meantime.
+        }
+      }
+    }
+    await new Promise((resolve) => setTimeout(resolve, 1_000));
+  }
+  if (await isServing()) throw new Error(`The mock server is still answering at ${appUrl}; stop it before the next run.`);
+}
+
+function listeningProcessIds(port) {
+  try {
+    if (isWindows) {
+      const listening = execFileSync("netstat", ["-ano", "-p", "TCP"], { encoding: "utf8" })
+        .split(/\r?\n/)
+        .map((line) => line.trim().split(/\s+/))
+        .filter((columns) => columns[3] === "LISTENING" && columns[1]?.endsWith(`:${port}`));
+      return [...new Set(listening.map((columns) => Number(columns[4])).filter((pid) => pid > 0))];
+    }
+    return execFileSync("lsof", ["-nP", `-iTCP:${port}`, "-sTCP:LISTEN", "-t"], { encoding: "utf8" })
+      .split(/\s+/)
+      .map(Number)
+      .filter((pid) => pid > 0);
+  } catch {
+    return [];
+  }
 }
