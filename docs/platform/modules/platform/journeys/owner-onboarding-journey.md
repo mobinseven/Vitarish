@@ -58,4 +58,3 @@ that holds no practice data. Session cookies are host-only.
 
 - Editing the clinic's settings and adding photos after creation (#915).
 - How the public business listing is modelled and shown (#917).
-- Entity audit entries for the new clinic's records (#918).

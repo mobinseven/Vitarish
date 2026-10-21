@@ -178,7 +178,66 @@ public sealed class SecurityAuditWriterTests
         }
     }
 
-    private static AuditDbContext CreateContext(DbContextOptions<AuditDbContext> options, string tenantId) => new(options, new TestRequestContext(tenantId));
+    [Fact]
+    public async Task Event_for_another_tenant_is_recorded_in_that_tenants_scope()
+    {
+        DbContextOptions<AuditDbContext> options = CreateOptions("security-audit-row-scope");
+        await using (AuditDbContext onboarding = CreateContext(options, "onboarding"))
+        {
+            (await new SecurityAuditWriter(onboarding).WriteAsync(CreateEvent("clinic-b", "created-clinic-b"), CancellationToken.None))
+                .Should().Be(SecurityAuditWriteResult.Recorded);
+        }
+
+        await using AuditDbContext clinic = CreateContext(options, "clinic-b");
+        (await clinic.SecurityAuditEvents.SingleAsync()).IdempotencyKey.Should().Be("created-clinic-b");
+        await using AuditDbContext requestTenant = CreateContext(options, "onboarding");
+        (await requestTenant.SecurityAuditEvents.AnyAsync()).Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task Platform_event_from_a_request_without_a_tenant_is_recorded()
+    {
+        DbContextOptions<AuditDbContext> options = CreateOptions("security-audit-tenantless");
+        await using (AuditDbContext tenantless = CreateContext(options, tenantId: null))
+        {
+            SecurityAuditWriter writer = new(tenantless);
+            (await writer.WriteAsync(CreateEvent(SecurityAuditScopeCatalog.PlatformScopeId, "sign-in-on-entry-host"), CancellationToken.None))
+                .Should().Be(SecurityAuditWriteResult.Recorded);
+            (await writer.GetOutcomeAsync(SecurityAuditScopeCatalog.PlatformScopeId, "sign-in-on-entry-host", CancellationToken.None))
+                .Should().Be(SecurityAuditOutcome.Succeeded);
+        }
+
+        await using AuditDbContext platform = CreateContext(options, SecurityAuditScopeCatalog.PlatformScopeId);
+        (await platform.SecurityAuditEvents.CountAsync()).Should().Be(1);
+    }
+
+    [Fact]
+    public async Task Entity_audit_batch_stores_each_entry_in_the_scope_of_its_entity()
+    {
+        DbContextOptions<AuditDbContext> options = CreateOptions("entity-audit-row-scope");
+        await using (AuditDbContext onboarding = CreateContext(options, "onboarding"))
+        {
+            await new AuditWriter(onboarding).WriteBatchAsync(
+                [CreateEntry("clinic-b"), CreateEntry("onboarding"), CreateEntry("clinic-b")],
+                CancellationToken.None);
+        }
+
+        await using AuditDbContext clinic = CreateContext(options, "clinic-b");
+        (await clinic.AuditEntries.CountAsync()).Should().Be(2);
+        await using AuditDbContext requestTenant = CreateContext(options, "onboarding");
+        (await requestTenant.AuditEntries.CountAsync()).Should().Be(1);
+    }
+
+    private static AuditEntry CreateEntry(string tenantId) => new()
+    {
+        Action = AuditAction.Created,
+        EntityType = "Tenant",
+        EntityId = Guid.NewGuid(),
+        OccurredAt = DateTime.UtcNow,
+        TenantId = tenantId
+    };
+
+    private static AuditDbContext CreateContext(DbContextOptions<AuditDbContext> options, string? tenantId) => new(options, new TestRequestContext(tenantId));
 
     private static AuditDbContext CreateContext(DbContextOptions<AuditDbContext> options, string tenantId, string[] roles) => new(options, new TestRequestContext(tenantId, roles));
 
@@ -200,7 +259,7 @@ public sealed class SecurityAuditWriterTests
         IdempotencyKey = idempotencyKey
     };
 
-    private sealed class TestRequestContext(string tenantId, string[]? roles = null) : IRequestContext
+    private sealed class TestRequestContext(string? tenantId, string[]? roles = null) : IRequestContext
     {
         public string Authority => "test";
         public string? ClientId => null;

@@ -17,6 +17,11 @@ meaning and resource authorization remain with the initiating use case.
   persisted by their owner but never exposed through review DTOs. An unknown
   actor uses a non-identifying representation; do not synthesize a real user
   identity.
+- **[MUST]** A row is stored in the tenant/scope it records, not the
+  request's: entity audit entries in the tenant of their entity, and security
+  events in their `TenantId` (the platform scope when the request has no
+  tenant). Only the audit writers set that write scope; review queries stay
+  bound to the request's authorized scope.
 - **[MUST]** Append events without product update/delete operations. Duplicate
   idempotency keys have an explicit outcome. Existing rows are migrated
   forward-only with nullable new fields; legacy values are not fabricated.
