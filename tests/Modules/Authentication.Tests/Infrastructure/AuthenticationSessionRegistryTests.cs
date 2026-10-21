@@ -166,6 +166,40 @@ public sealed class AuthenticationSessionRegistryTests
     }
 
     [Fact]
+    public async Task Policy_save_work_does_not_grow_with_previously_terminated_sessions()
+    {
+        OutcomeTrackingAuditWriter audit = new();
+        (AuthenticationSessionRegistry registry, AuthenticationDbContext db) = CreateRegistry(SecurityAccessPolicy.Default, TimeProvider.System, audit);
+        DateTime earlier = DateTime.UtcNow.AddDays(-30);
+        for (int index = 0; index < 50; index++)
+        {
+            _ = db.AuthenticationSessions.Add(new AuthenticationSession
+            {
+                Id = Guid.NewGuid(),
+                UserId = $"former-{index}",
+                TenantId = "tenant-1",
+                CreatedAt = earlier,
+                LastActivityAt = earlier,
+                ClientIpAddress = "127.0.0.1",
+                TerminatedAt = earlier,
+                TerminationReason = AuthenticationSessionTerminationReason.AdministrativeRevocation
+            });
+        }
+        _ = await db.SaveChangesAsync();
+        _ = await registry.EstablishAsync("user-1", CancellationToken.None);
+        int readsBeforeSave = audit.OutcomeReads;
+
+        await registry.SavePolicyAndRevokeInvalidatedSessionsAsync(
+            SecurityAccessPolicy.Default with { AllowedSessionStartCidrs = new HashSet<string>(StringComparer.Ordinal) { "10.0.0.0/24" } },
+            0,
+            CancellationToken.None);
+
+        audit.OutcomeReads.Should().Be(readsBeforeSave);
+        (await db.AuthenticationSessions.AsNoTracking().SingleAsync(session => session.UserId == "user-1")).TerminationReason
+            .Should().Be(AuthenticationSessionTerminationReason.AdministrativeRevocation);
+    }
+
+    [Fact]
     public async Task Policy_change_is_persisted_through_the_registry_context_with_the_revocation()
     {
         (AuthenticationSessionRegistry registry, AuthenticationDbContext db, _) = CreateRegistry(SecurityAccessPolicy.Default, TimeProvider.System, "127.0.0.1");
@@ -411,8 +445,13 @@ public sealed class AuthenticationSessionRegistryTests
             return Task.FromResult(SecurityAuditWriteResult.Recorded);
         }
 
-        public Task<string?> GetOutcomeAsync(string tenantId, string idempotencyKey, CancellationToken cancellationToken) =>
-            Task.FromResult(OutcomeOf(idempotencyKey));
+        public int OutcomeReads { get; private set; }
+
+        public Task<string?> GetOutcomeAsync(string tenantId, string idempotencyKey, CancellationToken cancellationToken)
+        {
+            OutcomeReads++;
+            return Task.FromResult(OutcomeOf(idempotencyKey));
+        }
 
         public Task<SecurityAuditWriteResult> UpdateAsync(string tenantId, string idempotencyKey, string outcome, string? reason, CancellationToken cancellationToken)
         {
