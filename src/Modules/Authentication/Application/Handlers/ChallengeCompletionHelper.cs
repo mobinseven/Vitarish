@@ -22,7 +22,8 @@ internal static class ChallengeCompletionHelper
         SecurityAccessPolicy securityPolicy,
         IAuthenticationAttemptKeyFactory attemptKeyFactory,
         IInitialPlatformAdministratorGrant? initialAdministratorGrant = null,
-        IUserAccountUpdater? contactConfirmer = null)
+        IUserAccountUpdater? contactConfirmer = null,
+        Action<string>? onChallengeLoaded = null)
     {
         if (!AuthenticationInputValidator.HasText(challengeId) || !AuthenticationInputValidator.HasText(code))
             return new AuthenticationResult<LoginResult>.Failure(new(AuthenticationFailureReason.InvalidInput, "Challenge ID and code are required."));
@@ -32,6 +33,9 @@ internal static class ChallengeCompletionHelper
 
         if (challenge is null)
             return new AuthenticationResult<LoginResult>.Failure(new(AuthenticationFailureReason.InvalidCredentials, "Invalid verification code."));
+
+        // Callers attribute their audit record, including for a later failure or exception, to this user.
+        onChallengeLoaded?.Invoke(challenge.UserId);
 
         IReadOnlyList<string> attemptKeys = attemptKeyFactory.ChallengeCandidates(expectedPurpose, challenge.UserId);
         if (await IsDeniedAsync(attemptKeys, attemptTracker, cancellationToken))

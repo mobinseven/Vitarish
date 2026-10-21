@@ -23,9 +23,7 @@ public sealed class CompletePasskeyLoginHandler(
         AuthenticationResult<LoginResult> result;
         try
         {
-            knownUserId = await webAuthn.GetSubjectIdAsync(command.ChallengeId, cancellationToken);
-            if (string.IsNullOrWhiteSpace(knownUserId))
-                knownUserId = await webAuthn.GetSubjectIdAsync(command.ChallengeId, command.CredentialJson, cancellationToken);
+            knownUserId = await webAuthn.GetSubjectIdAsync(command.ChallengeId, command.CredentialJson, cancellationToken);
             result = await HandleCoreAsync(command, cancellationToken);
         }
         catch (OperationCanceledException)
@@ -64,9 +62,7 @@ public sealed class CompletePasskeyLoginHandler(
             return new AuthenticationResult<LoginResult>.Failure(new(AuthenticationFailureReason.NotAllowed, "Passkey authentication is not enabled."));
 
         List<string> attemptKeys = [.. attemptKeyFactory.ChallengeCandidates(AuthenticationMethod.Passkey, command.ChallengeId)];
-        string? attemptKey = await webAuthn.GetAttemptKeyAsync(command.ChallengeId, cancellationToken);
-        if (string.IsNullOrWhiteSpace(attemptKey))
-            attemptKey = await webAuthn.GetAttemptKeyAsync(command.ChallengeId, command.CredentialJson, cancellationToken);
+        string? attemptKey = await webAuthn.GetAttemptKeyAsync(command.ChallengeId, command.CredentialJson, cancellationToken);
         if (!string.IsNullOrWhiteSpace(attemptKey) && !attemptKeys.Contains(attemptKey, StringComparer.Ordinal))
             attemptKeys.Add(attemptKey);
         foreach (string key in attemptKeys)

@@ -24,8 +24,7 @@ public sealed class CompletePhoneLoginHandler(IAuthenticationChallengeStore stor
             }
             else
             {
-                knownUserId = await GetChallengeUserIdAsync(command.ChallengeId, cancellationToken);
-                result = await ChallengeCompletionHelper.CompleteChallengeAsync(command.ChallengeId, command.Code, command.ReturnUrl, AuthenticationChallengePurpose.PhoneLogin, store, verifier, signInService, redirects, cancellationToken, attemptTracker, securityPolicy, attemptKeyFactory, initialAdministratorGrant, contactConfirmer);
+                result = await ChallengeCompletionHelper.CompleteChallengeAsync(command.ChallengeId, command.Code, command.ReturnUrl, AuthenticationChallengePurpose.PhoneLogin, store, verifier, signInService, redirects, cancellationToken, attemptTracker, securityPolicy, attemptKeyFactory, initialAdministratorGrant, contactConfirmer, userId => knownUserId = userId);
             }
         }
         catch (OperationCanceledException)
@@ -55,12 +54,5 @@ public sealed class CompletePhoneLoginHandler(IAuthenticationChallengeStore stor
             throw;
         }
         return result;
-    }
-
-    private async Task<string?> GetChallengeUserIdAsync(string challengeId, CancellationToken cancellationToken)
-    {
-        if (string.IsNullOrWhiteSpace(challengeId)) return null;
-        AuthenticationChallenge? challenge = await store.GetAsync(AuthenticationChallengeId.Create(challengeId), cancellationToken);
-        return challenge?.UserId;
     }
 }

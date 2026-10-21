@@ -62,6 +62,30 @@ public sealed class DisabledAccountContactLoginAuditTests
         events.Should().NotContain(audit => audit.RedactedReason == SecurityAuditReasonCatalog.AuthenticationFailed);
     }
 
+    [Fact]
+    public async Task Code_login_completion_reads_its_challenge_once()
+    {
+        AuthenticationChallenge phoneChallenge = AuthenticationChallengePolicy.Default.CreatePhoneLoginChallenge(
+            "user-42", "+989121234567", DateTimeOffset.UtcNow);
+        AuthenticationChallenge emailChallenge = AuthenticationChallengePolicy.Default.CreateEmailLoginChallenge(
+            "user-42", "user-42@example.test", DateTimeOffset.UtcNow);
+        Mock<IAuthenticationChallengeStore> phoneStore = CreateStoreMock(phoneChallenge);
+        Mock<IAuthenticationChallengeStore> emailStore = CreateStoreMock(emailChallenge);
+        List<SecurityAuditEvent> events = [];
+
+        _ = await CreatePhoneHandler(phoneChallenge, DisabledSignIn(), events, phoneStore.Object).Handle(
+            new CompletePhoneLoginCommand(phoneChallenge.Id.Value, "123456", "/home"),
+            CancellationToken.None);
+        _ = await CreateEmailHandler(emailChallenge, DisabledSignIn(), events, emailStore.Object).Handle(
+            new CompleteEmailLoginCommand(emailChallenge.Id.Value, "123456", "/home"),
+            CancellationToken.None);
+
+        phoneStore.Verify(item => item.GetAsync(phoneChallenge.Id, It.IsAny<CancellationToken>()), Times.Once);
+        emailStore.Verify(item => item.GetAsync(emailChallenge.Id, It.IsAny<CancellationToken>()), Times.Once);
+        events.Where(audit => audit.Outcome == SecurityAuditOutcome.Denied).Should().HaveCount(2)
+            .And.OnlyContain(audit => audit.SubjectId == "user-42");
+    }
+
     private static Mock<IAuthenticationSignInService> DisabledSignIn()
     {
         Mock<IAuthenticationSignInService> signIn = new();
@@ -74,8 +98,9 @@ public sealed class DisabledAccountContactLoginAuditTests
     private static CompletePhoneLoginHandler CreatePhoneHandler(
         AuthenticationChallenge challenge,
         Mock<IAuthenticationSignInService> signIn,
-        List<SecurityAuditEvent> events) => new(
-        CreateStore(challenge),
+        List<SecurityAuditEvent> events,
+        IAuthenticationChallengeStore? store = null) => new(
+        store ?? CreateStore(challenge),
         CreateVerifier(challenge),
         signIn.Object,
         CreateRedirects(),
@@ -89,8 +114,9 @@ public sealed class DisabledAccountContactLoginAuditTests
     private static CompleteEmailLoginHandler CreateEmailHandler(
         AuthenticationChallenge challenge,
         Mock<IAuthenticationSignInService> signIn,
-        List<SecurityAuditEvent> events) => new(
-        CreateStore(challenge),
+        List<SecurityAuditEvent> events,
+        IAuthenticationChallengeStore? store = null) => new(
+        store ?? CreateStore(challenge),
         CreateVerifier(challenge),
         signIn.Object,
         CreateRedirects(),
@@ -101,13 +127,15 @@ public sealed class DisabledAccountContactLoginAuditTests
         Mock.Of<IInitialPlatformAdministratorGrant>(),
         Mock.Of<IUserAccountUpdater>());
 
-    private static IAuthenticationChallengeStore CreateStore(AuthenticationChallenge challenge)
+    private static IAuthenticationChallengeStore CreateStore(AuthenticationChallenge challenge) => CreateStoreMock(challenge).Object;
+
+    private static Mock<IAuthenticationChallengeStore> CreateStoreMock(AuthenticationChallenge challenge)
     {
         Mock<IAuthenticationChallengeStore> store = new();
         store.Setup(item => item.GetAsync(challenge.Id, It.IsAny<CancellationToken>())).ReturnsAsync(challenge);
         store.Setup(item => item.TryReserveAttemptAsync(challenge, It.IsAny<CancellationToken>())).ReturnsAsync(true);
         store.Setup(item => item.TryConsumeAsync(challenge, It.IsAny<CancellationToken>())).ReturnsAsync(true);
-        return store.Object;
+        return store;
     }
 
     private static IAuthenticationCodeVerifier CreateVerifier(AuthenticationChallenge challenge)
