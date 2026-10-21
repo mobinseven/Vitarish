@@ -29,6 +29,22 @@ public static class JourneyPolicy
     /// <summary>The root page of the app the user signed in to.</summary>
     public const string AppRootUrl = "/";
 
+    /// <summary>The page where a user chooses which workspace or clinic to continue to.</summary>
+    public const string WorkspaceSelectionUrl = "/workspaces/select";
+
+    /// <summary>
+    /// Sends a user on the shared sign-in host, which serves nothing else, to choose which of their
+    /// clinics to continue to.
+    /// </summary>
+    public static JourneyGate? EvaluateClinicSelection(bool isSignInHost) =>
+        isSignInHost
+            ? new JourneyGate(
+                JourneyGateKind.WorkspaceSelection,
+                IsBlocking: true,
+                DestinationUrl: WorkspaceSelectionUrl,
+                Message: "Choose a clinic to continue.")
+            : null;
+
     /// <summary>The page where a user on the sign-up host creates their own tenant.</summary>
     public const string TenantCreationUrl = "/setup";
 
@@ -85,7 +101,7 @@ public static class JourneyPolicy
             return new JourneyGate(
                 JourneyGateKind.WorkspaceSelection,
                 IsBlocking: true,
-                DestinationUrl: "/workspaces/select",
+                DestinationUrl: WorkspaceSelectionUrl,
                 Message: "Workspace or app selection is required."
             );
         }

@@ -10,4 +10,7 @@ public static class PartiesApiOperations
     public const string UpdateTenantProfile = "PartiesUpdateTenantProfile";
     public const string SetTenantLogo = "PartiesSetTenantLogo";
     public const string DismissTenantLogoPrompt = "PartiesDismissTenantLogoPrompt";
+    public const string GetSignInClinics = "PartiesGetSignInClinics";
+    public const string IssueSignInClinicHandoff = "PartiesIssueSignInClinicHandoff";
+    public const string IssueSignInOnboardingHandoff = "PartiesIssueSignInOnboardingHandoff";
 }

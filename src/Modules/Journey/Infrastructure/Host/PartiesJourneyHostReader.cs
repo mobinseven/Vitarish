@@ -2,6 +2,7 @@ using MediatR;
 using Vitarish.Journey.Application.Abstractions;
 using Vitarish.Parties.Application;
 using Vitarish.Parties.Application.Onboarding;
+using Vitarish.Parties.Application.SignIn;
 
 namespace Vitarish.Journey.Infrastructure.Host;
 
@@ -13,4 +14,7 @@ public sealed class PartiesJourneyHostReader(ISender sender) : IJourneyHostReade
 
     public Task<bool> IsPlatformAdminHostAsync(CancellationToken cancellationToken = default) =>
         sender.Send(new IsPlatformAdminHostQuery(), cancellationToken);
+
+    public Task<bool> IsSignInHostAsync(CancellationToken cancellationToken = default) =>
+        sender.Send(new IsSignInHostQuery(), cancellationToken);
 }

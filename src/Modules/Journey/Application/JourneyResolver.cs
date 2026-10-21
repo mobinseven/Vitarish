@@ -14,7 +14,7 @@ namespace Vitarish.Journey.Application;
 /// 3. Required contact confirmation
 /// 4. Required profile completion
 /// 5. Required legal consent
-/// 6. Tenant creation on the sign-up host
+/// 6. Clinic selection on the shared sign-in host, or tenant creation on the sign-up host
 /// 7. Required workspace or app selection
 /// 8. Safe requested return URL
 /// 9. Last used app or workspace dashboard
@@ -73,6 +73,11 @@ public sealed class JourneyResolver(
         var consentGate = JourneyPolicy.EvaluateConsent(consent);
         if (consentGate is not null)
             return new JourneyStep(JourneyDestinationKind.Gate, consentGate.DestinationUrl, consentGate);
+
+        // Priority 6: Clinic selection on the shared sign-in host
+        var clinicSelectionGate = JourneyPolicy.EvaluateClinicSelection(await hostReader.IsSignInHostAsync(cancellationToken));
+        if (clinicSelectionGate is not null)
+            return new JourneyStep(JourneyDestinationKind.Gate, clinicSelectionGate.DestinationUrl, clinicSelectionGate);
 
         // Priority 6: Tenant creation on the sign-up host
         var tenantCreationGate = JourneyPolicy.EvaluateTenantCreation(await hostReader.IsSignUpHostAsync(cancellationToken));

@@ -10,4 +10,7 @@ public interface IJourneyHostReader
 
     /// <summary>True when the request came to the platform admin host, whose app serves none of the journey's gate pages.</summary>
     Task<bool> IsPlatformAdminHostAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>True when the request came to the shared sign-in host, where users choose which of their clinics to open.</summary>
+    Task<bool> IsSignInHostAsync(CancellationToken cancellationToken = default);
 }
