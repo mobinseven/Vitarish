@@ -23,7 +23,7 @@ const createButton = "journey.gates.workspace.createAction";
 const handoffPath = "/handoff";
 
 function clinic(tenantId: string, name: string, hostname: string, role = "TenantOwner") {
-  return { tenantId, name, hostname, role };
+  return { tenantId, name, hostname, role, logoPath: null };
 }
 
 function loaded(clinics: ReturnType<typeof clinic>[]) {

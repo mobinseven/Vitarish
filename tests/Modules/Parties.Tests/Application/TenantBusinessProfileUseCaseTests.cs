@@ -142,6 +142,41 @@ public sealed class TenantBusinessProfileUseCaseTests
         store.VerifyNoOtherCalls();
     }
 
+    [Fact]
+    public async Task Opens_the_request_tenants_logo_at_its_stored_address()
+    {
+        TenantImageContent content = new(new MemoryStream([1]), "image/png", 1);
+        Mock<ITenantBusinessProfileStore> store = new();
+        store.Setup(item => item.GetAsync(TenantId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new TenantBusinessProfileView("Clinic", null, "/files/logo", null, null, false));
+        Mock<ITenantImageFiles> images = new();
+        images.Setup(item => item.OpenAsync("/files/logo", It.IsAny<CancellationToken>())).ReturnsAsync(content);
+
+        TenantImageContent? logo = await new GetPublicTenantLogoQueryHandler(store.Object, images.Object, RequestContext(TenantId.ToString()))
+            .Handle(new GetPublicTenantLogoQuery(), CancellationToken.None);
+
+        logo.Should().BeSameAs(content);
+    }
+
+    [Theory]
+    [InlineData(null, true)]
+    [InlineData("not-a-guid", true)]
+    [InlineData("tenant", false)]
+    public async Task Opens_no_logo_without_a_request_tenant_or_one_it_has_set(string? tenantId, bool tenantHasLogo)
+    {
+        Mock<ITenantBusinessProfileStore> store = new();
+        store.Setup(item => item.GetAsync(TenantId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new TenantBusinessProfileView("Clinic", null, tenantHasLogo ? "/files/logo" : null, null, null, false));
+        Mock<ITenantImageFiles> images = new(MockBehavior.Strict);
+
+        TenantImageContent? logo = await new GetPublicTenantLogoQueryHandler(
+                store.Object, images.Object, RequestContext(tenantId == "tenant" ? TenantId.ToString() : tenantId))
+            .Handle(new GetPublicTenantLogoQuery(), CancellationToken.None);
+
+        logo.Should().BeNull();
+        images.VerifyNoOtherCalls();
+    }
+
     [Theory]
     [InlineData(true, TenantBusinessProfileUpdateStatus.Updated)]
     [InlineData(false, TenantBusinessProfileUpdateStatus.NotFound)]

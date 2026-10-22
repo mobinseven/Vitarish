@@ -35,6 +35,21 @@ const takenSubdomain = "tenant-b";
 const tenantBPatientId = "f4c8109a-6f22-4a31-9ab8-48d7ad0d7e2f";
 const walkthroughClientIp = "198.51.100.88";
 const handoffReplayClientIp = "198.51.100.89";
+const publicLogoClientIp = "198.51.100.90";
+// The public address the sign-in clinic list gives for a clinic's logo, on that clinic's own host.
+const publicLogoPath = "/api/modules/parties/public/logo";
+// A real 1x1 PNG, so the declared type, extension and leading signature all pass.
+const logoPngBytes = [
+  0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,
+  0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52,
+  0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+  0x08, 0x06, 0x00, 0x00, 0x00, 0x1F, 0x15, 0xC4,
+  0x89, 0x00, 0x00, 0x00, 0x0D, 0x49, 0x44, 0x41,
+  0x54, 0x78, 0xDA, 0x63, 0x64, 0x60, 0xF8, 0x5F,
+  0x0F, 0x00, 0x02, 0x87, 0x01, 0x80, 0xEB, 0x47,
+  0xBA, 0x92, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45,
+  0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82,
+];
 // Three hosts compile pages on their first visit during the walkthrough.
 const pageCompileTimeoutMilliseconds = 120_000;
 
@@ -295,6 +310,53 @@ test("a new phone number signs up, creates a clinic, lands signed in on it, and 
   const logoPromptHeading = page.getByRole("heading", { name: journeyMessages.logoPrompt.title });
   await expect(logoPromptHeading).toBeVisible({ timeout: pageCompileTimeoutMilliseconds });
   await captureStep(page, "clinic-home-signed-in", logoPromptHeading);
+
+  // 4b. The clinic's logo is public: once the owner uploads it, anyone loads it from the clinic's own host,
+  // including an image on another host's page that sends no referrer, as the sign-in clinic list does.
+  const publicLogoUrl = `${clinicOrigin}${publicLogoPath}`;
+  const anonymousContext = await browser.newContext({
+    extraHTTPHeaders: { "X-Forwarded-For": publicLogoClientIp },
+  });
+  try {
+    // Chromium resolves *.localhost hosts; Node's request client does not, so a signed-out page reads the logo.
+    const anonymousPage = await anonymousContext.newPage();
+    await anonymousPage.goto(`${clinicOrigin}${Routes.Login.Phone}`, { waitUntil: "domcontentloaded" });
+    const readPublicLogo = () =>
+      anonymousPage.evaluate(async (path) => {
+        const response = await fetch(path, { credentials: "omit" });
+        return {
+          status: response.status,
+          contentType: response.headers.get("content-type"),
+          bytes: response.ok ? [...new Uint8Array(await response.arrayBuffer())] : [],
+        };
+      }, publicLogoPath);
+    expect((await readPublicLogo()).status).toBe(404);
+
+    await page.locator('input[type="file"]').setInputFiles({
+      name: "logo.png",
+      mimeType: "image/png",
+      buffer: Buffer.from(logoPngBytes),
+    });
+    await expect(logoPromptHeading).toBeHidden({ timeout: pageCompileTimeoutMilliseconds });
+
+    expect(await readPublicLogo()).toEqual({ status: 200, contentType: "image/png", bytes: logoPngBytes });
+
+    await anonymousPage.goto(`${onboardingOrigin}${Routes.Login.Phone}`, { waitUntil: "domcontentloaded" });
+    const shownWidth = await anonymousPage.evaluate(
+      (src) =>
+        new Promise<number>((resolve) => {
+          const image = new Image();
+          image.referrerPolicy = "no-referrer";
+          image.onload = () => resolve(image.naturalWidth);
+          image.onerror = () => resolve(0);
+          image.src = src;
+        }),
+      publicLogoUrl,
+    );
+    expect(shownWidth).toBe(1);
+  } finally {
+    await anonymousContext.close();
+  }
 
   // 5. Replaying the one-time handoff URL in a fresh browser context with no session cookies is refused.
   const replayContext = await browser.newContext({

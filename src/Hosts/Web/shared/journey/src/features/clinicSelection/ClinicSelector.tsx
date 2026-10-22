@@ -4,6 +4,7 @@ import { Alert, Avatar, Button, Chip, Spinner, Surface, Tooltip } from "@heroui/
 import { useLocalizedText, type MessageKey } from "@vitarish/localization";
 import { FaIcon } from "@vitarish/ui";
 import type { SignInClinicDto } from "../../api/generated/parties/model";
+import { hostUrl } from "../handoff/hostUrl";
 import { useClinicSelection } from "./useClinicSelection";
 
 const roleLabelKeys: Record<string, MessageKey> = {
@@ -117,6 +118,18 @@ function ClinicRow({ clinic, isOpening, isDisabled, onOpen }: ClinicRowProps) {
   return (
     <Surface variant="secondary" className="flex items-center gap-4 rounded-2xl p-4">
       <Avatar className="size-12 shrink-0">
+        {/*
+          The logo loads from the clinic's own host; the initials stay until it does, or if it cannot.
+          Without a referrer the server knows the clinic by that host, not by this sign-in page.
+        */}
+        {clinic.logoPath ? (
+          <Avatar.Image
+            alt=""
+            src={hostUrl(clinic.hostname, clinic.logoPath).href}
+            referrerPolicy="no-referrer"
+            className="object-contain"
+          />
+        ) : null}
         <Avatar.Fallback className="bg-accent text-accent-foreground">{initials(clinic.name)}</Avatar.Fallback>
       </Avatar>
       <div className="flex min-w-0 flex-1 flex-col gap-1">

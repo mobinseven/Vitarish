@@ -31,6 +31,7 @@ public static class PartiesApiEndpointMapping
     private const int SubdomainQueryMaximumLength = 63;
     private const int IdempotencyKeyMinimumLength = 8;
     private const int IdempotencyKeyMaximumLength = 100;
+    private const string PublicLogoJustification = "A clinic's logo is what it shows the public; the sign-in host shows it before the person is signed in to that clinic.";
 
     public static IEndpointRouteBuilder MapPartiesApi(this IEndpointRouteBuilder endpoints)
     {
@@ -92,6 +93,18 @@ public static class PartiesApiEndpointMapping
             IssueSignInOnboardingHandoffAsync,
             PartiesApiOperations.IssueSignInOnboardingHandoff,
             typeof(C.SignInHandoffResponse));
+        RouteGroupBuilder publicGroup = endpoints
+            .MapAnonymousModuleGroup($"{PartiesApiRoutes.Base}{PartiesApiRoutes.Public}", PublicLogoJustification)
+            .WithGroupName(PartiesApiRoutes.DocumentTag)
+            .WithTags(PartiesApiRoutes.DocumentTag);
+        _ = publicGroup.MapModuleGet(
+                PartiesApiRoutes.PublicLogo,
+                GetPublicTenantLogoAsync,
+                PartiesApiOperations.GetPublicTenantLogo,
+                profile: ModuleEndpointProfile.AnonymousBinaryDownload,
+                anonymousJustification: PublicLogoJustification,
+                contentType: ModuleEndpointOpenApiConventions.BinaryStream)
+            .RequireRateLimiting(PartiesRateLimitPolicies.PublicLogo);
         _ = group.MapModuleGet(PartiesApiRoutes.TenantProfile, GetTenantProfileAsync, PartiesApiOperations.GetTenantProfile, typeof(C.TenantBusinessProfileResponse))
             .RequireAuthorization(IdentityDefinitions.TenantOwner);
         _ = group.MapModulePut(PartiesApiRoutes.TenantProfile, UpdateTenantProfileAsync, PartiesApiOperations.UpdateTenantProfile, successStatusCode: StatusCodes.Status204NoContent)
@@ -139,9 +152,14 @@ public static class PartiesApiEndpointMapping
             ? await next(context)
             : NotFound("This is not the sign-in host.");
 
+    private static async Task<IResult> GetPublicTenantLogoAsync([FromServices] ISender sender, CancellationToken cancellationToken) =>
+        await sender.Send(new GetPublicTenantLogoQuery(), cancellationToken) is { } logo
+            ? Results.Stream(logo.Content, logo.ContentType)
+            : NotFound("This clinic has no logo.");
+
     private static async Task<IResult> GetSignInClinicsAsync([FromServices] ISender sender, CancellationToken cancellationToken) =>
         await sender.Send(new ListSignInClinicsQuery(), cancellationToken) is { } clinics
-            ? Results.Ok(new C.SignInClinicsResponse([.. clinics.Select(clinic => new C.SignInClinicDto(clinic.TenantId, clinic.Name, clinic.Hostname, clinic.Role))]))
+            ? Results.Ok(new C.SignInClinicsResponse([.. clinics.Select(clinic => new C.SignInClinicDto(clinic.TenantId, clinic.Name, clinic.Hostname, clinic.Role, clinic.HasLogo ? PartiesApiRoutes.PublicLogoPath : null))]))
             : Results.Unauthorized();
 
     // A clinic that is not the user's answers the same as one that does not exist.

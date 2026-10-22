@@ -37,12 +37,12 @@ public sealed class SignInClinicDirectory(ISender sender, PartiesDbContext dbCon
                 && indicator.IsPrimary
                 && indicator.Status == IndicatorStatus.Active
                 && indicator.Tenant.DeletedAt == null)
-            .Select(indicator => new { indicator.TenantId, indicator.Tenant.Name, indicator.Value })
+            .Select(indicator => new { indicator.TenantId, indicator.Tenant.Name, indicator.Value, HasLogo = indicator.Tenant.LogoUrl != null })
             .ToListAsync(cancellationToken);
 
         return [.. hosts
             .GroupBy(host => host.TenantId)
             .Select(group => group.First())
-            .Select(host => new SignInClinic(host.TenantId, host.Name, host.Value, roleByTenant[host.TenantId]))];
+            .Select(host => new SignInClinic(host.TenantId, host.Name, host.Value, roleByTenant[host.TenantId], host.HasLogo))];
     }
 }

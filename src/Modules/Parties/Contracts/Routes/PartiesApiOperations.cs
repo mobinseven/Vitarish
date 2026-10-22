@@ -13,4 +13,5 @@ public static class PartiesApiOperations
     public const string GetSignInClinics = "PartiesGetSignInClinics";
     public const string IssueSignInClinicHandoff = "PartiesIssueSignInClinicHandoff";
     public const string IssueSignInOnboardingHandoff = "PartiesIssueSignInOnboardingHandoff";
+    public const string GetPublicTenantLogo = "PartiesGetPublicTenantLogo";
 }

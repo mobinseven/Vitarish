@@ -175,6 +175,28 @@ internal static class SelfTests
                 """));
         Require(OpenApiEndpointCheck.Run(namedOperationIndex, validateAuthorizationMatrix: false).Count == 0, "named operation ID produced a violation");
 
+        SourceIndex namedJustificationIndex = SourceIndex.FromSources(
+            ("src/Modules/Foo/Api/FooApi.cs", """
+                namespace Foo.Api;
+                static class FooApi
+                {
+                    private const string Justification = "Public images.";
+                    static void Map(object endpoints) => endpoints.MapAnonymousModuleGroup("/api/foo/public", Justification);
+                }
+                """));
+        Require(OpenApiEndpointCheck.Run(namedJustificationIndex, validateAuthorizationMatrix: false).Count == 0, "named anonymous justification produced a violation");
+
+        SourceIndex unresolvedJustificationIndex = SourceIndex.FromSources(
+            ("src/Modules/Foo/Api/FooApi.cs", """
+                namespace Foo.Api;
+                static class FooApi
+                {
+                    static void Map(object endpoints) => endpoints.MapAnonymousModuleGroup("/api/foo/public", Justification());
+                    static string Justification() => "Public images.";
+                }
+                """));
+        Require(OpenApiEndpointCheck.Run(unresolvedJustificationIndex, validateAuthorizationMatrix: false).Any(violation => violation.Kind == "AnonymousJustificationMissing"), "unresolvable anonymous justification was not rejected");
+
         SourceIndex invalidIndex = SourceIndex.FromSources(
             ("src/Modules/Foo/Api/FooApi.cs", "namespace Foo.Api; static class FooApi { static void Map(object group) => group.MapGet(\"/items\", () => 1); }"));
         Require(OpenApiEndpointCheck.Run(invalidIndex, validateAuthorizationMatrix: false).Any(violation => violation.Kind == "RawEndpointMapping"), "raw endpoint was not detected");
@@ -413,6 +435,36 @@ internal static class SelfTests
                 }
                 """));
         Require(SecurityBaselineCheck.RunEndpoints(defaultHeadIndex).Count == 0, "default HEAD profile produced a violation");
+
+        SourceIndex anonymousDownloadIndex = SourceIndex.FromSources(
+            ("src/Modules/Foo/Api/FooApi.cs", """
+                namespace Foo.Api;
+                static class FooApi
+                {
+                    static void Map(object endpoints)
+                    {
+                        var group = endpoints.MapAnonymousModuleGroup("/api/foo/public", "Public images.");
+                        group.MapModuleGet("/image", Get, "FooGetImage", profile: ModuleEndpointProfile.AnonymousBinaryDownload, anonymousJustification: "Public images.", contentType: "application/octet-stream");
+                    }
+                    static void Get() { }
+                }
+                """));
+        Require(SecurityBaselineCheck.RunEndpoints(anonymousDownloadIndex).Count == 0, "anonymous binary download produced a violation");
+
+        SourceIndex anonymousProtectedDownloadIndex = SourceIndex.FromSources(
+            ("src/Modules/Foo/Api/FooApi.cs", """
+                namespace Foo.Api;
+                static class FooApi
+                {
+                    static void Map(object endpoints)
+                    {
+                        var group = endpoints.MapAnonymousModuleGroup("/api/foo/public", "Public images.");
+                        group.MapModuleGet("/image", Get, "FooGetImage", profile: ModuleEndpointProfile.BinaryDownload, contentType: "application/octet-stream");
+                    }
+                    static void Get() { }
+                }
+                """));
+        Require(SecurityBaselineCheck.RunEndpoints(anonymousProtectedDownloadIndex).Any(violation => violation.Kind == "AuthenticationProfileConflict"), "protected download in an anonymous group was not rejected");
 
         SourceIndex rawValidIndex = SourceIndex.FromSources(
             ("src/Modules/Foo/Api/FooApi.cs", """

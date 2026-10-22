@@ -36,4 +36,8 @@ public static class PartiesApiRoutes
     public const string SignInClinics = "/clinics";
     public const string SignInClinicHandoff = "/clinics/{tenantId:guid}/handoff";
     public const string SignInOnboardingHandoff = "/onboarding-handoff";
+    public const string Public = "/public";
+    public const string PublicLogo = "/logo";
+    /// <summary>The <see cref="PublicLogo"/> address on a clinic's own host.</summary>
+    public const string PublicLogoPath = Base + Public + PublicLogo;
 }

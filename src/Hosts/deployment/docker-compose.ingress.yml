@@ -5,7 +5,7 @@ x-caddy-runtime: &caddy-runtime
   security_opt: [no-new-privileges:true]
   environment:
     CLOUDFLARE_API_TOKEN: ${VITARISH_CLOUDFLARE_API_TOKEN:?VITARISH_CLOUDFLARE_API_TOKEN is required}
-    VITARISH_CONTENT_SECURITY_POLICY: "default-src 'self'; script-src 'self' 'nonce-{http.request.uuid}'; style-src-elem 'self' 'nonce-{http.request.uuid}'; style-src-attr 'unsafe-inline'; connect-src 'self' https://tiles.openfreemap.org; frame-ancestors 'none'; object-src 'none'"
+    VITARISH_CONTENT_SECURITY_POLICY: "default-src 'self'; script-src 'self' 'nonce-{http.request.uuid}'; style-src-elem 'self' 'nonce-{http.request.uuid}'; style-src-attr 'unsafe-inline'; connect-src 'self' https://tiles.openfreemap.org; img-src 'self' https://${VITARISH_TEST_CLINIC_WILDCARD_HOST} https://${VITARISH_PRODUCTION_CLINIC_WILDCARD_HOST}; frame-ancestors 'none'; object-src 'none'"
     TEST_PUBLIC_HOST: ${VITARISH_TEST_PUBLIC_HOST:?VITARISH_TEST_PUBLIC_HOST is required}
     TEST_PATIENTS_HOST: ${VITARISH_TEST_PATIENTS_HOST:?VITARISH_TEST_PATIENTS_HOST is required}
     TEST_PLATFORM_ADMIN_HOST: ${VITARISH_TEST_PLATFORM_ADMIN_HOST:?VITARISH_TEST_PLATFORM_ADMIN_HOST is required}

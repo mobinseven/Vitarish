@@ -10,7 +10,8 @@ public enum ModuleEndpointProfile
     MultipartUpload,
     BinaryDownload,
     Streaming,
-    LongRunningCommand
+    LongRunningCommand,
+    AnonymousBinaryDownload
 }
 
 public sealed record ModuleEndpointOpenApiConvention(
@@ -50,7 +51,8 @@ public static class ModuleEndpointOpenApiConventions
         if (convention.IncludeStandardErrors)
         {
             if (convention.Profile is not ModuleEndpointProfile.AnonymousWebhook
-                and not ModuleEndpointProfile.AnonymousJson)
+                and not ModuleEndpointProfile.AnonymousJson
+                and not ModuleEndpointProfile.AnonymousBinaryDownload)
             {
                 _ = builder.Produces(StatusCodes.Status401Unauthorized);
                 _ = builder.Produces(StatusCodes.Status403Forbidden);
@@ -77,6 +79,11 @@ public static class ModuleEndpointOpenApiConventions
                 _ = builder.WithMetadata(new FileUploadEndpointMetadata("content"));
                 break;
             case ModuleEndpointProfile.BinaryDownload:
+                _ = builder.WithMetadata(new BinaryDownloadEndpointMetadata(convention.ContentType ?? BinaryStream));
+                break;
+            case ModuleEndpointProfile.AnonymousBinaryDownload:
+                ArgumentException.ThrowIfNullOrWhiteSpace(convention.AnonymousJustification);
+                _ = builder.WithMetadata(new AnonymousModuleEndpointMetadata(convention.AnonymousJustification));
                 _ = builder.WithMetadata(new BinaryDownloadEndpointMetadata(convention.ContentType ?? BinaryStream));
                 break;
             case ModuleEndpointProfile.Streaming:

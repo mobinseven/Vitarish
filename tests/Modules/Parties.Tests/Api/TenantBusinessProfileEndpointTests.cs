@@ -20,9 +20,11 @@ using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Application.Addresses;
 using Vitarish.Parties.Application.Onboarding;
 using Vitarish.Parties.Application.Profiles;
+using Vitarish.Parties.Application.SignIn;
 using Vitarish.Parties.Contracts.Routes;
 using Vitarish.Parties.Domain.Profiles;
 using Vitarish.Requests.Application.Abstractions;
+using Vitarish.Modules.Base.Core.Endpoints;
 using BaseModule = Vitarish.Modules.Base.Core.Module;
 
 namespace Parties.Tests.Api;
@@ -47,6 +49,60 @@ public sealed class TenantBusinessProfileEndpointTests
             .Should().Contain(metadata => metadata.Policy == IdentityDefinitions.TenantOwner)
             .And.Contain(metadata => metadata.Policy == IdentityDefinitions.TenantAccess);
         endpoint.Metadata.GetMetadata<IHttpMethodMetadata>()!.HttpMethods.Should().Equal(method);
+    }
+
+    [Fact]
+    public void Public_logo_is_anonymous_rate_limited_and_justified()
+    {
+        using WebApplication app = CreateApp(Mock.Of<ISender>());
+        RouteEndpoint endpoint = FindEndpoint(app, PartiesApiOperations.GetPublicTenantLogo);
+
+        endpoint.Metadata.GetMetadata<IAllowAnonymous>().Should().NotBeNull();
+        endpoint.Metadata.GetOrderedMetadata<IAuthorizeData>().Should().BeEmpty();
+        endpoint.Metadata.GetMetadata<ProtectedModuleEndpointMetadata>().Should().BeNull();
+        endpoint.Metadata.GetMetadata<AnonymousModuleEndpointMetadata>()!.Justification.Should().NotBeNullOrWhiteSpace();
+        endpoint.Metadata.GetMetadata<EnableRateLimitingAttribute>()!.PolicyName.Should().Be(PartiesRateLimitPolicies.PublicLogo);
+        endpoint.Metadata.GetMetadata<IHttpMethodMetadata>()!.HttpMethods.Should().Equal(HttpMethods.Get);
+        endpoint.RoutePattern.RawText.Should().Be(PartiesApiRoutes.PublicLogoPath);
+    }
+
+    [Fact]
+    public async Task Serves_the_logo_as_its_image_type_and_answers_not_found_without_one()
+    {
+        Mock<ISender> withLogo = new();
+        withLogo.Setup(item => item.Send(It.IsAny<GetPublicTenantLogoQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new TenantImageContent(new MemoryStream([1, 2, 3]), "image/png", 3));
+        using WebApplication app = CreateApp(withLogo.Object);
+        using WebApplication none = CreateApp(Mock.Of<ISender>());
+
+        HttpContext served = await InvokeAsync(app, PartiesApiOperations.GetPublicTenantLogo, HttpMethods.Get);
+        HttpContext missing = await InvokeAsync(none, PartiesApiOperations.GetPublicTenantLogo, HttpMethods.Get);
+
+        served.Response.StatusCode.Should().Be(StatusCodes.Status200OK);
+        served.Response.ContentType.Should().Be("image/png");
+        ((MemoryStream)served.Response.Body).ToArray().Should().Equal(1, 2, 3);
+        missing.Response.StatusCode.Should().Be(StatusCodes.Status404NotFound);
+    }
+
+    [Fact]
+    public async Task Lists_sign_in_clinics_with_the_public_logo_address_only_for_one_with_a_logo()
+    {
+        Guid withLogo = Guid.NewGuid();
+        Guid withoutLogo = Guid.NewGuid();
+        Mock<ISender> sender = new();
+        sender.Setup(item => item.Send(It.IsAny<IsSignInHostQuery>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);
+        sender.Setup(item => item.Send(It.IsAny<ListSignInClinicsQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync([
+                new SignInClinic(withLogo, "A", "a.clinic.example.test", IdentityDefinitions.TenantOwner, HasLogo: true),
+                new SignInClinic(withoutLogo, "B", "b.clinic.example.test", IdentityDefinitions.TenantUser, HasLogo: false)]);
+        using WebApplication app = CreateApp(sender.Object);
+
+        HttpContext context = await InvokeAsync(app, PartiesApiOperations.GetSignInClinics, HttpMethods.Get);
+
+        context.Response.StatusCode.Should().Be(StatusCodes.Status200OK);
+        (await ReadBodyAsync(context)).Should().Be(
+            $"{{\"clinics\":[{{\"tenantId\":\"{withLogo}\",\"name\":\"A\",\"hostname\":\"a.clinic.example.test\",\"role\":\"{IdentityDefinitions.TenantOwner}\",\"logoPath\":\"{PartiesApiRoutes.PublicLogoPath}\"}},"
+            + $"{{\"tenantId\":\"{withoutLogo}\",\"name\":\"B\",\"hostname\":\"b.clinic.example.test\",\"role\":\"{IdentityDefinitions.TenantUser}\",\"logoPath\":null}}]}}");
     }
 
     [Fact]
@@ -156,7 +212,10 @@ public sealed class TenantBusinessProfileEndpointTests
         });
         builder.Services.AddAuthorization();
         builder.Services.AddRateLimiter(options =>
-            options.AddPolicy(PartiesRateLimitPolicies.SelfServiceTenantCreation, _ => RateLimitPartition.GetNoLimiter("x")));
+        {
+            options.AddPolicy(PartiesRateLimitPolicies.SelfServiceTenantCreation, _ => RateLimitPartition.GetNoLimiter("x"));
+            options.AddPolicy(PartiesRateLimitPolicies.PublicLogo, _ => RateLimitPartition.GetNoLimiter("x"));
+        });
         builder.Services.AddSingleton(Mock.Of<IPartiesService>());
         builder.Services.AddSingleton(Mock.Of<ISecurityAuditWriter>());
         builder.Services.AddSingleton(sender);
