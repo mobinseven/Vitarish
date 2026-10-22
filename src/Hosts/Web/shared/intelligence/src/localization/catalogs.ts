@@ -1,6 +1,12 @@
 export const intelligenceMessageCatalogs = {
   en: {
     intelligence: {
+      interactive: {
+        submit: "Send answer",
+        submitTooltip: "Send the options you chose",
+        limit: "Pick up to {count}",
+        references: "Related features",
+      },
       dictation: {
         language: "Dictation language",
         languages: {
@@ -40,6 +46,12 @@ export const intelligenceMessageCatalogs = {
   },
   fa: {
     intelligence: {
+      interactive: {
+        submit: "ارسال پاسخ",
+        submitTooltip: "ارسال گزینه‌هایی که انتخاب کردید",
+        limit: "حداکثر {count} مورد",
+        references: "امکانات مرتبط",
+      },
       dictation: {
         language: "زبان دیکته",
         languages: {

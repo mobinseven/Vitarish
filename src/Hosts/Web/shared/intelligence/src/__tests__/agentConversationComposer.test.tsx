@@ -104,6 +104,27 @@ describe("AgentConversationComposer", () => {
     );
   });
 
+  it("offers no dictation and checks no capability where dictation is not offered", () => {
+    useLiveDictation.mockReturnValue({ isActive: false });
+
+    const { container } = render(
+      <AgentConversationComposer
+        dictation={false}
+        label="Ask"
+        onChange={vi.fn()}
+        onSubmit={vi.fn()}
+        placeholder="Ask"
+        preferredLanguage="fa-IR"
+        sessionKey="public-page"
+        submitLabel="Send"
+        value=""
+      />,
+    );
+
+    expect(container.querySelector("[data-testid=\"live-dictation\"]")).toBeNull();
+    expect(useLiveDictation).toHaveBeenCalledWith(expect.objectContaining({ enabled: false }));
+  });
+
   it("disables dictation lifecycle when its context is disabled", () => {
     useLiveDictation.mockReturnValue({ isActive: false });
 

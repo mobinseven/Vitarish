@@ -1,6 +1,7 @@
 import { readOnboardingUrl } from "@vitarish/journey/onboarding-host";
-import { LandingPage } from "../features/landing/landing-page";
+import { FrontDoorPage } from "../features/front-door/front-door-page";
+import { readWhatsAppNumber } from "../features/front-door/whatsapp";
 
 export default function RootPage() {
-  return <LandingPage onboardingUrl={readOnboardingUrl(process.env)} />;
+  return <FrontDoorPage onboardingUrl={readOnboardingUrl(process.env)} whatsappNumber={readWhatsAppNumber(process.env)} />;
 }

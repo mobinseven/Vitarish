@@ -13,6 +13,18 @@ export type {
 export { LiveDictation } from "./components/LiveDictation";
 export type { LiveDictationProps } from "./components/LiveDictation";
 export { AgentConversationComposer } from "./components/AgentConversationComposer";
+export { InteractiveOptionPicker } from "./components/InteractiveOptionPicker";
+export type { InteractiveOptionPickerProps } from "./components/InteractiveOptionPicker";
+export { InteractiveReferenceChips, InteractiveReplyMessage } from "./components/InteractiveReplyMessage";
+export type { InteractiveReferenceChipsProps, InteractiveReplyMessageProps } from "./components/InteractiveReplyMessage";
+export { toInteractiveReply } from "./interaction/interactiveReply";
+export type {
+  InteractiveOption,
+  InteractiveQuestion,
+  InteractiveReference,
+  InteractiveReply,
+  InteractiveReplyWire,
+} from "./interaction/interactiveReply";
 export type { AgentConversationComposerProps } from "./components/AgentConversationComposer";
 export { intelligenceRunAgentConversation } from "./api/generated/intelligence/intelligence";
 export type {
