@@ -9,7 +9,7 @@ public static class LandingApiRoutes
     public const string Conversations = "/conversations";
     public const string ConversationById = "/conversations/{conversationId:guid}";
     public const string Administration = "/administration";
-    public const string Features = "/features";
+    public const string Catalog = "/catalog";
 }
 
 public sealed record SubmitLandingMessageRequest(string OwnerKey, string Message, string? ConversationId = null);
@@ -20,7 +20,19 @@ public sealed record LandingConversationResponse(string ConversationId, string M
 public enum LandingFeatureAvailability { Live, InProgress, NotYet }
 
 public sealed record LandingFeatureResponse(string Key, LandingFeatureAvailability Availability);
-public sealed record LandingFeaturesResponse(IReadOnlyList<LandingFeatureResponse> Features);
+
+[JsonConverter(typeof(JsonStringEnumConverter<LandingProofKind>))]
+public enum LandingProofKind { NoShowCost, BookingPreview, PatientTimeline, Dictation, ShiftWeek, InProgress }
+
+public sealed record LandingConsultationOptionResponse(string Key, IReadOnlyList<string> FeatureKeys, LandingProofKind? Proof);
+public sealed record LandingConsultationQuestionResponse(string Key, int MaxSelections, IReadOnlyList<LandingConsultationOptionResponse> Options);
+public sealed record LandingConsultationResponse(LandingConsultationQuestionResponse Kind, LandingConsultationQuestionResponse Booking, LandingConsultationQuestionResponse Pains);
+
+/// <summary>The next-action keys the assistant may return in <see cref="AgentInteractiveReplyResponse.NextAction"/>.</summary>
+public sealed record LandingNextActionsResponse(string OpenClinic, string TalkToTeam, string TryVoice);
+
+/// <summary>Everything the page and the assistant share: features, the consultation and the next steps.</summary>
+public sealed record LandingCatalogResponse(IReadOnlyList<LandingFeatureResponse> Features, LandingConsultationResponse Consultation, LandingNextActionsResponse NextActions);
 public static class LandingErrorCodes
 {
     public const string NotFound = "not_found";

@@ -65,19 +65,19 @@
         }
       }
     },
-    "/api/apps/landing/features": {
+    "/api/apps/landing/catalog": {
       "get": {
         "tags": [
           "Landing"
         ],
-        "operationId": "LandingGetFeatures",
+        "operationId": "LandingGetCatalog",
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/LandingFeaturesResponse"
+                  "$ref": "#/components/schemas/LandingCatalogResponse"
                 }
               }
             }
@@ -378,6 +378,103 @@
           }
         }
       },
+      "LandingCatalogResponse": {
+        "required": [
+          "features",
+          "consultation",
+          "nextActions"
+        ],
+        "type": "object",
+        "properties": {
+          "features": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LandingFeatureResponse"
+            }
+          },
+          "consultation": {
+            "$ref": "#/components/schemas/LandingConsultationResponse"
+          },
+          "nextActions": {
+            "$ref": "#/components/schemas/LandingNextActionsResponse"
+          }
+        }
+      },
+      "LandingConsultationOptionResponse": {
+        "required": [
+          "key",
+          "featureKeys",
+          "proof"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "featureKeys": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "proof": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/LandingProofKind"
+              }
+            ]
+          }
+        }
+      },
+      "LandingConsultationQuestionResponse": {
+        "required": [
+          "key",
+          "maxSelections",
+          "options"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "maxSelections": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LandingConsultationOptionResponse"
+            }
+          }
+        }
+      },
+      "LandingConsultationResponse": {
+        "required": [
+          "kind",
+          "booking",
+          "pains"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/LandingConsultationQuestionResponse"
+          },
+          "booking": {
+            "$ref": "#/components/schemas/LandingConsultationQuestionResponse"
+          },
+          "pains": {
+            "$ref": "#/components/schemas/LandingConsultationQuestionResponse"
+          }
+        }
+      },
       "LandingConversationResponse": {
         "required": [
           "conversationId",
@@ -425,20 +522,6 @@
           }
         }
       },
-      "LandingFeaturesResponse": {
-        "required": [
-          "features"
-        ],
-        "type": "object",
-        "properties": {
-          "features": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/LandingFeatureResponse"
-            }
-          }
-        }
-      },
       "LandingHostBindingResponse": {
         "required": [
           "hostname",
@@ -457,6 +540,36 @@
             "format": "uuid"
           }
         }
+      },
+      "LandingNextActionsResponse": {
+        "required": [
+          "openClinic",
+          "talkToTeam",
+          "tryVoice"
+        ],
+        "type": "object",
+        "properties": {
+          "openClinic": {
+            "type": "string"
+          },
+          "talkToTeam": {
+            "type": "string"
+          },
+          "tryVoice": {
+            "type": "string"
+          }
+        }
+      },
+      "LandingProofKind": {
+        "enum": [
+          "NoShowCost",
+          "BookingPreview",
+          "PatientTimeline",
+          "Dictation",
+          "ShiftWeek",
+          "InProgress",
+          null
+        ]
       },
       "ProblemDetails": {
         "type": "object",

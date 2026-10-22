@@ -65,13 +65,17 @@ public sealed class LandingConversationResultMapperTests
     }
 
     [Fact]
-    public void Features_list_every_catalog_entry_with_its_availability()
+    public void Catalog_lists_every_feature_with_its_availability_and_the_consultation()
     {
-        Vitarish.Landing.Contracts.LandingFeaturesResponse features = LandingApiEndpointMapping.GetFeatures();
+        Vitarish.Landing.Contracts.LandingCatalogResponse catalog = LandingApiEndpointMapping.GetCatalog();
 
-        features.Features.Select(feature => feature.Key).Should().Equal(LandingFeatureCatalog.Keys);
-        features.Features.Single(feature => feature.Key == "tamin-insurance").Availability
+        catalog.Features.Select(feature => feature.Key).Should().Equal(LandingFeatureCatalog.Keys);
+        catalog.Features.Single(feature => feature.Key == "tamin-insurance").Availability
             .Should().Be(Vitarish.Landing.Contracts.LandingFeatureAvailability.InProgress);
+        catalog.Consultation.Pains.MaxSelections.Should().Be(3);
+        catalog.Consultation.Pains.Options.Single(option => option.Key == "insurance").Proof
+            .Should().Be(Vitarish.Landing.Contracts.LandingProofKind.InProgress);
+        catalog.NextActions.OpenClinic.Should().Be(LandingNextActions.OpenClinic);
     }
 
     private static DefaultHttpContext Context()
