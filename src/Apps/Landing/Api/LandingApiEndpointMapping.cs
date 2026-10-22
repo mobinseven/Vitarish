@@ -14,6 +14,7 @@ using Vitarish.Landing.Application;
 using Vitarish.Landing.Contracts;
 using Vitarish.Modules.Base.Core.Endpoints;
 using Vitarish.Parties.Application.Abstractions;
+using Vitarish.Parties.Application.SignIn;
 using Vitarish.Intelligence.Domain.Options;
 
 namespace Vitarish.Landing.Api;
@@ -46,8 +47,17 @@ public static class LandingApiEndpointMapping
                 anonymousJustification: CatalogJustification)
             .RequireRateLimiting(LandingRateLimitPolicies.PublicCatalog);
         _ = group.MapModuleDelete(LandingApiRoutes.ConversationById, (Guid conversationId, string ownerKey, HttpContext context, IOptions<LandingPlatformOptions> options, IPartiesService parties, IDataProtectionProvider protection, ISender sender, CancellationToken ct) => DeleteAsync(conversationId, ownerKey, context, options, parties, protection, sender, ct), "LandingDeleteConversation", profile: ModuleEndpointProfile.AnonymousJson, anonymousJustification: AnonymousJustification).RequireRateLimiting(LandingRateLimitPolicies.PublicConversation);
+        // Signed-in visitors on the landing host, who need not have a clinic (role-free sessions, ADR-0017).
+        RouteGroupBuilder visitors = endpoints.MapProtectedModuleGroup(LandingApiRoutes.Base, requireTenantAccess: false);
+        visitors.WithGroupName(LandingApiRoutes.DocumentTag).WithTags(LandingApiRoutes.DocumentTag);
+        _ = visitors.MapModulePost(
+                LandingApiRoutes.OnboardingHandoff,
+                IssueOnboardingHandoffAsync,
+                "LandingIssueOnboardingHandoff",
+                typeof(LandingOnboardingHandoffResponse))
+            .RequireRateLimiting(LandingRateLimitPolicies.PublicConversation);
         RouteGroupBuilder administration = endpoints.MapProtectedModuleGroup($"{LandingApiRoutes.Base}{LandingApiRoutes.Administration}");
-        administration.WithGroupName("Landing").WithTags("Landing");
+        administration.WithGroupName(LandingApiRoutes.DocumentTag).WithTags(LandingApiRoutes.DocumentTag);
         administration.RequireAuthorization(new AuthorizeAttribute { Policy = "PlatformAdmin" });
         _ = administration.MapModuleGet("/host-binding", async (IOptions<LandingPlatformOptions> options, IPartiesService parties, CancellationToken ct) =>
         {
@@ -119,6 +129,16 @@ public static class LandingApiEndpointMapping
                 : null,
             reply.References,
             reply.NextAction);
+
+    private static async Task<IResult> IssueOnboardingHandoffAsync(HttpContext context, IOptions<LandingPlatformOptions> options, IPartiesService parties, ISender sender, CancellationToken ct)
+    {
+        if (await ResolveBoundTenantAsync(context, options, parties, ct) is null)
+            return Results.NotFound();
+        SignInHandoff? handoff = await sender.Send(new IssueSignInHandoffCommand(null), ct);
+        return handoff is null
+            ? Results.NotFound(new LandingError(LandingErrorCodes.NotFound, "Clinic creation is not available."))
+            : Results.Ok(new LandingOnboardingHandoffResponse(handoff.Hostname, handoff.Token));
+    }
 
     private static async Task<IResult> DeleteAsync(Guid conversationId, string ownerKey, HttpContext context, IOptions<LandingPlatformOptions> options, IPartiesService parties, IDataProtectionProvider protection, ISender sender, CancellationToken ct)
     {

@@ -6,10 +6,12 @@ namespace Vitarish.Landing.Contracts;
 public static class LandingApiRoutes
 {
     public const string Base = "/api/apps/landing";
+    public const string DocumentTag = "Landing";
     public const string Conversations = "/conversations";
     public const string ConversationById = "/conversations/{conversationId:guid}";
     public const string Administration = "/administration";
     public const string Catalog = "/catalog";
+    public const string OnboardingHandoff = "/onboarding-handoff";
 }
 
 public sealed record SubmitLandingMessageRequest(string OwnerKey, string Message, string? ConversationId = null);
@@ -44,6 +46,9 @@ public static class LandingErrorCodes
 }
 
 public sealed record LandingError(string Code, string Message);
+
+/// <summary>A one-time ticket that signs the person in on the onboarding host, where they create their clinic.</summary>
+public sealed record LandingOnboardingHandoffResponse(string Hostname, string Token);
 public sealed record LandingHostBindingResponse(string Hostname, Guid? TenantId);
 public sealed record SetLandingHostBindingRequest(Guid TenantId);
 public sealed record SetLandingHostBindingResponse(string Hostname, Guid? PreviousTenantId, Guid TenantId, bool Changed);

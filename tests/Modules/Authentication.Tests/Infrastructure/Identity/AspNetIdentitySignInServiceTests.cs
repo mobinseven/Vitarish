@@ -462,6 +462,51 @@ public sealed class AspNetIdentitySignInServiceTests
     }
 
     [Fact]
+    public async Task An_account_without_a_role_is_admitted_when_any_registered_policy_admits_the_tenant()
+    {
+        User user = CreateUser(isEnabled: true);
+        await using AccountStatusContext statusContext = new();
+        _ = statusContext.Users.Add(user);
+        _ = await statusContext.SaveChangesAsync();
+        Mock<UserManager<User>> userManager = CreateUserManager(new Mock<IUserStore<User>>());
+        userManager.Setup(manager => manager.FindByIdAsync(user.Id)).ReturnsAsync(user);
+        userManager.SetupGet(manager => manager.Users).Returns(statusContext.Users);
+        userManager.Setup(manager => manager.GetRolesAsync(user)).ReturnsAsync(Array.Empty<string>());
+        Mock<SignInManager<User>> signInManager = CreateSignInManager(userManager.Object);
+        signInManager.Setup(manager => manager.CreateUserPrincipalAsync(user))
+            .ReturnsAsync(new ClaimsPrincipal(new ClaimsIdentity("test")));
+        Mock<IAuthenticationSessionPreparation> preparation = new();
+        preparation.SetupGet(value => value.Result).Returns(new AuthenticationSessionEstablishmentResult(true, "session-1", null, null, 30));
+        Mock<IAuthenticationSessionRegistry> sessionRegistry = new();
+        sessionRegistry.Setup(registry => registry.PrepareAsync(user.Id, It.IsAny<CancellationToken>())).ReturnsAsync(preparation.Object);
+        Mock<IRoleFreeSessionPolicy> refusing = new();
+        refusing.Setup(policy => policy.AllowsRoleFreeSessionAsync(It.IsAny<CancellationToken>())).ReturnsAsync(false);
+        Mock<IRoleFreeSessionPolicy> admitting = new();
+        admitting.Setup(policy => policy.AllowsRoleFreeSessionAsync(It.IsAny<CancellationToken>())).ReturnsAsync(true);
+        Mock<IAuthenticationSecurityPolicyProvider> policyProvider = new();
+        policyProvider.Setup(provider => provider.GetAsync(It.IsAny<CancellationToken>())).ReturnsAsync(SecurityAccessPolicy.Default);
+        DefaultHttpContext httpContext = new()
+        {
+            RequestServices = new ServiceCollection().AddSingleton(Mock.Of<IAuthenticationService>()).BuildServiceProvider()
+        };
+
+        AspNetIdentitySignInService service = new(
+            userManager.Object,
+            signInManager.Object,
+            policyProvider.Object,
+            new Mock<IAuthenticationAttemptTracker>().Object,
+            new UnknownPasswordVerifier(new PasswordHasher<User>()),
+            new Mock<IAuthenticationAttemptKeyFactory>().Object,
+            sessionRegistry.Object,
+            new HttpContextAccessor { HttpContext = httpContext },
+            [refusing.Object, admitting.Object]);
+
+        AuthenticationSessionSignInResult result = await service.SignInAsync(user.Id, CancellationToken.None);
+
+        result.Succeeded.Should().BeTrue();
+    }
+
+    [Fact]
     public async Task A_disabled_account_is_refused_even_where_role_free_sessions_are_admitted()
     {
         User user = CreateUser(isEnabled: false);
@@ -539,7 +584,7 @@ public sealed class AspNetIdentitySignInServiceTests
             attemptKeyFactory.Object,
             sessionRegistry.Object,
             httpContextAccessor ?? new HttpContextAccessor(),
-            roleFreeSessions);
+            roleFreeSessions is null ? null : [roleFreeSessions]);
     }
 
     private static Mock<UserManager<User>> CreateUserManager(Mock<IUserStore<User>> userStore)

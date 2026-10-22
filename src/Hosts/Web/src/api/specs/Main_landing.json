@@ -177,6 +177,62 @@
         }
       }
     },
+    "/api/apps/landing/onboarding-handoff": {
+      "post": {
+        "tags": [
+          "Landing"
+        ],
+        "operationId": "LandingIssueOnboardingHandoff",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LandingOnboardingHandoffResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/apps/landing/administration/host-binding": {
       "get": {
         "tags": [
@@ -556,6 +612,21 @@
             "type": "string"
           },
           "tryVoice": {
+            "type": "string"
+          }
+        }
+      },
+      "LandingOnboardingHandoffResponse": {
+        "required": [
+          "hostname",
+          "token"
+        ],
+        "type": "object",
+        "properties": {
+          "hostname": {
+            "type": "string"
+          },
+          "token": {
             "type": "string"
           }
         }

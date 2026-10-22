@@ -18,6 +18,8 @@ export type ThreadEntry =
   | { id: number; type: "proofs" }
   | { id: number; type: "confirmed" }
   | { id: number; type: "ready" }
+  | { id: number; type: "signIn" }
+  | { id: number; type: "signedIn" }
   | { id: number; type: "user"; text: string }
   | { id: number; type: "reply"; reply: InteractiveReply };
 
@@ -32,6 +34,8 @@ export type ConsultationEvent =
   | { type: "start" }
   | { type: "answer"; question: ConsultationQuestionKey; options: readonly string[] }
   | { type: "confirm" }
+  | { type: "requestSignIn" }
+  | { type: "signedIn" }
   | { type: "said"; text: string }
   | { type: "replied"; reply: InteractiveReply }
   | { type: "restart" };
@@ -72,6 +76,13 @@ export function consultationReducer(state: ConsultationState, event: Consultatio
     case "confirm":
       if (state.step !== "proof") return state;
       return { ...append(state, { type: "confirmed" }, { type: "ready" }), step: "open" };
+    case "requestSignIn":
+      // One sign-in card at a time; a second request while it is open changes nothing.
+      if (state.thread.some((entry) => entry.type === "signIn") && !state.thread.some((entry) => entry.type === "signedIn")) return state;
+      return append(state, { type: "signIn" });
+    case "signedIn":
+      if (!state.thread.some((entry) => entry.type === "signIn") || state.thread.some((entry) => entry.type === "signedIn")) return state;
+      return append(state, { type: "signedIn" });
     case "said":
       return append(state, { type: "user", text: event.text });
     case "replied":

@@ -22,7 +22,7 @@ public sealed class AspNetIdentitySignInService(
     IAuthenticationAttemptKeyFactory attemptKeyFactory,
     IAuthenticationSessionRegistry sessionRegistry,
     IHttpContextAccessor httpContextAccessor,
-    IRoleFreeSessionPolicy? roleFreeSessions = null) : IAuthenticationSignInService
+    IEnumerable<IRoleFreeSessionPolicy>? roleFreeSessions = null) : IAuthenticationSignInService
 {
     public Task<PasswordSignInResult> PasswordSignInAsync(string login, string password, CancellationToken cancellationToken) =>
         SignInCoreAsync(login, password, cancellationToken, signIn: true);
@@ -103,12 +103,21 @@ public sealed class AspNetIdentitySignInService(
         return AuthenticationSessionSignInResult.Success();
     }
 
-    // A session needs a role, except on a tenant that admits role-free sessions (the sign-up host).
+    // A session needs a role, except on a tenant that one of the registered policies admits for role-free
+    // sessions (the platform hosts that hold no practice data).
     private async Task<bool> MayStartSessionAsync(User user, CancellationToken cancellationToken)
     {
         IList<string> roles = await userManager.GetRolesAsync(user);
-        return UserAccessLevelPolicy.HasAccessLevel(roles)
-            || (roleFreeSessions is not null && await roleFreeSessions.AllowsRoleFreeSessionAsync(cancellationToken));
+        if (UserAccessLevelPolicy.HasAccessLevel(roles))
+            return true;
+        // Sequential on purpose: a policy may read scoped persistence.
+        foreach (IRoleFreeSessionPolicy policy in roleFreeSessions ?? [])
+        {
+            if (await policy.AllowsRoleFreeSessionAsync(cancellationToken))
+                return true;
+        }
+
+        return false;
     }
 
     private Task<bool> IsAccountEnabledAsync(string userId, CancellationToken cancellationToken) =>

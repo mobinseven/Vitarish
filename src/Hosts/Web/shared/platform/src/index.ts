@@ -17,7 +17,7 @@ export type { ValidLocale } from "./features/platform/locales/hooks/useValidLoca
 export { usePartiesAdministrationGetOwners, usePartiesAdministrationGetOwner, usePartiesAdministrationCreateOwner, usePartiesAdministrationUpdateOwner, usePartiesAdministrationGetTenants, usePartiesAdministrationGetTenant, usePartiesAdministrationCreateTenant, usePartiesAdministrationUpdateTenant, usePartiesAdministrationGetTenantIndicators, usePartiesAdministrationGetTenantIndicator, usePartiesAdministrationCreateTenantIndicator, usePartiesAdministrationUpdateTenantIndicator, usePartiesPlatformGetTenants } from "./api/generated/parties/parties";
 export { getPartiesAdministrationGetTenantsQueryKey, getPartiesAdministrationGetTenantQueryKey, getPartiesAdministrationGetTenantIndicatorsQueryKey } from "./api/generated/parties/parties";
 export { useLandingAdministrationGetHostBinding, useLandingAdministrationSetHostBinding, getLandingAdministrationGetHostBindingQueryKey } from "./api/generated/landing/landing";
-export { getLandingGetCatalogQueryOptions, landingDeleteConversation, landingSubmitConversation } from "./api/generated/landing/landing";
+export { getLandingGetCatalogQueryOptions, landingDeleteConversation, landingIssueOnboardingHandoff, landingSubmitConversation } from "./api/generated/landing/landing";
 export { LandingFeatureAvailability, LandingProofKind } from "./api/generated/landing/model";
 export type {
   LandingCatalogResponse,

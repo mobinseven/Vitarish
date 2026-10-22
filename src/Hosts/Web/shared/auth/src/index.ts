@@ -133,6 +133,8 @@ export { OtpCodeInput } from "./components/OtpCodeInput";
 export { OtpVerificationStep } from "./components/OtpVerificationStep";
 export { PasskeyButton } from "./components/PasskeyButton";
 export { PhoneOtpForm } from "./components/PhoneOtpForm";
+export { InlinePhoneSignIn } from "./components/InlinePhoneSignIn";
+export type { InlinePhoneSignInProps } from "./components/InlinePhoneSignIn";
 export { AuthenticatedRedirectBoundary, SessionRedirect, resolveSessionRedirectTarget } from "./components/SessionRedirect";
 
 // Workflow hooks

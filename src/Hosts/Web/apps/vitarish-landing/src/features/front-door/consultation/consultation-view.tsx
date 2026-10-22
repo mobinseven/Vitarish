@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type Dispatch } from "react";
+import { useState, type Dispatch, type ReactNode } from "react";
 import { Alert, Button, Tooltip } from "@heroui/react";
 import { Stepper } from "@heroui-pro/react/stepper";
 import {
@@ -12,6 +12,7 @@ import {
   type InteractiveReference,
   type InteractiveReply,
 } from "@vitarish/intelligence";
+import { InlinePhoneSignIn } from "@vitarish/auth";
 import { formatList, useLocalizedText } from "@vitarish/localization";
 import { ChatConversation, ChatLoadingMessage, ChatMessage, FaIcon, MarketingActionLink, type MarketingAction } from "@vitarish/ui";
 import { availabilityTone, type LandingCatalog } from "../use-landing-catalog";
@@ -35,6 +36,15 @@ export interface ConsultationConversation {
   retry: () => void;
 }
 
+/** Opening the owner's clinic: sign in here if needed, then hand off to sign-up. */
+export interface OpenClinicFlow {
+  isSignedIn: boolean;
+  isOpening: boolean;
+  isError: boolean;
+  open: () => void;
+  onSignedIn: () => void;
+}
+
 interface ConsultationViewProps {
   catalog: LandingCatalog;
   state: ConsultationState;
@@ -44,6 +54,7 @@ interface ConsultationViewProps {
   onRestart: () => void;
   onboardingUrl: string | null;
   whatsappNumber: string | null;
+  openClinicFlow: OpenClinicFlow;
 }
 
 /** The guided consultation: a fixed set of tappable steps, with the assistant answering anything typed in between. */
@@ -56,6 +67,7 @@ export function ConsultationView({
   onRestart,
   onboardingUrl,
   whatsappNumber,
+  openClinicFlow,
 }: ConsultationViewProps) {
   const { t, direction, locale } = useLocalizedText();
   const [draft, setDraft] = useState("");
@@ -72,15 +84,15 @@ export function ConsultationView({
         : [];
     });
 
-  const openClinic: MarketingAction | null = onboardingUrl
-    ? {
-        label: t("landing.consultation.openClinic"),
-        href: onboardingUrl,
-        tone: "primary",
-        tooltip: t("landing.consultation.openClinicTooltip"),
-        icon: <FaIcon aria-hidden="true" icon="hospital" />,
-      }
-    : null;
+  const openClinic: ReactNode = onboardingUrl ? (
+    <Tooltip>
+      <Button isPending={openClinicFlow.isOpening} onPress={openClinicFlow.open}>
+        <FaIcon aria-hidden="true" icon="hospital" />
+        {t("landing.consultation.openClinic")}
+      </Button>
+      <Tooltip.Content>{t("landing.consultation.openClinicTooltip")}</Tooltip.Content>
+    </Tooltip>
+  ) : null;
   const talkToTeam: MarketingAction | null = whatsappNumber
     ? {
         label: t("landing.consultation.talkToTeam"),
@@ -98,9 +110,9 @@ export function ConsultationView({
         icon: <i aria-hidden="true" className="fa-brands fa-whatsapp" />,
       }
     : null;
-  const actionFor = (nextAction: string | null): MarketingAction | null => {
+  const actionFor = (nextAction: string | null): ReactNode => {
     if (nextAction === catalog.nextActions.openClinic) return openClinic;
-    if (nextAction === catalog.nextActions.talkToTeam) return talkToTeam;
+    if (nextAction === catalog.nextActions.talkToTeam && talkToTeam) return <MarketingActionLink action={talkToTeam} />;
     return null;
   };
 
@@ -165,10 +177,29 @@ export function ConsultationView({
           <ChatMessage key={entry.id} {...assistant}>
             <p>{t("landing.consultation.ready")}</p>
             <div className={styles.actions}>
-              {[openClinic, talkToTeam].map((action) =>
-                action ? <MarketingActionLink key={action.href} action={action} /> : null,
-              )}
+              {openClinic}
+              {talkToTeam ? <MarketingActionLink action={talkToTeam} /> : null}
             </div>
+          </ChatMessage>
+        );
+      case "signIn":
+        return (
+          <ChatMessage key={entry.id} {...assistant}>
+            {openClinicFlow.isSignedIn ? (
+              <p>{t("landing.consultation.signIn.title")}</p>
+            ) : (
+              <InlinePhoneSignIn
+                description={t("landing.consultation.signIn.description")}
+                title={t("landing.consultation.signIn.title")}
+                onSignedIn={openClinicFlow.onSignedIn}
+              />
+            )}
+          </ChatMessage>
+        );
+      case "signedIn":
+        return (
+          <ChatMessage key={entry.id} {...assistant}>
+            <p>{t("landing.consultation.signIn.done")}</p>
           </ChatMessage>
         );
       case "user":
@@ -179,7 +210,7 @@ export function ConsultationView({
             key={entry.id}
             avatarAlt={assistant.avatarAlt}
             avatarFallback={assistant.avatarFallback}
-            action={renderAction(actionFor(entry.reply.nextAction))}
+            action={actionFor(entry.reply.nextAction)}
             references={references(entry.reply.references)}
             reply={entry.reply}
             onAnswer={(options) => onSay(formatList(optionsLabels(entry.reply, options), locale))}
@@ -228,6 +259,34 @@ export function ConsultationView({
             />
           ) : null}
         </ChatConversation>
+        {openClinicFlow.isError ? (
+          <Alert status="danger">
+            <Alert.Indicator />
+            <Alert.Content>
+              <Alert.Description>{t("landing.consultation.signIn.openError")}</Alert.Description>
+            </Alert.Content>
+            <div className={styles.actions}>
+              <Tooltip>
+                <Button size="sm" variant="ghost" onPress={openClinicFlow.open}>
+                  <FaIcon aria-hidden="true" icon="rotate-right" />
+                  {t("landing.consultation.signIn.retry")}
+                </Button>
+                <Tooltip.Content>{t("landing.consultation.signIn.retryTooltip")}</Tooltip.Content>
+              </Tooltip>
+              {onboardingUrl ? (
+                <MarketingActionLink
+                  action={{
+                    label: t("landing.consultation.signIn.continue"),
+                    href: onboardingUrl,
+                    tone: "outline",
+                    tooltip: t("landing.consultation.signIn.continueTooltip"),
+                    icon: <FaIcon aria-hidden="true" icon="hospital" />,
+                  }}
+                />
+              ) : null}
+            </div>
+          </Alert>
+        ) : null}
         {conversation.isError ? (
           <Alert status="danger">
             <Alert.Indicator />
@@ -269,8 +328,4 @@ export function ConsultationView({
 
 function optionsLabels(reply: InteractiveReply, keys: readonly string[]): string[] {
   return keys.flatMap((key) => reply.question?.options.find((option) => option.key === key)?.label ?? []);
-}
-
-function renderAction(action: MarketingAction | null) {
-  return action ? <MarketingActionLink action={action} /> : null;
 }

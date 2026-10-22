@@ -165,6 +165,16 @@ export const enMessages = {
           body: "This part is in progress. We'd rather tell you than promise it.",
         },
       },
+      signIn: {
+        title: "To set up your clinic, I need to know who you are. Your phone number is enough.",
+        description: "A new number creates your account. It's free, with no time limit.",
+        done: "You're signed in. Taking you to set up your clinic with your answers…",
+        openError: "Sign-up couldn't be opened just now.",
+        retry: "Try again",
+        retryTooltip: "Ask for a new sign-up link",
+        continue: "Continue to sign-up",
+        continueTooltip: "Open sign-up and sign in there",
+      },
       panel: {
         title: "Your clinic on Vitarish",
         kind: "Kind of clinic",

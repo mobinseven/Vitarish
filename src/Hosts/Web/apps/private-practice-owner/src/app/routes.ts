@@ -1,4 +1,5 @@
 import { AuthenticationWebRoutes } from "@vitarish/auth/routes";
+import { tenantHandoffPath } from "@vitarish/journey/onboarding-host";
 import type { PatientQuickAction } from "@vitarish/clinic";
 
 /** Centralized route definitions for the React web host.
@@ -26,7 +27,7 @@ export const Routes = {
   Setup: "/setup",
 
   /** Public: redeems the one-time sign-in link from setup on the new clinic's own host */
-  Handoff: "/handoff",
+  Handoff: tenantHandoffPath,
 
   /** Authenticated account routes */
   Account: {

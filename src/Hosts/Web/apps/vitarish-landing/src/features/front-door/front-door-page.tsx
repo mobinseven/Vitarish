@@ -1,8 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useReducer } from "react";
+import { useCallback, useEffect, useReducer, useState } from "react";
 import { Alert, Spinner } from "@heroui/react";
+import { useAuthSession } from "@vitarish/auth";
+import { onboardingHandoffUrl } from "@vitarish/journey/onboarding-host";
 import { useLocalizedText } from "@vitarish/localization";
+import { landingIssueOnboardingHandoff } from "@vitarish/platform";
 import { MarketingFooter } from "@vitarish/ui";
 import { ConsultationView } from "./consultation/consultation-view";
 import { consultationReducer, initialConsultation } from "./consultation/consultation-state";
@@ -29,6 +32,36 @@ export function FrontDoorPage({ onboardingUrl, whatsappNumber }: FrontDoorPagePr
   const conversation = useFrontDoorConversation();
   const [state, dispatch] = useReducer(consultationReducer, initialConsultation);
   const isConsulting = state.thread.length > 0;
+  const session = useAuthSession();
+  const [hasSignedInHere, setSignedInHere] = useState(false);
+  const isSignedIn = hasSignedInHere || session.isAuthenticated;
+  const [isOpening, setOpening] = useState(false);
+  const [isOpenError, setOpenError] = useState(false);
+
+  // A one-time ticket signs the person in on the onboarding host, so they do not sign in twice.
+  const handOff = useCallback(async () => {
+    if (!onboardingUrl) return;
+    setOpening(true);
+    setOpenError(false);
+    try {
+      const handoff = await landingIssueOnboardingHandoff();
+      window.location.assign(onboardingHandoffUrl(onboardingUrl, handoff.token));
+    } catch {
+      setOpening(false);
+      setOpenError(true);
+    }
+  }, [onboardingUrl]);
+
+  const openClinic = useCallback(() => {
+    if (isSignedIn) void handOff();
+    else dispatch({ type: "requestSignIn" });
+  }, [handOff, isSignedIn]);
+
+  const onSignedIn = useCallback(() => {
+    setSignedInHere(true);
+    dispatch({ type: "signedIn" });
+    void handOff();
+  }, [handOff]);
 
   useEffect(() => {
     if (isConsulting) window.scrollTo({ top: 0 });
@@ -69,6 +102,7 @@ export function FrontDoorPage({ onboardingUrl, whatsappNumber }: FrontDoorPagePr
               onRestart={restart}
               onSay={(text) => void say(text)}
               onboardingUrl={onboardingUrl}
+              openClinicFlow={{ isSignedIn, isOpening, isError: isOpenError, open: openClinic, onSignedIn }}
               whatsappNumber={whatsappNumber}
             />
           ) : catalog.isError ? (

@@ -25,6 +25,7 @@ public sealed class LandingApp : Vitarish.Apps.Base.Core.App
                 (uri.Scheme == Uri.UriSchemeHttps || uri.IsLoopback),
                 "A valid HTTPS LandingUrl is required.")
             .ValidateOnStart();
+        _ = builder.Services.AddTransient<Vitarish.Authentication.Application.Abstractions.IRoleFreeSessionPolicy, LandingHostRoleFreeSessionPolicy>();
         _ = builder.Services.AddMediatR(configuration => configuration.RegisterServicesFromAssembly(typeof(RunLandingConversationHandler).Assembly));
         _ = builder.Services.AddOptions<LandingConversationAgentOptions>()
             .Configure<IOptions<AiOptions>>((landing, intelligence) => landing.Model = intelligence.Value.DefaultResponseModel)

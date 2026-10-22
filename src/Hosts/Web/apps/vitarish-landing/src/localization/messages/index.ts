@@ -1,3 +1,4 @@
+import { authMessageCatalogs } from "@vitarish/auth/localization";
 import { intelligenceMessageCatalogs } from "@vitarish/intelligence/localization";
 import { defaultLocale, type SupportedLocale } from "@vitarish/localization";
 import { enMessages } from "./en";
@@ -6,10 +7,12 @@ import { faMessages } from "./fa";
 export const catalogs = {
   en: {
     ...enMessages,
+    ...authMessageCatalogs.en,
     ...intelligenceMessageCatalogs.en,
   },
   fa: {
     ...faMessages,
+    ...authMessageCatalogs.fa,
     ...intelligenceMessageCatalogs.fa,
   },
 } as const;

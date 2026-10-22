@@ -69,6 +69,22 @@ describe("consultationReducer", () => {
   });
 });
 
+describe("signing in to open the clinic", () => {
+  it("shows one sign-in card however often it is asked for, then confirms once", () => {
+    const asked = run({ type: "start" }, { type: "requestSignIn" }, { type: "requestSignIn" });
+    expect(asked.thread.filter((entry) => entry.type === "signIn")).toHaveLength(1);
+
+    const signedIn = run({ type: "start" }, { type: "requestSignIn" }, { type: "signedIn" }, { type: "signedIn" });
+    expect(signedIn.thread.slice(-2).map((entry) => entry.type)).toEqual(["signIn", "signedIn"]);
+  });
+
+  it("ignores a sign-in confirmation that no card asked for", () => {
+    const state = run({ type: "start" }, { type: "signedIn" });
+
+    expect(state.thread.some((entry) => entry.type === "signedIn")).toBe(false);
+  });
+});
+
 describe("matching", () => {
   it("lists matched features in the order of the owner's pains without repeats", () => {
     expect(matchedFeatures(consultation, ["phone-load", "no-shows"])).toEqual(["online-booking", "reminders", "check-in-sms"]);
