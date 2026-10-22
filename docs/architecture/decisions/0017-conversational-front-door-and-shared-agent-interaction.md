@@ -44,9 +44,10 @@ Several existing boundaries are involved:
    Apps own their prompt, their catalog of referable items, their action set,
    and their wording. The wire shape lives in `Intelligence.Contracts`, which an
    app's Contracts project references as an approved shared contract library;
-   the app's Api maps the Application reply to it. The landing app exposes its
-   catalog, with each feature's availability, through a public, rate-limited
-   features endpoint so the page and the assistant read one list.
+   the app's Api maps the Application reply to it. The landing app exposes one
+   public, rate-limited catalog endpoint with each feature's availability, the
+   consultation's questions and answer keys, and the next-action keys, so the
+   page, the assistant and the saved setup draft share one set of keys.
 2. **Shared interaction UI.** `shared/intelligence` owns rendering of
    interactive replies (question options, reference chips with their status,
    the next-action bar, the "remembered" note and the side panel shell);
