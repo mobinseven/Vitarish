@@ -42,7 +42,11 @@ Several existing boundaries are involved:
    validation. The model output is untrusted: unknown references or actions are
    dropped, lengths are capped, and invalid output falls back to plain text.
    Apps own their prompt, their catalog of referable items, their action set,
-   and their wording.
+   and their wording. The wire shape lives in `Intelligence.Contracts`, which an
+   app's Contracts project references as an approved shared contract library;
+   the app's Api maps the Application reply to it. The landing app exposes its
+   catalog, with each feature's availability, through a public, rate-limited
+   features endpoint so the page and the assistant read one list.
 2. **Shared interaction UI.** `shared/intelligence` owns rendering of
    interactive replies (question options, reference chips with their status,
    the next-action bar, the "remembered" note and the side panel shell);

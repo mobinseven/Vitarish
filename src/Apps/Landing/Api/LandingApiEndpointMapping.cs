@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Routing;
 using Vitarish.Intelligence.Application.Agents;
+using Vitarish.Intelligence.Contracts;
 using Vitarish.Landing.Application;
 using Vitarish.Landing.Contracts;
 using Vitarish.Modules.Base.Core.Endpoints;
@@ -20,6 +21,7 @@ namespace Vitarish.Landing.Api;
 public static class LandingApiEndpointMapping
 {
     private const string SessionCookie = "__Host-vitarish-landing-session";
+    private const string FeaturesJustification = "The public landing page lists which product features are live; the list holds no tenant or user data and is rate limited per IP.";
     private const string AnonymousJustification = "The public landing assistant accepts short visitor messages without an account; access is bound to a protected, HttpOnly public-session cookie and per-IP rate limits.";
     private static readonly HashSet<string> OwnerKeys = new(["home", "about", "portfolio", "contact", "explore"], StringComparer.Ordinal);
 
@@ -35,6 +37,14 @@ public static class LandingApiEndpointMapping
                 anonymousJustification: AnonymousJustification)
             .WithMetadata(new RequestSizeLimitAttribute(4_096))
             .RequireRateLimiting(LandingRateLimitPolicies.PublicConversation);
+        _ = group.MapModuleGet(
+                LandingApiRoutes.Features,
+                GetFeatures,
+                "LandingGetFeatures",
+                typeof(LandingFeaturesResponse),
+                profile: ModuleEndpointProfile.AnonymousJson,
+                anonymousJustification: FeaturesJustification)
+            .RequireRateLimiting(LandingRateLimitPolicies.PublicCatalog);
         _ = group.MapModuleDelete(LandingApiRoutes.ConversationById, (Guid conversationId, string ownerKey, HttpContext context, IOptions<LandingPlatformOptions> options, IPartiesService parties, IDataProtectionProvider protection, ISender sender, CancellationToken ct) => DeleteAsync(conversationId, ownerKey, context, options, parties, protection, sender, ct), "LandingDeleteConversation", profile: ModuleEndpointProfile.AnonymousJson, anonymousJustification: AnonymousJustification).RequireRateLimiting(LandingRateLimitPolicies.PublicConversation);
         RouteGroupBuilder administration = endpoints.MapProtectedModuleGroup($"{LandingApiRoutes.Base}{LandingApiRoutes.Administration}");
         administration.WithGroupName("Landing").WithTags("Landing");
@@ -68,7 +78,7 @@ public static class LandingApiEndpointMapping
 
     public static IResult ToHttpResult(LandingConversationResult result) => result.Outcome switch
     {
-        AgentConversationOutcome.Succeeded when result.ConversationId.HasValue && !string.IsNullOrWhiteSpace(result.Message) => Results.Ok(new LandingConversationResponse(result.ConversationId.Value.ToString("N"), result.Message)),
+        AgentConversationOutcome.Succeeded when result.ConversationId.HasValue && result.Reply is { } reply => Results.Ok(new LandingConversationResponse(result.ConversationId.Value.ToString("N"), reply.Text, ToResponse(reply))),
         AgentConversationOutcome.NotFound => Results.NotFound(new LandingError(LandingErrorCodes.NotFound, "The conversation was not found.")),
         AgentConversationOutcome.Busy => Results.Conflict(new LandingError(LandingErrorCodes.Busy, "The conversation is already processing a message.")),
         AgentConversationOutcome.HistoryLimitExceeded => Results.Conflict(new LandingError(LandingErrorCodes.InvalidHistory, "The conversation history has reached its supported limit; start a new conversation.")),
@@ -76,6 +86,22 @@ public static class LandingApiEndpointMapping
         AgentConversationOutcome.ProfileChanged => Results.Conflict(new LandingError(LandingErrorCodes.Conflict, "The assistant configuration changed; start a new conversation.")),
         _ => Results.Json(new LandingError(LandingErrorCodes.Unavailable, "The assistant is temporarily unavailable."), statusCode: StatusCodes.Status503ServiceUnavailable)
     };
+
+    public static LandingFeaturesResponse GetFeatures() =>
+        new(LandingFeatureCatalog.Clinic.Select(feature => new LandingFeatureResponse(feature.Key, feature.Status switch
+        {
+            LandingFeatureStatus.Live => LandingFeatureAvailability.Live,
+            LandingFeatureStatus.InProgress => LandingFeatureAvailability.InProgress,
+            _ => LandingFeatureAvailability.NotYet
+        })).ToArray());
+
+    private static AgentInteractiveReplyResponse ToResponse(AgentInteractiveReply reply) =>
+        new(reply.Text,
+            reply.Question is { } question
+                ? new AgentInteractiveQuestionResponse(question.Prompt, question.Options.Select(option => new AgentInteractiveOptionResponse(option.Key, option.Label)).ToArray(), question.MaxSelections)
+                : null,
+            reply.References,
+            reply.NextAction);
 
     private static async Task<IResult> DeleteAsync(Guid conversationId, string ownerKey, HttpContext context, IOptions<LandingPlatformOptions> options, IPartiesService parties, IDataProtectionProvider protection, ISender sender, CancellationToken ct)
     {

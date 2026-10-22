@@ -65,6 +65,56 @@
         }
       }
     },
+    "/api/apps/landing/features": {
+      "get": {
+        "tags": [
+          "Landing"
+        ],
+        "operationId": "LandingGetFeatures",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LandingFeaturesResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/apps/landing/conversations/{conversationId}": {
       "delete": {
         "tags": [
@@ -250,6 +300,84 @@
   },
   "components": {
     "schemas": {
+      "AgentInteractiveOptionResponse": {
+        "required": [
+          "key",
+          "label"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          }
+        }
+      },
+      "AgentInteractiveQuestionResponse": {
+        "required": [
+          "prompt",
+          "options",
+          "maxSelections"
+        ],
+        "type": "object",
+        "properties": {
+          "prompt": {
+            "type": "string"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AgentInteractiveOptionResponse"
+            }
+          },
+          "maxSelections": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "AgentInteractiveReplyResponse": {
+        "required": [
+          "text",
+          "question",
+          "references",
+          "nextAction"
+        ],
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "question": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AgentInteractiveQuestionResponse"
+              }
+            ]
+          },
+          "references": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "nextAction": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "LandingConversationResponse": {
         "required": [
           "conversationId",
@@ -262,6 +390,52 @@
           },
           "message": {
             "type": "string"
+          },
+          "reply": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AgentInteractiveReplyResponse"
+              }
+            ]
+          }
+        }
+      },
+      "LandingFeatureAvailability": {
+        "enum": [
+          "Live",
+          "InProgress",
+          "NotYet"
+        ]
+      },
+      "LandingFeatureResponse": {
+        "required": [
+          "key",
+          "availability"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "availability": {
+            "$ref": "#/components/schemas/LandingFeatureAvailability"
+          }
+        }
+      },
+      "LandingFeaturesResponse": {
+        "required": [
+          "features"
+        ],
+        "type": "object",
+        "properties": {
+          "features": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LandingFeatureResponse"
+            }
           }
         }
       },
