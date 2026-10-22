@@ -45,6 +45,14 @@ public static class IdentityPartiesExtensions
                     Window = TimeSpan.FromHours(1), PermitLimit = 10, SegmentsPerWindow = 6,
                     QueueLimit = 0, QueueProcessingOrder = QueueProcessingOrder.OldestFirst
                 })));
+        _ = builder.Services.AddRateLimiter(options => options.AddPolicy(PartiesRateLimitPolicies.PublicLogo, context =>
+            RateLimitPartition.GetSlidingWindowLimiter(
+                context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                _ => new SlidingWindowRateLimiterOptions
+                {
+                    Window = TimeSpan.FromMinutes(1), PermitLimit = 60, SegmentsPerWindow = 6,
+                    QueueLimit = 0, QueueProcessingOrder = QueueProcessingOrder.OldestFirst
+                })));
 
         // Register Entity Services
         _ = builder.Services.AddTransient<OwnersService>();

@@ -27,6 +27,7 @@ Use the smallest profile that describes the transport shape:
 - `AnonymousWebhook` for external provider callbacks that cannot carry module bearer tokens. A non-empty justification is mandatory.
 - `MultipartUpload` for file uploads. Declare multipart request metadata and success response type/status.
 - `BinaryDownload` for file downloads and HEAD checks. Declare binary response metadata.
+- `AnonymousBinaryDownload` for a file published to anyone, such as a clinic's logo, in a `MapAnonymousModuleGroup` group. Declare binary response metadata; a non-empty justification and a rate limit are mandatory.
 - `Streaming` for server-streamed responses. Declare the streaming content type.
 - `LongRunningCommand` for accepted/background command endpoints.
 

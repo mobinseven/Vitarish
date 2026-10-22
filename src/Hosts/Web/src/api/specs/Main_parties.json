@@ -2552,6 +2552,49 @@
           }
         }
       }
+    },
+    "/api/modules/parties/public/logo": {
+      "get": {
+        "tags": [
+          "Parties"
+        ],
+        "operationId": "PartiesGetPublicTenantLogo",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2838,7 +2881,8 @@
           "tenantId",
           "name",
           "hostname",
-          "role"
+          "role",
+          "logoPath"
         ],
         "type": "object",
         "properties": {
@@ -2854,6 +2898,12 @@
           },
           "role": {
             "type": "string"
+          },
+          "logoPath": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },

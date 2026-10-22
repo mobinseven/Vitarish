@@ -4,9 +4,15 @@ import { useLocalizedText } from "@vitarish/localization";
 import { JourneyGateCard } from "../components/JourneyGateCard";
 import { JourneyGateHeader } from "../components/JourneyGateHeader";
 import { JourneyGateLayout } from "../components/JourneyGateLayout";
-import { WorkspaceSelector } from "../components/WorkspaceSelector";
+import { ClinicSelector } from "../features/clinicSelection/ClinicSelector";
 
-export function WorkspaceSelectionPage() {
+interface WorkspaceSelectionPageProps {
+  /** The app route on each clinic and on the onboarding host that redeems the one-time sign-in token. */
+  handoffPath: string;
+}
+
+/** The shared sign-in host's page for choosing which of the signed-in person's clinics to open. */
+export function WorkspaceSelectionPage({ handoffPath }: WorkspaceSelectionPageProps) {
   const { t } = useLocalizedText();
 
   return (
@@ -20,7 +26,7 @@ export function WorkspaceSelectionPage() {
           />
         }
       >
-        <WorkspaceSelector />
+        <ClinicSelector handoffPath={handoffPath} />
       </JourneyGateCard>
     </JourneyGateLayout>
   );
