@@ -126,6 +126,11 @@ services:
   landing:
     <<: *app-runtime
     image: "${VITARISH_PRODUCTION_LANDING_WEB_IMAGE:?VITARISH_PRODUCTION_LANDING_WEB_IMAGE is required}"
+    environment:
+      # "Set up my clinic" links here; empty hides it.
+      VITARISH_ONBOARDING_URL: ${VITARISH_PRODUCTION_ONBOARDING_URL:-}
+      # "Chat with us on WhatsApp" opens this number (international digits); empty hides it.
+      VITARISH_LANDING_WHATSAPP_NUMBER: ${VITARISH_PRODUCTION_LANDING_WHATSAPP_NUMBER:-}
     expose: [3002]
     healthcheck: *node-healthcheck
     networks: { application: {}, proxy: { aliases: [production-landing] } }
