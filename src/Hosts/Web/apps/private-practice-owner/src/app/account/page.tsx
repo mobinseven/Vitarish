@@ -52,6 +52,12 @@ const settingsLinks = [
     href: Routes.Account.Security,
     icon: "shield",
   },
+  {
+    labelKey: "account.navigation.memory" as MessageKey,
+    captionKey: "account.captions.memory" as MessageKey,
+    href: Routes.Account.Memory,
+    icon: "brain",
+  },
 ];
 
 export default function AccountSettingsPage() {

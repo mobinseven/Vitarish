@@ -12,7 +12,7 @@ const webConsumers = [
   { service: "pm", image: "pm", workspace: "vitarish-pm", filter: "web_pm", authConsumer: true },
   // Checked in CI but not deployed: the knowledge QA demo is opted out of production.
   { service: "knowledge-qa", image: "knowledge-qa", workspace: "knowledge-qa-demo", filter: "web_qa", authConsumer: true, deploy: false },
-  { service: "landing", image: "landing", workspace: "vitarish-landing", filter: "web_landing" },
+  { service: "landing", image: "landing", workspace: "vitarish-landing", filter: "web_landing", authConsumer: true },
   { service: "agent-runtime", image: "agent-runtime", workspace: "agent-runtime", filter: "web_agent" },
 ];
 

@@ -117,12 +117,12 @@ test("an isolated Web app change selects only that app's tests, build, image, an
 });
 
 test("a shared authentication change selects every consuming app with shared auth checks", () => {
-  const selected = selectProductionMatrix("push", { web_auth: true, web_landing: true });
-  assert.equal(selected.web.length, authConsumerWorkspaces.length + 1);
+  const selected = selectProductionMatrix("push", { web_auth: true });
+  assert.equal(selected.web.length, authConsumerWorkspaces.length);
   // The knowledge QA demo is checked but never deployed.
-  assert.equal(selected.images.length, authConsumerWorkspaces.length);
-  assert.equal(selected.services.length, authConsumerWorkspaces.length);
-  assert.deepEqual(selected.web.map(({ workspace }) => workspace).sort(), [...authConsumerWorkspaces, "vitarish-landing"].sort());
+  assert.equal(selected.images.length, authConsumerWorkspaces.length - 1);
+  assert.equal(selected.services.length, authConsumerWorkspaces.length - 1);
+  assert.deepEqual(selected.web.map(({ workspace }) => workspace).sort(), authConsumerWorkspaces);
   assert.match(workflow, /authentication_web:[\s\S]*?env:\r?\n          HEROUI_AUTH_TOKEN: \$\{\{ secrets\.HEROUI_AUTH_TOKEN \}\}/);
   assert.match(workflow, /npm ci/);
   assert.match(workflow, /authentication_web:[\s\S]*?if: \$\{\{ contains\(needs\.changes\.outputs\.filters, 'web_auth'\) \}\}/);
@@ -131,8 +131,9 @@ test("a shared authentication change selects every consuming app with shared aut
 
 test("an authentication-only change selects every consuming app and shared auth", () => {
   const selected = selectProductionMatrix("push", { web_auth: true });
-  assert.equal(selected.web.length, 5);
-  assert.equal(selected.images.length, 4);
+  assert.equal(selected.web.length, 6);
+  assert.equal(selected.images.length, 5);
+  assert.ok(selected.images.includes("landing"));
 });
 
 test("a shared Web change checks every workspace once and builds every deployed app", () => {

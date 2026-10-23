@@ -6,5 +6,8 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Modules\Intelligence\Application\Intelligence.Application.csproj" />
+    <ProjectReference Include="..\..\..\Modules\Authentication\Application\Authentication.Application.csproj" />
+    <ProjectReference Include="..\..\..\Modules\Parties\Application\Parties.Application.csproj" />
+    <ProjectReference Include="..\..\..\Modules\Requests\Application\Requests.Application.csproj" />
   </ItemGroup>
 </Project>

@@ -10,3 +10,16 @@ export function readOnboardingUrl(environment: Record<string, string | undefined
   const value = environment[onboardingUrlEnvironmentKey]?.trim();
   return value ? value : null;
 }
+
+/** Where a one-time handoff ticket is redeemed on the onboarding host and on every clinic host. */
+export const tenantHandoffPath = "/handoff";
+
+/**
+ * The onboarding host's handoff address for a ticket. The ticket travels in the fragment, so it is
+ * never sent to a server or in a `Referer` (ADR-0016).
+ */
+export function onboardingHandoffUrl(onboardingUrl: string, token: string): string {
+  const url = new URL(tenantHandoffPath, onboardingUrl);
+  url.hash = token;
+  return url.toString();
+}

@@ -64,6 +64,22 @@ public sealed class UserUpdateValidationTests
     }
 
     [Fact]
+    public async Task Profile_update_keeps_owner_namespaced_entries_it_did_not_write()
+    {
+        await using UsersDbContext dbContext = await CreateDbContextWithUserAsync(user =>
+            user.ProfilePreferences = new() { ["Culture"] = "en", ["intelligence.memory"] = "[stored]" });
+        UpdateUserProfileCommandHandler handler = CreateProfileHandler(dbContext);
+
+        // A stale client copy that lacks the stored entry, or carries an old value for it.
+        await handler.Handle(
+            new UpdateUserProfileCommand(UserId, new Dictionary<string, string> { ["Culture"] = "fa-IR", ["intelligence.memory"] = "[stale]" }),
+            CancellationToken.None);
+
+        User persisted = await dbContext.Users.AsNoTracking().SingleAsync(user => user.Id == UserId);
+        persisted.ProfilePreferences.Should().Equal(new Dictionary<string, string> { ["Culture"] = "fa-IR", ["intelligence.memory"] = "[stored]" });
+    }
+
+    [Fact]
     public async Task Name_update_succeeds_for_an_account_without_an_email_or_phone()
     {
         await using UsersDbContext dbContext = await CreateDbContextWithUserAsync(user =>

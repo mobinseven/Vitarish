@@ -14,4 +14,7 @@ public class UserProfileService(ISender sender) : IUserProfileService
 
     public Task UpdateProfileAsync(string userId, Dictionary<string, string> preferences, CancellationToken ct = default) =>
         sender.Send(new UpdateUserProfileCommand(userId, preferences), ct);
+
+    public Task<SetUserProfileValueOutcome> SetValueAsync(string userId, string key, string? value, ProfileValueExpectation? expected = null, CancellationToken ct = default) =>
+        sender.Send(new SetUserProfileValueCommand(userId, key, value, expected), ct);
 }

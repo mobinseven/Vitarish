@@ -4,6 +4,7 @@ import { Routes } from "../../apps/private-practice-owner/src/app/routes";
 import { enMessages } from "../../apps/private-practice-owner/src/localization/messages/en";
 import { faMessages } from "../../apps/private-practice-owner/src/localization/messages/fa";
 import { mockScreenshotOutputEnvironmentKey, mockScreenshotScenarioEnvironmentKey } from "../../scripts/spec-capture-options.mjs";
+import { clinicMessageCatalogs } from "../../shared/clinic/src/localization/catalogs";
 import { localeCookieName } from "../../shared/localization/src/localeCookie";
 import { supportedLocales, type SupportedLocale } from "../../shared/localization/src/locales";
 
@@ -93,7 +94,7 @@ for (const locale of supportedLocales) {
 
     await test.step("setup specialty chosen", async () => {
       await page.getByRole("button", { name: setup.specialty }).click();
-      await page.getByRole("option", { name: setup.specialties.dermatology }).click();
+      await page.getByRole("option", { name: clinicMessageCatalogs[locale].clinic.specialties.dermatology }).click();
       await page.getByRole("textbox", { name: setup.clinicDescription, exact: true }).fill(clinicDescriptions[locale]);
       await capture("setup-specialty-chosen");
     });

@@ -2,6 +2,26 @@ import { surgeriesFaMessages } from "./surgeries";
 
 export const clinicFaMessages = {
   clinic: {
+    // The specialty codes come from the clinic app (ClinicSpecialties); sign-up and the landing page show these labels.
+    specialties: {
+      "plastic-surgery": "جراحی پلاستیک",
+      dermatology: "پوست و مو",
+      dentistry: "دندانپزشکی",
+      ophthalmology: "چشم‌پزشکی",
+      otolaryngology: "گوش، حلق و بینی",
+      "general-surgery": "جراحی عمومی",
+      orthopedics: "ارتوپدی",
+      "obstetrics-gynecology": "زنان و زایمان",
+      urology: "اورولوژی",
+      cardiology: "قلب و عروق",
+      "internal-medicine": "داخلی",
+      pediatrics: "کودکان",
+      "general-practice": "پزشک عمومی",
+      psychiatry: "روان‌پزشکی",
+      physiotherapy: "فیزیوتراپی",
+      nutrition: "تغذیه",
+      other: "سایر",
+    },
     surgeries: surgeriesFaMessages,
     patients: {
       title: "بیماران",

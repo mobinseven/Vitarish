@@ -148,10 +148,40 @@ public static class SecurityConfigurationValidator
             },
             Tls = configured.Tls,
             IdentityAuthority = authority,
-            AllowedCorsOrigins = origins,
+            AllowedCorsOrigins = origins.Concat(PlatformOrigins(configuration)).Distinct(StringComparer.OrdinalIgnoreCase).ToArray(),
             EvaluatedConfiguration = evaluated
         };
     }
+
+    /// <summary>
+    /// The platform's own hosts (landing, onboarding and shared sign-in) are trusted origins whenever
+    /// they are configured, so a handoff redeemed there or a WebSocket opened there is admitted without
+    /// repeating each address in <c>Cors:AllowedOrigins</c>. Each must be HTTPS unless it is a local
+    /// <c>localhost</c> address.
+    /// </summary>
+    private static IEnumerable<string> PlatformOrigins(IConfiguration configuration)
+    {
+        string[] keys =
+        [
+            $"{Module.ApplicationSection}:{nameof(Vitarish.Main.Infrastructure.Options.ApplicationOptions.LandingUrl)}",
+            $"{Module.ApplicationSection}:{nameof(Vitarish.Parties.Application.Onboarding.OnboardingHostOptions.OnboardingUrl)}",
+            $"{Module.ApplicationSection}:{nameof(Vitarish.Parties.Application.SignIn.SignInHostOptions.SignInUrl)}",
+        ];
+        foreach (string key in keys)
+        {
+            string? value = configuration[key];
+            if (string.IsNullOrWhiteSpace(value))
+                continue;
+            if (!Uri.TryCreate(value, UriKind.Absolute, out Uri? uri)
+                || (uri.Scheme != Uri.UriSchemeHttps
+                    && !(uri.Scheme == Uri.UriSchemeHttp && IsLocalHost(uri.Host))))
+                Fail($"{key} must be an absolute HTTPS address.");
+            yield return uri!.GetLeftPart(UriPartial.Authority);
+        }
+    }
+
+    private static bool IsLocalHost(string host) =>
+        host.Equals("localhost", StringComparison.OrdinalIgnoreCase) || host.EndsWith(".localhost", StringComparison.OrdinalIgnoreCase);
 
     private static void Fail(string rule) => throw new InvalidOperationException($"Security configuration validation failed: {rule}");
 

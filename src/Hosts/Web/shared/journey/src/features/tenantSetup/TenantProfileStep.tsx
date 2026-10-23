@@ -12,6 +12,8 @@ const descriptionMaximumLength = 500;
 
 interface TenantProfileStepProps {
   categories: string[];
+  /** Where the hosting app keeps each category's label: `${prefix}.${code}`. */
+  categoryMessagePrefix: string;
   category: string | null;
   description: string;
   businessDetails: BusinessDetailsForm;
@@ -26,6 +28,7 @@ interface TenantProfileStepProps {
 
 export function TenantProfileStep({
   categories,
+  categoryMessagePrefix,
   category,
   description,
   businessDetails,
@@ -70,8 +73,8 @@ export function TenantProfileStep({
         <Select.Popover>
           <ListBox>
             {categories.map((code) => (
-              <ListBox.Item key={code} id={code} textValue={t(`journey.setup.specialties.${code}`)}>
-                {t(`journey.setup.specialties.${code}`)}
+              <ListBox.Item key={code} id={code} textValue={t(`${categoryMessagePrefix}.${code}`)}>
+                {t(`${categoryMessagePrefix}.${code}`)}
                 <ListBox.ItemIndicator />
               </ListBox.Item>
             ))}

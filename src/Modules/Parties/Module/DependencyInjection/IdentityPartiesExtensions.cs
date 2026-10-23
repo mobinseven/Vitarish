@@ -63,6 +63,7 @@ public static class IdentityPartiesExtensions
         _ = builder.Services.AddTransient<ITenantHostnameRegistry, TenantHostnameRegistry>();
         _ = builder.Services.AddTransient<ITenantOriginTrust, TenantOriginTrust>();
         _ = builder.Services.AddTransient<ITenantCreatorDirectory, UsersTenantCreatorDirectory>();
+        _ = builder.Services.AddTransient<Vitarish.Parties.Application.Onboarding.IOnboardingSetupDraftStore, ProfileOnboardingSetupDraftStore>();
         _ = builder.Services.AddTransient<ISelfServiceTenantStore, SelfServiceTenantStore>();
         _ = builder.Services.AddTransient<ITenantHandoffIssuer, AuthenticationTenantHandoffIssuer>();
         _ = builder.Services.AddTransient<Vitarish.Authentication.Application.Abstractions.IRoleFreeSessionPolicy, PlatformHostRoleFreeSessionPolicy>();

@@ -25,12 +25,17 @@ public sealed class LandingApp : Vitarish.Apps.Base.Core.App
                 (uri.Scheme == Uri.UriSchemeHttps || uri.IsLoopback),
                 "A valid HTTPS LandingUrl is required.")
             .ValidateOnStart();
+        _ = builder.Services.AddTransient<Vitarish.Authentication.Application.Abstractions.IRoleFreeSessionPolicy, LandingHostRoleFreeSessionPolicy>();
         _ = builder.Services.AddMediatR(configuration => configuration.RegisterServicesFromAssembly(typeof(RunLandingConversationHandler).Assembly));
         _ = builder.Services.AddOptions<LandingConversationAgentOptions>()
             .Configure<IOptions<AiOptions>>((landing, intelligence) => landing.Model = intelligence.Value.DefaultResponseModel)
             .Validate(options => !string.IsNullOrWhiteSpace(options.Model), "The landing conversation model is required.")
             .ValidateOnStart();
-        _ = builder.Services.AddRateLimiter(options => options.AddPolicy(LandingRateLimitPolicies.PublicConversation, context => RateLimitPartition.GetSlidingWindowLimiter(context.Connection.RemoteIpAddress?.ToString() ?? "unknown", _ => new SlidingWindowRateLimiterOptions { Window = TimeSpan.FromMinutes(1), PermitLimit = 10, SegmentsPerWindow = 6, QueueLimit = 0, QueueProcessingOrder = QueueProcessingOrder.OldestFirst })));
+        _ = builder.Services.AddRateLimiter(options =>
+        {
+            options.AddPolicy(LandingRateLimitPolicies.PublicConversation, context => RateLimitPartition.GetSlidingWindowLimiter(context.Connection.RemoteIpAddress?.ToString() ?? "unknown", _ => new SlidingWindowRateLimiterOptions { Window = TimeSpan.FromMinutes(1), PermitLimit = 10, SegmentsPerWindow = 6, QueueLimit = 0, QueueProcessingOrder = QueueProcessingOrder.OldestFirst }));
+            options.AddPolicy(LandingRateLimitPolicies.PublicCatalog, context => RateLimitPartition.GetSlidingWindowLimiter(context.Connection.RemoteIpAddress?.ToString() ?? "unknown", _ => new SlidingWindowRateLimiterOptions { Window = TimeSpan.FromMinutes(1), PermitLimit = 60, SegmentsPerWindow = 6, QueueLimit = 0, QueueProcessingOrder = QueueProcessingOrder.OldestFirst }));
+        });
         return Task.CompletedTask;
     }
     public override async Task Initialize(WebApplication app)

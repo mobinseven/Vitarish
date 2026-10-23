@@ -51,3 +51,6 @@ public sealed record SetTenantLogoRequest(Guid FileId);
 
 /// <summary>The business category codes new tenants can choose from.</summary>
 public sealed record TenantCategoriesResponse(IReadOnlyList<string> Categories);
+
+/// <summary>What the person said before sign-up: a category to pre-select and the asking app's answer keys.</summary>
+public sealed record OnboardingSetupDraftResponse(string Category, IReadOnlyList<string> Answers);

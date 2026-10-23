@@ -41,7 +41,9 @@ Visitors may arrive to understand Vitarish as a company, discover a current spot
 
 - Existing logo asset: `512.webp`.
 - Private-practice application is currently implemented.
-- No testimonials, customer references, benchmarks, pricing, or other proof claims were provided; future work must not fabricate them.
+- Pricing (owner decision, 2026-10-22): a clinic can run on Vitarish for free with no time limit. Do not promise that every future feature stays free, and do not state prices or plan limits until they are decided.
+- Human contact (owner decision, 2026-10-22): WhatsApp, with a reply within an hour during working hours.
+- No testimonials, customer references, benchmarks, or other proof claims were provided; future work must not fabricate them.
 
 ## Product Principles
 

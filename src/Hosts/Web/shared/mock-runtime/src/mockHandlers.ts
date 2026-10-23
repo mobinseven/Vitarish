@@ -3,9 +3,11 @@ import { parseLocaleCookie } from "@vitarish/localization";
 import { createMockStore, mockFixtureIds } from "./mockStore";
 import { isMockAnonymousSession } from "./mockSession";
 import { createAuthMockHandlers } from "./mockAuthHandlers";
+import { createMemoryMockHandlers } from "./mockMemoryHandlers";
 import { createOnboardingMockHandlers } from "./mockOnboardingHandlers";
 import { createSeaMockHandlers } from "./mockSeaHandlers";
 import { createSurgeryMockHandlers } from "./mockSurgeryHandlers";
+import { landingCatalog } from "./mockLandingCatalog";
 
 export type MockScenario = "ready" | "empty" | "loading" | "error";
 export type MockHandlerFactory = (scenario: MockScenario) => readonly RequestHandler[];
@@ -412,6 +414,11 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
       }
       return HttpResponse.json({ succeeded: true, id: typeof body?.id === "string" ? body.id : "mock-entity" });
     }),
+    http.get(/\/api\/apps\/landing\/catalog(?:\?|$)/, async () => {
+      await withDelay();
+      if (activeScenario === "error") return unavailable();
+      return HttpResponse.json(landingCatalog);
+    }),
     http.post(/\/api\/apps\/landing\/conversations(?:\?|$)/, async ({ request }) => {
       await withDelay();
       if (activeScenario === "error") return unavailable();
@@ -433,7 +440,11 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
       })();
       const reply = message ? `Mock guidance for: ${message}` : "This deterministic mock reply is ready for interface review.";
       conversation.messages.push({ role: "user", text: message }, { role: "assistant", text: reply });
-      return HttpResponse.json({ conversationId: conversation.id, message: reply });
+      return HttpResponse.json({
+        conversationId: conversation.id,
+        message: reply,
+        reply: { text: reply, question: null, references: ["online-booking", "tamin-insurance"], nextAction: landingCatalog.nextActions.openClinic },
+      });
     }),
     http.delete(/\/api\/apps\/landing\/conversations\/[^/]+(?:\?|$)/, async ({ request }) => {
       await withDelay();
@@ -472,6 +483,7 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
     ...createSeaMockHandlers({ store, isUnavailable: activeScenario === "error", withDelay, unavailable, notFound }),
     ...createSurgeryMockHandlers({ store, isPersianRequest, isUnavailable: activeScenario === "error", withDelay, unavailable, notFound }),
     ...createOnboardingMockHandlers({ store, isPersianRequest, isUnavailable: activeScenario === "error", withDelay, unavailable, notFound }),
+    ...createMemoryMockHandlers({ isPersianRequest, isEmpty: activeScenario === "empty", isUnavailable: activeScenario === "error", withDelay, unavailable, notFound }),
     http.post(/\/api\/modules\/medical\/providers\/available(?:\?|$)/, async () => {
       await withDelay();
       if (activeScenario === "error") return unavailable();
