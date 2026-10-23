@@ -4,17 +4,25 @@ using System.Text.RegularExpressions;
 
 namespace Vitarish.Intelligence.Application.Agents;
 
-/// <summary>The reference and action keys a calling app lets its agent use; anything else is dropped.</summary>
+/// <summary>
+/// The reference and action keys a calling app lets its agent use; anything else is dropped. An app that
+/// keeps memory for the person (ADR-0017) also lets the agent propose facts to remember.
+/// </summary>
 public sealed record AgentInteractionVocabulary(
     IReadOnlyCollection<string> ReferenceKeys,
-    IReadOnlyCollection<string> ActionKeys);
+    IReadOnlyCollection<string> ActionKeys,
+    bool AllowsMemory = false);
 
 /// <summary>An agent reply that interfaces render as text, one question with options, references and one next step.</summary>
 public sealed record AgentInteractiveReply(
     string Text,
     AgentInteractiveQuestion? Question,
     IReadOnlyList<string> References,
-    string? NextAction);
+    string? NextAction)
+{
+    /// <summary>Facts the agent proposes to remember; the app decides whether and where to keep them.</summary>
+    public IReadOnlyList<string> Remember { get; init; } = [];
+}
 
 public sealed record AgentInteractiveQuestion(
     string Prompt,
@@ -35,6 +43,8 @@ public static partial class AgentInteractiveReplyFormat
     public const string QuestionProperty = "question";
     public const string ReferencesProperty = "references";
     public const string NextActionProperty = "nextAction";
+    public const string RememberProperty = "remember";
+    public const int MaxRemember = 3;
     public const string PromptProperty = "prompt";
     public const string OptionsProperty = "options";
     public const string MaxSelectionsProperty = "maxSelections";
@@ -71,6 +81,11 @@ public static partial class AgentInteractiveReplyFormat
             [ReferencesProperty] = new JsonObject { ["type"] = "array", ["items"] = KeyedString(vocabulary.ReferenceKeys, nullable: false) },
             [NextActionProperty] = KeyedString(vocabulary.ActionKeys, nullable: true)
         });
+        if (vocabulary.AllowsMemory)
+        {
+            ((JsonObject)root["properties"]!)[RememberProperty] = new JsonObject { ["type"] = "array", ["items"] = new JsonObject { ["type"] = "string" } };
+            ((JsonArray)root["required"]!).Add(RememberProperty);
+        }
         return new AgentResultDefinition(ResultName, root.ToJsonString());
     }
 
@@ -86,7 +101,10 @@ public static partial class AgentInteractiveReplyFormat
                 text,
                 Question(root),
                 References(root, vocabulary.ReferenceKeys),
-                Key(root, NextActionProperty, vocabulary.ActionKeys));
+                Key(root, NextActionProperty, vocabulary.ActionKeys))
+            {
+                Remember = vocabulary.AllowsMemory ? Remembered(root) : []
+            };
         }
 
         string? plain = run.Output?.Trim();
@@ -144,6 +162,18 @@ public static partial class AgentInteractiveReplyFormat
         }
 
         return kept;
+    }
+
+    private static IReadOnlyList<string> Remembered(JsonElement root)
+    {
+        if (!root.TryGetProperty(RememberProperty, out JsonElement facts) || facts.ValueKind != JsonValueKind.Array)
+            return [];
+        return facts.EnumerateArray()
+            .Where(fact => fact.ValueKind == JsonValueKind.String)
+            .Select(fact => fact.GetString()!.Trim())
+            .Where(fact => fact.Length > 0)
+            .Take(MaxRemember)
+            .ToArray();
     }
 
     private static string? Key(JsonElement root, string property, IReadOnlyCollection<string> allowed) =>

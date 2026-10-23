@@ -5,7 +5,11 @@ public sealed record AgentInteractiveReplyResponse(
     string Text,
     AgentInteractiveQuestionResponse? Question,
     IReadOnlyList<string> References,
-    string? NextAction);
+    string? NextAction,
+    IReadOnlyList<AgentRememberedResponse>? Remembered = null);
+
+/// <summary>A fact the app saved from this reply; the person can undo it by its id.</summary>
+public sealed record AgentRememberedResponse(string Id, string Text);
 
 public sealed record AgentInteractiveQuestionResponse(
     string Prompt,

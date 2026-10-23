@@ -441,6 +441,30 @@
               "null",
               "string"
             ]
+          },
+          "remembered": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/AgentRememberedResponse"
+            }
+          }
+        }
+      },
+      "AgentRememberedResponse": {
+        "required": [
+          "id",
+          "text"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
           }
         }
       },

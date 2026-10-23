@@ -9,6 +9,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Routing;
 using Vitarish.Intelligence.Application.Agents;
+using Vitarish.Intelligence.Application.Memory;
+using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Intelligence.Contracts;
 using Vitarish.Landing.Application;
 using Vitarish.Landing.Contracts;
@@ -32,7 +34,7 @@ public static class LandingApiEndpointMapping
         RouteGroupBuilder group = endpoints.MapAnonymousModuleGroup(LandingApiRoutes.Base, AnonymousJustification);
         _ = group.MapModulePost(
                 LandingApiRoutes.Conversations,
-                (SubmitLandingMessageRequest request, HttpContext context, IOptions<LandingPlatformOptions> options, IPartiesService parties, IDataProtectionProvider protection, ISender sender, CancellationToken ct) => SubmitAsync(request, context, options, parties, protection, sender, ct),
+                (SubmitLandingMessageRequest request, HttpContext context, IOptions<LandingPlatformOptions> options, IPartiesService parties, IDataProtectionProvider protection, [FromServices] IRequestContext requestContext, ISender sender, CancellationToken ct) => SubmitAsync(request, context, options, parties, protection, requestContext, sender, ct),
                 "LandingSubmitConversation",
                 typeof(LandingConversationResponse),
                 profile: ModuleEndpointProfile.AnonymousJson,
@@ -75,7 +77,7 @@ public static class LandingApiEndpointMapping
         return endpoints;
     }
 
-    private static async Task<IResult> SubmitAsync(SubmitLandingMessageRequest request, HttpContext context, IOptions<LandingPlatformOptions> options, IPartiesService parties, IDataProtectionProvider protection, ISender sender, CancellationToken ct)
+    private static async Task<IResult> SubmitAsync(SubmitLandingMessageRequest request, HttpContext context, IOptions<LandingPlatformOptions> options, IPartiesService parties, IDataProtectionProvider protection, IRequestContext requestContext, ISender sender, CancellationToken ct)
     {
         if (!Valid(request.OwnerKey, request.Message) || (request.ConversationId is not null && !Guid.TryParse(request.ConversationId, out _))) return Invalid();
         Guid? requestTenantId = await ResolveBoundTenantAsync(context, options, parties, ct);
@@ -83,13 +85,13 @@ public static class LandingApiEndpointMapping
             return Results.NotFound();
         string session = GetOrCreateSession(context, protection);
         Guid? conversationId = request.ConversationId is null ? null : Guid.Parse(request.ConversationId);
-        LandingConversationResult result = await sender.Send(new RunLandingConversation(requestTenantId.Value.ToString("D"), session, request.OwnerKey, request.Message.Trim(), conversationId), ct);
+        LandingConversationResult result = await sender.Send(new RunLandingConversation(requestTenantId.Value.ToString("D"), session, request.OwnerKey, request.Message.Trim(), conversationId, requestContext.UserId), ct);
         return ToHttpResult(result);
     }
 
     public static IResult ToHttpResult(LandingConversationResult result) => result.Outcome switch
     {
-        AgentConversationOutcome.Succeeded when result.ConversationId.HasValue && result.Reply is { } reply => Results.Ok(new LandingConversationResponse(result.ConversationId.Value.ToString("N"), reply.Text, ToResponse(reply))),
+        AgentConversationOutcome.Succeeded when result.ConversationId.HasValue && result.Reply is { } reply => Results.Ok(new LandingConversationResponse(result.ConversationId.Value.ToString("N"), reply.Text, ToResponse(reply, result.Remembered))),
         AgentConversationOutcome.NotFound => Results.NotFound(new LandingError(LandingErrorCodes.NotFound, "The conversation was not found.")),
         AgentConversationOutcome.Busy => Results.Conflict(new LandingError(LandingErrorCodes.Busy, "The conversation is already processing a message.")),
         AgentConversationOutcome.HistoryLimitExceeded => Results.Conflict(new LandingError(LandingErrorCodes.InvalidHistory, "The conversation history has reached its supported limit; start a new conversation.")),
@@ -123,13 +125,14 @@ public static class LandingApiEndpointMapping
                 _ => Contracts.LandingProofKind.InProgress
             })).ToArray());
 
-    private static AgentInteractiveReplyResponse ToResponse(AgentInteractiveReply reply) =>
+    private static AgentInteractiveReplyResponse ToResponse(AgentInteractiveReply reply, IReadOnlyList<UserMemoryItem> remembered) =>
         new(reply.Text,
             reply.Question is { } question
                 ? new AgentInteractiveQuestionResponse(question.Prompt, question.Options.Select(option => new AgentInteractiveOptionResponse(option.Key, option.Label)).ToArray(), question.MaxSelections)
                 : null,
             reply.References,
-            reply.NextAction);
+            reply.NextAction,
+            remembered.Select(item => new AgentRememberedResponse(item.Id, item.Text)).ToArray());
 
     private static async Task<IResult> IssueOnboardingHandoffAsync(LandingOnboardingHandoffRequest request, HttpContext context, IOptions<LandingPlatformOptions> options, IPartiesService parties, ISender sender, CancellationToken ct)
     {

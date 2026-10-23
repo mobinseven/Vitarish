@@ -82,6 +82,7 @@ public class IntelligenceModule : Modules.Base.Core.Module, IIntelligenceModule
         _ = builder.Services.AddSingleton<IIntelligenceModule, IntelligenceModule>();
         _ = builder.Services.AddSingleton<ModelRegistry>();
         _ = builder.Services.AddTransient<IResponder, ProviderDispatchingResponder>();
+        _ = builder.Services.AddTransient<Vitarish.Intelligence.Application.Memory.IUserMemoryStore, Vitarish.Intelligence.Infrastructure.Services.Memory.ProfileUserMemoryStore>();
         _ = builder.Services.AddSingleton<IAgentToolDispatcher, RegisteredAgentToolDispatcher>();
         _ = builder.Services.AddScoped<IAgentConversationEndpointRegistry, AgentConversationEndpointRegistry>();
         _ = builder.Services.AddScoped<IAgentRuntimeToolEndpointRegistry, AgentRuntimeToolEndpointRegistry>();

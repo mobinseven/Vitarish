@@ -2,12 +2,18 @@ using System.Text;
 using MediatR;
 using Microsoft.Extensions.Options;
 using Vitarish.Intelligence.Application.Agents;
+using Vitarish.Intelligence.Application.Memory;
 
 namespace Vitarish.Landing.Application;
 
-public sealed record RunLandingConversation(string TenantId, string PublicSessionId, string OwnerKey, string Message, Guid? ConversationId) : IRequest<LandingConversationResult>;
+/// <param name="UserId">The signed-in visitor, if any; only then does the assistant remember facts about them.</param>
+public sealed record RunLandingConversation(string TenantId, string PublicSessionId, string OwnerKey, string Message, Guid? ConversationId, string? UserId = null) : IRequest<LandingConversationResult>;
 public sealed record DeleteLandingConversation(string TenantId, string PublicSessionId, string OwnerKey, Guid ConversationId) : IRequest<AgentConversationOutcome>;
-public sealed record LandingConversationResult(AgentConversationOutcome Outcome, Guid? ConversationId = null, AgentInteractiveReply? Reply = null);
+public sealed record LandingConversationResult(AgentConversationOutcome Outcome, Guid? ConversationId = null, AgentInteractiveReply? Reply = null)
+{
+    /// <summary>What was remembered from this reply, so the visitor can undo it.</summary>
+    public IReadOnlyList<UserMemoryItem> Remembered { get; init; } = [];
+}
 
 public sealed class LandingConversationAgentOptions
 {
@@ -17,24 +23,54 @@ public sealed class LandingConversationAgentOptions
 public sealed class RunLandingConversationHandler(ISender sender, IOptions<LandingConversationAgentOptions> agentOptions) : IRequestHandler<RunLandingConversation, LandingConversationResult>
 {
     internal static readonly AgentInteractionVocabulary Vocabulary = new(LandingFeatureCatalog.Keys, LandingNextActions.All);
+    internal static readonly AgentInteractionVocabulary SignedInVocabulary = Vocabulary with { AllowsMemory = true };
     internal static readonly string Instructions = BuildInstructions();
 
     public async Task<LandingConversationResult> Handle(RunLandingConversation request, CancellationToken cancellationToken)
     {
+        // Only a signed-in visitor has a memory: the assistant sees it and may add to it.
+        bool remembers = !string.IsNullOrWhiteSpace(request.UserId);
+        AgentInteractionVocabulary vocabulary = remembers ? SignedInVocabulary : Vocabulary;
+        string instructions = remembers
+            ? WithMemory(await sender.Send(new GetUserMemoryQuery(request.UserId!), cancellationToken))
+            : Instructions;
         RunAgentConversationResult result = await sender.Send(new RunAgentConversation(
             request.ConversationId,
             Scope(request.TenantId, request.PublicSessionId, request.OwnerKey),
-            new AgentDefinition(agentOptions.Value.Model, Instructions, AgentInteractiveReplyFormat.Definition(Vocabulary)),
+            new AgentDefinition(agentOptions.Value.Model, instructions, AgentInteractiveReplyFormat.Definition(vocabulary)),
             new AgentInput(request.Message), [],
             new AgentExecutionContext(Guid.NewGuid().ToString("N")),
             new AgentExecutionLimits(MaxIterations: 2, MaxToolCalls: 0, MaxTokens: 1_500, Timeout: TimeSpan.FromSeconds(45)),
             // A reply with no usable text is refused before the turn is saved, so a retry starts clean.
-            BeforeCommit: (_, run, _) => Task.FromResult(AgentInteractiveReplyFormat.Read(run, Vocabulary) is null
+            BeforeCommit: (_, run, _) => Task.FromResult(AgentInteractiveReplyFormat.Read(run, vocabulary) is null
                 ? AgentConversationOutcome.ProviderFailure
                 : AgentConversationOutcome.Succeeded)), cancellationToken);
-        return result.Outcome == AgentConversationOutcome.Succeeded && result.Run is { } run
-            ? new(result.Outcome, result.ConversationId, AgentInteractiveReplyFormat.Read(run, Vocabulary))
-            : new(result.Outcome, result.ConversationId);
+        if (result.Outcome != AgentConversationOutcome.Succeeded || result.Run is not { } run)
+            return new(result.Outcome, result.ConversationId);
+
+        AgentInteractiveReply? reply = AgentInteractiveReplyFormat.Read(run, vocabulary);
+        IReadOnlyList<UserMemoryItem> remembered = remembers && reply is { Remember.Count: > 0 }
+            ? await sender.Send(new RememberUserFactsCommand(request.UserId!, reply.Remember, UserMemorySource.Landing), cancellationToken)
+            : [];
+        return new(result.Outcome, result.ConversationId, reply) { Remembered = remembered };
+    }
+
+    private static string WithMemory(IReadOnlyList<UserMemoryItem> memory)
+    {
+        StringBuilder text = new(Instructions);
+        text.AppendLine().Append($$"""
+            The visitor is signed in. Put up to {{AgentInteractiveReplyFormat.MaxRemember}} short facts worth remembering about them and
+            their business in "{{AgentInteractiveReplyFormat.RememberProperty}}" (for example the kind of clinic, how patients book, what slows
+            them down). Never remember anything about patients or other people, contact details or numbers.
+            """).AppendLine();
+        if (memory.Count > 0)
+        {
+            text.AppendLine("What you already know about this visitor:");
+            foreach (UserMemoryItem item in memory)
+                text.Append("- ").AppendLine(item.Text);
+        }
+
+        return text.ToString();
     }
 
     internal static AgentConversationScope Scope(string tenantId, string sessionId, string ownerKey) =>

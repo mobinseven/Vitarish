@@ -4,6 +4,7 @@ using MediatR;
 using Microsoft.Extensions.Options;
 using Moq;
 using Vitarish.Intelligence.Application.Agents;
+using Vitarish.Intelligence.Application.Memory;
 using Vitarish.Landing.Application;
 using FluentAssertions;
 
@@ -92,6 +93,34 @@ public sealed class LandingConversationHandlerTests
         result.ConversationId.Should().Be(conversationId);
         result.Reply!.References.Should().Equal("reminders");
         result.Reply.NextAction.Should().Be(LandingNextActions.OpenClinic);
+    }
+
+    [Fact]
+    public async Task Remembers_only_for_a_signed_in_visitor_and_tells_the_assistant_what_it_knows()
+    {
+        RunAgentConversation? forwarded = null;
+        RememberUserFactsCommand? remembered = null;
+        UserMemoryItem known = new("k", "Runs a dental clinic", UserMemorySource.Landing, DateTimeOffset.UnixEpoch);
+        AgentRunResult run = Run("""{"text":"Noted.","question":null,"references":[],"nextAction":null,"remember":["Books by phone"]}""");
+        Mock<ISender> sender = new();
+        sender.Setup(item => item.Send(It.IsAny<RunAgentConversation>(), It.IsAny<CancellationToken>()))
+            .Callback<object, CancellationToken>((request, _) => forwarded = (RunAgentConversation)request)
+            .ReturnsAsync(new RunAgentConversationResult(AgentConversationOutcome.Succeeded, Guid.NewGuid(), run));
+        sender.Setup(item => item.Send(It.IsAny<GetUserMemoryQuery>(), It.IsAny<CancellationToken>())).ReturnsAsync([known]);
+        sender.Setup(item => item.Send(It.IsAny<RememberUserFactsCommand>(), It.IsAny<CancellationToken>()))
+            .Callback<object, CancellationToken>((request, _) => remembered = (RememberUserFactsCommand)request)
+            .ReturnsAsync([new UserMemoryItem("n", "Books by phone", UserMemorySource.Landing, DateTimeOffset.UnixEpoch)]);
+        RunLandingConversationHandler handler = new(sender.Object, Options.Create(new LandingConversationAgentOptions { Model = "model" }));
+
+        LandingConversationResult anonymous = await handler.Handle(new RunLandingConversation("tenant", "session", "home", "hi", null), default);
+        anonymous.Remembered.Should().BeEmpty();
+        remembered.Should().BeNull();
+        forwarded!.Definition.Result!.JsonSchema.Should().NotContain("remember");
+
+        LandingConversationResult signedIn = await handler.Handle(new RunLandingConversation("tenant", "session", "home", "hi", null, "user-1"), default);
+        forwarded!.Definition.Instructions.Should().Contain("Runs a dental clinic");
+        remembered.Should().BeEquivalentTo(new RememberUserFactsCommand("user-1", ["Books by phone"], UserMemorySource.Landing));
+        signedIn.Remembered.Select(item => item.Text).Should().Equal("Books by phone");
     }
 
     private static RunLandingConversationHandler Handler(Action<RunAgentConversation> capture, RunAgentConversationResult result)
