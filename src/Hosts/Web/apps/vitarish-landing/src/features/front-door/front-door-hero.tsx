@@ -43,10 +43,13 @@ export function FrontDoorHeader() {
  */
 export function FrontDoorHero({
   isPending,
+  isSignedIn,
   onAsk,
   onStartClinic,
 }: {
   isPending: boolean;
+  /** Dictation needs a session, so it is offered only once the visitor has signed in. */
+  isSignedIn: boolean;
   onAsk: (message: string) => void;
   onStartClinic: () => void;
 }) {
@@ -65,7 +68,7 @@ export function FrontDoorHero({
         <HeroHeader.Description className={styles.heroDescription}>{t("landing.hero.description")}</HeroHeader.Description>
         <div className={styles.heroComposer}>
           <AgentConversationComposer
-            dictation={false}
+            dictation={isSignedIn}
             direction={direction}
             isPending={isPending}
             label={t("landing.hero.promptLabel")}

@@ -9,6 +9,9 @@ export type ConsultationQuestionKey = keyof LandingConsultationResponse;
 
 export type ConsultationStep = "clinic" | "day" | "proof" | "open";
 
+/** Why the visitor is asked to sign in: to open their clinic, or to use their voice. */
+export type SignInReason = "clinic" | "voice";
+
 export const consultationSteps: readonly ConsultationStep[] = ["clinic", "day", "proof", "open"];
 
 export type ThreadEntry =
@@ -18,8 +21,8 @@ export type ThreadEntry =
   | { id: number; type: "proofs" }
   | { id: number; type: "confirmed" }
   | { id: number; type: "ready" }
-  | { id: number; type: "signIn" }
-  | { id: number; type: "signedIn" }
+  | { id: number; type: "signIn"; reason: SignInReason }
+  | { id: number; type: "signedIn"; reason: SignInReason }
   | { id: number; type: "user"; text: string }
   | { id: number; type: "reply"; reply: InteractiveReply };
 
@@ -34,7 +37,7 @@ export type ConsultationEvent =
   | { type: "start" }
   | { type: "answer"; question: ConsultationQuestionKey; options: readonly string[] }
   | { type: "confirm" }
-  | { type: "requestSignIn" }
+  | { type: "requestSignIn"; reason: SignInReason }
   | { type: "signedIn" }
   | { type: "said"; text: string }
   | { type: "replied"; reply: InteractiveReply }
@@ -78,11 +81,12 @@ export function consultationReducer(state: ConsultationState, event: Consultatio
       return { ...append(state, { type: "confirmed" }, { type: "ready" }), step: "open" };
     case "requestSignIn":
       // One sign-in card at a time; a second request while it is open changes nothing.
-      if (state.thread.some((entry) => entry.type === "signIn") && !state.thread.some((entry) => entry.type === "signedIn")) return state;
-      return append(state, { type: "signIn" });
-    case "signedIn":
-      if (!state.thread.some((entry) => entry.type === "signIn") || state.thread.some((entry) => entry.type === "signedIn")) return state;
-      return append(state, { type: "signedIn" });
+      if (pendingSignIn(state)) return state;
+      return append(state, { type: "signIn", reason: event.reason });
+    case "signedIn": {
+      const pending = pendingSignIn(state);
+      return pending ? append(state, { type: "signedIn", reason: pending.reason }) : state;
+    }
     case "said":
       return append(state, { type: "user", text: event.text });
     case "replied":
@@ -90,6 +94,13 @@ export function consultationReducer(state: ConsultationState, event: Consultatio
     case "restart":
       return initialConsultation;
   }
+}
+
+/** The sign-in card still waiting for the visitor, if any. */
+export function pendingSignIn(state: ConsultationState): Extract<ThreadEntry, { type: "signIn" }> | null {
+  const cards = state.thread.filter((entry): entry is Extract<ThreadEntry, { type: "signIn" }> => entry.type === "signIn");
+  const confirmed = state.thread.filter((entry) => entry.type === "signedIn").length;
+  return cards.length > confirmed ? cards[cards.length - 1] : null;
 }
 
 /** Features matched to the owner's pains, in the order they picked them, without repeats. */

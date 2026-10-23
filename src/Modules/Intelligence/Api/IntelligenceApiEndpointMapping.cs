@@ -24,7 +24,11 @@ public static class IntelligenceApiEndpointMapping
         _ = group.MapModulePost(IntelligenceApiRoutes.ResponderStream, StreamRespondAsync, "IntelligenceStreamRespond", profile: ModuleEndpointProfile.Streaming, contentType: ModuleEndpointOpenApiConventions.JsonStream);
         _ = group.MapModulePost(IntelligenceApiRoutes.Transcription, TranscribeAsync, "IntelligenceTranscribe");
         _ = group.MapModulePost(IntelligenceApiRoutes.TranscriptionStream, StreamTranscribeAsync, "IntelligenceStreamTranscribe", profile: ModuleEndpointProfile.Streaming, contentType: ModuleEndpointOpenApiConventions.JsonStream);
-        _ = group.MapRealtimeTranscription();
+        // Live dictation serves any signed-in person, including one without a clinic (ADR-0017); the
+        // per-session limits, the origin check and the no-storage rule are unchanged. Every other
+        // Intelligence endpoint keeps requiring tenant access.
+        RouteGroupBuilder dictation = endpoints.MapProtectedModuleGroup(IntelligenceApiRoutes.Base, requireTenantAccess: false);
+        _ = dictation.MapRealtimeTranscription();
         _ = group.MapModulePost(IntelligenceApiRoutes.Rewrite, RewriteAsync, "IntelligenceRewrite", typeof(RewriteResult));
         _ = group.MapModulePost(IntelligenceApiRoutes.RewriteStream, StreamRewriteAsync, "IntelligenceStreamRewrite", profile: ModuleEndpointProfile.Streaming, contentType: ModuleEndpointOpenApiConventions.JsonStream);
         _ = group.MapModulePost(IntelligenceApiRoutes.AgentConversation, RunAgentConversationAsync, "IntelligenceRunAgentConversation", typeof(RunAgentConversationResponse));

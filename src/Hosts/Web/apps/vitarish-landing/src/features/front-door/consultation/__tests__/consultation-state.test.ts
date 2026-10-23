@@ -71,11 +71,11 @@ describe("consultationReducer", () => {
 
 describe("signing in to open the clinic", () => {
   it("shows one sign-in card however often it is asked for, then confirms once", () => {
-    const asked = run({ type: "start" }, { type: "requestSignIn" }, { type: "requestSignIn" });
+    const asked = run({ type: "start" }, { type: "requestSignIn", reason: "clinic" }, { type: "requestSignIn", reason: "voice" });
     expect(asked.thread.filter((entry) => entry.type === "signIn")).toHaveLength(1);
 
-    const signedIn = run({ type: "start" }, { type: "requestSignIn" }, { type: "signedIn" }, { type: "signedIn" });
-    expect(signedIn.thread.slice(-2).map((entry) => entry.type)).toEqual(["signIn", "signedIn"]);
+    const signedIn = run({ type: "start" }, { type: "requestSignIn", reason: "voice" }, { type: "signedIn" }, { type: "signedIn" });
+    expect(signedIn.thread.slice(-2)).toMatchObject([{ type: "signIn", reason: "voice" }, { type: "signedIn", reason: "voice" }]);
   });
 
   it("ignores a sign-in confirmation that no card asked for", () => {

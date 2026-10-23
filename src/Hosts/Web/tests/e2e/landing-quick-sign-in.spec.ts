@@ -10,6 +10,7 @@ import {
   authenticationLoginPhoneComplete,
   authenticationSessionGet,
 } from "../../shared/auth/src/api/generated/authentication/authentication";
+import { intelligenceGetLiveTranscriptionCapabilities } from "../../shared/intelligence/src/api/generated/intelligence/intelligence";
 import { landingIssueOnboardingHandoff } from "../../shared/platform/src/api/generated/landing/landing";
 
 // The E2E host binds the landing tenant to landing.localhost and the onboarding tenant to start.localhost.
@@ -94,6 +95,10 @@ test("a new phone number signs in on the landing host without a clinic and is ha
   const session = await callApi(page, "GET", generatedPath(authenticationSessionGet));
   expect(session.status).toBe(200);
   expect((session.body as { isAuthenticated: boolean }).isAuthenticated).toBe(true);
+
+  // Dictation needs no clinic (ADR-0017): the capability check answers instead of refusing the session.
+  const dictation = await callApi(page, "GET", generatedPath(intelligenceGetLiveTranscriptionCapabilities));
+  expect(dictation.status).toBe(200);
 
   const handoff = await callApi(page, "POST", handoffPath);
   expect(handoff.status).toBe(200);

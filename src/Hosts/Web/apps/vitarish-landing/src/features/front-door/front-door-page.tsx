@@ -8,7 +8,7 @@ import { useLocalizedText } from "@vitarish/localization";
 import { landingIssueOnboardingHandoff } from "@vitarish/platform";
 import { MarketingFooter } from "@vitarish/ui";
 import { ConsultationView } from "./consultation/consultation-view";
-import { consultationReducer, initialConsultation } from "./consultation/consultation-state";
+import { consultationReducer, initialConsultation, pendingSignIn } from "./consultation/consultation-state";
 import { FrontDoorHeader, FrontDoorHero } from "./front-door-hero";
 import { DayAtClinic, Roadmap, Spotlight, TrustSection } from "./front-door-sections";
 import { useFrontDoorConversation } from "./use-front-door-conversation";
@@ -54,14 +54,20 @@ export function FrontDoorPage({ onboardingUrl, whatsappNumber }: FrontDoorPagePr
 
   const openClinic = useCallback(() => {
     if (isSignedIn) void handOff();
-    else dispatch({ type: "requestSignIn" });
+    else dispatch({ type: "requestSignIn", reason: "clinic" });
   }, [handOff, isSignedIn]);
 
+  const tryVoice = useCallback(() => {
+    if (!isSignedIn) dispatch({ type: "requestSignIn", reason: "voice" });
+  }, [isSignedIn]);
+
+  // Signing in for the clinic continues to sign-up; signing in for voice just turns the microphone on.
   const onSignedIn = useCallback(() => {
+    const reason = pendingSignIn(state)?.reason;
     setSignedInHere(true);
     dispatch({ type: "signedIn" });
-    void handOff();
-  }, [handOff]);
+    if (reason === "clinic") void handOff();
+  }, [handOff, state]);
 
   useEffect(() => {
     if (isConsulting) window.scrollTo({ top: 0 });
@@ -102,7 +108,7 @@ export function FrontDoorPage({ onboardingUrl, whatsappNumber }: FrontDoorPagePr
               onRestart={restart}
               onSay={(text) => void say(text)}
               onboardingUrl={onboardingUrl}
-              openClinicFlow={{ isSignedIn, isOpening, isError: isOpenError, open: openClinic, onSignedIn }}
+              signInFlow={{ isSignedIn, isOpening, isError: isOpenError, openClinic, tryVoice, onSignedIn }}
               whatsappNumber={whatsappNumber}
             />
           ) : catalog.isError ? (
@@ -121,6 +127,7 @@ export function FrontDoorPage({ onboardingUrl, whatsappNumber }: FrontDoorPagePr
           <>
             <FrontDoorHero
               isPending={conversation.isPending}
+              isSignedIn={isSignedIn}
               onAsk={(text) => void say(text)}
               onStartClinic={() => dispatch({ type: "start" })}
             />

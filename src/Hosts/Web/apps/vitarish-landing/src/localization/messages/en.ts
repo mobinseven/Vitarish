@@ -165,10 +165,19 @@ export const enMessages = {
           body: "This part is in progress. We'd rather tell you than promise it.",
         },
       },
+      tryVoice: "Try it with my voice",
+      tryVoiceTooltip: "Sign in with your phone number to dictate",
       signIn: {
-        title: "To set up your clinic, I need to know who you are. Your phone number is enough.",
-        description: "A new number creates your account. It's free, with no time limit.",
-        done: "You're signed in. Taking you to set up your clinic with your answers…",
+        clinic: {
+          title: "To set up your clinic, I need to know who you are. Your phone number is enough.",
+          description: "A new number creates your account. It's free, with no time limit.",
+          done: "You're signed in. Taking you to set up your clinic with your answers…",
+        },
+        voice: {
+          title: "To hear your voice, I need to know who you are. Your phone number is enough.",
+          description: "A new number creates your account. Your answers so far stay here.",
+          done: "You're signed in, and your answers are still here. The microphone in the message box is on; speak whenever you're ready.",
+        },
         openError: "Sign-up couldn't be opened just now.",
         retry: "Try again",
         retryTooltip: "Ask for a new sign-up link",

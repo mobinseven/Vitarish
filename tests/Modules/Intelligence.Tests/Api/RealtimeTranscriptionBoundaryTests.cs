@@ -47,21 +47,8 @@ public sealed class RealtimeTranscriptionBoundaryTests
     [Fact]
     public void Capability_and_websocket_endpoints_are_protected_and_only_capability_is_openapi_visible()
     {
-        WebApplicationBuilder builder = WebApplication.CreateBuilder();
-        builder.Services.AddAuthorization();
-        builder.Services.AddSingleton(Mock.Of<IResponder>());
-        builder.Services.AddSingleton(Mock.Of<ITranscriber>());
-        builder.Services.AddSingleton(Mock.Of<ITranscriptionProvider>(provider => provider.IsAvailable));
-        builder.Services.AddSingleton(new LiveTranscriptionSettings());
-        builder.Services.AddSingleton(TimeProvider.System);
-        builder.Services.AddSingleton<LiveTranscriptionCapabilitiesQuery>();
-        builder.Services.AddSingleton<LiveTranscriptionSessionFactory>();
-        builder.Services.AddSingleton(new RealtimeTranscriptionOriginPolicy(["https://clinic.example"]));
-        using WebApplication app = builder.Build();
-        _ = app.MapIntelligenceApi();
-
-        Endpoint[] endpoints = [..
-            ((IEndpointRouteBuilder)app).DataSources.SelectMany(source => source.Endpoints)];
+        using WebApplication app = BuildApp();
+        Endpoint[] endpoints = Endpoints(app);
         Endpoint capability = Find(endpoints, "IntelligenceGetLiveTranscriptionCapabilities");
         Endpoint webSocket = Find(endpoints, "IntelligenceLiveTranscription");
 
@@ -83,6 +70,41 @@ public sealed class RealtimeTranscriptionBoundaryTests
             .Should().Contain(metadata =>
                 metadata.AuthenticationSchemes == ModuleEndpointAuthenticationSchemes.BrowserOrBearer);
     }
+
+    [Fact]
+    public void Live_dictation_needs_no_tenant_access_while_the_other_intelligence_endpoints_still_do()
+    {
+        using WebApplication app = BuildApp();
+        Endpoint[] endpoints = Endpoints(app);
+
+        static bool RequiresTenantAccess(Endpoint endpoint) =>
+            endpoint.Metadata.GetOrderedMetadata<IAuthorizeData>().Any(data => data.Policy == IdentityDefinitions.TenantAccess);
+
+        RequiresTenantAccess(Find(endpoints, "IntelligenceGetLiveTranscriptionCapabilities")).Should().BeFalse();
+        RequiresTenantAccess(Find(endpoints, "IntelligenceLiveTranscription")).Should().BeFalse();
+        RequiresTenantAccess(Find(endpoints, "IntelligenceRespond")).Should().BeTrue();
+        RequiresTenantAccess(Find(endpoints, "IntelligenceRunAgentConversation")).Should().BeTrue();
+    }
+
+    private static WebApplication BuildApp()
+    {
+        WebApplicationBuilder builder = WebApplication.CreateBuilder();
+        builder.Services.AddAuthorization();
+        builder.Services.AddSingleton(Mock.Of<IResponder>());
+        builder.Services.AddSingleton(Mock.Of<ITranscriber>());
+        builder.Services.AddSingleton(Mock.Of<ITranscriptionProvider>(provider => provider.IsAvailable));
+        builder.Services.AddSingleton(new LiveTranscriptionSettings());
+        builder.Services.AddSingleton(TimeProvider.System);
+        builder.Services.AddSingleton<LiveTranscriptionCapabilitiesQuery>();
+        builder.Services.AddSingleton<LiveTranscriptionSessionFactory>();
+        builder.Services.AddSingleton(new RealtimeTranscriptionOriginPolicy(["https://clinic.example"]));
+        WebApplication app = builder.Build();
+        _ = app.MapIntelligenceApi();
+        return app;
+    }
+
+    private static Endpoint[] Endpoints(WebApplication app) =>
+        [.. ((IEndpointRouteBuilder)app).DataSources.SelectMany(source => source.Endpoints)];
 
     private static Endpoint Find(IEnumerable<Endpoint> endpoints, string name) =>
         endpoints.Single(endpoint =>

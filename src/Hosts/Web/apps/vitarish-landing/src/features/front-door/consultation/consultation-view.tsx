@@ -36,12 +36,13 @@ export interface ConsultationConversation {
   retry: () => void;
 }
 
-/** Opening the owner's clinic: sign in here if needed, then hand off to sign-up. */
-export interface OpenClinicFlow {
+/** Signing in inside the conversation: to open the owner's clinic (then hand off) or to use their voice. */
+export interface SignInFlow {
   isSignedIn: boolean;
   isOpening: boolean;
   isError: boolean;
-  open: () => void;
+  openClinic: () => void;
+  tryVoice: () => void;
   onSignedIn: () => void;
 }
 
@@ -54,7 +55,7 @@ interface ConsultationViewProps {
   onRestart: () => void;
   onboardingUrl: string | null;
   whatsappNumber: string | null;
-  openClinicFlow: OpenClinicFlow;
+  signInFlow: SignInFlow;
 }
 
 /** The guided consultation: a fixed set of tappable steps, with the assistant answering anything typed in between. */
@@ -67,7 +68,7 @@ export function ConsultationView({
   onRestart,
   onboardingUrl,
   whatsappNumber,
-  openClinicFlow,
+  signInFlow,
 }: ConsultationViewProps) {
   const { t, direction, locale } = useLocalizedText();
   const [draft, setDraft] = useState("");
@@ -86,7 +87,7 @@ export function ConsultationView({
 
   const openClinic: ReactNode = onboardingUrl ? (
     <Tooltip>
-      <Button isPending={openClinicFlow.isOpening} onPress={openClinicFlow.open}>
+      <Button isPending={signInFlow.isOpening} onPress={signInFlow.openClinic}>
         <FaIcon aria-hidden="true" icon="hospital" />
         {t("landing.consultation.openClinic")}
       </Button>
@@ -110,9 +111,19 @@ export function ConsultationView({
         icon: <i aria-hidden="true" className="fa-brands fa-whatsapp" />,
       }
     : null;
+  const tryVoice: ReactNode = (
+    <Tooltip>
+      <Button variant="secondary" onPress={signInFlow.tryVoice}>
+        <FaIcon aria-hidden="true" icon="microphone" />
+        {t("landing.consultation.tryVoice")}
+      </Button>
+      <Tooltip.Content>{t("landing.consultation.tryVoiceTooltip")}</Tooltip.Content>
+    </Tooltip>
+  );
   const actionFor = (nextAction: string | null): ReactNode => {
     if (nextAction === catalog.nextActions.openClinic) return openClinic;
     if (nextAction === catalog.nextActions.talkToTeam && talkToTeam) return <MarketingActionLink action={talkToTeam} />;
+    if (nextAction === catalog.nextActions.tryVoice && !signInFlow.isSignedIn) return tryVoice;
     return null;
   };
 
@@ -156,7 +167,7 @@ export function ConsultationView({
             <InteractiveReferenceChips items={references(matchedFeatures(catalog.consultation, state.answers.pains))} />
             <div className={styles.proofs}>
               {proofsFor(catalog.consultation, state.answers.pains).map((kind) => (
-                <ProofCard key={kind} kind={kind} kindLabel={kindLabel} />
+                <ProofCard key={kind} kind={kind} kindLabel={kindLabel} voiceAction={signInFlow.isSignedIn ? null : tryVoice} />
               ))}
             </div>
             {state.step === "proof" ? (
@@ -185,13 +196,13 @@ export function ConsultationView({
       case "signIn":
         return (
           <ChatMessage key={entry.id} {...assistant}>
-            {openClinicFlow.isSignedIn ? (
-              <p>{t("landing.consultation.signIn.title")}</p>
+            {signInFlow.isSignedIn ? (
+              <p>{t(`landing.consultation.signIn.${entry.reason}.title`)}</p>
             ) : (
               <InlinePhoneSignIn
-                description={t("landing.consultation.signIn.description")}
-                title={t("landing.consultation.signIn.title")}
-                onSignedIn={openClinicFlow.onSignedIn}
+                description={t(`landing.consultation.signIn.${entry.reason}.description`)}
+                title={t(`landing.consultation.signIn.${entry.reason}.title`)}
+                onSignedIn={signInFlow.onSignedIn}
               />
             )}
           </ChatMessage>
@@ -199,7 +210,7 @@ export function ConsultationView({
       case "signedIn":
         return (
           <ChatMessage key={entry.id} {...assistant}>
-            <p>{t("landing.consultation.signIn.done")}</p>
+            <p>{t(`landing.consultation.signIn.${entry.reason}.done`)}</p>
           </ChatMessage>
         );
       case "user":
@@ -259,7 +270,7 @@ export function ConsultationView({
             />
           ) : null}
         </ChatConversation>
-        {openClinicFlow.isError ? (
+        {signInFlow.isError ? (
           <Alert status="danger">
             <Alert.Indicator />
             <Alert.Content>
@@ -267,7 +278,7 @@ export function ConsultationView({
             </Alert.Content>
             <div className={styles.actions}>
               <Tooltip>
-                <Button size="sm" variant="ghost" onPress={openClinicFlow.open}>
+                <Button size="sm" variant="ghost" onPress={signInFlow.openClinic}>
                   <FaIcon aria-hidden="true" icon="rotate-right" />
                   {t("landing.consultation.signIn.retry")}
                 </Button>
@@ -303,7 +314,7 @@ export function ConsultationView({
           </Alert>
         ) : null}
         <AgentConversationComposer
-          dictation={false}
+          dictation={signInFlow.isSignedIn}
           direction={direction}
           isPending={conversation.isPending}
           label={t("landing.consultation.thread.composerLabel")}

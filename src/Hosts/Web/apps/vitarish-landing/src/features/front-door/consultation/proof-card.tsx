@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Alert, Chip, Label, NumberField, Surface } from "@heroui/react";
 import { Timeline } from "@heroui-pro/react";
 import { formatDate, formatNumber, formatTimeOfDay, useLocalizedText } from "@vitarish/localization";
@@ -83,14 +83,17 @@ function PatientTimeline() {
   );
 }
 
-function Dictation() {
+function Dictation({ voiceAction }: { voiceAction: ReactNode }) {
   const { t } = useLocalizedText();
 
   return (
-    <blockquote className={styles.dictation}>
-      <FaIcon aria-hidden="true" icon="microphone" />
-      <span>{t("landing.consultation.proofs.Dictation.sample")}</span>
-    </blockquote>
+    <div className={styles.proofBody}>
+      <blockquote className={styles.dictation}>
+        <FaIcon aria-hidden="true" icon="microphone" />
+        <span>{t("landing.consultation.proofs.Dictation.sample")}</span>
+      </blockquote>
+      {voiceAction}
+    </div>
   );
 }
 
@@ -114,7 +117,7 @@ function ShiftWeek() {
 }
 
 /** One example of a feature working, chosen from the pains the owner picked. */
-export function ProofCard({ kind, kindLabel }: { kind: LandingProofKind; kindLabel: string }) {
+export function ProofCard({ kind, kindLabel, voiceAction }: { kind: LandingProofKind; kindLabel: string; voiceAction: ReactNode }) {
   const { t } = useLocalizedText();
   if (kind === LandingProofKind.InProgress) {
     return (
@@ -138,7 +141,7 @@ export function ProofCard({ kind, kindLabel }: { kind: LandingProofKind; kindLab
       {kind === LandingProofKind.NoShowCost ? <NoShowCost /> : null}
       {kind === LandingProofKind.BookingPreview ? <BookingPreview kindLabel={kindLabel} /> : null}
       {kind === LandingProofKind.PatientTimeline ? <PatientTimeline /> : null}
-      {kind === LandingProofKind.Dictation ? <Dictation /> : null}
+      {kind === LandingProofKind.Dictation ? <Dictation voiceAction={voiceAction} /> : null}
       {kind === LandingProofKind.ShiftWeek ? <ShiftWeek /> : null}
     </Surface>
   );
