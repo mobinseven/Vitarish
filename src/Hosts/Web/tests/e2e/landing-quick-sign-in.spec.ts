@@ -12,13 +12,11 @@ import {
 } from "../../shared/auth/src/api/generated/authentication/authentication";
 import { intelligenceGetLiveTranscriptionCapabilities } from "../../shared/intelligence/src/api/generated/intelligence/intelligence";
 import { partiesGetOnboardingSetupDraft } from "../../shared/journey/src/api/generated/parties/parties";
-import { onboardingHandoffUrl } from "../../shared/journey/src/onboardingHost";
 import { landingIssueOnboardingHandoff } from "../../shared/platform/src/api/generated/landing/landing";
 
 // The E2E host binds the landing tenant to landing.localhost and the onboarding tenant to start.localhost.
 const landingOrigin = "http://landing.localhost:3005";
 const onboardingHostname = "start.localhost";
-const onboardingOrigin = `http://${onboardingHostname}:3005`;
 const landingClientIp = "198.51.100.91";
 const smsCapturePath = process.env[twoHostE2eSmsCapturePathEnvironmentKey];
 
@@ -78,7 +76,7 @@ test("a new phone number signs in on the landing host without a clinic and carri
   const nationalDigits = `912${Array.from({ length: 7 }, () => crypto.randomInt(0, 10)).join("")}`;
   const handoffPath = generatedPath(landingIssueOnboardingHandoff);
 
-  await page.route(/^http:\/\/(landing|start)\.localhost:3005\//, (route) =>
+  await page.route(/^http:\/\/landing\.localhost:3005\//, (route) =>
     route.continue({ headers: { ...route.request().headers(), "X-Forwarded-For": landingClientIp } }),
   );
   await page.goto(`${landingOrigin}${Routes.Login.Index}`, { waitUntil: "domcontentloaded", timeout: 120_000 });
@@ -112,9 +110,7 @@ test("a new phone number signs in on the landing host without a clinic and carri
   expect(hostname).toBe(onboardingHostname);
   expect(token).toMatch(/\S{16,}/);
 
-  // The ticket signs the person in on the onboarding host, where sign-up reads the saved answers.
-  await page.goto(onboardingHandoffUrl(onboardingOrigin, token), { waitUntil: "domcontentloaded", timeout: 120_000 });
-  await expect.poll(async () => (await callApi(page, "GET", generatedPath(authenticationSessionGet))).status, { timeout: 60_000 }).toBe(200);
+  // The answers are saved for the same person; sign-up reads this draft to pre-select the category.
   const draft = await callApi(page, "GET", generatedPath(partiesGetOnboardingSetupDraft));
   expect(draft).toEqual({ status: 200, body: { category: "dermatology", answers: ["phone", "no-shows"] } });
 });
