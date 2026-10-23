@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { JourneyGateBoundary } from "@/components/journey/JourneyGateBoundary";
 import { DashboardShell } from "@/components/shell";
 import {
   dashboardFooterItems,
@@ -19,7 +20,10 @@ export default function HomePage() {
       navGroups={homeDashboardNavGroups}
     >
       <ContainedPage width="fluid">
-        <HomeDashboard />
+        {/* On a platform host, such as the sign-in or onboarding host, the journey sends a signed-in visitor on from here. */}
+        <JourneyGateBoundary>
+          <HomeDashboard />
+        </JourneyGateBoundary>
       </ContainedPage>
     </DashboardShell>
   );
