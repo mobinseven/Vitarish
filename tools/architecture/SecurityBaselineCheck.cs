@@ -35,7 +35,7 @@ internal static class SecurityBaselineCheck
         new("^[A-Z][A-Za-z0-9]+(?:_[A-Za-z0-9]+)*$", RegexOptions.CultureInvariant);
 
     private static readonly HashSet<string> Profiles =
-        ["ProtectedJson", "AnonymousJson", "AnonymousWebhook", "MultipartUpload", "BinaryDownload", "Streaming"];
+        ["ProtectedJson", "AnonymousJson", "AnonymousWebhook", "MultipartUpload", "BinaryDownload", "AnonymousBinaryDownload", "Streaming"];
 
     private const string BaseEndpointPath = "src/Modules/Base/Core/Endpoints/";
     public static IReadOnlyList<ArchitectureViolation> Run(SourceIndex index)
@@ -477,7 +477,7 @@ internal static class SecurityBaselineCheck
             else if (!Profiles.Contains(endpoint.Profile))
                 violations.Add(endpoint.Violation("EndpointProfileInvalid", "Use one of the Base endpoint profiles."));
 
-            if (endpoint.Profile is "BinaryDownload" or "Streaming" && string.IsNullOrWhiteSpace(endpoint.ContentType))
+            if (endpoint.Profile is "BinaryDownload" or "AnonymousBinaryDownload" or "Streaming" && string.IsNullOrWhiteSpace(endpoint.ContentType))
                 violations.Add(endpoint.Violation("ContentTypeMissing", "Binary and streaming endpoints must declare a content type."));
 
             if (endpoint.Profile is "AnonymousWebhook" && endpoint.Webhook is null)
@@ -603,7 +603,7 @@ internal static class SecurityBaselineCheck
             {
                 "ProtectedJson" or "AnonymousJson" or "AnonymousWebhook" => "application/json",
                 "MultipartUpload" => "multipart/form-data",
-                "BinaryDownload" => "application/octet-stream",
+                "BinaryDownload" or "AnonymousBinaryDownload" => "application/octet-stream",
                 "Streaming" => "application/x-ndjson",
                 _ => null
             };
@@ -632,14 +632,14 @@ internal static class SecurityBaselineCheck
 
         if (group?.Kind == GroupKind.Anonymous || group?.Kind == GroupKind.Internal)
         {
-            if (profile is not null && profile != "AnonymousJson" && profile != "AnonymousWebhook")
+            if (profile is not null && profile != "AnonymousJson" && profile != "AnonymousWebhook" && profile != "AnonymousBinaryDownload")
                 parseViolations?.Add(new(file.RelativePath, RoslynSyntax.Line(invocation), "AuthenticationProfileConflict", mapping,
                     "An anonymous/internal group endpoint must use an anonymous or webhook profile."));
         }
 
         string? authentication = ResolveEffectiveAuthorization(group?.Authentication, invocation);
         bool anonymous = group?.Kind is GroupKind.Anonymous or GroupKind.Internal ||
-                         profile is "AnonymousJson" or "AnonymousWebhook";
+                         profile is "AnonymousJson" or "AnonymousWebhook" or "AnonymousBinaryDownload";
 
         return new DiscoveredEndpoint(
             file,
@@ -900,7 +900,7 @@ internal static class SecurityBaselineCheck
         "ProtectedJson" or "AnonymousJson" => "json-request-response",
         "AnonymousWebhook" => "inbound-webhook",
         "MultipartUpload" => "inbound-multipart-file",
-        "BinaryDownload" => "outbound-binary",
+        "BinaryDownload" or "AnonymousBinaryDownload" => "outbound-binary",
         "Streaming" => "streaming",
         "LongRunningCommand" => "json-long-running-command",
         _ => null
@@ -919,7 +919,7 @@ internal static class SecurityBaselineCheck
         string? formatAndMaximumSize = endpoint.Profile switch
         {
             "MultipartUpload" => "declared-multipart-format; FileTransferPolicy.MaximumContentBytes",
-            "BinaryDownload" => "verified-stored-binary; FileTransferPolicy.MaximumContentBytes",
+            "BinaryDownload" or "AnonymousBinaryDownload" => "verified-stored-binary; FileTransferPolicy.MaximumContentBytes",
             "Streaming" => endpoint.ContentType is null ? null : endpoint.ContentType + "; streaming-boundary",
             _ => endpoint.ContentType is null ? null : endpoint.ContentType + "; route-contract-boundary"
         };

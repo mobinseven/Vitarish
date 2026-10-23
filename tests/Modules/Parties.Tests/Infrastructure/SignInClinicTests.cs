@@ -24,7 +24,7 @@ public sealed class SignInClinicTests
     public async Task Lists_each_live_clinic_the_user_has_a_tenant_role_in_at_its_active_primary_host()
     {
         string database = Guid.NewGuid().ToString("N");
-        Guid owned = await SeedTenantAsync(database, "Owned clinic", "owned.clinic.example.test");
+        Guid owned = await SeedTenantAsync(database, "Owned clinic", "owned.clinic.example.test", logoUrl: "/logo");
         Guid joined = await SeedTenantAsync(database, "Joined clinic", "joined.clinic.example.test");
         Guid deleted = await SeedTenantAsync(database, "Deleted clinic", "deleted.clinic.example.test", deleted: true);
         Guid inactiveHost = await SeedTenantAsync(database, "Inactive clinic", "inactive.clinic.example.test", status: IndicatorStatus.Disabled);
@@ -40,8 +40,8 @@ public sealed class SignInClinicTests
             "not-a-tenant-role");
 
         clinics.Should().BeEquivalentTo([
-            new SignInClinic(owned, "Owned clinic", "owned.clinic.example.test", IdentityDefinitions.TenantOwner),
-            new SignInClinic(joined, "Joined clinic", "joined.clinic.example.test", IdentityDefinitions.TenantUser)]);
+            new SignInClinic(owned, "Owned clinic", "owned.clinic.example.test", IdentityDefinitions.TenantOwner, HasLogo: true),
+            new SignInClinic(joined, "Joined clinic", "joined.clinic.example.test", IdentityDefinitions.TenantUser, HasLogo: false)]);
         clinics.Should().NotContain(clinic => clinic.TenantId == notMine);
     }
 
@@ -51,7 +51,7 @@ public sealed class SignInClinicTests
         Guid mine = Guid.NewGuid();
         Mock<ITenantHandoffIssuer> issuer = new();
         issuer.Setup(item => item.IssueAsync(UserId, "mine.clinic.example.test", It.IsAny<CancellationToken>())).ReturnsAsync("token");
-        IssueSignInHandoffCommandHandler handler = CreateHandler(issuer, [new SignInClinic(mine, "Mine", "mine.clinic.example.test", IdentityDefinitions.TenantOwner)]);
+        IssueSignInHandoffCommandHandler handler = CreateHandler(issuer, [new SignInClinic(mine, "Mine", "mine.clinic.example.test", IdentityDefinitions.TenantOwner, HasLogo: false)]);
 
         SignInHandoff? handoff = await handler.Handle(new IssueSignInHandoffCommand(mine), CancellationToken.None);
         SignInHandoff? foreign = await handler.Handle(new IssueSignInHandoffCommand(Guid.NewGuid()), CancellationToken.None);
@@ -119,11 +119,12 @@ public sealed class SignInClinicTests
         string name,
         string hostname,
         bool deleted = false,
-        IndicatorStatus status = IndicatorStatus.Active)
+        IndicatorStatus status = IndicatorStatus.Active,
+        string? logoUrl = null)
     {
         Guid tenantId = Guid.NewGuid();
         await using PartiesDbContext db = CreateContext(database);
-        _ = db.Tenants.Add(new Tenant { Id = tenantId, OwnerId = Guid.NewGuid(), Name = name, AppId = "clinic", DeletedAt = deleted ? DateTime.UtcNow : null });
+        _ = db.Tenants.Add(new Tenant { Id = tenantId, OwnerId = Guid.NewGuid(), Name = name, LogoUrl = logoUrl, AppId = "clinic", DeletedAt = deleted ? DateTime.UtcNow : null });
         _ = db.TenantIndicators.Add(new TenantIndicator
         {
             Id = Guid.NewGuid(),

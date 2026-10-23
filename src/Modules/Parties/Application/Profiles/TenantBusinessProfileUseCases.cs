@@ -36,7 +36,16 @@ public interface ITenantImageFiles
 
     /// <summary>The address the tenant's signed-in users load the image from.</summary>
     string ContentUrl(Guid fileId);
+
+    /// <summary>
+    /// Opens the image at an address <see cref="ContentUrl"/> made. Null when it is no longer one of the
+    /// current tenant's displayable images or its stored content fails verification.
+    /// </summary>
+    Task<TenantImageContent?> OpenAsync(string contentUrl, CancellationToken cancellationToken = default);
 }
+
+/// <summary>A verified image's content; the reader disposes <paramref name="Content"/>.</summary>
+public sealed record TenantImageContent(Stream Content, string ContentType, long Length);
 
 public enum TenantBusinessProfileUpdateStatus
 {
@@ -57,6 +66,12 @@ public sealed record UpdateTenantBusinessProfileCommand(string? Description, str
 /// <summary>Makes one of the current tenant's uploaded images its logo.</summary>
 public sealed record SetTenantLogoCommand(Guid FileId) : IRequest<TenantBusinessProfileUpdateResult>;
 
+/// <summary>
+/// The current tenant's logo. Anyone may read it: a logo is what the clinic shows the public, and the
+/// sign-in host shows it before the person is signed in to that clinic.
+/// </summary>
+public sealed record GetPublicTenantLogoQuery : IRequest<TenantImageContent?>;
+
 /// <summary>Stops prompting the current tenant's owner to add a logo.</summary>
 public sealed record DismissTenantLogoPromptCommand : IRequest<TenantBusinessProfileUpdateResult>;
 
@@ -67,6 +82,20 @@ public sealed class GetTenantBusinessProfileQueryHandler(ITenantBusinessProfileS
         Guid.TryParse(requestContext.TenantId, out Guid tenantId)
             ? await profiles.GetAsync(tenantId, cancellationToken)
             : null;
+}
+
+public sealed class GetPublicTenantLogoQueryHandler(
+    ITenantBusinessProfileStore profiles,
+    ITenantImageFiles images,
+    IRequestContext requestContext)
+    : IRequestHandler<GetPublicTenantLogoQuery, TenantImageContent?>
+{
+    /// <returns>Null when the host has no tenant, the tenant has no logo, or its file cannot be served.</returns>
+    public async Task<TenantImageContent?> Handle(GetPublicTenantLogoQuery request, CancellationToken cancellationToken) =>
+        Guid.TryParse(requestContext.TenantId, out Guid tenantId)
+            && await profiles.GetAsync(tenantId, cancellationToken) is { LogoUrl: { } logoUrl }
+                ? await images.OpenAsync(logoUrl, cancellationToken)
+                : null;
 }
 
 /// <summary>

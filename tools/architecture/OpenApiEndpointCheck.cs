@@ -89,8 +89,7 @@ internal static class OpenApiEndpointCheck
 
             if (method == "MapAnonymousModuleGroup" &&
                 (invocation.ArgumentList.Arguments.Count < 2 ||
-                 !RoslynSyntax.IsStringLiteral(invocation.ArgumentList.Arguments[1].Expression.ToString(), out string justification) ||
-                 string.IsNullOrWhiteSpace(justification)))
+                 string.IsNullOrWhiteSpace(RoslynSyntax.ResolveString(file, invocation.ArgumentList.Arguments[1].Expression))))
             {
                 violations.Add(new(file.RelativePath, RoslynSyntax.Line(invocation), "AnonymousJustificationMissing", method,
                     "Provide a non-empty machine-readable justification."));

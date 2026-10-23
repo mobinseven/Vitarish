@@ -7,7 +7,7 @@ namespace Vitarish.Parties.Application.SignIn;
 
 /// <summary>A clinic the signed-in user can open, at its primary host.</summary>
 /// <param name="Role">The user's tenant role suffix, such as <c>TenantOwner</c>.</param>
-public sealed record SignInClinic(Guid TenantId, string Name, string Hostname, string Role);
+public sealed record SignInClinic(Guid TenantId, string Name, string Hostname, string Role, bool HasLogo);
 
 /// <summary>Reads the clinics a user holds a tenant role in.</summary>
 public interface ISignInClinicDirectory
