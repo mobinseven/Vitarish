@@ -11,11 +11,14 @@ import {
   authenticationSessionGet,
 } from "../../shared/auth/src/api/generated/authentication/authentication";
 import { intelligenceGetLiveTranscriptionCapabilities } from "../../shared/intelligence/src/api/generated/intelligence/intelligence";
+import { partiesGetOnboardingSetupDraft } from "../../shared/journey/src/api/generated/parties/parties";
+import { onboardingHandoffUrl } from "../../shared/journey/src/onboardingHost";
 import { landingIssueOnboardingHandoff } from "../../shared/platform/src/api/generated/landing/landing";
 
 // The E2E host binds the landing tenant to landing.localhost and the onboarding tenant to start.localhost.
 const landingOrigin = "http://landing.localhost:3005";
 const onboardingHostname = "start.localhost";
+const onboardingOrigin = `http://${onboardingHostname}:3005`;
 const landingClientIp = "198.51.100.91";
 const smsCapturePath = process.env[twoHostE2eSmsCapturePathEnvironmentKey];
 
@@ -69,13 +72,13 @@ async function readDeliveredSmsCode(previousModifiedAt: number, nationalDigits: 
   return code!;
 }
 
-test("a new phone number signs in on the landing host without a clinic and is handed off to clinic sign-up", async ({ page }) => {
+test("a new phone number signs in on the landing host without a clinic and carries its answers into clinic sign-up", async ({ page }) => {
   test.setTimeout(300_000);
   expect(smsCapturePath, `${twoHostE2eSmsCapturePathEnvironmentKey} must be supplied by the two-host runner`).toBeTruthy();
   const nationalDigits = `912${Array.from({ length: 7 }, () => crypto.randomInt(0, 10)).join("")}`;
   const handoffPath = generatedPath(landingIssueOnboardingHandoff);
 
-  await page.route(/^http:\/\/landing\.localhost:3005\//, (route) =>
+  await page.route(/^http:\/\/(landing|start)\.localhost:3005\//, (route) =>
     route.continue({ headers: { ...route.request().headers(), "X-Forwarded-For": landingClientIp } }),
   );
   await page.goto(`${landingOrigin}${Routes.Login.Index}`, { waitUntil: "domcontentloaded", timeout: 120_000 });
@@ -100,7 +103,18 @@ test("a new phone number signs in on the landing host without a clinic and is ha
   const dictation = await callApi(page, "GET", generatedPath(intelligenceGetLiveTranscriptionCapabilities));
   expect(dictation.status).toBe(200);
 
-  const handoff = await callApi(page, "POST", handoffPath);
+  // Only the consultation's own answers can travel to sign-up.
+  expect((await callApi(page, "POST", handoffPath, { category: "dermatology", answers: ["anything-else"] })).status).toBe(400);
+
+  const handoff = await callApi(page, "POST", handoffPath, { category: "dermatology", answers: ["phone", "no-shows"] });
   expect(handoff.status).toBe(200);
-  expect(handoff.body).toEqual({ hostname: onboardingHostname, token: expect.stringMatching(/\S{16,}/) });
+  const { hostname, token } = handoff.body as { hostname: string; token: string };
+  expect(hostname).toBe(onboardingHostname);
+  expect(token).toMatch(/\S{16,}/);
+
+  // The ticket signs the person in on the onboarding host, where sign-up reads the saved answers.
+  await page.goto(onboardingHandoffUrl(onboardingOrigin, token), { waitUntil: "domcontentloaded", timeout: 120_000 });
+  await expect.poll(async () => (await callApi(page, "GET", generatedPath(authenticationSessionGet))).status, { timeout: 60_000 }).toBe(200);
+  const draft = await callApi(page, "GET", generatedPath(partiesGetOnboardingSetupDraft));
+  expect(draft).toEqual({ status: 200, body: { category: "dermatology", answers: ["phone", "no-shows"] } });
 });

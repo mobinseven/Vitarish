@@ -21,7 +21,8 @@ const idempotencyKeyHeader = "Idempotency-Key";
 const defaultSpecialty = "dermatology";
 
 /** Mirrors ClinicSpecialties.All from src/Apps/Clinic/Contracts/ClinicSpecialties.cs. */
-const clinicSpecialties = [
+/** Mirrors ClinicSpecialties.All in src/Apps/Clinic/Contracts; the landing catalog mock reuses it. */
+export const clinicSpecialties = [
   "plastic-surgery",
   "dermatology",
   "dentistry",
@@ -74,6 +75,8 @@ export function createOnboardingMockHandlers({
   };
 
   return [
+    // No consultation precedes the mock sign-up, so there is never a setup draft.
+    http.get(/\/api\/modules\/parties\/onboarding\/setup-draft(?:\?|$)/, answer(() => new HttpResponse(null, { status: 204 }))),
     http.get(/\/api\/modules\/parties\/onboarding\/categories(?:\?|$)/, answer(() =>
       HttpResponse.json({ categories: [...clinicSpecialties] }),
     )),

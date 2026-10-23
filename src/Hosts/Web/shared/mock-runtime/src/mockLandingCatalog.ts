@@ -1,3 +1,5 @@
+import { clinicSpecialties } from "./mockOnboardingHandlers";
+
 /**
  * Mock of `GET /api/apps/landing/catalog`. Source of truth: `LandingFeatureCatalog` and
  * `LandingConsultation` in `src/Apps/Landing/Application`; keep this fixture in step with them.
@@ -24,7 +26,7 @@ export const landingCatalog = {
     kind: {
       key: "kind",
       maxSelections: 1,
-      options: ["dental", "dermatology", "physiotherapy", "general-practice", "psychology"].map((key) => ({ key, featureKeys: [], proof: null })),
+      options: clinicSpecialties.map((key) => ({ key, featureKeys: [], proof: null })),
     },
     booking: {
       key: "booking",

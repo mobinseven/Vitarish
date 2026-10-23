@@ -6,6 +6,7 @@ import { formatList, useLocalizedText } from "@vitarish/localization";
 import { FaIcon, HeaderIcon } from "@vitarish/ui";
 import type { LandingCatalog } from "../use-landing-catalog";
 import { availabilityTone } from "../use-landing-catalog";
+import { useAnswerLabel } from "./answer-label";
 import { matchedFeatures, type ConsultationQuestionKey, type ConsultationState } from "./consultation-state";
 import styles from "../front-door.module.css";
 
@@ -14,6 +15,7 @@ const answeredRows: readonly ConsultationQuestionKey[] = ["kind", "booking"];
 /** What the consultation has learned about the owner's clinic so far, filled in as they answer. */
 function ClinicSummary({ catalog, state }: { catalog: LandingCatalog; state: ConsultationState }) {
   const { t, locale } = useLocalizedText();
+  const answerLabel = useAnswerLabel();
   const features = matchedFeatures(catalog.consultation, state.answers.pains);
   const availability = new Map(catalog.features.map((feature) => [feature.key, feature.availability]));
 
@@ -25,7 +27,7 @@ function ClinicSummary({ catalog, state }: { catalog: LandingCatalog; state: Con
           <div key={question} className={styles.panelRow}>
             <span className={styles.panelLabel}>{t(`landing.consultation.panel.${question}`)}</span>
             {answers.length > 0 ? (
-              <span>{formatList(answers.map((option) => t(`landing.consultation.options.${question}.${option}`)), locale)}</span>
+              <span>{formatList(answers.map((option) => answerLabel(question, option)), locale)}</span>
             ) : (
               <span className={styles.panelEmpty}>{t("landing.consultation.panel.empty")}</span>
             )}
@@ -56,7 +58,7 @@ function ClinicSummary({ catalog, state }: { catalog: LandingCatalog; state: Con
         <Surface className={styles.clinicCard} variant="secondary">
           <Chip color="success" size="sm" variant="soft">{t("landing.consultation.readyCard")}</Chip>
           <span className={styles.clinicCardName}>
-            {t("landing.consultation.cardName", { kind: t(`landing.consultation.options.kind.${state.answers.kind[0]}`) })}
+            {t("landing.consultation.cardName", { kind: answerLabel("kind", state.answers.kind[0]) })}
           </span>
           {features[0] ? (
             <span className={styles.panelLabel}>

@@ -28,6 +28,7 @@ import {
   type ThreadEntry,
 } from "./consultation-state";
 import { ProofCard } from "./proof-card";
+import { useAnswerLabel } from "./answer-label";
 import styles from "../front-door.module.css";
 
 export interface ConsultationConversation {
@@ -73,7 +74,7 @@ export function ConsultationView({
   const { t, direction, locale } = useLocalizedText();
   const [draft, setDraft] = useState("");
   const availability = new Map(catalog.features.map((feature) => [feature.key, feature.availability]));
-  const optionLabel = (question: ConsultationQuestionKey, option: string) => t(`landing.consultation.options.${question}.${option}`);
+  const optionLabel = useAnswerLabel();
   const kindLabel = state.answers.kind[0] ? optionLabel("kind", state.answers.kind[0]) : "";
   const currentStep = state.step ? consultationSteps.indexOf(state.step) : 0;
 

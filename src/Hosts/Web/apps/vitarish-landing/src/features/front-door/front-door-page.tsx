@@ -44,13 +44,17 @@ export function FrontDoorPage({ onboardingUrl, whatsappNumber }: FrontDoorPagePr
     setOpening(true);
     setOpenError(false);
     try {
-      const handoff = await landingIssueOnboardingHandoff();
+      // The answers pre-fill sign-up; the server checks them against the consultation and sign-up's categories.
+      const handoff = await landingIssueOnboardingHandoff({
+        category: state.answers.kind[0] ?? null,
+        answers: [...state.answers.booking, ...state.answers.pains],
+      });
       window.location.assign(onboardingHandoffUrl(onboardingUrl, handoff.token));
     } catch {
       setOpening(false);
       setOpenError(true);
     }
-  }, [onboardingUrl]);
+  }, [onboardingUrl, state.answers]);
 
   const openClinic = useCallback(() => {
     if (isSignedIn) void handOff();

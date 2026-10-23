@@ -92,13 +92,6 @@ export const faMessages = {
         pains: "کدام‌یک در طول هفته بیشتر از همه وقت و انرژی‌تان را می‌گیرد؟ حداکثر سه مورد.",
       },
       options: {
-        kind: {
-          dental: "دندان‌پزشکی",
-          dermatology: "پوست و زیبایی",
-          physiotherapy: "فیزیوتراپی",
-          "general-practice": "پزشک عمومی",
-          psychology: "روان‌شناسی",
-        },
         booking: {
           phone: "تماس تلفنی",
           messaging: "پیام‌رسان",

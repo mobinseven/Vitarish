@@ -24,6 +24,8 @@ export function InteractiveOptionPicker({ question, answered = [], isDisabled = 
   const [selected, setSelected] = useState<string[]>([]);
   const isAnswered = answered.length > 0;
   const name = `interactive-${question.options.map((option) => option.key).join("-")}`;
+  // Long lists (such as every clinic specialty) wrap into a grid instead of one tall column.
+  const layout = question.options.length > 6 ? "grid" : undefined;
 
   // An answered question stays readable: its prompt and the chosen options, no longer a control.
   if (isAnswered) {
@@ -46,6 +48,7 @@ export function InteractiveOptionPicker({ question, answered = [], isDisabled = 
     return (
       <RadioButtonGroup
         isDisabled={isDisabled}
+        layout={layout}
         name={name}
         value={null}
         variant="secondary"
@@ -69,6 +72,7 @@ export function InteractiveOptionPicker({ question, answered = [], isDisabled = 
     <div className="flex flex-col gap-3">
       <CheckboxButtonGroup
         isDisabled={isDisabled}
+        layout={layout}
         name={name}
         value={value}
         variant="secondary"

@@ -92,13 +92,6 @@ export const enMessages = {
         pains: "Which of these take the most out of your week? Pick up to three.",
       },
       options: {
-        kind: {
-          dental: "Dental",
-          dermatology: "Dermatology and beauty",
-          physiotherapy: "Physiotherapy",
-          "general-practice": "General practice",
-          psychology: "Psychology",
-        },
         booking: {
           phone: "Phone calls",
           messaging: "Messaging apps",

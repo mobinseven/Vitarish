@@ -1,5 +1,8 @@
 export { clinicMessageCatalogs } from "./catalogs";
 
+/** Where each clinic specialty code (ClinicSpecialties) has its label: `${prefix}.${code}`. */
+export const clinicSpecialtyMessagePrefix = "clinic.specialties";
+
 export {
   LocalizationProvider,
   useLocalizedText,

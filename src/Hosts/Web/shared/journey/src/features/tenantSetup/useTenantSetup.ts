@@ -5,6 +5,7 @@ import { ApiError } from "@vitarish/api-client";
 import {
   partiesCreateOwnTenant,
   usePartiesGetOnboardingCategories,
+  usePartiesGetOnboardingSetupDraft,
   usePartiesGetSubdomainAvailability,
 } from "../../api/generated/parties/parties";
 import type { CreateOwnTenantResponse, TenantSubdomainAvailabilityStatus } from "../../api/generated/parties/model";
@@ -81,6 +82,16 @@ export function useTenantSetup(locale: string) {
     { query: { enabled: subdomainToCheck.length >= subdomainMinimumLength, retry: false } },
   );
   const categories = usePartiesGetOnboardingCategories({ query: { retry: false } });
+  // What the person said before sign-up (for example in the landing consultation) pre-selects the
+  // category once; anything they choose here wins.
+  const draft = usePartiesGetOnboardingSetupDraft({ query: { retry: false } });
+  const draftCategory = draft.data?.category ?? null;
+  const appliedDraft = useRef(false);
+  useEffect(() => {
+    if (appliedDraft.current || !draftCategory) return;
+    appliedDraft.current = true;
+    setValues((current) => (current.category === null ? { ...current, category: draftCategory } : current));
+  }, [draftCategory]);
 
   const availabilityStatus: TenantSubdomainAvailabilityStatus | null =
     isChecking || subdomainToCheck.length < subdomainMinimumLength ? null : (availability.data?.status ?? null);
