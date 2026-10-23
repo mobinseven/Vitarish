@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Vitarish.Audit.Application;
 using Vitarish.Audit.Domain;
@@ -45,7 +46,7 @@ public sealed record CreateOwnTenantCommand(
     string? Category = null,
     TenantBusinessDetails? BusinessDetails = null) : IRequest<CreateOwnTenantResult>;
 
-public sealed class CreateOwnTenantCommandHandler(
+public sealed partial class CreateOwnTenantCommandHandler(
     IOptions<TenantAddressOptions> addressOptions,
     SelfServiceTenantProfile profile,
     ITenantCreatorDirectory creators,
@@ -53,7 +54,9 @@ public sealed class CreateOwnTenantCommandHandler(
     ISecurityAuditWriter securityAuditWriter,
     ITenantHandoffIssuer handoffs,
     IRequestContext requestContext,
-    TimeProvider timeProvider) : IRequestHandler<CreateOwnTenantCommand, CreateOwnTenantResult>
+    TimeProvider timeProvider,
+    IOnboardingSetupDraftStore setupDrafts,
+    ILogger<CreateOwnTenantCommandHandler> logger) : IRequestHandler<CreateOwnTenantCommand, CreateOwnTenantResult>
 {
     public const int NameMaximumLength = 100;
     public const int DescriptionMaximumLength = 500;
@@ -109,8 +112,26 @@ public sealed class CreateOwnTenantCommandHandler(
         }
 
         await WriteAuditAsync(request, tenantId, SecurityAuditOutcome.Succeeded, null, CancellationToken.None);
+        await ClearSetupDraftAsync(request.CreatorUserId);
         return await WithHandoffAsync(new(CreateOwnTenantStatus.Created, tenantId, hostname), request.CreatorUserId, cancellationToken);
     }
+
+    // The setup draft has served its purpose once the tenant exists. Leaving it behind only means the
+    // next setup starts from old answers, so a failure is logged and never undoes the creation.
+    private async Task ClearSetupDraftAsync(string creatorUserId)
+    {
+        try
+        {
+            await setupDrafts.ClearAsync(creatorUserId, CancellationToken.None);
+        }
+        catch (Exception exception)
+        {
+            LogSetupDraftNotCleared(logger, exception);
+        }
+    }
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "The setup draft could not be cleared after the tenant was created.")]
+    private static partial void LogSetupDraftNotCleared(ILogger logger, Exception exception);
 
     private async Task<CreateOwnTenantResult> WithHandoffAsync(CreateOwnTenantResult result, string creatorUserId, CancellationToken cancellationToken) =>
         result.Status is CreateOwnTenantStatus.Created or CreateOwnTenantStatus.Replayed

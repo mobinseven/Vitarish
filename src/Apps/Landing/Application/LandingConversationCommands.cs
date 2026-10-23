@@ -1,5 +1,6 @@
 using System.Text;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Vitarish.Intelligence.Application.Agents;
 using Vitarish.Intelligence.Application.Memory;
@@ -20,7 +21,8 @@ public sealed class LandingConversationAgentOptions
     public string Model { get; set; } = string.Empty;
 }
 
-public sealed class RunLandingConversationHandler(ISender sender, IOptions<LandingConversationAgentOptions> agentOptions) : IRequestHandler<RunLandingConversation, LandingConversationResult>
+public sealed partial class RunLandingConversationHandler(ISender sender, IOptions<LandingConversationAgentOptions> agentOptions, ILogger<RunLandingConversationHandler> logger)
+    : IRequestHandler<RunLandingConversation, LandingConversationResult>
 {
     internal static readonly AgentInteractionVocabulary Vocabulary = new(LandingFeatureCatalog.Keys, LandingNextActions.All);
     internal static readonly AgentInteractionVocabulary SignedInVocabulary = Vocabulary with { AllowsMemory = true };
@@ -32,7 +34,7 @@ public sealed class RunLandingConversationHandler(ISender sender, IOptions<Landi
         bool remembers = !string.IsNullOrWhiteSpace(request.UserId);
         AgentInteractionVocabulary vocabulary = remembers ? SignedInVocabulary : Vocabulary;
         string instructions = remembers
-            ? WithMemory(await sender.Send(new GetUserMemoryQuery(request.UserId!), cancellationToken))
+            ? WithMemory(await MemoryAsync(request.UserId!, cancellationToken))
             : Instructions;
         RunAgentConversationResult result = await sender.Send(new RunAgentConversation(
             request.ConversationId,
@@ -50,10 +52,41 @@ public sealed class RunLandingConversationHandler(ISender sender, IOptions<Landi
 
         AgentInteractiveReply? reply = AgentInteractiveReplyFormat.Read(run, vocabulary);
         IReadOnlyList<UserMemoryItem> remembered = remembers && reply is { Remember.Count: > 0 }
-            ? await sender.Send(new RememberUserFactsCommand(request.UserId!, reply.Remember, UserMemorySource.Landing), cancellationToken)
+            ? await RememberAsync(request.UserId!, reply.Remember, cancellationToken)
             : [];
         return new(result.Outcome, result.ConversationId, reply) { Remembered = remembered };
     }
+
+    // Memory only enriches the conversation: when it cannot be read or saved, the visitor still gets the
+    // reply, without memory, and the failure is logged.
+    private async Task<IReadOnlyList<UserMemoryItem>> MemoryAsync(string userId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await sender.Send(new GetUserMemoryQuery(userId), cancellationToken);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            LogMemoryUnavailable(logger, exception);
+            return [];
+        }
+    }
+
+    private async Task<IReadOnlyList<UserMemoryItem>> RememberAsync(string userId, IReadOnlyList<string> facts, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await sender.Send(new RememberUserFactsCommand(userId, facts, UserMemorySource.Landing), cancellationToken);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            LogMemoryUnavailable(logger, exception);
+            return [];
+        }
+    }
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "The visitor's memory was unavailable; the landing reply continues without it.")]
+    private static partial void LogMemoryUnavailable(ILogger logger, Exception exception);
 
     private static string WithMemory(IReadOnlyList<UserMemoryItem> memory)
     {

@@ -1,44 +1,44 @@
 using FluentAssertions;
-using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
-using Moq;
 using Vitarish.Users.Application.Commands;
 using Vitarish.Users.Domain.Entities;
+using Vitarish.Users.Infrastructure.Data;
 using Vitarish.Users.Infrastructure.Handlers;
 
 namespace Vitarish.Users.Tests.Security;
 
 public sealed class SetUserProfileValueCommandHandlerTests
 {
+    private const string DraftKey = "parties.onboarding.setup-draft";
+    private readonly string databaseName = Guid.NewGuid().ToString("N");
+
     [Fact]
     public async Task Sets_one_entry_and_keeps_every_other_entry()
     {
-        User user = new() { Id = "user-1", ProfilePreferences = new() { ["Culture"] = "fa", ["other.entry"] = "kept" } };
-        Mock<UserManager<User>> users = UserManager(user, IdentityResult.Success);
+        await SeedAsync(new() { ["Culture"] = "fa", ["other.entry"] = "kept" });
 
-        SetUserProfileValueOutcome outcome = await Handler(users).Handle(new("user-1", "parties.onboarding.setup-draft", "{}"), default);
+        SetUserProfileValueOutcome outcome = await HandleAsync(new("user-1", DraftKey, "{}"));
 
         outcome.Should().Be(SetUserProfileValueOutcome.Saved);
-        user.ProfilePreferences.Should().Equal(new Dictionary<string, string>
+        (await StoredAsync()).Should().Equal(new Dictionary<string, string>
         {
             ["Culture"] = "fa",
             ["other.entry"] = "kept",
-            ["parties.onboarding.setup-draft"] = "{}",
+            [DraftKey] = "{}",
         });
     }
 
     [Fact]
     public async Task A_null_value_removes_only_that_entry()
     {
-        User user = new() { Id = "user-1", ProfilePreferences = new() { ["Culture"] = "en", ["parties.onboarding.setup-draft"] = "{}" } };
-        Mock<UserManager<User>> users = UserManager(user, IdentityResult.Success);
+        await SeedAsync(new() { ["Culture"] = "en", [DraftKey] = "{}" });
 
-        _ = await Handler(users).Handle(new("user-1", "parties.onboarding.setup-draft", null), default);
+        _ = await HandleAsync(new("user-1", DraftKey, null));
 
-        user.ProfilePreferences.Should().Equal(new Dictionary<string, string> { ["Culture"] = "en" });
+        (await StoredAsync()).Should().Equal(new Dictionary<string, string> { ["Culture"] = "en" });
     }
 
     [Theory]
@@ -47,43 +47,83 @@ public sealed class SetUserProfileValueCommandHandlerTests
     [InlineData("Parties.Draft")]
     public async Task Refuses_keys_that_could_overwrite_the_profiles_own_settings(string key)
     {
-        User user = new() { Id = "user-1", ProfilePreferences = new() { ["Culture"] = "en" } };
-        Mock<UserManager<User>> users = UserManager(user, IdentityResult.Success);
+        await SeedAsync(new() { ["Culture"] = "en" });
 
-        SetUserProfileValueOutcome outcome = await Handler(users).Handle(new("user-1", key, "x"), default);
+        SetUserProfileValueOutcome outcome = await HandleAsync(new("user-1", key, "x"));
 
         outcome.Should().Be(SetUserProfileValueOutcome.Invalid);
-        users.Verify(manager => manager.UpdateAsync(It.IsAny<User>()), Times.Never);
+        (await StoredAsync()).Should().Equal(new Dictionary<string, string> { ["Culture"] = "en" });
+    }
+
+    [Fact]
+    public async Task Writes_only_while_the_entry_still_holds_the_expected_value()
+    {
+        await SeedAsync(new() { [DraftKey] = "changed meanwhile" });
+
+        SetUserProfileValueOutcome stale = await HandleAsync(new("user-1", DraftKey, "mine", new ProfileValueExpectation("as I read it")));
+        SetUserProfileValueOutcome absent = await HandleAsync(new("user-1", DraftKey, "mine", new ProfileValueExpectation(null)));
+        SetUserProfileValueOutcome current = await HandleAsync(new("user-1", DraftKey, "mine", new ProfileValueExpectation("changed meanwhile")));
+
+        stale.Should().Be(SetUserProfileValueOutcome.Conflict);
+        absent.Should().Be(SetUserProfileValueOutcome.Conflict);
+        current.Should().Be(SetUserProfileValueOutcome.Saved);
+        (await StoredAsync())[DraftKey].Should().Be("mine");
     }
 
     [Fact]
     public async Task Reports_a_conflict_when_another_change_landed_first()
     {
-        User user = new() { Id = "user-1" };
-        Mock<UserManager<User>> users = UserManager(user, IdentityResult.Failed(new IdentityErrorDescriber().ConcurrencyFailure()));
+        await SeedAsync([]);
+        await using TestUsersDbContext slow = Context();
+        _ = await slow.Users.SingleAsync(user => user.Id == "user-1");
+        SetUserProfileValueCommandHandler handler = new(slow, Cache());
 
-        SetUserProfileValueOutcome outcome = await Handler(users).Handle(new("user-1", "parties.onboarding.setup-draft", "{}"), default);
+        // Another writer saves between this handler's read and its write.
+        await using (TestUsersDbContext other = Context())
+        {
+            User user = await other.Users.SingleAsync(candidate => candidate.Id == "user-1");
+            user.ProfilePreferences = new() { ["other.entry"] = "theirs" };
+            user.ConcurrencyStamp = Guid.NewGuid().ToString();
+            _ = await other.SaveChangesAsync();
+        }
+
+        SetUserProfileValueOutcome outcome = await handler.Handle(new("user-1", DraftKey, "{}"), default);
 
         outcome.Should().Be(SetUserProfileValueOutcome.Conflict);
+        (await StoredAsync()).Should().Equal(new Dictionary<string, string> { ["other.entry"] = "theirs" });
     }
 
-    private static SetUserProfileValueCommandHandler Handler(Mock<UserManager<User>> users) =>
-        new(users.Object, new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions())));
-
-    private static Mock<UserManager<User>> UserManager(User user, IdentityResult updateResult)
+    [Fact]
+    public async Task Reports_an_unknown_user()
     {
-        Mock<UserManager<User>> manager = new(
-            Mock.Of<IUserStore<User>>(),
-            Options.Create(new IdentityOptions()),
-            Mock.Of<IPasswordHasher<User>>(),
-            Array.Empty<IUserValidator<User>>(),
-            Array.Empty<IPasswordValidator<User>>(),
-            Mock.Of<ILookupNormalizer>(),
-            new IdentityErrorDescriber(),
-            Mock.Of<IServiceProvider>(),
-            NullLogger<UserManager<User>>.Instance);
-        manager.Setup(value => value.FindByIdAsync(user.Id)).ReturnsAsync(user);
-        manager.Setup(value => value.UpdateAsync(user)).ReturnsAsync(updateResult);
-        return manager;
+        await SeedAsync([]);
+
+        (await HandleAsync(new("missing", DraftKey, "{}"))).Should().Be(SetUserProfileValueOutcome.UserNotFound);
     }
+
+    private async Task<SetUserProfileValueOutcome> HandleAsync(SetUserProfileValueCommand command)
+    {
+        await using TestUsersDbContext dbContext = Context();
+        return await new SetUserProfileValueCommandHandler(dbContext, Cache()).Handle(command, default);
+    }
+
+    private async Task SeedAsync(Dictionary<string, string> profile)
+    {
+        await using TestUsersDbContext dbContext = Context();
+        _ = dbContext.Users.Add(new User { Id = "user-1", UserName = "user-1", ConcurrencyStamp = Guid.NewGuid().ToString(), ProfilePreferences = profile });
+        _ = await dbContext.SaveChangesAsync();
+    }
+
+    private async Task<Dictionary<string, string>> StoredAsync()
+    {
+        await using TestUsersDbContext dbContext = Context();
+        return (await dbContext.Users.AsNoTracking().SingleAsync(user => user.Id == "user-1")).ProfilePreferences;
+    }
+
+    private TestUsersDbContext Context() =>
+        new(new DbContextOptionsBuilder<UsersDbContext>().UseInMemoryDatabase(databaseName).Options);
+
+    private static IDistributedCache Cache() => new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+
+    private sealed class TestUsersDbContext(DbContextOptions<UsersDbContext> options) : UsersDbContext(options);
 }

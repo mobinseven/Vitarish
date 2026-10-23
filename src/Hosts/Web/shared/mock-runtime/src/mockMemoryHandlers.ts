@@ -27,17 +27,21 @@ export function createMemoryMockHandlers({ isPersianRequest, isEmpty, isUnavaila
     return respond(request);
   };
 
+  // Mirrors the server's limit, which it sends with the memory.
+  const mockMaxTextLength = 280;
+
   return [
     http.get(/\/api\/modules\/intelligence\/memory(?:\?|$)/, answer((request) =>
       HttpResponse.json({
         items: items.map((item) => ({ id: item.id, text: isPersianRequest(request) ? item.text.fa : item.text.en, source: item.source, rememberedAt: item.rememberedAt })),
+        maxTextLength: mockMaxTextLength,
       }),
     )),
     http.put(/\/api\/modules\/intelligence\/memory\/[^/?]+(?:\?|$)/, answer(async (request) => {
       const id = itemId(request);
       const body = (await request.json().catch(() => null)) as { text?: unknown } | null;
       const text = typeof body?.text === "string" ? body.text.trim() : "";
-      if (!text) return HttpResponse.json({ code: "ValidationFailure", message: "Remembered text is required." }, { status: 400 });
+      if (!text || text.length > mockMaxTextLength) return HttpResponse.json({ code: "ValidationFailure", message: "Remembered text is required." }, { status: 400 });
       if (!items.some((item) => item.id === id)) return notFound("Memory item does not exist in the mock store.");
       items = items.map((item) => (item.id === id ? { ...item, text: { en: text, fa: text } } : item));
       return new HttpResponse(null, { status: 204 });

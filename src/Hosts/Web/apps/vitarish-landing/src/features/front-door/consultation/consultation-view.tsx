@@ -52,7 +52,8 @@ interface ConsultationViewProps {
   state: ConsultationState;
   dispatch: Dispatch<ConsultationEvent>;
   conversation: ConsultationConversation;
-  onSay: (text: string) => void;
+  /** Returns whether the message was taken. */
+  onSay: (text: string) => boolean;
   onRestart: () => void;
   onboardingUrl: string | null;
   whatsappNumber: string | null;
@@ -224,6 +225,7 @@ export function ConsultationView({
             avatarFallback={assistant.avatarFallback}
             action={actionFor(entry.reply.nextAction)}
             references={references(entry.reply.references)}
+            isPending={conversation.isPending}
             reply={entry.reply}
             onAnswer={(options) => onSay(formatList(optionsLabels(entry.reply, options), locale))}
           />
@@ -326,8 +328,7 @@ export function ConsultationView({
           value={draft}
           onChange={setDraft}
           onSubmit={(text) => {
-            setDraft("");
-            onSay(text);
+            if (onSay(text)) setDraft("");
           }}
         />
       </section>

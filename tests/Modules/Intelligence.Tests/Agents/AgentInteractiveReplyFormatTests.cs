@@ -47,6 +47,19 @@ public sealed class AgentInteractiveReplyFormatTests
         reply.Question.Should().BeNull();
     }
 
+    [Theory]
+    [InlineData("\"2\"")]
+    [InlineData("null")]
+    [InlineData("2.5")]
+    public void Read_treats_a_selection_limit_that_is_not_a_whole_number_as_one(string maxSelections)
+    {
+        AgentInteractiveReply? reply = AgentInteractiveReplyFormat.Read(
+            Run($$"""{"text":"Pick.","question":{"prompt":"Pick","options":[{"key":"a","label":"A"},{"key":"b","label":"B"}],"maxSelections":{{maxSelections}}},"references":[],"nextAction":null}"""),
+            Vocabulary);
+
+        reply!.Question!.MaxSelections.Should().Be(1);
+    }
+
     [Fact]
     public void Read_caps_selections_to_the_offered_options_and_text_to_its_limit()
     {

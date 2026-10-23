@@ -139,7 +139,7 @@ public static partial class AgentInteractiveReplyFormat
 
         if (parsed.Count < MinOptions)
             return null;
-        int maxSelections = question.TryGetProperty(MaxSelectionsProperty, out JsonElement max) && max.TryGetInt32(out int value)
+        int maxSelections = question.TryGetProperty(MaxSelectionsProperty, out JsonElement max) && max.ValueKind == JsonValueKind.Number && max.TryGetInt32(out int value)
             ? Math.Clamp(value, 1, parsed.Count)
             : 1;
         return new AgentInteractiveQuestion(prompt, parsed, maxSelections);

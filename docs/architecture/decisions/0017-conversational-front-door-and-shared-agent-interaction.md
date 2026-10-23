@@ -73,7 +73,10 @@ Several existing boundaries are involved:
    validated with the rest of the security configuration: HTTPS, except local
    `localhost` addresses (owner decision).
 6. **What Vitarish learns about a user.** Users owns profile storage and gains
-   a merge-by-key write, so no writer replaces another writer's keys.
+   a merge-by-key write, so no writer replaces another writer's keys. The
+   write can require the value its owner last read, so a read-change-write
+   never overwrites a change made meanwhile, and a whole-profile save keeps
+   the stored owner-namespaced keys.
    - *Structured answers* (the clinic setup draft: clinic kind, booking method,
      chosen pains, team size) are stored structured under a Parties-owned
      onboarding key, and sign-up and the first-run walkthrough read them.

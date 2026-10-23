@@ -66,8 +66,8 @@ public sealed class OnboardingSetupDraftTests
         Dictionary<string, string> profile = new() { ["Culture"] = "fa" };
         Mock<IUserProfileService> profiles = new();
         profiles.Setup(service => service.GetProfileAsync("user-1", It.IsAny<CancellationToken>())).ReturnsAsync(() => profile);
-        profiles.Setup(service => service.SetValueAsync("user-1", ProfileOnboardingSetupDraftStore.ProfileKey, It.IsAny<string?>(), It.IsAny<CancellationToken>()))
-            .Callback<string, string, string?, CancellationToken>((_, key, value, _) => profile[key] = value!)
+        profiles.Setup(service => service.SetValueAsync("user-1", ProfileOnboardingSetupDraftStore.ProfileKey, It.IsAny<string?>(), It.IsAny<ProfileValueExpectation?>(), It.IsAny<CancellationToken>()))
+            .Callback<string, string, string?, ProfileValueExpectation?, CancellationToken>((_, key, value, _, _) => profile[key] = value!)
             .ReturnsAsync(SetUserProfileValueOutcome.Saved);
         ProfileOnboardingSetupDraftStore store = new(profiles.Object);
 

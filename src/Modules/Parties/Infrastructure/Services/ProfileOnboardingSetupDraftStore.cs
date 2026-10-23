@@ -1,3 +1,4 @@
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Vitarish.Parties.Application.Onboarding;
@@ -15,6 +16,7 @@ public sealed class ProfileOnboardingSetupDraftStore(IUserProfileService profile
     public const string ProfileKey = "parties.onboarding.setup-draft";
     private const string CategoryProperty = "category";
     private const string AnswersProperty = "answers";
+    private static readonly JsonSerializerOptions WriteOptions = new() { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
 
     public async Task<OnboardingSetupDraft?> GetAsync(string userId, CancellationToken cancellationToken = default)
     {
@@ -27,12 +29,12 @@ public sealed class ProfileOnboardingSetupDraftStore(IUserProfileService profile
         JsonArray answers = [];
         foreach (string answer in draft.Answers)
             answers.Add(answer);
-        string value = new JsonObject { [CategoryProperty] = draft.Category, [AnswersProperty] = answers }.ToJsonString();
-        return await profiles.SetValueAsync(userId, ProfileKey, value, cancellationToken) == SetUserProfileValueOutcome.Saved;
+        string value = new JsonObject { [CategoryProperty] = draft.Category, [AnswersProperty] = answers }.ToJsonString(WriteOptions);
+        return await profiles.SetValueAsync(userId, ProfileKey, value, ct: cancellationToken) == SetUserProfileValueOutcome.Saved;
     }
 
     public Task ClearAsync(string userId, CancellationToken cancellationToken = default) =>
-        profiles.SetValueAsync(userId, ProfileKey, null, cancellationToken);
+        profiles.SetValueAsync(userId, ProfileKey, null, ct: cancellationToken);
 
     // A stored value that does not parse is treated as no draft; it never blocks setup.
     private static OnboardingSetupDraft? Read(string stored)

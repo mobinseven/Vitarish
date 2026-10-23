@@ -35,7 +35,14 @@ public class UpdateUserProfileCommandHandler(UserManager<User> userManager, IDis
             throw new InvalidDataException("User ID is invalid");
         }
 
-        user.ProfilePreferences = request.Preferences;
+        // Owner-namespaced entries (owner.name) belong to their owners, who change them one at a time;
+        // a whole-profile save keeps the stored ones, so a stale copy can never wipe them.
+        Dictionary<string, string> profile = request.Preferences
+            .Where(entry => !SetUserProfileValueCommand.IsValidKey(entry.Key))
+            .ToDictionary(entry => entry.Key, entry => entry.Value);
+        foreach (KeyValuePair<string, string> owned in user.ProfilePreferences.Where(entry => SetUserProfileValueCommand.IsValidKey(entry.Key)))
+            profile[owned.Key] = owned.Value;
+        user.ProfilePreferences = profile;
 
         if (request.IdentificationCode is not null)
         {

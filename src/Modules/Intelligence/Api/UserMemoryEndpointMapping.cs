@@ -28,7 +28,7 @@ internal static class UserMemoryEndpointMapping
         if (requestContext.UserId is not { Length: > 0 } userId)
             return Results.Unauthorized();
         IReadOnlyList<UserMemoryItem> items = await sender.Send(new GetUserMemoryQuery(userId), cancellationToken);
-        return Results.Ok(new UserMemoryResponse(items.Select(ToResponse).ToArray()));
+        return Results.Ok(new UserMemoryResponse(items.Select(ToResponse).ToArray(), UserMemoryRules.MaxTextLength));
     }
 
     private static async Task<IResult> UpdateAsync(string itemId, UpdateUserMemoryItemRequest request, [FromServices] IRequestContext requestContext, [FromServices] ISender sender, CancellationToken cancellationToken)

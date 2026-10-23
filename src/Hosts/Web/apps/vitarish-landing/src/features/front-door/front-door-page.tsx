@@ -77,13 +77,16 @@ export function FrontDoorPage({ onboardingUrl, whatsappNumber }: FrontDoorPagePr
     if (isConsulting) window.scrollTo({ top: 0 });
   }, [isConsulting]);
 
+  // Returns whether the message was taken; one already on its way means this one is not.
   const say = useCallback(
-    async (text: string) => {
+    (text: string) => {
       const message = text.trim();
-      if (!message || conversation.isPending) return;
+      if (!message || conversation.isPending) return false;
       dispatch({ type: "said", text: message });
-      const reply = await conversation.submit(message);
-      if (reply) dispatch({ type: "replied", reply });
+      void conversation.submit(message).then((reply) => {
+        if (reply) dispatch({ type: "replied", reply });
+      });
+      return true;
     },
     [conversation],
   );
@@ -110,7 +113,7 @@ export function FrontDoorPage({ onboardingUrl, whatsappNumber }: FrontDoorPagePr
               dispatch={dispatch}
               state={state}
               onRestart={restart}
-              onSay={(text) => void say(text)}
+              onSay={say}
               onboardingUrl={onboardingUrl}
               signInFlow={{ isSignedIn, isOpening, isError: isOpenError, openClinic, tryVoice, onSignedIn }}
               whatsappNumber={whatsappNumber}

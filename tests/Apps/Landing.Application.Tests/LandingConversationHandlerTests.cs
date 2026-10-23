@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Xunit;
 using MediatR;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
 using Vitarish.Intelligence.Application.Agents;
@@ -22,7 +23,8 @@ public sealed class LandingConversationHandlerTests
             .ReturnsAsync(new RunAgentConversationResult(AgentConversationOutcome.ProviderFailure));
         RunLandingConversationHandler handler = new(
             sender.Object,
-            Options.Create(new LandingConversationAgentOptions { Model = "configured-model" }));
+            Options.Create(new LandingConversationAgentOptions { Model = "configured-model" }),
+            NullLogger<RunLandingConversationHandler>.Instance);
 
         _ = await handler.Handle(new RunLandingConversation(
             "resolved-tenant", "public-session", "about", "hello", null), default);
@@ -110,7 +112,7 @@ public sealed class LandingConversationHandlerTests
         sender.Setup(item => item.Send(It.IsAny<RememberUserFactsCommand>(), It.IsAny<CancellationToken>()))
             .Callback<object, CancellationToken>((request, _) => remembered = (RememberUserFactsCommand)request)
             .ReturnsAsync([new UserMemoryItem("n", "Books by phone", UserMemorySource.Landing, DateTimeOffset.UnixEpoch)]);
-        RunLandingConversationHandler handler = new(sender.Object, Options.Create(new LandingConversationAgentOptions { Model = "model" }));
+        RunLandingConversationHandler handler = new(sender.Object, Options.Create(new LandingConversationAgentOptions { Model = "model" }), NullLogger<RunLandingConversationHandler>.Instance);
 
         LandingConversationResult anonymous = await handler.Handle(new RunLandingConversation("tenant", "session", "home", "hi", null), default);
         anonymous.Remembered.Should().BeEmpty();
@@ -123,13 +125,31 @@ public sealed class LandingConversationHandlerTests
         signedIn.Remembered.Select(item => item.Text).Should().Equal("Books by phone");
     }
 
+    [Fact]
+    public async Task Still_replies_when_the_visitors_memory_cannot_be_read_or_saved()
+    {
+        AgentRunResult run = Run("""{"text":"Noted.","question":null,"references":[],"nextAction":null,"remember":["Books by phone"]}""");
+        Mock<ISender> sender = new();
+        sender.Setup(item => item.Send(It.IsAny<RunAgentConversation>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new RunAgentConversationResult(AgentConversationOutcome.Succeeded, Guid.NewGuid(), run));
+        sender.Setup(item => item.Send(It.IsAny<GetUserMemoryQuery>(), It.IsAny<CancellationToken>())).ThrowsAsync(new InvalidOperationException("profile store down"));
+        sender.Setup(item => item.Send(It.IsAny<RememberUserFactsCommand>(), It.IsAny<CancellationToken>())).ThrowsAsync(new InvalidOperationException("profile store down"));
+        RunLandingConversationHandler handler = new(sender.Object, Options.Create(new LandingConversationAgentOptions { Model = "model" }), NullLogger<RunLandingConversationHandler>.Instance);
+
+        LandingConversationResult result = await handler.Handle(new RunLandingConversation("tenant", "session", "home", "hi", null, "user-1"), default);
+
+        result.Outcome.Should().Be(AgentConversationOutcome.Succeeded);
+        result.Reply!.Text.Should().Be("Noted.");
+        result.Remembered.Should().BeEmpty();
+    }
+
     private static RunLandingConversationHandler Handler(Action<RunAgentConversation> capture, RunAgentConversationResult result)
     {
         Mock<ISender> sender = new();
         sender.Setup(item => item.Send(It.IsAny<RunAgentConversation>(), It.IsAny<CancellationToken>()))
             .Callback<object, CancellationToken>((request, _) => capture((RunAgentConversation)request))
             .ReturnsAsync(result);
-        return new(sender.Object, Options.Create(new LandingConversationAgentOptions { Model = "model" }));
+        return new(sender.Object, Options.Create(new LandingConversationAgentOptions { Model = "model" }), NullLogger<RunLandingConversationHandler>.Instance);
     }
 
     private static AgentRunResult Run(string json)

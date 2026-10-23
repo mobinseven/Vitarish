@@ -116,7 +116,7 @@ test("a new phone number signs in on the landing host without a clinic and carri
   expect((await callApi(page, "POST", handoffPath, { category: "dermatology", answers: ["anything-else"] })).status).toBe(400);
 
   // A visitor without a clinic sees and controls their own memory; a new account remembers nothing yet.
-  expect(await callApi(page, "GET", generatedPath(intelligenceGetUserMemory))).toEqual({ status: 200, body: { items: [] } });
+  expect(await callApi(page, "GET", generatedPath(intelligenceGetUserMemory))).toEqual({ status: 200, body: { items: [], maxTextLength: expect.any(Number) } });
   expect((await callApi(page, "DELETE", generatedPath(intelligenceForgetUserMemory))).status).toBe(204);
 
   const handoff = await callApi(page, "POST", handoffPath, { category: "dermatology", answers: ["phone", "no-shows"] });

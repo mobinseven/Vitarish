@@ -16,13 +16,23 @@ public enum UserMemorySource
 /// <summary>One thing Vitarish remembers about a person, which they can see, correct or delete.</summary>
 public sealed record UserMemoryItem(string Id, string Text, UserMemorySource Source, DateTimeOffset RememberedAt);
 
+/// <summary>
+/// A person's memory as read, with an opaque version that a later write must still match, so a change
+/// made meanwhile is never overwritten.
+/// </summary>
+public sealed record UserMemorySnapshot(IReadOnlyList<UserMemoryItem> Items, string? Version);
+
 /// <summary>Keeps one person's memory.</summary>
 public interface IUserMemoryStore
 {
-    Task<IReadOnlyList<UserMemoryItem>> GetAsync(string userId, CancellationToken cancellationToken = default);
+    Task<UserMemorySnapshot> GetAsync(string userId, CancellationToken cancellationToken = default);
 
-    /// <returns>False when another change to the person landed first; the caller may read again and retry.</returns>
-    Task<bool> ReplaceAsync(string userId, IReadOnlyList<UserMemoryItem> items, CancellationToken cancellationToken = default);
+    /// <summary>
+    /// Writes the items if the memory still has <paramref name="expectedVersion"/>. When the items do not
+    /// fit the store, the oldest are dropped first.
+    /// </summary>
+    /// <returns>False when another change landed first; the caller may read again and retry.</returns>
+    Task<bool> ReplaceAsync(string userId, IReadOnlyList<UserMemoryItem> items, string? expectedVersion, CancellationToken cancellationToken = default);
 }
 
 public static partial class UserMemoryRules
@@ -82,8 +92,8 @@ public sealed class UserMemoryHandlers(IUserMemoryStore store, TimeProvider time
         return saved ? added : [];
     }
 
-    public Task<IReadOnlyList<UserMemoryItem>> Handle(GetUserMemoryQuery request, CancellationToken cancellationToken) =>
-        store.GetAsync(request.UserId, cancellationToken);
+    public async Task<IReadOnlyList<UserMemoryItem>> Handle(GetUserMemoryQuery request, CancellationToken cancellationToken) =>
+        (await store.GetAsync(request.UserId, cancellationToken)).Items;
 
     public async Task<bool> Handle(UpdateUserMemoryItemCommand request, CancellationToken cancellationToken)
     {
@@ -118,11 +128,11 @@ public sealed class UserMemoryHandlers(IUserMemoryStore store, TimeProvider time
     {
         for (int attempt = 0; attempt < Attempts; attempt++)
         {
-            IReadOnlyList<UserMemoryItem> current = await store.GetAsync(userId, cancellationToken);
-            IReadOnlyList<UserMemoryItem>? next = change(current);
+            UserMemorySnapshot current = await store.GetAsync(userId, cancellationToken);
+            IReadOnlyList<UserMemoryItem>? next = change(current.Items);
             if (next is null)
                 return true;
-            if (await store.ReplaceAsync(userId, next, cancellationToken))
+            if (await store.ReplaceAsync(userId, next, current.Version, cancellationToken))
                 return true;
         }
 

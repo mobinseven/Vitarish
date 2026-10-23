@@ -97,12 +97,18 @@ public sealed class UserMemoryTests
         public int ConflictsLeft { get; set; }
         public int Writes { get; private set; }
 
-        public Task<IReadOnlyList<UserMemoryItem>> GetAsync(string userId, CancellationToken cancellationToken = default) =>
-            Task.FromResult<IReadOnlyList<UserMemoryItem>>(Items.ToArray());
+        public Task<UserMemorySnapshot> GetAsync(string userId, CancellationToken cancellationToken = default) =>
+            Task.FromResult(new UserMemorySnapshot(Items.ToArray(), Writes.ToString(System.Globalization.CultureInfo.InvariantCulture)));
 
-        public Task<bool> ReplaceAsync(string userId, IReadOnlyList<UserMemoryItem> items, CancellationToken cancellationToken = default)
+        public Task<bool> ReplaceAsync(string userId, IReadOnlyList<UserMemoryItem> items, string? expectedVersion, CancellationToken cancellationToken = default)
         {
             if (ConflictsLeft-- > 0)
+            {
+                // Another writer landed first, so the version just read is stale.
+                Writes++;
+                return Task.FromResult(false);
+            }
+            if (expectedVersion != Writes.ToString(System.Globalization.CultureInfo.InvariantCulture))
                 return Task.FromResult(false);
             Writes++;
             Items = [.. items];

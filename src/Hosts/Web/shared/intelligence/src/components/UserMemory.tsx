@@ -1,14 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Alert, Button, Chip, Input, Label, Skeleton, Surface, TextField, Tooltip } from "@heroui/react";
+import { Alert, Button, Chip, FieldError, Input, Label, Skeleton, Surface, TextField, Tooltip } from "@heroui/react";
+import { ApiError } from "@vitarish/api-client";
 import { formatDate, useLocalizedText, type SupportedLocale } from "@vitarish/localization";
 import { FaIcon, HeaderIcon } from "@vitarish/ui";
 import { useUserMemory } from "../hooks/useUserMemory";
 import type { InteractiveRemembered } from "../interaction/interactiveReply";
-
-/** The longest remembered text; the server enforces the same limit. */
-const maxMemoryTextLength = 280;
 
 /**
  * A quiet note for each fact a reply remembered, with an undo that deletes it right away. The note
@@ -58,8 +56,11 @@ export function UserMemorySection() {
   const [editing, setEditing] = useState<{ id: string; text: string } | null>(null);
   const [confirmingForgetAll, setConfirmingForgetAll] = useState(false);
   const items = memory.data?.items ?? [];
+  const maxTextLength = memory.data ? Number(memory.data.maxTextLength) || undefined : undefined;
   const editedText = editing?.text.trim() ?? "";
-  const isEditValid = editedText.length > 0 && editedText.length <= maxMemoryTextLength;
+  // The server owns the limit and the rest of the rule; it refuses text it will not keep.
+  const isRefused = update.error instanceof ApiError && update.error.status === 400;
+  const isEditValid = editedText.length > 0 && (maxTextLength === undefined || editedText.length <= maxTextLength) && !isRefused;
 
   return (
     <Surface className="flex flex-col gap-6 rounded-3xl p-6" render={(props) => <section {...props} aria-labelledby="user-memory-title" />}>
@@ -118,9 +119,17 @@ export function UserMemorySection() {
             <li key={item.id} className="flex flex-col gap-3 py-3">
               {editing?.id === item.id ? (
                 <>
-                  <TextField isInvalid={!isEditValid} value={editing.text} onChange={(text) => setEditing({ id: item.id, text })}>
+                  <TextField
+                    isInvalid={!isEditValid}
+                    value={editing.text}
+                    onChange={(text) => {
+                      update.reset();
+                      setEditing({ id: item.id, text });
+                    }}
+                  >
                     <Label>{t("intelligence.memory.editLabel")}</Label>
-                    <Input maxLength={maxMemoryTextLength} />
+                    <Input maxLength={maxTextLength} />
+                    <FieldError>{t("intelligence.memory.invalidText", { max: maxTextLength ?? "" })}</FieldError>
                   </TextField>
                   <div className="flex flex-wrap gap-2">
                     <Tooltip>
@@ -135,7 +144,13 @@ export function UserMemorySection() {
                       <Tooltip.Content>{t("intelligence.memory.saveTooltip")}</Tooltip.Content>
                     </Tooltip>
                     <Tooltip>
-                      <Button variant="ghost" onPress={() => setEditing(null)}>
+                      <Button
+                        variant="ghost"
+                        onPress={() => {
+                          update.reset();
+                          setEditing(null);
+                        }}
+                      >
                         <FaIcon aria-hidden="true" icon="xmark" />
                         {t("intelligence.memory.cancel")}
                       </Button>
@@ -174,7 +189,7 @@ export function UserMemorySection() {
           ))}
         </ul>
       )}
-      {update.isError || forget.isError || forgetAll.isError ? (
+      {(update.isError && !isRefused) || forget.isError || forgetAll.isError ? (
         <Alert status="danger">
           <Alert.Indicator />
           <Alert.Content>

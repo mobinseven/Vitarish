@@ -40,7 +40,10 @@ export interface InteractiveReplyMessageProps {
   references?: readonly InteractiveReference[];
   /** The app's control for `reply.nextAction`, if it offers one. */
   action?: ReactNode;
-  onAnswer: (keys: string[]) => void;
+  /** True while the app cannot take an answer, for example while another reply is on its way. */
+  isPending?: boolean;
+  /** Returns false when the app did not take the answer, so the question stays open. */
+  onAnswer: (keys: string[]) => boolean;
 }
 
 /** One assistant reply: its text, an optional tappable question, its references and one next step. */
@@ -51,6 +54,7 @@ export function InteractiveReplyMessage({
   title,
   references = [],
   action,
+  isPending = false,
   onAnswer,
 }: InteractiveReplyMessageProps) {
   const [answered, setAnswered] = useState<string[]>([]);
@@ -62,10 +66,10 @@ export function InteractiveReplyMessage({
         {reply.question ? (
           <InteractiveOptionPicker
             answered={answered}
+            isDisabled={isPending}
             question={reply.question}
             onAnswer={(keys) => {
-              setAnswered(keys);
-              onAnswer(keys);
+              if (onAnswer(keys)) setAnswered(keys);
             }}
           />
         ) : null}

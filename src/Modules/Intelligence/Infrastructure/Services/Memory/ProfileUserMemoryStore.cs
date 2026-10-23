@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Vitarish.Intelligence.Application.Memory;
@@ -19,28 +20,41 @@ public sealed class ProfileUserMemoryStore(IUserProfileService profiles) : IUser
     private const string SourceProperty = "source";
     private const string RememberedAtProperty = "rememberedAt";
 
-    public async Task<IReadOnlyList<UserMemoryItem>> GetAsync(string userId, CancellationToken cancellationToken = default)
+    // Persian text stays as written instead of six-character escapes, so the memory fits the profile entry.
+    private static readonly JsonSerializerOptions WriteOptions = new() { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
+
+    public async Task<UserMemorySnapshot> GetAsync(string userId, CancellationToken cancellationToken = default)
     {
         Dictionary<string, string> profile = await profiles.GetProfileAsync(userId, cancellationToken) ?? [];
-        return profile.TryGetValue(ProfileKey, out string? stored) ? Read(stored) : [];
+        return profile.TryGetValue(ProfileKey, out string? stored) ? new(Read(stored), stored) : new([], null);
     }
 
-    public async Task<bool> ReplaceAsync(string userId, IReadOnlyList<UserMemoryItem> items, CancellationToken cancellationToken = default)
+    public async Task<bool> ReplaceAsync(string userId, IReadOnlyList<UserMemoryItem> items, string? expectedVersion, CancellationToken cancellationToken = default) =>
+        await profiles.SetValueAsync(userId, ProfileKey, Write(items), new ProfileValueExpectation(expectedVersion), cancellationToken) == SetUserProfileValueOutcome.Saved;
+
+    // Drops the oldest items until the rest fit one profile entry; no items removes the entry.
+    private static string? Write(IReadOnlyList<UserMemoryItem> items)
     {
-        JsonArray array = [];
-        foreach (UserMemoryItem item in items)
+        for (int skip = 0; skip < items.Count; skip++)
         {
-            array.Add(new JsonObject
+            JsonArray array = [];
+            foreach (UserMemoryItem item in items.Skip(skip))
             {
-                [IdProperty] = item.Id,
-                [TextProperty] = item.Text,
-                [SourceProperty] = item.Source.ToString(),
-                [RememberedAtProperty] = item.RememberedAt.ToString("O", CultureInfo.InvariantCulture)
-            });
+                array.Add(new JsonObject
+                {
+                    [IdProperty] = item.Id,
+                    [TextProperty] = item.Text,
+                    [SourceProperty] = item.Source.ToString(),
+                    [RememberedAtProperty] = item.RememberedAt.ToString("O", CultureInfo.InvariantCulture)
+                });
+            }
+
+            string value = array.ToJsonString(WriteOptions);
+            if (value.Length <= SetUserProfileValueCommand.MaxValueLength)
+                return value;
         }
 
-        string? value = items.Count == 0 ? null : array.ToJsonString();
-        return await profiles.SetValueAsync(userId, ProfileKey, value, cancellationToken) == SetUserProfileValueOutcome.Saved;
+        return null;
     }
 
     // Entries that do not parse are skipped, so one bad entry never hides the rest.
