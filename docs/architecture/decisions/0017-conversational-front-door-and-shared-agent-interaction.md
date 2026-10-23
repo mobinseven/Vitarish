@@ -66,7 +66,12 @@ Several existing boundaries are involved:
    stay. No per-user daily limit is added (owner decision).
 5. **Handoff from landing to onboarding.** A signed-in landing user who chooses
    to open a clinic receives the same one-time handoff to the onboarding host
-   that the sign-in host issues today.
+   that the sign-in host issues today. Redeeming a ticket needs a trusted
+   origin, and the onboarding subdomain is reserved, so dynamic tenant-origin
+   trust never covers it. The host therefore trusts its own configured platform
+   addresses (landing, onboarding and shared sign-in URLs) as exact origins,
+   validated with the rest of the security configuration: HTTPS, except local
+   `localhost` addresses (owner decision).
 6. **What Vitarish learns about a user.** Users owns profile storage and gains
    a merge-by-key write, so no writer replaces another writer's keys.
    - *Structured answers* (the clinic setup draft: clinic kind, booking method,

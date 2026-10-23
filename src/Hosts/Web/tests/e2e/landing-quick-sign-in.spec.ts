@@ -16,11 +16,13 @@ import {
   intelligenceGetUserMemory,
 } from "../../shared/intelligence/src/api/generated/intelligence/intelligence";
 import { partiesGetOnboardingSetupDraft } from "../../shared/journey/src/api/generated/parties/parties";
+import { onboardingHandoffUrl, tenantHandoffPath } from "../../shared/journey/src/onboardingHost";
 import { landingIssueOnboardingHandoff } from "../../shared/platform/src/api/generated/landing/landing";
 
 // The E2E host binds the landing tenant to landing.localhost and the onboarding tenant to start.localhost.
 const landingOrigin = "http://landing.localhost:3005";
 const onboardingHostname = "start.localhost";
+const onboardingOrigin = `http://${onboardingHostname}:3005`;
 const landingClientIp = "198.51.100.91";
 const smsCapturePath = process.env[twoHostE2eSmsCapturePathEnvironmentKey];
 
@@ -80,9 +82,14 @@ test("a new phone number signs in on the landing host without a clinic and carri
   const nationalDigits = `912${Array.from({ length: 7 }, () => crypto.randomInt(0, 10)).join("")}`;
   const handoffPath = generatedPath(landingIssueOnboardingHandoff);
 
-  await page.route(/^http:\/\/landing\.localhost:3005\//, (route) =>
+  await page.route(/^http:\/\/(landing|start)\.localhost:3005\//, (route) =>
     route.continue({ headers: { ...route.request().headers(), "X-Forwarded-For": landingClientIp } }),
   );
+  // A handoff ticket lives for a minute; compile the onboarding host's handoff page first so
+  // redeeming it later is not slowed by the dev server's first visit.
+  const warmUp = await page.context().newPage();
+  await warmUp.goto(`${onboardingOrigin}${tenantHandoffPath}`, { waitUntil: "domcontentloaded", timeout: 120_000 });
+  await warmUp.close();
   await page.goto(`${landingOrigin}${Routes.Login.Index}`, { waitUntil: "domcontentloaded", timeout: 120_000 });
 
   // Anonymous visitors cannot ask for a handoff.
@@ -118,7 +125,13 @@ test("a new phone number signs in on the landing host without a clinic and carri
   expect(hostname).toBe(onboardingHostname);
   expect(token).toMatch(/\S{16,}/);
 
-  // The answers are saved for the same person; sign-up reads this draft to pre-select the category.
+  // The ticket signs the person in on the onboarding host (a trusted platform origin), where
+  // sign-up reads the saved answers to pre-select the category.
+  await page.goto(onboardingHandoffUrl(onboardingOrigin, token), { waitUntil: "domcontentloaded", timeout: 120_000 });
+  // The handoff page redeems the ticket and then moves on; query only once it has.
+  await page.waitForURL((url) => url.host === `${onboardingHostname}:3005` && !url.pathname.startsWith(tenantHandoffPath), { timeout: 60_000 });
+  await page.waitForLoadState("domcontentloaded");
+  expect((await callApi(page, "GET", generatedPath(authenticationSessionGet))).status).toBe(200);
   const draft = await callApi(page, "GET", generatedPath(partiesGetOnboardingSetupDraft));
   expect(draft).toEqual({ status: 200, body: { category: "dermatology", answers: ["phone", "no-shows"] } });
 });
