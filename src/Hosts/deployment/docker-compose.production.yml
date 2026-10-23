@@ -34,6 +34,8 @@ services:
       Vitarish__Features__TenantOnboarding: ${VITARISH_PRODUCTION_TENANT_ONBOARDING:-false}
       Vitarish__TenantBaseDomain: ${VITARISH_PRODUCTION_CLINIC_BASE_DOMAIN:-}
       Vitarish__OnboardingUrl: ${VITARISH_PRODUCTION_ONBOARDING_URL:-}
+      # The shared sign-in host (ADR-0018). Empty leaves no host bound to the sign-in tenant.
+      Vitarish__SignInUrl: ${VITARISH_PRODUCTION_SIGN_IN_URL:-}
       Vitarish__Identity__Authority: https://${VITARISH_PRODUCTION_PUBLIC_HOST:?VITARISH_PRODUCTION_PUBLIC_HOST is required}
       Vitarish__Identity__DataProtectionPassword: ${VITARISH_PRODUCTION_DATA_PROTECTION_PASSWORD:?VITARISH_PRODUCTION_DATA_PROTECTION_PASSWORD is required}
       Vitarish__Security__MandatoryAuditEnabled: "true"

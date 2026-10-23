@@ -27,6 +27,7 @@ This index is the authoritative navigation point for global ADRs. Scoped platfor
 | [0014](0014-app-color-palette.md) | App color palette | Proposed | 2026-10-10 |
 | [0015](0015-surgery-planning-contract-change-without-versioning.md) | Surgery planning contract change without versioning | Accepted | 2026-10-15 |
 | [0016](0016-self-service-clinic-onboarding.md) | Self-service clinic onboarding and the one-time handoff link | Accepted | 2026-10-21 |
+| [0018](0018-shared-sign-in-host.md) | Shared sign-in host | Accepted | 2026-10-23 |
 
 ## Related global architecture documents
 

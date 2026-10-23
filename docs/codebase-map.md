@@ -206,7 +206,9 @@ rollback restores prior configuration and running services on failure. See
 [`docs/hosts/server-deployment-bundles.md`](hosts/server-deployment-bundles.md)
 for bootstrap, secrets, health checks, and recovery, and
 [`docs/runbooks/clinic-onboarding.md`](runbooks/clinic-onboarding.md) to switch
-self-service clinic onboarding (ADR-0016) on or off. Use
+self-service clinic onboarding (ADR-0016) on or off, and
+[`docs/runbooks/sign-in-host.md`](runbooks/sign-in-host.md) for the shared
+sign-in host (ADR-0018). Use
 `src/Hosts/scripts/Install-UbuntuServer.ps1` once to provision Docker/Compose
 and the server's GHCR read login. Run local Web development through the npm
 workspace and a separately started Main host.

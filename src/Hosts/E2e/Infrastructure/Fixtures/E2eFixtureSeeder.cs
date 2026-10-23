@@ -1,10 +1,13 @@
 using System.Security.Claims;
+using System.Security.Cryptography;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Application.Onboarding;
+using Vitarish.Parties.Application.Profiles;
+using Vitarish.Parties.Application.SignIn;
 using Vitarish.Parties.Domain.Models;
 using Vitarish.Parties.Domain.Entities;
 using Vitarish.Parties.Domain.Enums;
@@ -42,11 +45,16 @@ internal static class E2eFixtureSeeder
     public const string LockoutPlatformAdminUserName = "e2e-lockout-platform-admin";
     public const string EmailSignInPlatformAdminUserName = "e2e-email-sign-in-platform-admin";
     public const string EmailSignInPlatformAdminEmail = "e2e-email-sign-in-platform-admin@example.test";
+    /// <summary>Staff in tenant A and an owner of tenant B, so the shared sign-in host lists two clinics to choose from.</summary>
+    public const string SignInUserName = "e2e-sign-in-user";
     public const string PatientName = "E2E Patient";
     public const string PatientFirstName = "E2E";
     public const string PatientLastName = "Patient";
     private const string TenantAFileChecksum = "720B672F1CF84CDE6F1788EECF15D8FA940BBEE7D6610D1B2E2546E85969A726";
     private const string TenantBFileChecksum = "C869566813A0DFFB02AB1863035E73FC9F29E569B795BEF12E4EB7F6D80DFDA7";
+    // An 8x8 solid teal PNG: tenant B's public logo, which the sign-in clinic list shows.
+    private static readonly byte[] TenantBLogoPng = Convert.FromBase64String(
+        "iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAEUlEQVR42mPgq2nDihiGlgQAdE5EAa8umwAAAAAASUVORK5CYII=");
 
     public static async Task SeedAsync(IServiceProvider services, string password, CancellationToken cancellationToken)
     {
@@ -63,7 +71,7 @@ internal static class E2eFixtureSeeder
                 "e2e-fixture"))
         };
 
-        Console.WriteLine("E2E fixture seeding: ensuring identity 1 of 9.");
+        Console.WriteLine("E2E fixture seeding: ensuring identity 1 of 10.");
         User user = await EnsureUserAsync(
             users,
             UserName,
@@ -72,7 +80,7 @@ internal static class E2eFixtureSeeder
             "E2E",
             "Owner",
             password);
-        Console.WriteLine("E2E fixture seeding: ensuring identity 2 of 9.");
+        Console.WriteLine("E2E fixture seeding: ensuring identity 2 of 10.");
         User tenantUser = await EnsureUserAsync(
             users,
             TenantUserName,
@@ -81,7 +89,7 @@ internal static class E2eFixtureSeeder
             "E2E",
             "Tenant User",
             password);
-        Console.WriteLine("E2E fixture seeding: ensuring identity 3 of 9.");
+        Console.WriteLine("E2E fixture seeding: ensuring identity 3 of 10.");
         User emailChangeUser = await EnsureUserAsync(
             users,
             EmailChangeUserName,
@@ -90,7 +98,7 @@ internal static class E2eFixtureSeeder
             "E2E",
             "Email Change User",
             password);
-        Console.WriteLine("E2E fixture seeding: ensuring identity 4 of 9.");
+        Console.WriteLine("E2E fixture seeding: ensuring identity 4 of 10.");
         User tenantBOwner = await EnsureUserAsync(
             users,
             TenantBOwnerUserName,
@@ -99,7 +107,7 @@ internal static class E2eFixtureSeeder
             "E2E",
             "Tenant B Owner",
             password);
-        Console.WriteLine("E2E fixture seeding: ensuring identity 5 of 9.");
+        Console.WriteLine("E2E fixture seeding: ensuring identity 5 of 10.");
         User platformAdmin = await EnsureUserAsync(
             users,
             PlatformAdminUserName,
@@ -108,7 +116,7 @@ internal static class E2eFixtureSeeder
             "E2E",
             "Platform Admin",
             password);
-        Console.WriteLine("E2E fixture seeding: ensuring identity 6 of 9.");
+        Console.WriteLine("E2E fixture seeding: ensuring identity 6 of 10.");
         User userManagementPlatformAdmin = await EnsureUserAsync(
             users,
             UserManagementPlatformAdminUserName,
@@ -117,7 +125,7 @@ internal static class E2eFixtureSeeder
             "E2E",
             "User Management Admin",
             password);
-        Console.WriteLine("E2E fixture seeding: ensuring identity 7 of 9.");
+        Console.WriteLine("E2E fixture seeding: ensuring identity 7 of 10.");
         User lockoutPlatformAdmin = await EnsureUserAsync(
             users,
             LockoutPlatformAdminUserName,
@@ -132,7 +140,7 @@ internal static class E2eFixtureSeeder
         IdentityResult lockoutReset = await users.SetLockoutEndDateAsync(lockoutPlatformAdmin, null);
         if (!lockoutReset.Succeeded)
             throw new InvalidOperationException("E2E lockout platform-admin lockout reset failed.");
-        Console.WriteLine("E2E fixture seeding: ensuring identity 8 of 9.");
+        Console.WriteLine("E2E fixture seeding: ensuring identity 8 of 10.");
         User emailSignInPlatformAdmin = await EnsureUserAsync(
             users,
             EmailSignInPlatformAdminUserName,
@@ -144,7 +152,7 @@ internal static class E2eFixtureSeeder
             // Like production's first admin, whose address is never confirmed
             // before the first email-code sign-in.
             emailConfirmed: false);
-        Console.WriteLine("E2E fixture seeding: ensuring identity 9 of 9.");
+        Console.WriteLine("E2E fixture seeding: ensuring identity 9 of 10.");
         User phoneChangeUser = await EnsureUserAsync(
             users,
             PhoneChangeUserName,
@@ -152,6 +160,15 @@ internal static class E2eFixtureSeeder
             "e2e-phone-change-user@example.test",
             "E2E",
             "Phone Change User",
+            password);
+        Console.WriteLine("E2E fixture seeding: ensuring identity 10 of 10.");
+        User signInUser = await EnsureUserAsync(
+            users,
+            SignInUserName,
+            Guid.Parse("3f9a6c2e-8d14-4b7a-9e05-6c1d2b8f4a97"),
+            "e2e-sign-in-user@example.test",
+            "E2E",
+            "Sign-In User",
             password);
 
         Console.WriteLine("E2E fixture seeding: identity accounts are ready.");
@@ -342,6 +359,10 @@ internal static class E2eFixtureSeeder
         if (!phoneChangeUserResult.Succeeded)
             throw new InvalidOperationException("E2E phone-change user role assignment failed.");
 
+        IdentityResult signInUserResult = await usersService.ReplaceTenantRoleAsync(signInUser.Id, tenant.Id, IdentityDefinitions.TenantUser, cancellationToken);
+        if (!signInUserResult.Succeeded)
+            throw new InvalidOperationException("E2E sign-in user tenant-A role assignment failed.");
+
         Console.WriteLine("E2E fixture seeding: preparing tenant B resources and access.");
         string tenantBOwnerRoleName = $"{tenantB.Id}:{IdentityDefinitions.TenantOwner}";
         if (!await roles.RoleExistsAsync(tenantBOwnerRoleName))
@@ -354,6 +375,9 @@ internal static class E2eFixtureSeeder
         IdentityResult tenantBOwnerResult = await tenantBUsersService.ReplaceTenantRoleAsync(tenantBOwner.Id, tenantB.Id, IdentityDefinitions.TenantOwner, cancellationToken);
         if (!tenantBOwnerResult.Succeeded)
             throw new InvalidOperationException("E2E tenant-B owner role assignment failed.");
+        IdentityResult signInUserTenantBResult = await tenantBUsersService.ReplaceTenantRoleAsync(signInUser.Id, tenantB.Id, IdentityDefinitions.TenantOwner, cancellationToken);
+        if (!signInUserTenantBResult.Succeeded)
+            throw new InvalidOperationException("E2E sign-in user tenant-B role assignment failed.");
         AppointmentsDbContext tenantBAppointments = tenantBScope.ServiceProvider.GetRequiredService<AppointmentsDbContext>();
         CommunicationsDbContext tenantBCommunications = tenantBScope.ServiceProvider.GetRequiredService<CommunicationsDbContext>();
         Guid tenantBPatientId = Guid.Parse("f4c8109a-6f22-4a31-9ab8-48d7ad0d7e2f");
@@ -449,6 +473,43 @@ internal static class E2eFixtureSeeder
         if (!tenantBFileVerification.IsVerified)
             throw new InvalidOperationException("E2E tenant-B file integrity enrollment failed.");
 
+        Console.WriteLine("E2E fixture seeding: giving tenant B a logo.");
+        Guid tenantBLogoId = Guid.Parse("6d1e8b3f-2a94-4c57-b0d8-9f3a7e5c1b26");
+        string tenantBLogoChecksum = Convert.ToHexString(SHA256.HashData(TenantBLogoPng));
+        if (!await tenantBFiles.Set<FileInformation>().AnyAsync(file => file.Id == tenantBLogoId, cancellationToken))
+        {
+            _ = tenantBFiles.Set<FileInformation>().Add(new FileInformation
+            {
+                Id = tenantBLogoId,
+                TenantId = tenantB.Id.ToString(),
+                ContentType = "image/png",
+                Checksum = tenantBLogoChecksum,
+                Url = "e2e/tenant-b/logo.png",
+                Metadata = $"{{\"size\":{TenantBLogoPng.Length}}}"
+            });
+            _ = await tenantBFiles.SaveChangesAsync(cancellationToken);
+        }
+        await EnsureObjectAsync(objectStorage, tenantBLogoChecksum, TenantBLogoPng, "image/png", cancellationToken);
+        FileInformationReadDto tenantBLogo = new()
+        {
+            Id = tenantBLogoId,
+            Owner = tenantB.Id.ToString(),
+            Checksum = tenantBLogoChecksum,
+            ContentType = "image/png",
+            Metadata = new FileMetadata { Size = TenantBLogoPng.Length }
+        };
+        _ = await tenantBFileIntegrity.BeginLegacyEnrollmentAsync(tenantBLogo, cancellationToken);
+        if (!(await tenantBFileIntegrity.VerifyAsync(tenantBLogo, cancellationToken)).IsVerified)
+            throw new InvalidOperationException("E2E tenant-B logo integrity enrollment failed.");
+        PartiesDbContext tenantBParties = tenantBScope.ServiceProvider.GetRequiredService<PartiesDbContext>();
+        Tenant tenantBWithLogo = await tenantBParties.Tenants.SingleAsync(item => item.Id == tenantB.Id, cancellationToken);
+        string tenantBLogoUrl = tenantBScope.ServiceProvider.GetRequiredService<ITenantImageFiles>().ContentUrl(tenantBLogoId);
+        if (tenantBWithLogo.LogoUrl != tenantBLogoUrl)
+        {
+            tenantBWithLogo.LogoUrl = tenantBLogoUrl;
+            _ = await tenantBParties.SaveChangesAsync(cancellationToken);
+        }
+
         // Production startup binds the onboarding host to its platform-owned tenant; the E2E host skips module startup.
         Console.WriteLine("E2E fixture seeding: binding the onboarding host.");
         string? onboardingUrl = scope.ServiceProvider.GetRequiredService<IOptions<OnboardingHostOptions>>().Value.OnboardingUrl;
@@ -459,6 +520,17 @@ internal static class E2eFixtureSeeder
                 OnboardingTenant.AppId,
                 OnboardingTenant.Name,
                 new Uri(onboardingUrl, UriKind.Absolute).Host), cancellationToken);
+        }
+
+        Console.WriteLine("E2E fixture seeding: binding the sign-in host.");
+        string? signInUrl = scope.ServiceProvider.GetRequiredService<IOptions<SignInHostOptions>>().Value.SignInUrl;
+        if (!string.IsNullOrWhiteSpace(signInUrl))
+        {
+            _ = await scope.ServiceProvider.GetRequiredService<IAppTenantProvisioner>().EnsureAsync(new EnsureAppTenantRequest(
+                SignInTenant.OwnerName,
+                SignInTenant.AppId,
+                SignInTenant.Name,
+                new Uri(signInUrl, UriKind.Absolute).Host), cancellationToken);
         }
 
         Console.WriteLine("E2E fixture seeding: assigning platform-admin access.");
@@ -541,12 +613,15 @@ internal static class E2eFixtureSeeder
         await sender.Send(new PatientViewRefreshCommand(), cancellationToken);
     }
 
-    private static async Task EnsureObjectAsync(IObjectStorageService storage, string checksum, string content, CancellationToken cancellationToken)
+    private static Task EnsureObjectAsync(IObjectStorageService storage, string checksum, string content, CancellationToken cancellationToken) =>
+        EnsureObjectAsync(storage, checksum, System.Text.Encoding.UTF8.GetBytes(content), "text/plain", cancellationToken);
+
+    private static async Task EnsureObjectAsync(IObjectStorageService storage, string checksum, byte[] content, string contentType, CancellationToken cancellationToken)
     {
         if (await storage.ExistsAsync(checksum, cancellationToken))
             return;
 
-        await using MemoryStream stream = new(System.Text.Encoding.UTF8.GetBytes(content), writable: false);
-        await storage.UploadAsync(checksum, "text/plain", stream, stream.Length, cancellationToken);
+        await using MemoryStream stream = new(content, writable: false);
+        await storage.UploadAsync(checksum, contentType, stream, stream.Length, cancellationToken);
     }
 }
