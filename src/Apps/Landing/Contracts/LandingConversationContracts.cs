@@ -49,6 +49,9 @@ public sealed record LandingError(string Code, string Message);
 
 /// <summary>A one-time ticket that signs the person in on the onboarding host, where they create their clinic.</summary>
 public sealed record LandingOnboardingHandoffResponse(string Hostname, string Token);
+
+/// <summary>The consultation's answers to carry into sign-up; both may be empty.</summary>
+public sealed record LandingOnboardingHandoffRequest(string? Category, IReadOnlyList<string>? Answers);
 public sealed record LandingHostBindingResponse(string Hostname, Guid? TenantId);
 public sealed record SetLandingHostBindingRequest(Guid TenantId);
 public sealed record SetLandingHostBindingResponse(string Hostname, Guid? PreviousTenantId, Guid TenantId, bool Changed);

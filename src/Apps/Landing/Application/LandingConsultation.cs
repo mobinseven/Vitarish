@@ -19,17 +19,14 @@ public sealed record LandingConsultationQuestion(string Key, int MaxSelections, 
 /// <summary>
 /// The guided consultation's questions and their answer keys. The page localizes them by key, the
 /// saved setup draft stores these keys, and each pain maps to features from <see cref="LandingFeatureCatalog"/>.
+/// The kinds of clinic are the self-service categories sign-up stores, so the answer carries over as is.
 /// </summary>
 public static class LandingConsultation
 {
-    public static LandingConsultationQuestion Kind { get; } = new("kind", 1,
-    [
-        new("dental", []),
-        new("dermatology", []),
-        new("physiotherapy", []),
-        new("general-practice", []),
-        new("psychology", [])
-    ]);
+    public const string KindKey = "kind";
+
+    public static LandingConsultationQuestion Kind(IReadOnlyList<string> categories) =>
+        new(KindKey, 1, categories.Select(category => new LandingConsultationOption(category, [])).ToArray());
 
     public static LandingConsultationQuestion Booking { get; } = new("booking", 1,
     [
@@ -49,5 +46,7 @@ public static class LandingConsultation
         new("insurance", ["tamin-insurance"], LandingProofKind.InProgress)
     ]);
 
-    public static IReadOnlyList<LandingConsultationQuestion> Questions { get; } = [Kind, Booking, Pains];
+    /// <summary>The answer keys the page may carry into sign-up besides the kind: booking and pains.</summary>
+    public static bool AreKnownAnswers(IReadOnlyList<string> answers) =>
+        answers.All(answer => Booking.Options.Concat(Pains.Options).Any(option => option.Key == answer));
 }

@@ -14,6 +14,7 @@ using Vitarish.Landing.Application;
 using Vitarish.Landing.Contracts;
 using Vitarish.Modules.Base.Core.Endpoints;
 using Vitarish.Parties.Application.Abstractions;
+using Vitarish.Parties.Application.Onboarding;
 using Vitarish.Parties.Application.SignIn;
 using Vitarish.Intelligence.Domain.Options;
 
@@ -97,14 +98,14 @@ public static class LandingApiEndpointMapping
         _ => Results.Json(new LandingError(LandingErrorCodes.Unavailable, "The assistant is temporarily unavailable."), statusCode: StatusCodes.Status503ServiceUnavailable)
     };
 
-    public static LandingCatalogResponse GetCatalog() =>
+    public static LandingCatalogResponse GetCatalog([FromServices] SelfServiceTenantProfile? profile) =>
         new(LandingFeatureCatalog.Clinic.Select(feature => new LandingFeatureResponse(feature.Key, feature.Status switch
             {
                 LandingFeatureStatus.Live => LandingFeatureAvailability.Live,
                 LandingFeatureStatus.InProgress => LandingFeatureAvailability.InProgress,
                 _ => LandingFeatureAvailability.NotYet
             })).ToArray(),
-            new LandingConsultationResponse(ToResponse(LandingConsultation.Kind), ToResponse(LandingConsultation.Booking), ToResponse(LandingConsultation.Pains)),
+            new LandingConsultationResponse(ToResponse(LandingConsultation.Kind(profile?.Categories ?? [])), ToResponse(LandingConsultation.Booking), ToResponse(LandingConsultation.Pains)),
             new LandingNextActionsResponse(LandingNextActions.OpenClinic, LandingNextActions.TalkToTeam, LandingNextActions.TryVoice));
 
     private static LandingConsultationQuestionResponse ToResponse(LandingConsultationQuestion question) =>
@@ -130,10 +131,21 @@ public static class LandingApiEndpointMapping
             reply.References,
             reply.NextAction);
 
-    private static async Task<IResult> IssueOnboardingHandoffAsync(HttpContext context, IOptions<LandingPlatformOptions> options, IPartiesService parties, ISender sender, CancellationToken ct)
+    private static async Task<IResult> IssueOnboardingHandoffAsync(LandingOnboardingHandoffRequest request, HttpContext context, IOptions<LandingPlatformOptions> options, IPartiesService parties, ISender sender, CancellationToken ct)
     {
+        IReadOnlyList<string> answers = request.Answers ?? [];
+        if (!LandingConsultation.AreKnownAnswers(answers) || answers.Count > OnboardingSetupDraftRules.MaxAnswers)
+            return Invalid("Only the consultation's own answers can be carried into sign-up.");
         if (await ResolveBoundTenantAsync(context, options, parties, ct) is null)
             return Results.NotFound();
+        if (!string.IsNullOrWhiteSpace(request.Category))
+        {
+            // The draft only pre-fills sign-up, so failing to save it never blocks the handoff;
+            // an answer sign-up does not offer is refused instead of being silently dropped.
+            SaveOnboardingSetupDraftOutcome saved = await sender.Send(new SaveOnboardingSetupDraftCommand(request.Category, answers), ct);
+            if (saved == SaveOnboardingSetupDraftOutcome.Invalid)
+                return Invalid("The clinic kind is not one sign-up offers.");
+        }
         SignInHandoff? handoff = await sender.Send(new IssueSignInHandoffCommand(null), ct);
         return handoff is null
             ? Results.NotFound(new LandingError(LandingErrorCodes.NotFound, "Clinic creation is not available."))
@@ -160,7 +172,8 @@ public static class LandingApiEndpointMapping
     }
 
     private static bool Valid(string ownerKey, string message) => OwnerKeys.Contains(ownerKey) && !string.IsNullOrWhiteSpace(message) && message.Trim().Length <= 2_000;
-    private static IResult Invalid() => Results.BadRequest(new LandingError(LandingErrorCodes.Validation, "A valid page and message of at most 2,000 characters are required."));
+    private static IResult Invalid() => Invalid("A valid page and message of at most 2,000 characters are required.");
+    private static IResult Invalid(string message) => Results.BadRequest(new LandingError(LandingErrorCodes.Validation, message));
     private static string GetOrCreateSession(HttpContext context, IDataProtectionProvider provider)
     {
         string? current = ReadSession(context, provider); if (current is not null) return current;

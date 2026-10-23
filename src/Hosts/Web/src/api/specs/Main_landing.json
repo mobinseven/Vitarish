@@ -183,6 +183,16 @@
           "Landing"
         ],
         "operationId": "LandingIssueOnboardingHandoff",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LandingOnboardingHandoffRequest"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "OK",
@@ -613,6 +623,30 @@
           },
           "tryVoice": {
             "type": "string"
+          }
+        }
+      },
+      "LandingOnboardingHandoffRequest": {
+        "required": [
+          "category",
+          "answers"
+        ],
+        "type": "object",
+        "properties": {
+          "category": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "answers": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
           }
         }
       },

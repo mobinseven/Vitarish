@@ -2374,6 +2374,65 @@
         }
       }
     },
+    "/api/modules/parties/onboarding/setup-draft": {
+      "get": {
+        "tags": [
+          "Parties"
+        ],
+        "operationId": "PartiesGetOnboardingSetupDraft",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OnboardingSetupDraftResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
     "/api/modules/parties/sign-in/clinics": {
       "get": {
         "tags": [
@@ -2635,6 +2694,24 @@
       },
       "IndicatorVerificationMethod": {
         "type": "integer"
+      },
+      "OnboardingSetupDraftResponse": {
+        "required": [
+          "category",
+          "answers"
+        ],
+        "type": "object",
+        "properties": {
+          "category": {
+            "type": "string"
+          },
+          "answers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
       },
       "OwnerReadDto": {
         "type": "object",

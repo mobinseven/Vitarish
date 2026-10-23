@@ -28,6 +28,7 @@ public static class PartiesApiRoutes
     public const string SubdomainQueryParameter = "subdomain";
     public const string OnboardingTenants = "/tenants";
     public const string OnboardingCategories = "/categories";
+    public const string OnboardingSetupDraft = "/setup-draft";
     public const string TenantProfile = "/tenant-profile";
     public const string TenantProfileLogo = "/tenant-profile/logo";
     public const string TenantProfileLogoPromptDismissal = "/tenant-profile/logo-prompt-dismissal";

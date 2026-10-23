@@ -67,7 +67,8 @@ public sealed class LandingConversationResultMapperTests
     [Fact]
     public void Catalog_lists_every_feature_with_its_availability_and_the_consultation()
     {
-        Vitarish.Landing.Contracts.LandingCatalogResponse catalog = LandingApiEndpointMapping.GetCatalog();
+        Vitarish.Landing.Contracts.LandingCatalogResponse catalog = LandingApiEndpointMapping.GetCatalog(
+            new Vitarish.Parties.Application.Onboarding.SelfServiceTenantProfile("clinic-app", ["dentistry", "dermatology"]));
 
         catalog.Features.Select(feature => feature.Key).Should().Equal(LandingFeatureCatalog.Keys);
         catalog.Features.Single(feature => feature.Key == "tamin-insurance").Availability
@@ -76,6 +77,7 @@ public sealed class LandingConversationResultMapperTests
         catalog.Consultation.Pains.Options.Single(option => option.Key == "insurance").Proof
             .Should().Be(Vitarish.Landing.Contracts.LandingProofKind.InProgress);
         catalog.NextActions.OpenClinic.Should().Be(LandingNextActions.OpenClinic);
+        catalog.Consultation.Kind.Options.Select(option => option.Key).Should().Equal("dentistry", "dermatology");
     }
 
     private static DefaultHttpContext Context()

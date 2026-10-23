@@ -70,6 +70,12 @@ public static class PartiesApiEndpointMapping
             GetOnboardingCategories,
             PartiesApiOperations.GetOnboardingCategories,
             typeof(C.TenantCategoriesResponse));
+        _ = onboardingGroup.MapModuleGet(
+                PartiesApiRoutes.OnboardingSetupDraft,
+                GetOnboardingSetupDraftAsync,
+                PartiesApiOperations.GetOnboardingSetupDraft,
+                typeof(C.OnboardingSetupDraftResponse))
+            .Produces(StatusCodes.Status204NoContent);
         // On the shared sign-in host the user holds no role in the host's tenant, so these
         // require authentication but not ambient tenant access, and answer only on that host.
         RouteGroupBuilder signInGroup = endpoints
@@ -211,6 +217,11 @@ public static class PartiesApiEndpointMapping
             _ => throw new InvalidOperationException($"Unhandled tenant creation status {result.Status}.")
         };
     }
+
+    private static async Task<IResult> GetOnboardingSetupDraftAsync([FromServices] ISender sender, CancellationToken cancellationToken) =>
+        await sender.Send(new GetOnboardingSetupDraftQuery(), cancellationToken) is { } draft
+            ? Results.Ok(new C.OnboardingSetupDraftResponse(draft.Category, draft.Answers))
+            : Results.NoContent();
 
     // Arguments bind before the onboarding filter runs, so a missing profile must not fail binding.
     private static IResult GetOnboardingCategories([FromServices] SelfServiceTenantProfile? profile) =>
