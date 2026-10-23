@@ -10,7 +10,11 @@ import {
   authenticationLoginPhoneComplete,
   authenticationSessionGet,
 } from "../../shared/auth/src/api/generated/authentication/authentication";
-import { intelligenceGetLiveTranscriptionCapabilities } from "../../shared/intelligence/src/api/generated/intelligence/intelligence";
+import {
+  intelligenceForgetUserMemory,
+  intelligenceGetLiveTranscriptionCapabilities,
+  intelligenceGetUserMemory,
+} from "../../shared/intelligence/src/api/generated/intelligence/intelligence";
 import { partiesGetOnboardingSetupDraft } from "../../shared/journey/src/api/generated/parties/parties";
 import { landingIssueOnboardingHandoff } from "../../shared/platform/src/api/generated/landing/landing";
 
@@ -30,7 +34,7 @@ function generatedPath(operation: { toString(): string }): string {
 }
 
 /** Calls the API the way the landing page does: same origin, the page's tenant host, antiforgery on writes. */
-async function callApi(page: Page, method: "GET" | "POST", path: string, body?: unknown): Promise<ApiResult> {
+async function callApi(page: Page, method: "GET" | "POST" | "DELETE", path: string, body?: unknown): Promise<ApiResult> {
   return page.evaluate(
     async ({ tenantHostHeader, antiforgeryPath, requestMethod, requestPath, requestBody, requestId }) => {
       // Audited endpoints on a resolved tenant require a request id, as the shared API client sends.
@@ -103,6 +107,10 @@ test("a new phone number signs in on the landing host without a clinic and carri
 
   // Only the consultation's own answers can travel to sign-up.
   expect((await callApi(page, "POST", handoffPath, { category: "dermatology", answers: ["anything-else"] })).status).toBe(400);
+
+  // A visitor without a clinic sees and controls their own memory; a new account remembers nothing yet.
+  expect(await callApi(page, "GET", generatedPath(intelligenceGetUserMemory))).toEqual({ status: 200, body: { items: [] } });
+  expect((await callApi(page, "DELETE", generatedPath(intelligenceForgetUserMemory))).status).toBe(204);
 
   const handoff = await callApi(page, "POST", handoffPath, { category: "dermatology", answers: ["phone", "no-shows"] });
   expect(handoff.status).toBe(200);

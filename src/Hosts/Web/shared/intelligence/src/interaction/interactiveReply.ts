@@ -8,6 +8,13 @@ export interface InteractiveReply {
   question: InteractiveQuestion | null;
   references: readonly string[];
   nextAction: string | null;
+  /** Facts the app saved from this reply, which the person can undo. */
+  remembered: readonly InteractiveRemembered[];
+}
+
+export interface InteractiveRemembered {
+  id: string;
+  text: string;
 }
 
 export interface InteractiveQuestion {
@@ -39,6 +46,7 @@ export interface InteractiveReplyWire {
   } | null;
   references?: readonly string[];
   nextAction?: string | null;
+  remembered?: readonly InteractiveRemembered[] | null;
 }
 
 export function toInteractiveReply(wire: InteractiveReplyWire): InteractiveReply {
@@ -55,5 +63,6 @@ export function toInteractiveReply(wire: InteractiveReplyWire): InteractiveReply
     question,
     references: wire.references ?? [],
     nextAction: wire.nextAction ?? null,
+    remembered: wire.remembered ?? [],
   };
 }

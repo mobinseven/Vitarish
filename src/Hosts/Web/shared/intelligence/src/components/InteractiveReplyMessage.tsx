@@ -6,6 +6,7 @@ import { useLocalizedText } from "@vitarish/localization";
 import { ChatMessage } from "@vitarish/ui";
 import type { InteractiveReference, InteractiveReply } from "../interaction/interactiveReply";
 import { InteractiveOptionPicker } from "./InteractiveOptionPicker";
+import { RememberedNotes } from "./UserMemory";
 
 export interface InteractiveReferenceChipsProps {
   items: readonly InteractiveReference[];
@@ -69,6 +70,7 @@ export function InteractiveReplyMessage({
           />
         ) : null}
         <InteractiveReferenceChips items={references} />
+        <RememberedNotes items={reply.remembered} />
         {action ? <div className="flex flex-wrap gap-3">{action}</div> : null}
       </div>
     </ChatMessage>

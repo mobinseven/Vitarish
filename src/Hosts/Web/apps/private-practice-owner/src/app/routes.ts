@@ -39,6 +39,7 @@ export const Routes = {
     Passkeys: "/account/passkeys",
     Culture: "/account/culture",
     Security: "/account/security",
+    Memory: "/account/memory",
     Consents: "/account/consents",
     ContactConfirm: "/account/contact/confirm",
     ProfileComplete: "/account/profile/complete",

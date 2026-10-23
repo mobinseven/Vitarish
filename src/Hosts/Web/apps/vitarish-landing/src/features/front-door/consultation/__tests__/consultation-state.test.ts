@@ -60,7 +60,7 @@ describe("consultationReducer", () => {
     const state = run(
       { type: "start" },
       { type: "said", text: "Do you support insurance?" },
-      { type: "replied", reply: { text: "Tamin is in progress.", question: null, references: ["tamin-insurance"], nextAction: null } },
+      { type: "replied", reply: { text: "Tamin is in progress.", question: null, references: ["tamin-insurance"], nextAction: null, remembered: [] } },
     );
     expect(state.thread.slice(-2).map((entry) => entry.type)).toEqual(["user", "reply"]);
     expect(new Set(state.thread.map((entry) => entry.id)).size).toBe(state.thread.length);

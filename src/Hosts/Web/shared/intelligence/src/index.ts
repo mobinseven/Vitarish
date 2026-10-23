@@ -18,10 +18,13 @@ export type { InteractiveOptionPickerProps } from "./components/InteractiveOptio
 export { InteractiveReferenceChips, InteractiveReplyMessage } from "./components/InteractiveReplyMessage";
 export type { InteractiveReferenceChipsProps, InteractiveReplyMessageProps } from "./components/InteractiveReplyMessage";
 export { toInteractiveReply } from "./interaction/interactiveReply";
+export { RememberedNotes, UserMemorySection } from "./components/UserMemory";
+export { useUserMemory } from "./hooks/useUserMemory";
 export type {
   InteractiveOption,
   InteractiveQuestion,
   InteractiveReference,
+  InteractiveRemembered,
   InteractiveReply,
   InteractiveReplyWire,
 } from "./interaction/interactiveReply";

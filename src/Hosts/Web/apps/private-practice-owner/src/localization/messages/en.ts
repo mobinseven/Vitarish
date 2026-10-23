@@ -149,6 +149,7 @@ export const enMessages = {
       passkeys: "Passkeys",
       language: "Language",
       security: "Security history",
+      memory: "What Vitarish knows",
     },
     captions: {
       name: "Update your first and last name",
@@ -158,6 +159,11 @@ export const enMessages = {
       passkeys: "Manage passkeys for passwordless sign-in",
       language: "Choose your display language",
       security: "Review recent sign-ins and security events",
+      memory: "See, correct or delete what Vitarish remembers about you",
+    },
+    memory: {
+      title: "What Vitarish knows",
+      description: "Vitarish remembers a little about you and your business so it doesn't ask twice. You decide what stays.",
     },
     name: {
       title: "Edit Name",
