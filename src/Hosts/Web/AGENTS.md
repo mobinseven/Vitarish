@@ -18,7 +18,7 @@
 
 Applies to every `apps/*` and `shared/*` package.
 
-- **[MUST]** Place each titled content block of a page (a form, table, list,
+- **[SHOULD]** Place each titled content block of a page (a form, table, list,
   detail group, or settings group under its own heading) in a section surface:
   `<Surface className="flex flex-col gap-6 rounded-3xl p-6">` whose first
   child is the section header, an `h2` with

@@ -19,7 +19,7 @@ export type MarketingAction = {
   icon?: ReactNode;
 };
 
-const actionLayoutClasses = "inline-flex min-h-11 items-center justify-center rounded-xl px-5 py-3 text-sm font-semibold no-underline transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary";
+const actionLayoutClasses = "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold no-underline transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary";
 
 // Links have no HeroUI variant, so their colors follow the tone here.
 const linkClasses = (tone: MarketingAction["tone"]) => cx(
@@ -46,7 +46,8 @@ export function MarketingActionLink({
   const tone = action.tone ?? "primary";
   const sizing = cx(fullWidth && "w-full", className);
 
-  const content = <><span>{action.label}</span>{action.icon}</>;
+  // The icon leads the label, as on every Vitarish button.
+  const content = <>{action.icon}<span>{action.label}</span></>;
 
   if (action.href) {
     return (

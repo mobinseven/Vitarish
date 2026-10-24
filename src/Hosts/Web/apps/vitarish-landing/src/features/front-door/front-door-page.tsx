@@ -1,17 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useReducer, useState } from "react";
-import { Alert, Spinner } from "@heroui/react";
-import { useAuthSession } from "@vitarish/auth";
-import { onboardingHandoffUrl } from "@vitarish/journey/onboarding-host";
-import { useLocalizedText } from "@vitarish/localization";
-import { landingIssueOnboardingHandoff } from "@vitarish/platform";
-import { MarketingFooter } from "@vitarish/ui";
-import { ConsultationView } from "./consultation/consultation-view";
-import { consultationReducer, initialConsultation, pendingSignIn } from "./consultation/consultation-state";
-import { FrontDoorHeader, FrontDoorHero } from "./front-door-hero";
-import { useFrontDoorConversation } from "./use-front-door-conversation";
-import { useLandingCatalog } from "./use-landing-catalog";
+import { Accordion, Button, Link, Tooltip } from "@heroui/react";
+import { setLocaleCookie, supportedLocales, useLocalizedText } from "@vitarish/localization";
+import { FaIcon, FeatureItemCard, MarketingActionLink } from "@vitarish/ui";
+import { whatsappChatUrl } from "./whatsapp";
 import styles from "./front-door.module.css";
 
 interface FrontDoorPageProps {
@@ -21,128 +13,176 @@ interface FrontDoorPageProps {
   whatsappNumber: string | null;
 }
 
-/**
- * The public front door. Visitors start on a single question; once they ask something or choose
- * "I run a clinic", the page becomes the consultation.
- */
-export function FrontDoorPage({ onboardingUrl, whatsappNumber }: FrontDoorPageProps) {
-  const { t } = useLocalizedText();
-  const catalog = useLandingCatalog();
-  const conversation = useFrontDoorConversation();
-  const [state, dispatch] = useReducer(consultationReducer, initialConsultation);
-  const isConsulting = state.thread.length > 0;
-  const session = useAuthSession();
-  const [hasSignedInHere, setSignedInHere] = useState(false);
-  const isSignedIn = hasSignedInHere || session.isAuthenticated;
-  const [isOpening, setOpening] = useState(false);
-  const [isOpenError, setOpenError] = useState(false);
+// Each mark has dark ink for the light theme and white ink for the dark theme; an inverted ground swaps them.
+const logotypes = {
+  mark: { light: "/Logo-Dark-®.svg", dark: "/Logo-®.svg" },
+  registered: { light: "/Master-Hel-Logotype-Dark-®.svg", dark: "/Master-Hel-Logotype-®.svg" },
+  copyright: { light: "/Master-Hel-Logotype-Dark-©.svg", dark: "/Master-Hel-Logotype-©.svg" },
+} as const;
 
-  // A one-time ticket signs the person in on the onboarding host, so they do not sign in twice.
-  const handOff = useCallback(async () => {
-    if (!onboardingUrl) return;
-    setOpening(true);
-    setOpenError(false);
-    try {
-      // The answers pre-fill sign-up; the server checks them against the consultation and sign-up's categories.
-      const handoff = await landingIssueOnboardingHandoff({
-        category: state.answers.kind[0] ?? null,
-        answers: [...state.answers.booking, ...state.answers.pains],
-      });
-      window.location.assign(onboardingHandoffUrl(onboardingUrl, handoff.token));
-    } catch {
-      setOpening(false);
-      setOpenError(true);
-    }
-  }, [onboardingUrl, state.answers]);
+const questionKeys = ["what", "who", "cost", "languages"] as const;
 
-  const openClinic = useCallback(() => {
-    if (isSignedIn) void handOff();
-    else dispatch({ type: "requestSignIn", reason: "clinic" });
-  }, [handOff, isSignedIn]);
-
-  const tryVoice = useCallback(() => {
-    if (!isSignedIn) dispatch({ type: "requestSignIn", reason: "voice" });
-  }, [isSignedIn]);
-
-  // Signing in for the clinic continues to sign-up; signing in for voice just turns the microphone on.
-  const onSignedIn = useCallback(() => {
-    const reason = pendingSignIn(state)?.reason;
-    setSignedInHere(true);
-    dispatch({ type: "signedIn" });
-    if (reason === "clinic") void handOff();
-  }, [handOff, state]);
-
-  useEffect(() => {
-    if (isConsulting) window.scrollTo({ top: 0 });
-  }, [isConsulting]);
-
-  // Returns whether the message was taken; one already on its way means this one is not.
-  const say = useCallback(
-    (text: string) => {
-      const message = text.trim();
-      if (!message || conversation.isPending) return false;
-      dispatch({ type: "said", text: message });
-      void conversation.submit(message).then((reply) => {
-        if (reply) dispatch({ type: "replied", reply });
-      });
-      return true;
-    },
-    [conversation],
+function Logotype({
+  mark,
+  alt,
+  className,
+  isInverted = false,
+}: {
+  mark: keyof typeof logotypes;
+  alt: string;
+  className?: string;
+  isInverted?: boolean;
+}) {
+  const { light, dark } = logotypes[mark];
+  return (
+    <span className={className}>
+      <img alt={alt} className="block h-full w-auto dark:hidden" src={isInverted ? dark : light} />
+      <img alt={alt} className="hidden h-full w-auto dark:block" src={isInverted ? light : dark} />
+    </span>
   );
+}
 
-  const retry = useCallback(async () => {
-    const reply = await conversation.retry();
-    if (reply) dispatch({ type: "replied", reply });
-  }, [conversation]);
-
-  const restart = useCallback(() => {
-    conversation.reset();
-    dispatch({ type: "restart" });
-  }, [conversation]);
+/** The public front door: the Vitarish apps, a few questions, and the brand. */
+export function FrontDoorPage({ onboardingUrl, whatsappNumber }: FrontDoorPageProps) {
+  const { t, locale } = useLocalizedText();
+  const otherLocale = supportedLocales.find((candidate) => candidate !== locale);
 
   return (
     <div className={styles.page}>
-      <FrontDoorHeader />
-      <main className={styles.main} id="vitarish-landing-main">
-        {isConsulting ? (
-          catalog.data ? (
-            <ConsultationView
-              catalog={catalog.data}
-              conversation={{ isPending: conversation.isPending, isError: conversation.isError, retry: () => void retry() }}
-              dispatch={dispatch}
-              state={state}
-              onRestart={restart}
-              onSay={say}
-              onboardingUrl={onboardingUrl}
-              signInFlow={{ isSignedIn, isOpening, isError: isOpenError, openClinic, tryVoice, onSignedIn }}
-              whatsappNumber={whatsappNumber}
-            />
-          ) : catalog.isError ? (
-            <Alert className={styles.sectionBody} status="danger">
-              <Alert.Indicator />
-              <Alert.Content>
-                <Alert.Description>{t("landing.roadmap.error")}</Alert.Description>
-              </Alert.Content>
-            </Alert>
-          ) : (
-            <div className={styles.loading}>
-              <Spinner aria-label={t("landing.roadmap.loading")} />
-            </div>
-          )
-        ) : (
-          <FrontDoorHero
-            isPending={conversation.isPending}
-            isSignedIn={isSignedIn}
-            onAsk={(text) => void say(text)}
-            onStartClinic={() => dispatch({ type: "start" })}
+      <header className={styles.header}>
+        <a aria-label={t("landing.brand.home")} className={styles.brand} href="/">
+          <Logotype alt="" className={styles.headerMark} mark="mark" />
+        </a>
+        {otherLocale && (
+          <MarketingActionLink
+            action={{
+              label: t("landing.header.language"),
+              tone: "outline",
+              tooltip: t("landing.header.languageTooltip"),
+              icon: <FaIcon aria-hidden="true" icon="language" size="1x" />,
+              onPress: () => {
+                setLocaleCookie(otherLocale);
+                window.location.reload();
+              },
+            }}
+            className={styles.headerAction}
           />
         )}
+      </header>
+      <main className={styles.main} id="vitarish-landing-main">
+        <section aria-labelledby="landing-hero" className={styles.hero}>
+          <Logotype alt={t("landing.brand.name")} className={styles.heroLogotype} mark="registered" />
+          <div className={styles.heroText}>
+            <h1 className={styles.heroTitle} id="landing-hero">
+              <span className={styles.heroLead}>{t("landing.hero.lead")}</span>
+              <span className={styles.heroFollow}>{t("landing.hero.follow")}</span>
+            </h1>
+            <p className={styles.heroIntro}>{t("landing.hero.intro")}</p>
+          </div>
+        </section>
+        <section aria-labelledby="landing-apps" className={styles.band}>
+          <h2 className={styles.display} id="landing-apps">{t("landing.apps.title")}</h2>
+          <FeatureItemCard className={styles.app} variant="secondary">
+            <FeatureItemCard.Icon>
+              <FaIcon aria-hidden="true" icon="user-doctor" size="xl" />
+            </FeatureItemCard.Icon>
+            <FeatureItemCard.Content>
+              <FeatureItemCard.Title className={styles.appTitle}>{t("landing.apps.practice.title")}</FeatureItemCard.Title>
+              <FeatureItemCard.Description className={styles.appText}>{t("landing.apps.practice.description")}</FeatureItemCard.Description>
+            </FeatureItemCard.Content>
+            {onboardingUrl && (
+              <FeatureItemCard.Action className={styles.appAction}>
+                <MarketingActionLink
+                  action={{
+                    label: t("landing.apps.practice.open"),
+                    href: onboardingUrl,
+                    tooltip: t("landing.apps.practice.openTooltip"),
+                    icon: <FaIcon aria-hidden="true" icon="hospital" size="1x" />,
+                  }}
+                />
+              </FeatureItemCard.Action>
+            )}
+          </FeatureItemCard>
+        </section>
+        <section aria-labelledby="landing-questions" className={styles.band}>
+          <h2 className={styles.display} id="landing-questions">{t("landing.questions.title")}</h2>
+          <Accordion className={styles.questions}>
+            {questionKeys.map((key) => (
+              <Accordion.Item key={key} id={key}>
+                <Accordion.Heading>
+                  <Accordion.Trigger className={styles.question}>
+                    {t(`landing.questions.${key}.question`)}
+                    <Accordion.Indicator className={styles.questionIndicator}>
+                      <FaIcon aria-hidden="true" icon="plus" />
+                    </Accordion.Indicator>
+                  </Accordion.Trigger>
+                </Accordion.Heading>
+                <Accordion.Panel>
+                  <Accordion.Body className={styles.answer}>{t(`landing.questions.${key}.answer`)}</Accordion.Body>
+                </Accordion.Panel>
+              </Accordion.Item>
+            ))}
+            {whatsappNumber && (
+              <Accordion.Item id="contact">
+                <Accordion.Heading>
+                  <Accordion.Trigger className={styles.question}>
+                    {t("landing.questions.contact.question")}
+                    <Accordion.Indicator className={styles.questionIndicator}>
+                      <FaIcon aria-hidden="true" icon="plus" />
+                    </Accordion.Indicator>
+                  </Accordion.Trigger>
+                </Accordion.Heading>
+                <Accordion.Panel>
+                  <Accordion.Body className={styles.answer}>
+                    {t("landing.questions.contact.answer")}{" "}
+                    <Link
+                      href={whatsappChatUrl(whatsappNumber, t("landing.questions.contact.message"))}
+                      rel="noreferrer"
+                      target="_blank"
+                    >
+                      {t("landing.questions.contact.link")}
+                    </Link>
+                  </Accordion.Body>
+                </Accordion.Panel>
+              </Accordion.Item>
+            )}
+          </Accordion>
+        </section>
       </main>
-      <MarketingFooter
-        brand={<span className={styles.footerBrand}>{t("landing.brand.name")}</span>}
-        description={t("landing.footer.description")}
-        navigationLabel={t("landing.footer.navigation")}
-      />
+      <footer className={styles.footer}>
+        <div className={styles.footerTop}>
+          <Tooltip>
+            <Button
+              isIconOnly
+              aria-label={t("landing.footer.top")}
+              className={styles.toTop}
+              variant="ghost"
+              onPress={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+            >
+              <FaIcon aria-hidden="true" icon="arrow-up" size="2x" />
+            </Button>
+            <Tooltip.Content>{t("landing.footer.top")}</Tooltip.Content>
+          </Tooltip>
+        </div>
+        <div className={styles.footerBottom}>
+          <p className={styles.footerNote}>
+            {t("landing.footer.description")}
+            <br />
+            {t("landing.footer.rights")}
+          </p>
+          {whatsappNumber && (
+            <Link
+              className={styles.footerContact}
+              href={whatsappChatUrl(whatsappNumber, t("landing.questions.contact.message"))}
+              rel="noreferrer"
+              target="_blank"
+            >
+              {t("landing.questions.contact.link")}
+            </Link>
+          )}
+        </div>
+        <Logotype isInverted alt={t("landing.brand.name")} className={styles.footerLogotype} mark="copyright" />
+      </footer>
     </div>
   );
 }

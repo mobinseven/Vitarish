@@ -1,0 +1,29 @@
+/* Above everything until the document has loaded; the fade ends by unmounting it. */
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  background: var(--background);
+  color: var(--foreground);
+  transition: opacity 400ms ease;
+}
+
+.splash[data-fading="true"] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Drawn by the server, so something is on screen before any script runs; the animated wordmark replaces it. */
+.wordmark {
+  font-size: clamp(2rem, 8vw, 4.5rem);
+  font-weight: 600;
+  letter-spacing: -0.05em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .splash {
+    transition-duration: 1ms;
+  }
+}
