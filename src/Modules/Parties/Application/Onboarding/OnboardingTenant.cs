@@ -14,9 +14,13 @@ public static class OnboardingTenant
 
 /// <summary>
 /// The onboarding host's public URL (<c>Vitarish:OnboardingUrl</c>). When set, startup binds
-/// its host to <see cref="OnboardingTenant"/>.
+/// its host to <see cref="OnboardingTenant"/>; sign-in hands people over to it only while
+/// <see cref="TenantOnboardingEnabled"/>.
 /// </summary>
 public sealed class OnboardingHostOptions
 {
     public string? OnboardingUrl { get; set; }
+
+    /// <summary>The <c>Vitarish:Features:TenantOnboarding</c> flag; composition copies it here.</summary>
+    public bool TenantOnboardingEnabled { get; set; }
 }

@@ -3,6 +3,7 @@ using DnsClient;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Parties.Application;
 using Vitarish.Parties.Application.Abstractions;
@@ -35,7 +36,10 @@ public static class IdentityPartiesExtensions
         _ = builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(typeof(AssemblyMarker).Assembly, typeof(PlatformAdminTenant).Assembly));
         _ = builder.Services.AddOptions<PlatformAdminHostOptions>().BindConfiguration(Modules.Base.Core.Module.ApplicationSection);
         _ = builder.Services.AddOptions<TenantAddressOptions>().BindConfiguration(Modules.Base.Core.Module.ApplicationSection);
-        _ = builder.Services.AddOptions<OnboardingHostOptions>().BindConfiguration(Modules.Base.Core.Module.ApplicationSection);
+        _ = builder.Services.AddOptions<OnboardingHostOptions>()
+            .BindConfiguration(Modules.Base.Core.Module.ApplicationSection)
+            .Configure<IConfiguration>((options, configuration) =>
+                options.TenantOnboardingEnabled = configuration.GetValue<bool>(Modules.Base.Core.Module.TenantOnboardingFeatureKey));
         _ = builder.Services.AddOptions<SignInHostOptions>().BindConfiguration(Modules.Base.Core.Module.ApplicationSection);
         _ = builder.Services.AddRateLimiter(options => options.AddPolicy(PartiesRateLimitPolicies.SelfServiceTenantCreation, context =>
             RateLimitPartition.GetSlidingWindowLimiter(

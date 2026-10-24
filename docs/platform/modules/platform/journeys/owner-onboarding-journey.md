@@ -19,10 +19,10 @@
 
 | Setting | Effect when missing |
 | --- | --- |
-| `Vitarish:Features:TenantOnboarding` | The creation endpoints answer 404. |
+| `Vitarish:Features:TenantOnboarding` | The creation endpoints and the onboarding handoff answer 404. |
 | `Vitarish:TenantBaseDomain` | The creation endpoints answer 404; no clinic address can be formed. |
 | `Vitarish:OnboardingUrl` (Main) | No host is bound to the onboarding tenant, so nobody without a role can sign in anywhere. |
-| `VITARISH_ONBOARDING_URL` (owner Web) | The sign-in page hides **Create your clinic**. |
+| `VITARISH_TENANT_ONBOARDING` or `VITARISH_ONBOARDING_URL` (owner Web, landing) | The sign-in page hides **Create your clinic**, and the landing page hides its link. |
 
 Each clinic lives at `<subdomain>.<base domain>`. The onboarding host is one
 more host under the base domain, bound to a platform-owned onboarding tenant
