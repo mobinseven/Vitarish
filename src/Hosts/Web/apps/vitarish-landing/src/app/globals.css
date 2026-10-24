@@ -89,7 +89,8 @@
 [data-theme="brutalism-dark"] {
   color-scheme: dark;
   /* Theme Colors */
-  --background: oklch(12.21% 0.0000 263.28);
+  /* Owner choice (2026-10-24): the dark page takes the light theme's ink, the colour of its inverted footer. */
+  --background: var(--eclipse);
   --accent: var(--color-lime-300, #BBF451);
   --accent-foreground: var(--eclipse);
   --success: oklch(73.29% 0.1935 135.56);

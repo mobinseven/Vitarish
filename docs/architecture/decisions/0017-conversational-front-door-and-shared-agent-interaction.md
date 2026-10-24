@@ -160,3 +160,11 @@ unavailable.
   WhatsApp as the human channel) is recorded in the landing app's `PRODUCT.md`.
 - The landing page currently calls its API with a hand-written client instead of
   a generated one; that is pre-existing and tracked separately.
+- 2026-10-24 (owner decision): the landing page no longer shows the
+  conversation. It shows the apps, a short set of questions and the brand.
+  The shared interaction layer, the landing consultation and catalog
+  endpoints, role-free landing sessions and the landing handoff stay in place
+  without a landing caller until the conversation returns or this ADR is
+  superseded; the landing's `@vitarish/auth`, `@vitarish/clinic`,
+  `@vitarish/intelligence` and `@vitarish/platform` dependencies are unused
+  meanwhile.

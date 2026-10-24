@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { I18nAppLayout, resolveI18nAppLocale } from "@vitarish/localization";
 import { ContentSecurityPolicyNonceMeta, contentSecurityPolicyNonce } from "@vitarish/ui/content-security-policy";
 import { ThemePaletteClassScript, brutalismThemePaletteClasses } from "@vitarish/ui/theme-palette";
+import { SplashScreen, splashAttribute } from "../components/splash/splash-screen";
 import { AppProviders } from "../components/providers/AppProviders";
 import { getMessages } from "../localization";
 import { applicationFontVariables } from "./fonts";
@@ -34,6 +35,9 @@ export default async function RootLayout({
       <head>
         <link rel="stylesheet" href="/fontawesome/css/all.min.css" />
         <ContentSecurityPolicyNonceMeta nonce={nonce} />
+        <noscript>
+          <style nonce={nonce}>{`[${splashAttribute}] { display: none; }`}</style>
+        </noscript>
         <ThemePaletteClassScript classes={brutalismThemePaletteClasses} nonce={nonce} />
       </head>
       <I18nAppLayout
@@ -43,7 +47,10 @@ export default async function RootLayout({
         htmlClassName={applicationFontVariables}
         bodyClassName="bg-background text-foreground"
       >
-        <AppProviders nonce={nonce}>{children}</AppProviders>
+        <AppProviders nonce={nonce}>
+          <SplashScreen />
+          {children}
+        </AppProviders>
       </I18nAppLayout>
     </>
   );
