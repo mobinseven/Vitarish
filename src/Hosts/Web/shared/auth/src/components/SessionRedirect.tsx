@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { useAuthSession } from "../hooks/useAuthSession";
 import {
   ignoreAuthNavigation,
@@ -98,6 +98,13 @@ export function AuthenticatedRedirectBoundary({
   returnUrlSearchParams,
 }: AuthenticatedRedirectBoundaryProps) {
   const { isAuthenticated, isLoading } = useAuthSession();
+  // Only a visitor who arrives signed in is sent away. Someone who signs in on this page is
+  // sent on by the sign-in form, which knows the server's destination; a second navigation
+  // from here would race it.
+  const arrivedSignedIn = useRef<boolean | null>(null);
+  if (!isLoading && arrivedSignedIn.current === null) {
+    arrivedSignedIn.current = isAuthenticated;
+  }
 
   const returnUrl =
     returnUrlSearchParams?.get("returnUrl") ||
@@ -109,7 +116,7 @@ export function AuthenticatedRedirectBoundary({
 
   const redirectTarget = resolveSessionRedirectTarget({
     isLoading,
-    isAuthenticated,
+    isAuthenticated: isAuthenticated && arrivedSignedIn.current === true,
     authenticatedHref: safeReturnUrl || authenticatedHref,
     anonymousHref: null,
   });

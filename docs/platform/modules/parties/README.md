@@ -64,6 +64,16 @@ Such a session can use the account, journey, onboarding and landing visitor
 endpoints, which need no tenant access; every tenant endpoint refuses it, and
 sign-in elsewhere without a role stays refused.
 
+People who already have clinics sign in on the shared sign-in host,
+`Vitarish:SignInUrl`, which startup binds to the platform-owned `SignInTenant`
+([ADR-0018](../../../architecture/decisions/0018-shared-sign-in-host.md)). The
+`/api/modules/parties/sign-in` endpoints answer only there: they list the
+user's clinics from their tenant roles (`ListSignInClinicsQuery`) and issue a
+one-time handoff link to one of them, or to the onboarding host
+(`IssueSignInHandoffCommand`). The server picks the target host; the caller
+only names a tenant id, and a clinic that is not the user's gets the same 404 as
+one that does not exist.
+
 ## Business profile
 
 A tenant's business category and public listing details live in

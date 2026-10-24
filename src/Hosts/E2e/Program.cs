@@ -29,6 +29,7 @@ using Vitarish.Communications.Application.Abstractions;
 using Vitarish.E2e.Infrastructure.Communications;
 using Vitarish.Parties.Application.Addresses;
 using Vitarish.Parties.Application.Onboarding;
+using Vitarish.Parties.Application.SignIn;
 using BaseModule = Vitarish.Modules.Base.Core.Module;
 
 const string apiOriginKey = "VITARISH_E2E_API_ORIGIN";
@@ -38,9 +39,11 @@ const string platformCorsOriginKey = "Cors:AllowedOrigins:2";
 const string platformWebAuthnOriginKey = "WebAuthn:Origins:1";
 const string passwordKey = "VITARISH_E2E_PASSWORD";
 const string smsCapturePathKey = "VITARISH_E2E_SMS_CAPTURE_PATH";
-// Clinics live at <subdomain>.localhost on the web port; people sign up and create them on start.localhost.
+// Clinics live at <subdomain>.localhost on the web port; people sign up and create them on start.localhost,
+// and sign in to any of their clinics on auth.localhost.
 const string tenantBaseDomain = "localhost";
 const string onboardingSubdomain = "start";
+const string signInSubdomain = "auth";
 const string landingSubdomain = "landing";
 const string surgeryMaterializedViewRefresherTypeName = "SurgeryMaterializedViewRefresher";
 
@@ -85,6 +88,8 @@ builder.Configuration[BaseModule.TenantOnboardingFeatureKey] = "true";
 builder.Configuration[$"{BaseModule.ApplicationSection}:{nameof(TenantAddressOptions.TenantBaseDomain)}"] = tenantBaseDomain;
 builder.Configuration[$"{BaseModule.ApplicationSection}:{nameof(OnboardingHostOptions.OnboardingUrl)}"] =
     new UriBuilder(webOrigin) { Host = $"{onboardingSubdomain}.{tenantBaseDomain}" }.Uri.ToString().TrimEnd('/');
+builder.Configuration[$"{BaseModule.ApplicationSection}:{nameof(SignInHostOptions.SignInUrl)}"] =
+    new UriBuilder(webOrigin) { Host = $"{signInSubdomain}.{tenantBaseDomain}" }.Uri.ToString().TrimEnd('/');
 builder.Configuration["Vitarish:Security:MandatoryAuditEnabled"] = "true";
 builder.Configuration["Vitarish:Security:Audit:CapacityWarningBytes"] = "1073741824";
 builder.Configuration["Vitarish:Security:AuthenticationAttempts:Realm"] = apiOrigin.Host;

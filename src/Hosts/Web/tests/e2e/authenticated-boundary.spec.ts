@@ -36,6 +36,8 @@ const tenantBId = "b2d2e4a1-2fd8-4781-8d9f-6c96f2a5e7b4";
 const tenantBOwnerUserId = "c65fcb80-8db3-4e2f-b3b9-1c4d7b1e0a62";
 const tenantAFileId = "4b8d1e7a-9f24-4d65-a8b1-6c0e2f5d7a91";
 const tenantBFileId = "9e2f6a41-7c35-4b8d-a0e6-1f5d9c2b7a84";
+// Tenant B's seeded logo, which the shared sign-in host's clinic list shows (E2eFixtureSeeder).
+const tenantBLogoFileId = "6d1e8b3f-2a94-4c57-b0d8-9f3a7e5c1b26";
 const smtpCapturePath = process.env.VITARISH_E2E_SMTP_CAPTURE_PATH;
 const agentSharedSecret = process.env.VITARISH_E2E_AGENT_SHARED_SECRET;
 
@@ -1053,7 +1055,9 @@ test("keeps two tenants isolated across identifiers, alternate routes, search, a
   expect(tenantBFileContent.body).toBe("tenant-b-file");
   const tenantBFileSearch = await postJson(tenantBPage, "/api/modules/files/search", { descriptor: { skip: 0, take: 100 } });
   expect(tenantBFileSearch.status).toBe(200);
-  expect(tenantBFileSearch.body).toEqual([expect.objectContaining({ id: tenantBFileId })]);
+  expect((tenantBFileSearch.body as Array<{ id: string }>).map((file) => file.id).sort()).toEqual(
+    [tenantBFileId, tenantBLogoFileId].sort(),
+  );
 
   const tenantBList = await postJson(tenantBPage, "/api/modules/clinic/patients", { descriptor: {} });
   expect(tenantBList.status).toBe(200);

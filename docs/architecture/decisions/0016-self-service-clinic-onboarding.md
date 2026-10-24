@@ -101,7 +101,9 @@ Rejected: it would share sessions between clinics.
 
 ### Option 4: A shared host with a clinic picker
 
-Rejected for now: it needs a rewrite of how clinics are resolved.
+Rejected for now: it needs a rewrite of how clinics are resolved. Later
+adopted without that rewrite, as a platform-owned sign-in tenant
+([ADR-0018](0018-shared-sign-in-host.md)).
 
 ### Option 5: A shared `TenantUser` role on the onboarding tenant
 

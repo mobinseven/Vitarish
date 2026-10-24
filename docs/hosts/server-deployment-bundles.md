@@ -115,7 +115,10 @@ proxy network.
 
 Self-service clinic onboarding uses the `*.clinic.vitarish.com` host and is off
 until its settings are set; see the
-[clinic onboarding runbook](../runbooks/clinic-onboarding.md).
+[clinic onboarding runbook](../runbooks/clinic-onboarding.md). The shared
+sign-in host, for example `auth.vitarish.com`, uses the `*.vitarish.com` host
+and is off until its setting is set; see the
+[sign-in host runbook](../runbooks/sign-in-host.md).
 
 The repository's examples use deliberately invalid image and credential
 values. They are for Compose rendering only; replace them in the protected
