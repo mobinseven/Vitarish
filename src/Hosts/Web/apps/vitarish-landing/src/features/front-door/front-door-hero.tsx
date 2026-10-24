@@ -63,9 +63,7 @@ export function FrontDoorHero({
   return (
     <HeroHeader className={styles.hero} variant="centered">
       <HeroHeader.Content className={styles.heroContent}>
-        <HeroHeader.Eyebrow>{t("landing.brand.slogan")}</HeroHeader.Eyebrow>
         <HeroHeader.Title className={styles.heroTitle}>{t("landing.hero.title")}</HeroHeader.Title>
-        <HeroHeader.Description className={styles.heroDescription}>{t("landing.hero.description")}</HeroHeader.Description>
         <div className={styles.heroComposer}>
           <AgentConversationComposer
             dictation={isSignedIn}
@@ -86,7 +84,7 @@ export function FrontDoorHero({
         </div>
         <PromptSuggestion aria-label={t("landing.hero.startersLabel")} className={styles.starters}>
           <PromptSuggestion.Items>
-            <PromptSuggestion.Item className={`${styles.starter} ${styles.starterLead}`} onPress={onStartClinic}>
+            <PromptSuggestion.Item className={styles.starter} onPress={onStartClinic}>
               <FaIcon aria-hidden="true" icon="hospital" />
               <PromptSuggestion.ItemTitle>{t("landing.hero.starters.clinic")}</PromptSuggestion.ItemTitle>
             </PromptSuggestion.Item>

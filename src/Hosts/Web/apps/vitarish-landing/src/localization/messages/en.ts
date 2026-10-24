@@ -15,7 +15,6 @@ export const enMessages = {
   landing: {
     brand: {
       name: "Vitarish",
-      slogan: "The glory of purpose",
       home: "Vitarish home",
     },
     header: {
@@ -25,8 +24,6 @@ export const enMessages = {
     },
     hero: {
       title: "What are you trying to make happen?",
-      description:
-        "Tell Vitarish about your work. It answers with what fits, shows it working, and helps you start.",
       promptLabel: "Ask Vitarish",
       placeholder: "I run a small dental clinic. Where would Vitarish help first?",
       send: "Send",
@@ -37,21 +34,6 @@ export const enMessages = {
         booking: "Can my patients book online?",
       },
     },
-    spotlight: {
-      label: "What Vitarish does today",
-      clinic: {
-        title: "Clinic management",
-        body: "Bookings, patient records, shifts, dictated notes and staff roles.",
-      },
-      salons: {
-        title: "Salons and spas",
-        body: "The same foundation for a different kind of day.",
-      },
-      dictionary: {
-        title: "AI dictionary",
-        body: "A tool for everyone, free to use.",
-      },
-    },
     availability: {
       Live: "Live",
       InProgress: "In progress",
@@ -59,21 +41,21 @@ export const enMessages = {
       Planned: "Planned",
     },
     features: {
-      "online-booking": { title: "Online booking", body: "Patients pick an open slot in your shifts and book or cancel themselves." },
-      reservations: { title: "Reservations", body: "Every booking in one place, for you and your team." },
-      "shifts-and-services": { title: "Shifts and services", body: "Recurring shifts per provider, changes for a single day, and the services you offer." },
-      "check-in-sms": { title: "SMS check-in", body: "Patient arrivals confirmed by text message." },
-      reminders: { title: "Reminders", body: "Reminders you set for patients and for your team." },
-      "patient-records": { title: "Patient records", body: "Find a patient by national ID, search, or create a record in seconds." },
-      "care-timeline": { title: "Care timeline", body: "Each patient's visits and procedures as one timeline." },
-      "dictated-notes": { title: "Dictated notes", body: "Speak a note in Persian or English and it becomes text. Audio is never stored." },
-      "clinical-templates": { title: "Clinical templates", body: "Prescription and procedure templates, surgeries and surgery types." },
-      "staff-roles": { title: "Staff roles", body: "Decide who sees and does what." },
-      "audit-log": { title: "Audit log", body: "Who changed what, and when." },
-      "clinic-address": { title: "Your own address", body: "Your clinic's own web address, with one sign-in for all your clinics." },
-      bilingual: { title: "Persian and English", body: "Right-to-left layout throughout." },
-      "tamin-insurance": { title: "Tamin insurance", body: "Connect your Tamin account today; full electronic prescriptions are still being built." },
-      "clinic-statistics": { title: "Clinic statistics", body: "Reports are not available yet." },
+      "online-booking": { title: "Online booking" },
+      reservations: { title: "Reservations" },
+      "shifts-and-services": { title: "Shifts and services" },
+      "check-in-sms": { title: "SMS check-in" },
+      reminders: { title: "Reminders" },
+      "patient-records": { title: "Patient records" },
+      "care-timeline": { title: "Care timeline" },
+      "dictated-notes": { title: "Dictated notes" },
+      "clinical-templates": { title: "Clinical templates" },
+      "staff-roles": { title: "Staff roles" },
+      "audit-log": { title: "Audit log" },
+      "clinic-address": { title: "Your own address" },
+      bilingual: { title: "Persian and English" },
+      "tamin-insurance": { title: "Tamin insurance" },
+      "clinic-statistics": { title: "Clinic statistics" },
     },
     consultation: {
       label: "Consultation with Vitarish",
@@ -202,36 +184,7 @@ export const enMessages = {
         send: "Send",
       },
     },
-    day: {
-      eyebrow: "A day at a Vitarish clinic",
-      title: "From the first shift to tomorrow's reminders",
-      description: "Every step below is something the clinic app does today.",
-      ask: "Ask about this",
-      askTooltip: "Start a conversation about this step",
-      items: {
-        shifts: { title: "Shifts open", body: "Your providers' shifts for the day are already set.", question: "How do shifts work in Vitarish?" },
-        booking: { title: "A patient books online", body: "They choose an open time without calling.", question: "How do patients book online with Vitarish?" },
-        checkIn: { title: "Arrival is confirmed", body: "Check-in sends an SMS confirmation.", question: "How does SMS check-in work?" },
-        note: { title: "The note is dictated", body: "Said once, saved as text.", question: "How does note dictation work?" },
-        prescription: { title: "A prescription from a template", body: "No retyping the usual plan.", question: "How do prescription templates work?" },
-        reminders: { title: "Reminders for tomorrow", body: "Set once for patients and the team.", question: "How do reminders work?" },
-      },
-    },
-    trust: {
-      eyebrow: "You stay in charge",
-      title: "Vitarish suggests; you decide",
-      description: "The assistant drafts and explains. Every decision about your clinic stays yours.",
-      items: {
-        roles: { title: "Roles you control", body: "Each person on your team sees and does only what you allow." },
-        audit: { title: "A record of every change", body: "The audit log shows who changed what, and when." },
-        audio: { title: "Voice is never stored", body: "Dictated notes become text; the audio is not kept." },
-        address: { title: "Your clinic's own address", body: "Patients and staff reach your clinic at its own web address." },
-      },
-    },
     roadmap: {
-      eyebrow: "What's live, what's next",
-      title: "We tell you what isn't built yet",
-      description: "This list comes from the same place the assistant reads, so both say the same thing.",
       loading: "Loading the feature list",
       error: "The feature list couldn't load. Refresh the page to try again.",
     },

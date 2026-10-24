@@ -353,7 +353,8 @@ two-host runner writes next to its proof screenshot under
 `src/Hosts/Web/artifacts/two-host-e2e/`.
 Narrow a run with
 `-- --scenarios ready -- --project desktop-light --grep "<name>"`; images land in
-`src/Hosts/Web/artifacts/private-practice-owner-screenshots/<scenario>/<locale>-<project>/`.
+`src/Hosts/Web/artifacts/<app>-screenshots/<scenario>/<locale>-<project>/`; `mockApps` in
+`scripts/spec-capture-options.mjs` names each mock app and the specs it owns (the owner app takes the rest).
 
 Browser specs live in `src/Hosts/Web/tests/mock` (mock API, run by
 `screenshots:private-practice-owner`), `tests/e2e` (real E2E and Web hosts, run

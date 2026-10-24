@@ -19,13 +19,24 @@ export type MarketingAction = {
   icon?: ReactNode;
 };
 
-const actionClasses = (tone: MarketingAction["tone"]) => cx(
-  "inline-flex min-h-11 items-center justify-center rounded-xl px-5 py-3 text-sm font-semibold no-underline transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
+const actionLayoutClasses = "inline-flex min-h-11 items-center justify-center rounded-xl px-5 py-3 text-sm font-semibold no-underline transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary";
+
+// Links have no HeroUI variant, so their colors follow the tone here.
+const linkClasses = (tone: MarketingAction["tone"]) => cx(
+  actionLayoutClasses,
   tone === "primary" && "bg-accent text-accent-foreground hover:opacity-90",
   tone === "secondary" && "bg-surface-secondary text-foreground hover:bg-surface-tertiary",
   tone === "outline" && "border border-default bg-transparent text-foreground hover:bg-surface-secondary",
   tone === "quiet" && "text-foreground hover:bg-surface-secondary",
 );
+
+// Buttons take their colors from the matching HeroUI variant, which pairs each fill with its foreground.
+const buttonVariants = {
+  primary: "primary",
+  secondary: "secondary",
+  outline: "outline",
+  quiet: "ghost",
+} as const satisfies Record<NonNullable<MarketingAction["tone"]>, ComponentProps<typeof Button>["variant"]>;
 
 export function MarketingActionLink({
   action,
@@ -33,7 +44,7 @@ export function MarketingActionLink({
   fullWidth = false,
 }: { action: MarketingAction; className?: string; fullWidth?: boolean }) {
   const tone = action.tone ?? "primary";
-  const classes = cx(actionClasses(tone), fullWidth && "w-full", className);
+  const sizing = cx(fullWidth && "w-full", className);
 
   const content = <><span>{action.label}</span>{action.icon}</>;
 
@@ -45,7 +56,7 @@ export function MarketingActionLink({
           target={action.external ? "_blank" : undefined}
           rel={action.external ? "noreferrer" : undefined}
           aria-disabled={action.isDisabled || undefined}
-          className={classes}
+          className={cx(linkClasses(tone), sizing)}
           onPress={action.isDisabled ? undefined : action.onPress}
         >
           {content}
@@ -58,9 +69,10 @@ export function MarketingActionLink({
   return (
     <Tooltip>
       <Button
-        className={classes}
+        className={cx(actionLayoutClasses, sizing)}
         isDisabled={action.isDisabled}
         isPending={action.isPending}
+        variant={buttonVariants[tone]}
         onPress={action.onPress}
       >
         {content}

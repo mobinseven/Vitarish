@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
-// Screenshots every private-practice-owner page against the mock API, once per mock scenario.
-// Usage: node scripts/private-practice-owner-screenshots.mjs [--scenarios ready,empty,loading,error] [-- <playwright test args>]
+// Screenshots one app's mock specs (the private-practice-owner app by default) against the mock API, once per mock scenario.
+// Usage: node scripts/private-practice-owner-screenshots.mjs [--app <name>] [--scenarios ready,empty,loading,error] [-- <playwright test args>]
 
 import { execFileSync, spawn } from "node:child_process";
 import { createRequire } from "node:module";
@@ -9,32 +9,53 @@ import { rm } from "node:fs/promises";
 import path from "node:path";
 
 import { layoutTestFixturesEnvironment } from "./layout-test-fixtures.mjs";
-import { mockScenarios, mockScreenshotOutputEnvironmentKey, mockScreenshotScenarioEnvironmentKey } from "./spec-capture-options.mjs";
+import {
+  defaultMockApp,
+  mockAppEnvironmentKey,
+  mockApps,
+  mockScenarios,
+  mockScreenshotOutputEnvironmentKey,
+  mockScreenshotRootFor,
+  mockScreenshotScenarioEnvironmentKey,
+} from "./spec-capture-options.mjs";
 
-const app = "@vitarish/private-practice-owner";
-const appUrl = "http://127.0.0.1:3000";
-const outputRoot = path.resolve("artifacts/private-practice-owner-screenshots");
 const playwrightCli = createRequire(import.meta.url).resolve("@playwright/test/cli");
 const serverStartTimeoutMilliseconds = 300_000;
-const usage = "Usage: node scripts/private-practice-owner-screenshots.mjs [--scenarios ready,empty,loading,error] [-- <playwright test args>]";
+const usage = "Usage: node scripts/private-practice-owner-screenshots.mjs [--app <name>] [--scenarios ready,empty,loading,error] [-- <playwright test args>]";
 
 const separator = process.argv.indexOf("--");
 const ownArguments = separator === -1 ? process.argv.slice(2) : process.argv.slice(2, separator);
 const playwrightArguments = separator === -1 ? [] : process.argv.slice(separator + 1);
 
+let appName = defaultMockApp;
 let scenarios = mockScenarios;
-if (ownArguments.length > 0) {
-  if (ownArguments.length !== 2 || ownArguments[0] !== "--scenarios") {
+for (let index = 0; index < ownArguments.length; index += 2) {
+  const [flag, value] = ownArguments.slice(index, index + 2);
+  if (value === undefined) {
     console.error(usage);
     process.exit(2);
   }
-  scenarios = ownArguments[1].split(",");
+  if (flag === "--app") appName = value;
+  else if (flag === "--scenarios") scenarios = value.split(",");
+  else {
+    console.error(usage);
+    process.exit(2);
+  }
+}
+if (!Object.hasOwn(mockApps, appName)) {
+  console.error(`Unsupported mock app: ${appName}. Use one of ${Object.keys(mockApps).join(", ")}.`);
+  process.exit(2);
+}
+{
   const unknown = scenarios.filter((scenario) => !mockScenarios.includes(scenario));
   if (unknown.length > 0) {
     console.error(`Unsupported mock scenario: ${unknown.join(", ")}`);
     process.exit(2);
   }
 }
+
+const { workspace: app, url: appUrl } = mockApps[appName];
+const outputRoot = path.resolve(mockScreenshotRootFor(appName));
 
 if (await isServing()) {
   console.error(`${appUrl} is already in use. Stop that server first; each scenario needs its own mock server.`);
@@ -57,7 +78,11 @@ for (const scenario of scenarios) {
     console.log(`== ${scenario}: capturing`);
     const exitCode = await run(
       [playwrightCli, "test", "--config", "playwright.private-practice-owner-screenshots.config.ts", ...playwrightArguments],
-      { [mockScreenshotScenarioEnvironmentKey]: scenario, [mockScreenshotOutputEnvironmentKey]: outputRoot },
+      {
+        [mockScreenshotScenarioEnvironmentKey]: scenario,
+        [mockScreenshotOutputEnvironmentKey]: outputRoot,
+        [mockAppEnvironmentKey]: appName,
+      },
     );
     if (exitCode !== 0) failed = true;
   } finally {

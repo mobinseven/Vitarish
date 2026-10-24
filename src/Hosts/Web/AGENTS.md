@@ -139,7 +139,7 @@ Applies to every `apps/*` and `shared/*` package.
 
 ## Screenshot capture
 
-- Capture owner-app pages and flows with `npm run specs` from the Web host
+- Capture mock-app pages and flows (the owner app and the landing page) with `npm run specs` from the Web host
   root. It runs the mock specs in `tests/mock` and the real-host specs in
   `tests/e2e`, by locale, theme, viewport, and mock scenario, with optional
   video, and ends with a `file://` link to every screenshot, video, and failure

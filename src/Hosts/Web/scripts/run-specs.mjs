@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-// Runs the owner app's mock and real-host (E2E) specs to capture screenshots and video.
+// Runs the mock specs of each mock app and the real-host (E2E) specs to capture screenshots and video.
 // Asks for the mode, flows, locales, themes, viewports, mock scenarios, video and browser; a flag answers its question
 // up front, and without a terminal every unanswered question takes its default.
 // Usage: npm run specs -- [--mode mock,e2e|all] [--flows <flow,...>|all] [--locales fa,en|all] [--themes light,dark|all]
@@ -22,7 +22,10 @@ import {
   captureVideoEnvironmentKey,
   captureViewportEnvironmentKey,
   captureViewports,
+  mockAppForSpec,
+  mockApps,
   mockScenarios,
+  mockScreenshotRootFor,
 } from "./spec-capture-options.mjs";
 import { twoHostE2eLocaleEnvironmentKey, twoHostE2eProofScreenshotEnvironmentKey } from "./two-host-e2e-artifacts.mjs";
 
@@ -33,8 +36,10 @@ const all = "all";
 const specSuffix = ".spec.ts";
 // An E2E spec follows the chosen locale only when it reads the locale key; the others keep the locale they are written for.
 const e2eLocaleMarker = Object.keys({ twoHostE2eLocaleEnvironmentKey })[0];
-const mockScreenshotRoot = path.join(webRoot, "artifacts", "private-practice-owner-screenshots");
-const mockResultsRoot = path.join(webRoot, "artifacts", "playwright-results", "private-practice-owner-screenshots");
+const mockCaptureRoots = Object.keys(mockApps).flatMap((app) => [
+  path.join(webRoot, mockScreenshotRootFor(app)),
+  path.join(webRoot, "artifacts", "playwright-results", `${app}-screenshots`),
+]);
 const e2eRunsRoot = path.join(webRoot, "artifacts", "two-host-e2e", "runs");
 // Screenshots, videos and failure traces; the HTML report keeps its own copies of them, which are left out.
 const captureExtensions = [".png", ".webm", ".zip"];
@@ -96,7 +101,7 @@ for (const run of runs) {
   if (exitCode !== 0) failures.push(run.label);
 }
 
-printCaptures(listCaptures([mockScreenshotRoot, mockResultsRoot, e2eRunsRoot], startedAt));
+printCaptures(listCaptures([...mockCaptureRoots, e2eRunsRoot], startedAt));
 for (const run of listE2eRuns().filter((run) => !e2eRunsBefore.includes(run))) {
   console.log(`E2E host logs: ${pathToFileURL(path.join(e2eRunsRoot, run)).href}`);
 }
@@ -137,15 +142,19 @@ function planRuns({ specs: chosenSpecs, locales, themes, viewports, scenarios, v
   const browserArguments = browser === "headless" ? [] : [`--${browser}`];
   const runs = [];
 
-  const mockSpecs = chosenSpecs.filter((spec) => spec.mode === "mock");
-  if (mockSpecs.length > 0) {
+  // Each mock app runs against its own mock server.
+  for (const app of Object.keys(mockApps)) {
+    const mockSpecs = chosenSpecs.filter((spec) => spec.mode === "mock" && mockAppForSpec(spec.file) === app);
+    if (mockSpecs.length === 0) continue;
     // Mock test titles carry their locale as a separate word.
     const localeFilter = locales.length < supportedLocales.length ? ["--grep", ` (${locales.join("|")})( |$)`] : [];
     const projects = viewports.flatMap((viewport) => themes.map((theme) => `${viewport}-${theme}`));
     runs.push({
-      label: `mock ${mockSpecs.map((spec) => spec.flow).join(", ")} | ${scenarios.join(", ")} | ${locales.join(", ")} | ${projects.join(", ")}`,
+      label: `mock ${app}: ${mockSpecs.map((spec) => spec.flow).join(", ")} | ${scenarios.join(", ")} | ${locales.join(", ")} | ${projects.join(", ")}`,
       args: [
         "scripts/private-practice-owner-screenshots.mjs",
+        "--app",
+        app,
         ...(scenarios.length < mockScenarios.length ? ["--scenarios", scenarios.join(",")] : []),
         "--",
         ...mockSpecs.map((spec) => spec.file),

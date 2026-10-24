@@ -44,7 +44,10 @@
 /* Hero */
 
 .hero {
-  padding-block: 3.5rem 2rem;
+  display: grid;
+  min-height: calc(100dvh - var(--navbar-height, 4rem));
+  align-content: center;
+  padding-block: 3rem;
 }
 
 .heroContent {
@@ -64,11 +67,6 @@
   text-wrap: balance;
 }
 
-.heroDescription {
-  font-family: var(--font-sans);
-  text-wrap: pretty;
-}
-
 .heroComposer {
   width: 100%;
   margin-top: 2rem;
@@ -86,42 +84,6 @@
   gap: 0.625rem;
 }
 
-.starterLead {
-  border-color: var(--accent);
-}
-
-/* Spotlight */
-
-.spotlight {
-  display: grid;
-  max-width: 64rem;
-  grid-template-columns: minmax(0, 1.4fr) repeat(2, minmax(0, 1fr));
-  gap: 1px;
-  margin-inline: auto;
-  margin-bottom: 2rem;
-  border: 1px solid var(--border);
-  background: var(--border);
-}
-
-.spotlightLead,
-.spotlightItem {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.5rem;
-  padding: 1.25rem;
-  background: var(--surface);
-}
-
-.spotlightLead {
-  box-shadow: inset 0 3px 0 var(--accent);
-}
-
-.spotlightTitle,
-.spotlightItemTitle,
-.dayItemTitle,
-.featureTitle,
 .proofTitle {
   display: flex;
   align-items: center;
@@ -132,58 +94,8 @@
   color: var(--foreground);
 }
 
-.spotlightTitle {
-  font-size: 1.375rem;
-}
-
-/* Sections */
-
 .sectionBody {
   margin-top: 2rem;
-}
-
-.dayTimeline {
-  margin-top: 2rem;
-}
-
-.dayItem {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.75rem 1.5rem;
-  padding-bottom: 1.25rem;
-}
-
-/* Item cards truncate by default; trust copy must wrap instead. */
-.wrapText {
-  min-width: 0;
-  white-space: normal;
-  overflow-wrap: anywhere;
-}
-
-.cardGrid {
-  margin-top: 2rem;
-}
-
-.featureList {
-  display: grid;
-  margin-top: 2rem;
-  border-top: 1px solid var(--border);
-}
-
-.featureRow {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-  padding-block: 1rem;
-  border-bottom: 1px solid var(--border);
-}
-
-.skeletonRow {
-  width: 100%;
-  height: 2.75rem;
 }
 
 .loading {
@@ -295,7 +207,7 @@
   align-items: flex-start;
   gap: 0.5rem;
   padding: 1rem;
-  border: 1px solid var(--accent);
+  border: 1px solid var(--border);
 }
 
 .clinicCardName {
@@ -394,7 +306,7 @@
   align-items: flex-start;
   gap: 0.625rem;
   padding-inline-start: 0.875rem;
-  border-inline-start: 2px solid var(--accent);
+  border-inline-start: 2px solid var(--border);
   font-size: 1.0625rem;
   line-height: 1.7;
 }
@@ -420,11 +332,5 @@
 
   .sheetOnly {
     display: block;
-  }
-}
-
-@media (max-width: 48rem) {
-  .spotlight {
-    grid-template-columns: minmax(0, 1fr);
   }
 }

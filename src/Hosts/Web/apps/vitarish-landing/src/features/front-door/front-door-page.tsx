@@ -10,7 +10,6 @@ import { MarketingFooter } from "@vitarish/ui";
 import { ConsultationView } from "./consultation/consultation-view";
 import { consultationReducer, initialConsultation, pendingSignIn } from "./consultation/consultation-state";
 import { FrontDoorHeader, FrontDoorHero } from "./front-door-hero";
-import { DayAtClinic, Roadmap, Spotlight, TrustSection } from "./front-door-sections";
 import { useFrontDoorConversation } from "./use-front-door-conversation";
 import { useLandingCatalog } from "./use-landing-catalog";
 import styles from "./front-door.module.css";
@@ -24,7 +23,7 @@ interface FrontDoorPageProps {
 
 /**
  * The public front door. Visitors start on a single question; once they ask something or choose
- * "I run a clinic", the page becomes the consultation, and the scrolling sections give way to it.
+ * "I run a clinic", the page becomes the consultation.
  */
 export function FrontDoorPage({ onboardingUrl, whatsappNumber }: FrontDoorPageProps) {
   const { t } = useLocalizedText();
@@ -131,18 +130,12 @@ export function FrontDoorPage({ onboardingUrl, whatsappNumber }: FrontDoorPagePr
             </div>
           )
         ) : (
-          <>
-            <FrontDoorHero
-              isPending={conversation.isPending}
-              isSignedIn={isSignedIn}
-              onAsk={(text) => void say(text)}
-              onStartClinic={() => dispatch({ type: "start" })}
-            />
-            <Spotlight />
-            <DayAtClinic onAsk={(text) => void say(text)} />
-            <TrustSection />
-            <Roadmap />
-          </>
+          <FrontDoorHero
+            isPending={conversation.isPending}
+            isSignedIn={isSignedIn}
+            onAsk={(text) => void say(text)}
+            onStartClinic={() => dispatch({ type: "start" })}
+          />
         )}
       </main>
       <MarketingFooter
