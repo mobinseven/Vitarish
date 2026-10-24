@@ -1,0 +1,185 @@
+/* The owner front door, laid out like the Vitarish front door: a bare header, the logotype across the top, titled bands, and an inverted footer closed by the logotype. */
+
+.page {
+  --gutter: clamp(1rem, 3vw, 3rem);
+  --header-height: 5.5rem;
+
+  display: flex;
+  flex-direction: column;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.main {
+  display: flex;
+  width: 100%;
+  flex: 1;
+  flex-direction: column;
+}
+
+/* No bar: the mark and the actions sit on the page itself. */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  height: var(--header-height);
+  padding-inline: var(--gutter);
+}
+
+.headerMark {
+  display: block;
+  height: 2.25rem;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.heroText {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: clamp(2rem, 6vh, 4rem) var(--gutter) 4rem;
+}
+
+.heroTitle {
+  max-width: 48rem;
+  font-size: clamp(1.75rem, 4vw, 3.5rem);
+  font-weight: 600;
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+.heroIntro {
+  max-width: 40rem;
+  font-size: 1.0625rem;
+  line-height: 1.7;
+  color: var(--muted);
+}
+
+.heroActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.logotype {
+  display: block;
+  width: 100%;
+}
+
+.logotype img {
+  width: 100%;
+  height: auto;
+}
+
+/* One section per capability: a centred title above a wide panel; both fade in as they scroll into view. */
+.feature {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3rem;
+  margin-inline: var(--gutter);
+  padding-block: 6rem;
+}
+
+/* The ground behind the sections takes the tone of the section in view, mixed from theme tokens so it reads in both modes. */
+.tones {
+  --tone-strength: 16%;
+
+  background-color: var(--tone, var(--background));
+  transition: background-color 700ms ease;
+}
+
+:global([data-theme="dark"]) .tones {
+  --tone-strength: 34%;
+}
+
+.tones[data-tone="patientContext"] { --tone: color-mix(in oklch, var(--accent) var(--tone-strength), var(--background)); }
+.tones[data-tone="appointments"] { --tone: color-mix(in oklch, var(--chroma-primary) var(--tone-strength), var(--background)); }
+.tones[data-tone="templates"] { --tone: color-mix(in oklch, var(--chroma-tertiary) var(--tone-strength), var(--background)); }
+.tones[data-tone="checkin"] { --tone: color-mix(in oklch, var(--chroma-quinary) var(--tone-strength), var(--background)); }
+.tones[data-tone="oversight"] { --tone: color-mix(in oklch, var(--chroma-senary) var(--tone-strength), var(--background)); }
+.tones[data-tone="ai"] { --tone: color-mix(in oklch, var(--chroma-quaternary) var(--tone-strength), var(--background)); }
+
+@media (prefers-reduced-motion: reduce) {
+  .tones {
+    transition-duration: 1ms;
+  }
+}
+
+.featureText {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  text-align: center;
+}
+
+.display {
+  max-width: 40rem;
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  font-weight: 600;
+  line-height: 1.1;
+  text-wrap: balance;
+}
+
+.featureLine {
+  font-size: 1.0625rem;
+  color: var(--muted);
+}
+
+.featurePanel {
+  width: 100%;
+  max-width: 46rem;
+  padding: clamp(1.25rem, 3vw, 2.5rem);
+  border-radius: 2rem;
+  background: var(--surface-secondary);
+}
+
+.footer {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--foreground);
+  color: var(--background);
+}
+
+.footerTop {
+  display: flex;
+  justify-content: flex-end;
+  padding: 2rem var(--gutter) 0;
+}
+
+.footer .toTop {
+  color: inherit;
+}
+
+.footerBottom {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem 3rem;
+  margin-top: clamp(8rem, 30vh, 18rem);
+  padding-inline: var(--gutter);
+}
+
+.footerNote {
+  max-width: 28rem;
+  font-size: 1.0625rem;
+  line-height: 1.6;
+}
+
+.footerLogotype {
+  margin-top: 2rem;
+}

@@ -1,26 +1,6 @@
-"use client";
-
-import { LandingFooter } from "@/features/landing/LandingFooter";
-import { LandingHero } from "@/features/landing/LandingHero";
-import { LandingNavbar } from "@/features/landing/LandingNavbar";
-import { PracticePrinciplesShowcase } from "@/features/landing/PracticePrinciplesShowcase";
-import { useLocalizedText } from "@/localization";
-import { StandaloneDocumentPage } from "@vitarish/ui";
+import { readOnboardingUrl } from "@vitarish/journey/onboarding-host";
+import { OwnerLandingPage } from "@/features/landing/OwnerLandingPage";
 
 export default function RootPage() {
-  const { t } = useLocalizedText();
-
-  return (
-    <>
-      <LandingNavbar />
-      <StandaloneDocumentPage
-        aria-label={t("practiceLanding.mainContent")}
-        className="bg-background"
-      >
-        <LandingHero />
-        <PracticePrinciplesShowcase />
-        <LandingFooter />
-      </StandaloneDocumentPage>
-    </>
-  );
+  return <OwnerLandingPage onboardingUrl={readOnboardingUrl(process.env)} />;
 }
