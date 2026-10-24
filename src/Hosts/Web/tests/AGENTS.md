@@ -6,8 +6,10 @@ also apply here.
 
 ## Placement
 
-- `mock/`: owner-app screens and flows against the mock API, captured per
-  scenario, locale, theme, and viewport.
+- `mock/`: app screens and flows against the mock API, captured per
+  scenario, locale, theme, and viewport. A spec belongs to the owner app
+  unless `mockApps` in `scripts/spec-capture-options.mjs` lists it under
+  another app.
 - `e2e/`: behavior that must cross the real API, authentication, tenant,
   persistence, or shared transport boundary on the E2E and Web hosts. A mock
   spec is not boundary proof.
