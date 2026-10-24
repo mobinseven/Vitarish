@@ -29,11 +29,11 @@ services:
       ASPNETCORE_URLS: http://+:8080
       Vitarish__LandingUrl: https://${VITARISH_PRODUCTION_LANDING_HOST:?VITARISH_PRODUCTION_LANDING_HOST is required}
       Vitarish__PlatformAdminUrl: https://${VITARISH_PRODUCTION_PLATFORM_ADMIN_HOST:?VITARISH_PRODUCTION_PLATFORM_ADMIN_HOST is required}
-      # Self-service clinic onboarding (ADR-0016, docs/runbooks/clinic-onboarding.md). Off unless the
-      # flag is true and both values are set; the onboarding URL must be a host under the base domain.
+      # Self-service clinic onboarding (ADR-0016, docs/runbooks/clinic-onboarding.md); the flag alone
+      # switches it on and off. The onboarding host is one subdomain under the clinic base domain.
       Vitarish__Features__TenantOnboarding: ${VITARISH_PRODUCTION_TENANT_ONBOARDING:-false}
-      Vitarish__TenantBaseDomain: ${VITARISH_PRODUCTION_CLINIC_BASE_DOMAIN:-}
-      Vitarish__OnboardingUrl: ${VITARISH_PRODUCTION_ONBOARDING_URL:-}
+      Vitarish__TenantBaseDomain: ${VITARISH_PRODUCTION_CLINIC_BASE_DOMAIN:?VITARISH_PRODUCTION_CLINIC_BASE_DOMAIN is required}
+      Vitarish__OnboardingUrl: https://${VITARISH_PRODUCTION_ONBOARDING_SUBDOMAIN:?VITARISH_PRODUCTION_ONBOARDING_SUBDOMAIN is required}.${VITARISH_PRODUCTION_CLINIC_BASE_DOMAIN:?VITARISH_PRODUCTION_CLINIC_BASE_DOMAIN is required}
       Vitarish__Identity__Authority: https://${VITARISH_PRODUCTION_PUBLIC_HOST:?VITARISH_PRODUCTION_PUBLIC_HOST is required}
       Vitarish__Identity__DataProtectionPassword: ${VITARISH_PRODUCTION_DATA_PROTECTION_PASSWORD:?VITARISH_PRODUCTION_DATA_PROTECTION_PASSWORD is required}
       Vitarish__Security__MandatoryAuditEnabled: "true"
@@ -100,8 +100,9 @@ services:
     <<: *app-runtime
     image: "${VITARISH_PRODUCTION_OWNER_WEB_IMAGE:?VITARISH_PRODUCTION_OWNER_WEB_IMAGE is required}"
     environment:
-      # The sign-in page links here to create a clinic; empty hides the link.
-      VITARISH_ONBOARDING_URL: ${VITARISH_PRODUCTION_ONBOARDING_URL:-}
+      # The sign-in page links here to create a clinic while the flag is true.
+      VITARISH_TENANT_ONBOARDING: ${VITARISH_PRODUCTION_TENANT_ONBOARDING:-false}
+      VITARISH_ONBOARDING_URL: https://${VITARISH_PRODUCTION_ONBOARDING_SUBDOMAIN:?VITARISH_PRODUCTION_ONBOARDING_SUBDOMAIN is required}.${VITARISH_PRODUCTION_CLINIC_BASE_DOMAIN:?VITARISH_PRODUCTION_CLINIC_BASE_DOMAIN is required}
     expose: [3000]
     healthcheck: *node-healthcheck
     networks: { application: {}, proxy: { aliases: [production-private-practice-owner] } }
@@ -127,8 +128,9 @@ services:
     <<: *app-runtime
     image: "${VITARISH_PRODUCTION_LANDING_WEB_IMAGE:?VITARISH_PRODUCTION_LANDING_WEB_IMAGE is required}"
     environment:
-      # "Set up my clinic" links here; empty hides it.
-      VITARISH_ONBOARDING_URL: ${VITARISH_PRODUCTION_ONBOARDING_URL:-}
+      # "Set up my clinic" links here while the flag is true.
+      VITARISH_TENANT_ONBOARDING: ${VITARISH_PRODUCTION_TENANT_ONBOARDING:-false}
+      VITARISH_ONBOARDING_URL: https://${VITARISH_PRODUCTION_ONBOARDING_SUBDOMAIN:?VITARISH_PRODUCTION_ONBOARDING_SUBDOMAIN is required}.${VITARISH_PRODUCTION_CLINIC_BASE_DOMAIN:?VITARISH_PRODUCTION_CLINIC_BASE_DOMAIN is required}
       # "Chat with us on WhatsApp" opens this number (international digits); empty hides it.
       VITARISH_LANDING_WHATSAPP_NUMBER: ${VITARISH_PRODUCTION_LANDING_WHATSAPP_NUMBER:-}
     expose: [3002]

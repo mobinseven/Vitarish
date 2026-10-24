@@ -30,23 +30,25 @@ All three live in the server's `/opt/vitarish/deployment/.env.shared`:
 
 | Setting | Example | Used as |
 | --- | --- | --- |
-| `VITARISH_PRODUCTION_TENANT_ONBOARDING` | `true` | Main `Vitarish__Features__TenantOnboarding` |
+| `VITARISH_PRODUCTION_TENANT_ONBOARDING` | `true` | Main `Vitarish__Features__TenantOnboarding`; owner Web and landing `VITARISH_TENANT_ONBOARDING` |
 | `VITARISH_PRODUCTION_CLINIC_BASE_DOMAIN` | `clinic.vitarish.com` | Main `Vitarish__TenantBaseDomain` |
-| `VITARISH_PRODUCTION_ONBOARDING_URL` | `https://start.clinic.vitarish.com` | Main `Vitarish__OnboardingUrl` and owner Web `VITARISH_ONBOARDING_URL` |
+| `VITARISH_PRODUCTION_ONBOARDING_SUBDOMAIN` | `start` | `https://<subdomain>.<base domain>` as Main `Vitarish__OnboardingUrl`; owner Web and landing `VITARISH_ONBOARDING_URL` |
 
+- The flag is the only switch. The base domain and subdomain are required on
+  every deploy, whether onboarding is on or off.
 - The base domain is the clinic wildcard host without `*.`.
-- The onboarding URL is `https://` plus one host directly under the base domain.
-  Pick a subdomain no clinic already uses; on start, Main binds that host to the
+- Pick a subdomain no clinic already uses; on start, Main binds that host to the
   platform-owned onboarding tenant.
-- Change the flag and the onboarding URL together. The URL alone shows the
-  "create a clinic" link on the sign-in page; the flag alone opens creation with
-  no way to reach it.
+- `.env.shared` files from before this setting have
+  `VITARISH_PRODUCTION_ONBOARDING_URL` instead. Replace it with
+  `VITARISH_PRODUCTION_ONBOARDING_SUBDOMAIN` (for example `start`) before the
+  next production deploy; until then, compose refuses to start.
 
 ## Switch it on
 
-1. Set the three values above in `.env.shared`.
+1. Set `VITARISH_PRODUCTION_TENANT_ONBOARDING=true` in `.env.shared`.
 2. Run the production workflow (`workflow_dispatch` on `main`) with Main and the
-   owner Web app selected, so both containers restart with the new values.
+   owner Web and landing apps selected, so the containers restart with the new values.
 3. Check it:
    - The sign-in page on the public host shows the link to create a clinic.
    - On the onboarding host, sign up with a test phone number, complete the
@@ -59,11 +61,11 @@ All three live in the server's `/opt/vitarish/deployment/.env.shared`:
 
 ## Switch it off
 
-1. Set `VITARISH_PRODUCTION_TENANT_ONBOARDING=false` and clear
-   `VITARISH_PRODUCTION_ONBOARDING_URL` in `.env.shared`.
-2. Redeploy Main and the owner Web app.
+1. Set `VITARISH_PRODUCTION_TENANT_ONBOARDING=false` in `.env.shared`.
+2. Redeploy Main and the owner Web and landing apps.
 
-The creation endpoints then answer 404 and the sign-in link disappears. Clinics
+The creation endpoints and the onboarding handoff then answer 404, and the
+"create a clinic" links disappear. Clinics
 already created keep working. Nothing in the database needs to be undone.
 
 ## Limits and where to look

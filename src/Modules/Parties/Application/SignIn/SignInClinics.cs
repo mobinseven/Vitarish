@@ -46,7 +46,7 @@ public sealed class IssueSignInHandoffCommandHandler(
     IRequestContext requestContext)
     : IRequestHandler<IssueSignInHandoffCommand, SignInHandoff?>
 {
-    /// <returns>Null when there is no signed-in user, the clinic is not theirs, onboarding is not configured, or no ticket could be issued.</returns>
+    /// <returns>Null when there is no signed-in user, the clinic is not theirs, onboarding is off or has no host, or no ticket could be issued.</returns>
     public async Task<SignInHandoff?> Handle(IssueSignInHandoffCommand command, CancellationToken cancellationToken)
     {
         string? userId = requestContext.UserId;
@@ -55,7 +55,7 @@ public sealed class IssueSignInHandoffCommandHandler(
 
         string? hostname = command.TenantId is { } tenantId
             ? (await clinics.ListAsync(userId, cancellationToken)).FirstOrDefault(clinic => clinic.TenantId == tenantId)?.Hostname
-            : OnboardingHostname(onboarding.Value.OnboardingUrl);
+            : onboarding.Value.TenantOnboardingEnabled ? OnboardingHostname(onboarding.Value.OnboardingUrl) : null;
         if (hostname is null)
             return null;
 

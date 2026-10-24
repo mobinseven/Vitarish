@@ -5,8 +5,15 @@
  */
 export const onboardingUrlEnvironmentKey = "VITARISH_ONBOARDING_URL";
 
-/** The onboarding address from the server environment, or null when this deployment offers none. */
+/**
+ * The runtime environment variable that switches clinic creation on (`true`); the deployment sets
+ * it from the same value as Main's `Vitarish:Features:TenantOnboarding`.
+ */
+export const tenantOnboardingEnvironmentKey = "VITARISH_TENANT_ONBOARDING";
+
+/** The onboarding address from the server environment, or null when onboarding is off or has no address. */
 export function readOnboardingUrl(environment: Record<string, string | undefined>): string | null {
+  if (environment[tenantOnboardingEnvironmentKey]?.trim().toLowerCase() !== "true") return null;
   const value = environment[onboardingUrlEnvironmentKey]?.trim();
   return value ? value : null;
 }
