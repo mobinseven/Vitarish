@@ -411,3 +411,6 @@ FodyWeavers.xsd
 .vscode/settings.json
 
 **/.next-stale-layout/*
+
+# Agent worktrees live inside the repo
+/.claude/worktrees/
