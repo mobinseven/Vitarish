@@ -65,6 +65,56 @@
         }
       }
     },
+    "/api/apps/landing/catalog": {
+      "get": {
+        "tags": [
+          "Landing"
+        ],
+        "operationId": "LandingGetCatalog",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LandingCatalogResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/apps/landing/conversations/{conversationId}": {
       "delete": {
         "tags": [
@@ -93,6 +143,72 @@
         "responses": {
           "204": {
             "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/apps/landing/onboarding-handoff": {
+      "post": {
+        "tags": [
+          "Landing"
+        ],
+        "operationId": "LandingIssueOnboardingHandoff",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LandingOnboardingHandoffRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LandingOnboardingHandoffResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
           },
           "400": {
             "description": "Bad Request",
@@ -250,6 +366,205 @@
   },
   "components": {
     "schemas": {
+      "AgentInteractiveOptionResponse": {
+        "required": [
+          "key",
+          "label"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          }
+        }
+      },
+      "AgentInteractiveQuestionResponse": {
+        "required": [
+          "prompt",
+          "options",
+          "maxSelections"
+        ],
+        "type": "object",
+        "properties": {
+          "prompt": {
+            "type": "string"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AgentInteractiveOptionResponse"
+            }
+          },
+          "maxSelections": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "AgentInteractiveReplyResponse": {
+        "required": [
+          "text",
+          "question",
+          "references",
+          "nextAction"
+        ],
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "question": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AgentInteractiveQuestionResponse"
+              }
+            ]
+          },
+          "references": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "nextAction": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "remembered": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/AgentRememberedResponse"
+            }
+          }
+        }
+      },
+      "AgentRememberedResponse": {
+        "required": [
+          "id",
+          "text"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          }
+        }
+      },
+      "LandingCatalogResponse": {
+        "required": [
+          "features",
+          "consultation",
+          "nextActions"
+        ],
+        "type": "object",
+        "properties": {
+          "features": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LandingFeatureResponse"
+            }
+          },
+          "consultation": {
+            "$ref": "#/components/schemas/LandingConsultationResponse"
+          },
+          "nextActions": {
+            "$ref": "#/components/schemas/LandingNextActionsResponse"
+          }
+        }
+      },
+      "LandingConsultationOptionResponse": {
+        "required": [
+          "key",
+          "featureKeys",
+          "proof"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "featureKeys": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "proof": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/LandingProofKind"
+              }
+            ]
+          }
+        }
+      },
+      "LandingConsultationQuestionResponse": {
+        "required": [
+          "key",
+          "maxSelections",
+          "options"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "maxSelections": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LandingConsultationOptionResponse"
+            }
+          }
+        }
+      },
+      "LandingConsultationResponse": {
+        "required": [
+          "kind",
+          "booking",
+          "pains"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/LandingConsultationQuestionResponse"
+          },
+          "booking": {
+            "$ref": "#/components/schemas/LandingConsultationQuestionResponse"
+          },
+          "pains": {
+            "$ref": "#/components/schemas/LandingConsultationQuestionResponse"
+          }
+        }
+      },
       "LandingConversationResponse": {
         "required": [
           "conversationId",
@@ -262,6 +577,38 @@
           },
           "message": {
             "type": "string"
+          },
+          "reply": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AgentInteractiveReplyResponse"
+              }
+            ]
+          }
+        }
+      },
+      "LandingFeatureAvailability": {
+        "enum": [
+          "Live",
+          "InProgress",
+          "NotYet"
+        ]
+      },
+      "LandingFeatureResponse": {
+        "required": [
+          "key",
+          "availability"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "availability": {
+            "$ref": "#/components/schemas/LandingFeatureAvailability"
           }
         }
       },
@@ -283,6 +630,75 @@
             "format": "uuid"
           }
         }
+      },
+      "LandingNextActionsResponse": {
+        "required": [
+          "openClinic",
+          "talkToTeam",
+          "tryVoice"
+        ],
+        "type": "object",
+        "properties": {
+          "openClinic": {
+            "type": "string"
+          },
+          "talkToTeam": {
+            "type": "string"
+          },
+          "tryVoice": {
+            "type": "string"
+          }
+        }
+      },
+      "LandingOnboardingHandoffRequest": {
+        "required": [
+          "category",
+          "answers"
+        ],
+        "type": "object",
+        "properties": {
+          "category": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "answers": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "LandingOnboardingHandoffResponse": {
+        "required": [
+          "hostname",
+          "token"
+        ],
+        "type": "object",
+        "properties": {
+          "hostname": {
+            "type": "string"
+          },
+          "token": {
+            "type": "string"
+          }
+        }
+      },
+      "LandingProofKind": {
+        "enum": [
+          "NoShowCost",
+          "BookingPreview",
+          "PatientTimeline",
+          "Dictation",
+          "ShiftWeek",
+          "InProgress",
+          null
+        ]
       },
       "ProblemDetails": {
         "type": "object",

@@ -206,6 +206,32 @@ public sealed class SecurityConfigurationValidatorTests
     private static IConfiguration Configuration(IEnumerable<KeyValuePair<string, string?>> values) =>
         new ConfigurationBuilder().AddInMemoryCollection(values).Build();
 
+    [Fact]
+    public void The_platforms_own_hosts_are_trusted_origins_without_repeating_them_in_cors()
+    {
+        IConfiguration configuration = StrictConfiguration(
+            ("Vitarish:LandingUrl", "https://vitarish.example/"),
+            ("Vitarish:OnboardingUrl", "https://start.clinic.example"),
+            ("Vitarish:SignInUrl", "https://auth.vitarish.example:8443/"));
+
+        SecurityConfigurationOptions options = SecurityConfigurationValidator.Validate(configuration, Environment("Production"));
+
+        options.AllowedCorsOrigins.Should().BeEquivalentTo(
+            "https://app.example", "https://vitarish.example", "https://start.clinic.example", "https://auth.vitarish.example:8443");
+    }
+
+    [Fact]
+    public void A_platform_host_must_use_https_unless_it_is_local()
+    {
+        Action plainHttp = () => SecurityConfigurationValidator.Validate(
+            StrictConfiguration(("Vitarish:OnboardingUrl", "http://start.clinic.example")), Environment("Production"));
+        plainHttp.Should().Throw<InvalidOperationException>().WithMessage("*Vitarish:OnboardingUrl*");
+
+        SecurityConfigurationOptions local = SecurityConfigurationValidator.Validate(
+            StrictConfiguration(("Vitarish:OnboardingUrl", "http://start.localhost:3005")), Environment("Production"));
+        local.AllowedCorsOrigins.Should().Contain("http://start.localhost:3005");
+    }
+
     private static IConfiguration StrictConfiguration(params (string Key, string Value)[] overrides)
     {
         Dictionary<string, string?> values = new(StringComparer.Ordinal)

@@ -34,7 +34,8 @@ Several existing boundaries are involved:
 2. **A dedicated onboarding host.** `Vitarish:OnboardingUrl` names one host
    under the base domain. Startup binds it to a platform-owned onboarding tenant
    (`OnboardingTenant`), which holds no practice data. The login page links to
-   it when the Web app's `VITARISH_ONBOARDING_URL` is set.
+   it while the Web app's `VITARISH_TENANT_ONBOARDING` is `true` and its
+   `VITARISH_ONBOARDING_URL` is set.
 3. **Role-free sessions only there.** Sign-in admits a user without a role only
    on the onboarding host (`IRoleFreeSessionPolicy`). That session can use
    account endpoints and clinic creation; every tenant endpoint still refuses it.

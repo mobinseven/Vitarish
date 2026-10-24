@@ -281,7 +281,7 @@ test("a new phone number signs up, creates a clinic, lands signed in on it, and 
   await page.getByRole("button", { name: setupMessages.next, exact: true }).click();
 
   await page.getByRole("button", { name: setupMessages.specialty }).click();
-  await page.getByRole("option", { name: setupMessages.specialties.dermatology }).click();
+  await page.getByRole("option", { name: clinicMessages.specialties.dermatology }).click();
   await page.getByRole("button", { name: setupMessages.details.title }).click();
   await page.getByRole("textbox", { name: setupMessages.details.city, exact: true }).fill(cityName);
   await page.getByRole("textbox", { name: setupMessages.details.phone, exact: true }).first().fill(publicPhone);

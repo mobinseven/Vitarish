@@ -11,6 +11,8 @@ import { ChatPromptInput, type ChatTextDirection } from "@vitarish/ui";
 export interface AgentConversationComposerProps {
   actions?: ReactNode;
   direction?: ChatTextDirection;
+  /** Offer voice dictation; off where the person cannot use it yet, so no capability check or notice appears. */
+  dictation?: boolean;
   enabled?: boolean;
   footer?: ReactNode;
   helperIcon?: ReactNode;
@@ -30,6 +32,7 @@ export interface AgentConversationComposerProps {
 export function AgentConversationComposer({
   actions,
   direction,
+  dictation: offersDictation = true,
   enabled = true,
   footer,
   helperIcon,
@@ -48,7 +51,7 @@ export function AgentConversationComposer({
   const valueRef = useRef(value);
   valueRef.current = value;
   const dictation = useLiveDictation({
-    enabled: enabled && !isPending,
+    enabled: offersDictation && enabled && !isPending,
     onSegment: (segment) => {
       const nextValue = appendConfirmedTranscript(valueRef.current, segment);
       valueRef.current = nextValue;
@@ -62,7 +65,7 @@ export function AgentConversationComposer({
     <ChatPromptInput
       actions={
         <>
-          <LiveDictation controller={dictation} />
+          {offersDictation ? <LiveDictation controller={dictation} /> : null}
           {actions}
         </>
       }

@@ -13,6 +13,8 @@ import { TenantReadyPanel } from "../features/tenantSetup/TenantReadyPanel";
 import { useTenantSetup } from "../features/tenantSetup/useTenantSetup";
 
 interface TenantSetupPageProps {
+  /** Where the hosting app keeps each business category's label: `${prefix}.${code}`. */
+  categoryMessagePrefix: string;
   /** The app route on the new clinic that redeems the one-time sign-in token. */
   handoffPath: string;
   /** The app route on the new clinic for signing in when no token was issued. */
@@ -20,7 +22,7 @@ interface TenantSetupPageProps {
 }
 
 /** Creates the signed-in user's own clinic in two steps, then hands them over to it. */
-export function TenantSetupPage({ handoffPath, signInPath }: TenantSetupPageProps) {
+export function TenantSetupPage({ categoryMessagePrefix, handoffPath, signInPath }: TenantSetupPageProps) {
   const { t, locale } = useLocalizedText();
   const setup = useTenantSetup(locale);
   // The suffix is learned from the first check that names an address, then kept while typing.
@@ -72,6 +74,7 @@ export function TenantSetupPage({ handoffPath, signInPath }: TenantSetupPageProp
             ) : (
               <TenantProfileStep
                 categories={setup.categories}
+                categoryMessagePrefix={categoryMessagePrefix}
                 category={setup.values.category}
                 description={setup.values.description}
                 businessDetails={setup.values.businessDetails}

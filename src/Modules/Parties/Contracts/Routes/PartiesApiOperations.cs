@@ -6,6 +6,7 @@ public static class PartiesApiOperations
     public const string GetSubdomainAvailability = "PartiesGetSubdomainAvailability";
     public const string CreateOwnTenant = "PartiesCreateOwnTenant";
     public const string GetOnboardingCategories = "PartiesGetOnboardingCategories";
+    public const string GetOnboardingSetupDraft = "PartiesGetOnboardingSetupDraft";
     public const string GetTenantProfile = "PartiesGetTenantProfile";
     public const string UpdateTenantProfile = "PartiesUpdateTenantProfile";
     public const string SetTenantLogo = "PartiesSetTenantLogo";

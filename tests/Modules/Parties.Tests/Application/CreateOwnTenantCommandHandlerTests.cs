@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
 using Vitarish.Audit.Application;
@@ -88,6 +89,29 @@ public sealed class CreateOwnTenantCommandHandlerTests
         result.Hostname.Should().Be("rezaei.clinic.example.test");
         result.HandoffToken.Should().BeNull();
         handoffs.Verify(item => item.IssueAsync(CreatorUserId, "rezaei.clinic.example.test", It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Clears_the_setup_draft_once_the_tenant_exists_and_a_failed_clear_never_undoes_creation(bool clearFails)
+    {
+        Mock<ITenantCreatorDirectory> creators = new();
+        creators.Setup(item => item.FindAsync(CreatorUserId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new TenantCreator(CreatorUserId, HasVerifiedPhone: true));
+        Mock<ISelfServiceTenantStore> store = new();
+        store.Setup(item => item.CreateAsync(It.IsAny<NewSelfServiceTenant>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(TenantProvisioningOutcome.Created);
+        Mock<IOnboardingSetupDraftStore> drafts = new();
+        if (clearFails)
+            drafts.Setup(item => item.ClearAsync(CreatorUserId, It.IsAny<CancellationToken>())).ThrowsAsync(new InvalidOperationException("profile store down"));
+
+        CreateOwnTenantResult result = await CreateHandler(creators.Object, store.Object, AuditWriter().Object, setupDrafts: drafts.Object).Handle(
+            new CreateOwnTenantCommand(CreatorUserId, "Rezaei Clinic", "rezaei", null, IdempotencyKey),
+            CancellationToken.None);
+
+        result.Status.Should().Be(CreateOwnTenantStatus.Created);
+        drafts.Verify(item => item.ClearAsync(CreatorUserId, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -362,7 +386,9 @@ public sealed class CreateOwnTenantCommandHandlerTests
             Mock.Of<ISecurityAuditWriter>(),
             Mock.Of<ITenantHandoffIssuer>(),
             Mock.Of<IRequestContext>(),
-            new FixedTimeProvider(FixedNow));
+            new FixedTimeProvider(FixedNow),
+            Mock.Of<IOnboardingSetupDraftStore>(),
+            NullLogger<CreateOwnTenantCommandHandler>.Instance);
 
         Func<Task> act = () => handler.Handle(
             new CreateOwnTenantCommand(CreatorUserId, "Clinic", "rezaei", null, IdempotencyKey),
@@ -466,7 +492,8 @@ public sealed class CreateOwnTenantCommandHandlerTests
         ITenantCreatorDirectory creators,
         ISelfServiceTenantStore store,
         ISecurityAuditWriter auditWriter,
-        ITenantHandoffIssuer? handoffs = null)
+        ITenantHandoffIssuer? handoffs = null,
+        IOnboardingSetupDraftStore? setupDrafts = null)
     {
         Mock<IRequestContext> requestContext = new();
         requestContext.SetupGet(context => context.UserId).Returns(CreatorUserId);
@@ -478,7 +505,9 @@ public sealed class CreateOwnTenantCommandHandlerTests
             auditWriter,
             handoffs ?? Mock.Of<ITenantHandoffIssuer>(),
             requestContext.Object,
-            new FixedTimeProvider(FixedNow));
+            new FixedTimeProvider(FixedNow),
+            setupDrafts ?? Mock.Of<IOnboardingSetupDraftStore>(),
+            NullLogger<CreateOwnTenantCommandHandler>.Instance);
     }
 
     private static Mock<ISecurityAuditWriter> AuditWriter()

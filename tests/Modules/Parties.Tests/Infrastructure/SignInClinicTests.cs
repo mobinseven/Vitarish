@@ -77,6 +77,18 @@ public sealed class SignInClinicTests
     }
 
     [Fact]
+    public async Task Refuses_the_onboarding_handoff_while_tenant_onboarding_is_off()
+    {
+        Mock<ITenantHandoffIssuer> issuer = new();
+
+        SignInHandoff? handoff = await CreateHandler(issuer, [], "https://start.clinic.example.test", tenantOnboardingEnabled: false)
+            .Handle(new IssueSignInHandoffCommand(null), CancellationToken.None);
+
+        handoff.Should().BeNull();
+        issuer.VerifyNoOtherCalls();
+    }
+
+    [Fact]
     public async Task Refuses_a_handoff_without_a_signed_in_user()
     {
         Mock<ITenantHandoffIssuer> issuer = new();
@@ -92,7 +104,8 @@ public sealed class SignInClinicTests
         Mock<ITenantHandoffIssuer> issuer,
         IReadOnlyList<SignInClinic> clinics,
         string? onboardingUrl = null,
-        string? userId = UserId)
+        string? userId = UserId,
+        bool tenantOnboardingEnabled = true)
     {
         Mock<ISignInClinicDirectory> directory = new();
         directory.Setup(item => item.ListAsync(UserId, It.IsAny<CancellationToken>())).ReturnsAsync(clinics);
@@ -101,7 +114,7 @@ public sealed class SignInClinicTests
         return new IssueSignInHandoffCommandHandler(
             directory.Object,
             issuer.Object,
-            Options.Create(new OnboardingHostOptions { OnboardingUrl = onboardingUrl }),
+            Options.Create(new OnboardingHostOptions { OnboardingUrl = onboardingUrl, TenantOnboardingEnabled = tenantOnboardingEnabled }),
             requestContext.Object);
     }
 

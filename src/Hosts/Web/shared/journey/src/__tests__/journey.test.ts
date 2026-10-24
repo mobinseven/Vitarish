@@ -47,3 +47,16 @@ describe("journey barrel exports", () => {
     expect(mod.useCurrentJourney).toBeDefined();
   }, coldBarrelImportTimeoutMilliseconds);
 });
+
+describe("onboardingHandoffUrl", () => {
+  it("keeps the ticket out of the path and query and keeps the onboarding host's own port", async () => {
+    const { onboardingHandoffUrl } = await import("../onboardingHost");
+
+    const url = new URL(onboardingHandoffUrl("http://start.localhost:3000/setup?x=1", "ticket-123"));
+
+    expect(url.origin).toBe("http://start.localhost:3000");
+    expect(url.pathname).toBe("/handoff");
+    expect(url.search).toBe("");
+    expect(url.hash).toBe("#ticket-123");
+  });
+});

@@ -56,11 +56,13 @@ before the same key replays the result. Creation and its refusals are audited as
 People sign up and create a tenant on the onboarding host,
 `Vitarish:OnboardingUrl`, which startup binds to the platform-owned
 `OnboardingTenant`; it holds no practice data. A session normally needs a role,
-but a new account has none, so `PlatformHostRoleFreeSessionPolicy` lets a user
-without a role start a session on that tenant, or on the shared sign-in host
-below, only. Such a session can use the
-account, journey, and onboarding endpoints, which need no tenant access; every
-tenant endpoint refuses it, and sign-in elsewhere without a role stays refused.
+but a new account has none. `PlatformHostRoleFreeSessionPolicy` lets a user
+without a role start a session on the onboarding tenant and on the shared
+sign-in tenant; the landing app registers its own policy for the live landing
+tenant (ADR-0017). Sign-in admits the session when any registered policy does.
+Such a session can use the account, journey, onboarding and landing visitor
+endpoints, which need no tenant access; every tenant endpoint refuses it, and
+sign-in elsewhere without a role stays refused.
 
 People who already have clinics sign in on the shared sign-in host,
 `Vitarish:SignInUrl`, which startup binds to the platform-owned `SignInTenant`

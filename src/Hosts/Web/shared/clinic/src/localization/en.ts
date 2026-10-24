@@ -2,6 +2,26 @@ import { surgeriesEnMessages } from "./surgeries";
 
 export const clinicEnMessages = {
   clinic: {
+    // The specialty codes come from the clinic app (ClinicSpecialties); sign-up and the landing page show these labels.
+    specialties: {
+      "plastic-surgery": "Plastic surgery",
+      dermatology: "Dermatology",
+      dentistry: "Dentistry",
+      ophthalmology: "Ophthalmology",
+      otolaryngology: "Ear, nose and throat",
+      "general-surgery": "General surgery",
+      orthopedics: "Orthopedics",
+      "obstetrics-gynecology": "Obstetrics and gynecology",
+      urology: "Urology",
+      cardiology: "Cardiology",
+      "internal-medicine": "Internal medicine",
+      pediatrics: "Pediatrics",
+      "general-practice": "General practice",
+      psychiatry: "Psychiatry",
+      physiotherapy: "Physiotherapy",
+      nutrition: "Nutrition",
+      other: "Other",
+    },
     surgeries: surgeriesEnMessages,
     patients: {
       title: "Patients",

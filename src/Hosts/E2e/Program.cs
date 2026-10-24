@@ -44,6 +44,7 @@ const string smsCapturePathKey = "VITARISH_E2E_SMS_CAPTURE_PATH";
 const string tenantBaseDomain = "localhost";
 const string onboardingSubdomain = "start";
 const string signInSubdomain = "auth";
+const string landingSubdomain = "landing";
 const string surgeryMaterializedViewRefresherTypeName = "SurgeryMaterializedViewRefresher";
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -64,7 +65,12 @@ if (!configuredUrls.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSpl
     throw new InvalidOperationException("The E2E server URLs must include the configured API origin.");
 
 builder.Configuration["Vitarish:Identity:Authority"] = apiOrigin.ToString().TrimEnd('/');
-builder.Configuration["Vitarish:LandingUrl"] = webOrigin.ToString().TrimEnd('/');
+// The landing host has its own address, so its platform tenant is provisioned there rather than
+// sharing localhost with the E2E clinic; landing sign-in and handoff can then be tested. Only the
+// host is used (tenant binding), so the URL keeps the HTTPS scheme the landing app requires while
+// the browser reaches the same host over the E2E web port.
+builder.Configuration["Vitarish:LandingUrl"] =
+    new UriBuilder(webOrigin) { Scheme = Uri.UriSchemeHttps, Host = $"{landingSubdomain}.{tenantBaseDomain}" }.Uri.ToString().TrimEnd('/');
 builder.Configuration["Cors:AllowedOrigins:0"] = webOrigin.ToString().TrimEnd('/');
 builder.Configuration["Cors:AllowedOrigins:1"] = "http://tenant-b.localhost:3005";
 builder.Configuration[platformCorsOriginKey] = platformWebOrigin.ToString().TrimEnd('/');
@@ -154,6 +160,9 @@ _ = app.MapAppEndpoints();
 _ = app.MapE2eAuditEvidenceEndpoints();
 
 await E2eFixtureSeeder.SeedAsync(app.Services, password, CancellationToken.None);
+// Main initializes every app; the E2E host initializes only the landing app, which provisions the
+// landing tenant at its own host so landing sign-in can be tested.
+await app.Services.GetRequiredService<IReadOnlyList<Vitarish.Apps.Base.Core.IApp>>().OfType<Vitarish.Landing.App.LandingApp>().Single().Initialize(app);
 app.Run();
 
 static Uri RequireLoopbackOrigin(string? value, string name, bool requireHttps)
