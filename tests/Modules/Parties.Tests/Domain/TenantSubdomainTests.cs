@@ -59,13 +59,13 @@ public sealed class TenantSubdomainTests
     }
 
     [Theory]
-    [InlineData("clinic.vitarish.com")]
-    [InlineData("Clinic.Vitarish.com.")]
-    [InlineData(" clinic.vitarish.com ")]
+    [InlineData("darman.vitarish.com")]
+    [InlineData("Darman.Vitarish.com.")]
+    [InlineData(" darman.vitarish.com ")]
     public void Builds_the_hostname_under_a_normalized_base_domain(string baseDomain)
     {
         TenantSubdomain.TryCreate("rezaei", out TenantSubdomain? subdomain);
 
-        subdomain!.ToHostname(baseDomain).Should().Be("rezaei.clinic.vitarish.com");
+        subdomain!.ToHostname(baseDomain).Should().Be("rezaei.darman.vitarish.com");
     }
 }
