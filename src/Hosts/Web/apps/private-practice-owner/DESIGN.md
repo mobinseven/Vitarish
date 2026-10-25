@@ -360,7 +360,7 @@ Use the generated font and text scale through HeroUI components and Tailwind tex
 
 ### Right-to-Left Text
 
-Inter has no Arabic-script glyphs. Persian and other right-to-left documents use [Vazirmatn](https://fonts.google.com/specimen/Vazirmatn) as the `--font-sans` role, with the same text scale.
+Inter has no Arabic-script glyphs. Persian and other right-to-left documents use the Ahang brand font from `@vitarish/ui/typography.css` as the `--font-sans` role, with the same text scale. Running text is soft (sharpness 0); express tone with the shared `font-tone-*` utilities (calm, warm, confident, urgent, celebratory) rather than raw `font-sharp-*` values.
 
 ## Layout
 Layout should use Tailwind v4 spacing utilities and HeroUI component structure. Keep spacing semantic and consistent instead of copying raw `rem` values into components.

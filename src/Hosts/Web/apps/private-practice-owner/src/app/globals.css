@@ -2,6 +2,7 @@
 @import "@heroui/styles";
 @import "@heroui-pro/react/css";
 @import "@vitarish/ui/layout.css";
+@import "@vitarish/ui/typography.css";
 @import "./theme.css";
 
 @source "../../../../shared/account/src/**/*.{ts,tsx}";
@@ -262,9 +263,9 @@ html.glass-dark {
     radial-gradient(circle at 12% 92%, oklch(68% 0.22 125 / 32%), transparent 17rem);
 } */
 
-/* RTL documents use Vazirmatn regardless of the theme's Latin font (./fonts.ts). */
+/* RTL documents use Ahang (@vitarish/ui/typography.css) regardless of the theme's Latin font. */
 html[dir="rtl"] {
-  --font-sans: var(--font-vazirmatn), Tahoma, Arial, sans-serif;
+  --font-sans: var(--font-ahang);
   font-family: var(--font-sans);
 }
 

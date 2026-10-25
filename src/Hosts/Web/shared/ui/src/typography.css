@@ -1,0 +1,59 @@
+/*
+ * Ahang, the Vitarish brand typeface for Persian (and its Latin) text.
+ *
+ * Ahang is a licensed FontIran font and is never committed: scripts/sync-brand-fonts.mjs copies
+ * it into each host's gitignored public/fonts/ahang/ from VITARISH_BRAND_FONT_DIR. Without the
+ * file the role falls back to the system fonts below. Keep the URL in sync with that script.
+ *
+ * The variable font has two axes: weight (wght 100-900, set through font-weight) and sharpness
+ * (shar 0 soft - 100 sharp, set through font-variation-settings). Their combinations carry tone.
+ */
+@font-face {
+  font-family: "Ahang";
+  src:
+    url("/fonts/ahang/AhangVariable.woff") format("woff-variations"),
+    url("/fonts/ahang/AhangVariable.woff") format("woff");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --font-ahang: "Ahang", Tahoma, Arial, sans-serif;
+  /* Running text is soft; sharpness is for emphasis. Fonts without the axis ignore it. */
+  font-variation-settings: "shar" 0;
+}
+
+/* Raw sharpness, e.g. font-sharp-0 … font-sharp-100; pair with font-weight for experiments. */
+@utility font-sharp-* {
+  font-variation-settings: "shar" --value(integer);
+}
+
+/*
+ * Named tones. Pick a tone by what the text should feel like, not by axis numbers; animate a
+ * change with transition-[font-weight,font-variation-settings].
+ */
+@utility font-tone-calm {
+  font-weight: 300;
+  font-variation-settings: "shar" 0;
+}
+
+@utility font-tone-warm {
+  font-weight: 450;
+  font-variation-settings: "shar" 0;
+}
+
+@utility font-tone-confident {
+  font-weight: 650;
+  font-variation-settings: "shar" 60;
+}
+
+@utility font-tone-urgent {
+  font-weight: 800;
+  font-variation-settings: "shar" 100;
+}
+
+@utility font-tone-celebratory {
+  font-weight: 900;
+  font-variation-settings: "shar" 30;
+}

@@ -7,3 +7,6 @@ src/api/generated/
 
 # MapLibre worker files copied in by scripts/sync-maplibre-worker.mjs
 apps/*/public/vendor/maplibre/
+
+# Licensed Ahang brand font copied in by scripts/sync-brand-fonts.mjs; never commit it
+apps/*/public/fonts/ahang/

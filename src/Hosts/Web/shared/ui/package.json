@@ -9,12 +9,14 @@
     "./marketing": "./src/marketing.tsx",
     "./layout": "./src/layout/index.ts",
     "./layout.css": "./src/layout.css",
+    "./typography.css": "./src/typography.css",
     "./content-security-policy": "./src/contentSecurityPolicyNonce.tsx",
     "./theme-palette": "./src/themePaletteClass.tsx",
     "./chroma": "./src/actions/chromaColor.ts"
   },
   "sideEffects": [
     "./src/layout.css",
+    "./src/typography.css",
     "./src/accent.css"
   ],
   "scripts": {
