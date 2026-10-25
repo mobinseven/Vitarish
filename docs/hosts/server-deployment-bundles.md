@@ -77,6 +77,11 @@ Keep these operator-owned files on the server under
   credentials.
 - Optional `.env.production.mediatr` for protected production MediatR values.
 - `minio.license` for the licensed AIStor service.
+- `brand-fonts/AhangVariableGX.woff` (folder mode `700`) for the licensed Ahang
+  brand font. `.env.shared` names the folder as `VITARISH_BRAND_FONT_DIR`; the
+  ingress mounts it read-only and serves it at `/fonts/ahang/AhangVariable.woff`
+  on the owner, platform-admin, and landing hosts; see
+  [Web brand font](web/brand-font.md).
 
 The workflow does not replace these files. Place valid digest-pinned Caddy and
 production application image references in them before the first deployment;
