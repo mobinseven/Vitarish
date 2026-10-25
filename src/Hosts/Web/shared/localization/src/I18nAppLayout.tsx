@@ -6,7 +6,7 @@ import {
   toSupportedLocale,
   type SupportedLocale,
 } from "./locales";
-import { parseLocaleCookie } from "./localeCookie";
+import { parseLocaleCookie, readLocaleCookieDomain } from "./localeCookie";
 import type { MessageCatalog } from "./messageTypes";
 import { resolveLocale, type ResolvedLocale } from "./resolveLocale";
 
@@ -65,7 +65,7 @@ export function I18nAppLayout({
       data-vibrant-palette={vibrantPalette ? "true" : undefined}
     >
       <body className={bodyClassName}>
-        <I18nProvider locale={locale} messages={getMessages(locale)}>
+        <I18nProvider locale={locale} localeCookieDomain={readLocaleCookieDomain(process.env)} messages={getMessages(locale)}>
           {children}
         </I18nProvider>
       </body>

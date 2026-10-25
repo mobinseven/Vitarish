@@ -5,7 +5,7 @@ import { Button, Tooltip } from "@heroui/react";
 import { FaIcon, MarketingActionLink, StandaloneDocumentPage } from "@vitarish/ui";
 import { useAuthSession } from "@vitarish/auth";
 import { Routes } from "@/app/routes";
-import { setLocaleCookie, supportedLocales, useLocalizedText } from "@/localization";
+import { supportedLocales, useLocalizedText, useSetLocaleCookie } from "@/localization";
 import { useCreateClinicHref } from "@/features/onboarding/useCreateClinicHref";
 import { LandingFeatures } from "./LandingFeatures";
 import styles from "./owner-landing.module.css";
@@ -29,6 +29,7 @@ function Logotype({ mark, alt, className }: { mark: keyof typeof logotypes; alt:
 /** The public front door of Vitarish Darman, the clinic app: the sub-brand on the anchor, working samples, and the way in. */
 export function OwnerLandingPage({ onboardingUrl }: OwnerLandingPageProps) {
   const { t, locale } = useLocalizedText();
+  const setLocaleCookie = useSetLocaleCookie();
   const { isAuthenticated } = useAuthSession();
   const createClinicHref = useCreateClinicHref(onboardingUrl);
   const otherLocale = supportedLocales.find((candidate) => candidate !== locale);

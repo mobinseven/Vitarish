@@ -109,7 +109,7 @@ vi.mock("@/localization", () => ({
     },
     locale: "en",
   }),
-  setLocaleCookie: vi.fn(),
+  useSetLocaleCookie: () => vi.fn(),
   supportedLocales: ["en", "fa"],
 }));
 
@@ -127,7 +127,7 @@ vi.mock("@vitarish/localization", () => ({
       })[key] ?? key,
     locale: "en",
   }),
-  setLocaleCookie: vi.fn(),
+  useSetLocaleCookie: () => vi.fn(),
   supportedLocales: ["en", "fa"],
 }));
 

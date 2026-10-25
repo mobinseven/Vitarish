@@ -15,6 +15,7 @@ export {
   parseLocaleCookie,
   serializeLocaleCookie,
   setLocaleCookie,
+  useSetLocaleCookie,
   localeCookieName,
   formatDate,
   formatDateTime,
