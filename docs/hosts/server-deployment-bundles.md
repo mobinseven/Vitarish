@@ -109,8 +109,8 @@ search, Redis, or ingress volumes.
 ## Ingress and DNS
 
 Configure DNS-only A records for the exact application hosts and for
-`*.e2e.vitarish.com`, `*.clinic.e2e.vitarish.com`, `*.vitarish.com`, and
-`*.clinic.vitarish.com` to the public ingress IPv4 address. Remove stale A and
+`*.e2e.vitarish.com`, `*.darman.e2e.vitarish.com`, `*.vitarish.com`, and
+`*.darman.vitarish.com` to the public ingress IPv4 address. Remove stale A and
 AAAA records. Set matching production host values in `.env.shared` and
 `.env.production`. Caddy uses the Cloudflare DNS challenge; its token should
 have Zone read and DNS edit access for the required zone. Choose non-overlapping
@@ -118,7 +118,7 @@ proxy subnets that do not conflict with the host LAN, VPN, or other Docker
 networks. Main trusts only the fixed Caddy IPv4 address on its environment
 proxy network.
 
-Self-service clinic onboarding uses the `*.clinic.vitarish.com` host and is off
+Self-service clinic onboarding uses the `*.darman.vitarish.com` host and is off
 until its settings are set; see the
 [clinic onboarding runbook](../runbooks/clinic-onboarding.md). The shared
 sign-in host, for example `auth.vitarish.com`, uses the `*.vitarish.com` host

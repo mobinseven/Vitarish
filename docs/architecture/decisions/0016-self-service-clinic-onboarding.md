@@ -27,7 +27,7 @@ Several existing boundaries are involved:
 ## Decision
 
 1. **Addresses.** Each clinic gets its own host, `<subdomain>.<base domain>`:
-   `*.clinic.vitarish.com` in production and `<subdomain>.localhost` locally and
+   `*.darman.vitarish.com` in production and `<subdomain>.localhost` locally and
    in E2E. The base domain is `Vitarish:TenantBaseDomain`. Subdomains are 3–30
    characters, lowercase letters, digits and inner hyphens, and some names are
    reserved.

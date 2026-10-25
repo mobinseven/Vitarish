@@ -7,7 +7,7 @@ check it. The design is in
 ## What it needs
 
 People sign in at one address, for example `auth.vitarish.com`, and continue
-signed in to one of their clinics at `<subdomain>.clinic.vitarish.com`. The
+signed in to one of their clinics at `<subdomain>.darman.vitarish.com`. The
 ingress already serves that address:
 
 - DNS and TLS: the `*.vitarish.com` A record and wildcard certificate

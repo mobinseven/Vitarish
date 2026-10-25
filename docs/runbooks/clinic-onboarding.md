@@ -6,11 +6,11 @@ to check it. The design is in
 
 ## What it needs
 
-Each clinic lives at `<subdomain>.clinic.vitarish.com`, and people sign up and
+Each clinic lives at `<subdomain>.darman.vitarish.com`, and people sign up and
 create clinics on one onboarding host under the same domain, for example
-`start.clinic.vitarish.com`. The ingress already serves that domain:
+`start.darman.vitarish.com`. The ingress already serves that domain:
 
-- DNS: the `*.clinic.vitarish.com` A record points at the ingress
+- DNS: the `*.darman.vitarish.com` A record points at the ingress
   ([Ingress and DNS](../hosts/server-deployment-bundles.md#ingress-and-dns)).
 - TLS: Caddy gets the wildcard certificate through the Cloudflare DNS-01
   challenge.
@@ -31,7 +31,7 @@ All three live in the server's `/opt/vitarish/deployment/.env.shared`:
 | Setting | Example | Used as |
 | --- | --- | --- |
 | `VITARISH_PRODUCTION_TENANT_ONBOARDING` | `true` | Main `Vitarish__Features__TenantOnboarding`; owner Web and landing `VITARISH_TENANT_ONBOARDING` |
-| `VITARISH_PRODUCTION_CLINIC_BASE_DOMAIN` | `clinic.vitarish.com` | Main `Vitarish__TenantBaseDomain` |
+| `VITARISH_PRODUCTION_CLINIC_BASE_DOMAIN` | `darman.vitarish.com` | Main `Vitarish__TenantBaseDomain` |
 | `VITARISH_PRODUCTION_ONBOARDING_SUBDOMAIN` | `start` | `https://<subdomain>.<base domain>` as Main `Vitarish__OnboardingUrl`; owner Web and landing `VITARISH_ONBOARDING_URL` |
 
 - The flag is the only switch. The base domain and subdomain are required on
@@ -55,7 +55,7 @@ All three live in the server's `/opt/vitarish/deployment/.env.shared`:
      profile and reach `/setup`.
    - A taken address is reported as taken; a new one as available.
    - Creating the clinic shows its address, and **Go to my clinic** lands signed
-     in on `https://<subdomain>.clinic.vitarish.com/home`.
+     in on `https://<subdomain>.darman.vitarish.com/home`.
    - Opening the same handoff link again is refused.
 4. Remove the test clinic afterwards from platform administration.
 
