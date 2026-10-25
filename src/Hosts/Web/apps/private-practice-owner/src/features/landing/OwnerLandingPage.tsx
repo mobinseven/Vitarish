@@ -15,34 +15,18 @@ interface OwnerLandingPageProps {
   onboardingUrl: string | null;
 }
 
-// Each mark has dark ink for the light theme and white ink for the dark theme; an inverted ground swaps them.
+// White-ink marks: the header, hero and footer all sit on the anchor in both themes.
 const logotypes = {
-  mark: { light: "/Logo-Dark-®.svg", dark: "/Logo-®.svg" },
-  registered: { light: "/Master-Hel-Logotype-Dark-®.svg", dark: "/Master-Hel-Logotype-®.svg" },
-  copyright: { light: "/Master-Hel-Logotype-Dark-©.svg", dark: "/Master-Hel-Logotype-©.svg" },
+  mark: "/Logo-®.svg",
+  registered: "/Master-Hel-Logotype-®.svg",
+  copyright: "/Master-Hel-Logotype-©.svg",
 } as const;
 
-function Logotype({
-  mark,
-  alt,
-  className,
-  isInverted = false,
-}: {
-  mark: keyof typeof logotypes;
-  alt: string;
-  className?: string;
-  isInverted?: boolean;
-}) {
-  const { light, dark } = logotypes[mark];
-  return (
-    <span className={className}>
-      <img alt={alt} className="block h-full w-auto dark:hidden" src={isInverted ? dark : light} />
-      <img alt={alt} className="hidden h-full w-auto dark:block" src={isInverted ? light : dark} />
-    </span>
-  );
+function Logotype({ mark, alt, className }: { mark: keyof typeof logotypes; alt: string; className?: string }) {
+  return <img alt={alt} className={className} src={logotypes[mark]} />;
 }
 
-/** The public front door of the clinic owner app: the Vitarish look, a few working samples, and the way in. */
+/** The public front door of Vitarish Darman, the clinic app: the sub-brand on the anchor, working samples, and the way in. */
 export function OwnerLandingPage({ onboardingUrl }: OwnerLandingPageProps) {
   const { t, locale } = useLocalizedText();
   const { isAuthenticated } = useAuthSession();
@@ -74,16 +58,20 @@ export function OwnerLandingPage({ onboardingUrl }: OwnerLandingPageProps) {
 
   return (
     <StandaloneDocumentPage aria-label={t("practiceLanding.mainContent")} className={styles.page}>
-      <header className={styles.header}>
-        <Link aria-label={t("practiceLanding.brandHome")} href={Routes.Root}>
-          <Logotype alt="" className={styles.headerMark} mark="mark" />
-        </Link>
-        <div className={styles.headerActions}>
+      <div className={styles.anchorBand}>
+        <header className={styles.header}>
+          <Link aria-label={t("practiceLanding.brandHome")} className={styles.brand} href={Routes.Root}>
+            <Logotype alt="" className={styles.headerMark} mark="mark" />
+            <span aria-hidden="true" className={`${styles.headerSubBrand} font-tone-confident`}>
+              {t("practiceLanding.subBrand")}
+            </span>
+          </Link>
           {otherLocale && (
             <MarketingActionLink
+              className={styles.onAnchor}
               action={{
                 label: t("practiceLanding.otherLanguage"),
-                tone: "outline",
+                tone: "quiet",
                 tooltip: t("practiceLanding.otherLanguageTooltip"),
                 icon: <FaIcon aria-hidden="true" icon="language" size="1x" />,
                 onPress: () => {
@@ -93,29 +81,32 @@ export function OwnerLandingPage({ onboardingUrl }: OwnerLandingPageProps) {
               }}
             />
           )}
-        </div>
-      </header>
-      <div className={styles.main}>
+        </header>
         <section aria-labelledby="landing-hero" className={styles.hero}>
-          <Logotype alt={t("appShell.brand")} className={styles.logotype} mark="registered" />
-          <div className={styles.heroText}>
-            <h1 className={styles.heroTitle} id="landing-hero">{t("practiceLanding.title")}</h1>
-            <p className={styles.heroIntro}>{t("practiceLanding.description")}</p>
-            <div className={styles.heroActions}>
-              <MarketingActionLink action={leadAction} />
-              {createClinicAction && <MarketingActionLink action={createClinicAction} />}
-            </div>
+          <p className={styles.byline}>
+            <span>{t("practiceLanding.byline")}</span>
+            <Logotype alt={t("appShell.brand")} className={styles.bylineLogotype} mark="registered" />
+          </p>
+          <h1 className={`${styles.heroTitle} font-tone-confident`} id="landing-hero">
+            {t("practiceLanding.heroTitle")}
+          </h1>
+          <p className={styles.heroIntro}>{t("practiceLanding.description")}</p>
+          <div className={styles.heroActions}>
+            <MarketingActionLink action={leadAction} />
+            {createClinicAction && <MarketingActionLink action={createClinicAction} />}
           </div>
         </section>
+      </div>
+      <div className={styles.main}>
         <LandingFeatures />
       </div>
-      <footer className={styles.footer}>
+      <footer className={`${styles.anchorBand} ${styles.footer}`}>
         <div className={styles.footerTop}>
           <Tooltip>
             <Button
               isIconOnly
               aria-label={t("practiceLanding.backToTop")}
-              className={styles.toTop}
+              className={styles.onAnchor}
               variant="ghost"
               onPress={() => window.scrollTo({ top: 0, behavior: "smooth" })}
             >
@@ -124,14 +115,12 @@ export function OwnerLandingPage({ onboardingUrl }: OwnerLandingPageProps) {
             <Tooltip.Content>{t("practiceLanding.backToTop")}</Tooltip.Content>
           </Tooltip>
         </div>
-        <div className={styles.footerBottom}>
-          <p className={styles.footerNote}>
-            {t("practiceLanding.footerDescription")}
-            <br />
-            {t("practiceLanding.footerRights")}
-          </p>
-        </div>
-        <Logotype isInverted alt={t("appShell.brand")} className={`${styles.logotype} ${styles.footerLogotype}`} mark="copyright" />
+        <p className={styles.footerNote}>
+          {t("practiceLanding.footerDescription")}
+          <br />
+          {t("practiceLanding.footerRights")}
+        </p>
+        <Logotype alt={t("appShell.brand")} className={styles.footerLogotype} mark="copyright" />
       </footer>
     </StandaloneDocumentPage>
   );

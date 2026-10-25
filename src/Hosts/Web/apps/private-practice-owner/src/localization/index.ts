@@ -22,6 +22,7 @@ export {
   formatPercent,
   formatCurrency,
   formatList,
+  formatTimeOfDay,
   formatRelativeTime,
   getReactAriaLocale,
   getDateCalendar,

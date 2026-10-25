@@ -33,6 +33,11 @@ anchor.
 Danger is a vermilion (hue 38) kept away from the magenta accent, so errors
 never read as brand.
 
+The owner app's public landing page (Vitarish Darman) puts its header, hero,
+and footer on the anchor, and sets the sub-brand wordmark in the hero in the
+accent. That wordmark is the one accent use outside the list above; the owner
+approved it on 2026-10-25.
+
 ### Design-system override
 
 The canvas, ink, muted text, and danger values above are not yet in the saved

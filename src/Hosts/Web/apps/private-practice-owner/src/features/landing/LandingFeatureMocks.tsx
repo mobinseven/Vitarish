@@ -1,12 +1,15 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { Button, Chip, Label, ProgressBar, Tooltip } from "@heroui/react";
-import { FaIcon } from "@vitarish/ui";
-import { useLocalizedText, type MessageKey } from "@/localization";
+import { Button, Chip, Tooltip } from "@heroui/react";
+import { Widget } from "@heroui-pro/react";
+import { KPI } from "@heroui-pro/react/kpi";
+import { KPIGroup } from "@heroui-pro/react/kpi-group";
+import { ChatMessage, FaIcon } from "@vitarish/ui";
+import { formatPercent, formatTimeOfDay, useLocalizedText, type MessageKey } from "@/localization";
 
 /** The mocks run on fixed sample data and never call the API. */
-export const landingFeatureIds = ["patientContext", "appointments", "templates", "checkin", "oversight", "ai"] as const;
+export const landingFeatureIds = ["assistant", "reports", "bookings"] as const;
 export type LandingFeatureId = (typeof landingFeatureIds)[number];
 
 function MockAction({
@@ -14,15 +17,17 @@ function MockAction({
   label,
   tooltip,
   onPress,
+  variant = "tertiary",
 }: {
   icon: string;
   label: string;
   tooltip: string;
   onPress: () => void;
+  variant?: "tertiary" | "outline";
 }) {
   return (
     <Tooltip>
-      <Button size="sm" variant="secondary" onPress={onPress}>
+      <Button size="sm" variant={variant} onPress={onPress}>
         <FaIcon aria-hidden="true" icon={icon} />
         {label}
       </Button>
@@ -31,230 +36,196 @@ function MockAction({
   );
 }
 
-function MockRow({ children }: { children: ReactNode }) {
-  return <li className="flex items-center justify-between gap-3 rounded-xl bg-surface p-3">{children}</li>;
-}
+const chatSlots = [
+  { id: "tuesday", time: "10:30", labelKey: "practiceLanding.mockChatSlotTuesday" },
+  { id: "thursday", time: "16:00", labelKey: "practiceLanding.mockChatSlotThursday" },
+] as const satisfies readonly { id: string; time: string; labelKey: MessageKey }[];
 
-function PatientContextMock() {
-  const { t } = useLocalizedText();
+/** A patient asks for a visit; the clinic assistant offers openings and books the one picked. */
+function AssistantMock() {
+  const { t, locale } = useLocalizedText();
+  const [pickedId, setPickedId] = useState<string | null>(null);
+  const slotLabel = (slot: (typeof chatSlots)[number]) => t(slot.labelKey, { time: formatTimeOfDay(slot.time, locale) });
+  const picked = chatSlots.find((slot) => slot.id === pickedId);
+  const assistant = { avatarAlt: t("practiceLanding.mockAssistantName"), avatarFallback: t("practiceLanding.mockAssistantAvatar") };
+
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between gap-3">
-        <span className="flex items-center gap-3 font-semibold text-foreground">
-          <FaIcon aria-hidden="true" icon="user" />
-          {t("practiceLanding.mockPatientName")}
+    <div aria-live="polite" className="flex flex-col gap-5">
+      <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+        <FaIcon aria-hidden="true" icon="message-bot" />
+        {t("practiceLanding.mockAssistantName")}
+        <span className="flex items-center gap-1.5 text-xs font-medium text-success">
+          <span aria-hidden="true" className="size-2 rounded-full bg-success" />
+          {t("practiceLanding.mockAssistantOnline")}
         </span>
-        <Chip size="sm" variant="soft" color="accent">{t("practiceLanding.mockPatientStatus")}</Chip>
       </div>
-      <ul className="flex flex-col gap-2 text-sm text-muted">
-        <MockRow>{t("practiceLanding.mockPatientNoteOne")}</MockRow>
-        <MockRow>{t("practiceLanding.mockPatientNoteTwo")}</MockRow>
-      </ul>
-      <ProgressBar aria-label={t("practiceLanding.mockPatientProgress")} value={65}>
-        <Label>{t("practiceLanding.mockPatientProgress")}</Label>
-        <ProgressBar.Output />
-        <ProgressBar.Track>
-          <ProgressBar.Fill />
-        </ProgressBar.Track>
-      </ProgressBar>
+      <ChatMessage kind="question">{t("practiceLanding.mockChatQuestion")}</ChatMessage>
+      <ChatMessage {...assistant} kind="answer">
+        <div className="flex flex-col gap-3">
+          <p className="text-sm text-foreground">{t("practiceLanding.mockChatOffer")}</p>
+          {!picked && (
+            <div className="flex flex-wrap gap-2">
+              {chatSlots.map((slot) => (
+                <MockAction
+                  key={slot.id}
+                  icon="calendar-check"
+                  label={slotLabel(slot)}
+                  tooltip={t("practiceLanding.mockChatSlotTooltip")}
+                  variant="outline"
+                  onPress={() => setPickedId(slot.id)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </ChatMessage>
+      {picked && (
+        <>
+          <ChatMessage kind="question">{t("practiceLanding.mockChatPick", { slot: slotLabel(picked) })}</ChatMessage>
+          <ChatMessage {...assistant} kind="notice" status={t("practiceLanding.mockChatBooked")} tone="success">
+            <div className="flex flex-col items-start gap-3">
+              <p className="flex items-start gap-2 text-sm text-foreground">
+                <FaIcon aria-hidden="true" icon="circle-check" className="mt-0.5 shrink-0 text-success" />
+                {t("practiceLanding.mockChatBookedBody", { slot: slotLabel(picked) })}
+              </p>
+              <MockAction
+                icon="rotate-left"
+                label={t("practiceLanding.mockChatRestart")}
+                tooltip={t("practiceLanding.mockChatRestartTooltip")}
+                onPress={() => setPickedId(null)}
+              />
+            </div>
+          </ChatMessage>
+        </>
+      )}
     </div>
   );
 }
 
-const agenda = [
-  { id: "consultation", time: "09:00", serviceKey: "practiceLanding.mockAgendaConsultation", providerKey: "practiceLanding.mockProviderOne" },
-  { id: "followUp", time: "10:30", serviceKey: "practiceLanding.mockAgendaFollowUp", providerKey: "practiceLanding.mockProviderTwo" },
-  { id: "procedure", time: "13:00", serviceKey: "practiceLanding.mockAgendaProcedure", providerKey: "practiceLanding.mockProviderOne" },
-] as const satisfies readonly { id: string; time: string; serviceKey: MessageKey; providerKey: MessageKey }[];
+// A rising week: each figure gains on last week, so every trend reads as success.
+const reportFigures = [
+  { id: "visits", icon: "stethoscope", value: 86, change: 0.12, labelKey: "practiceLanding.mockReportsVisits", trend: [52, 58, 55, 63, 68, 72, 86] },
+  { id: "newPatients", icon: "user-plus", value: 14, change: 0.08, labelKey: "practiceLanding.mockReportsNewPatients", trend: [6, 8, 7, 9, 11, 12, 14] },
+  { id: "returning", icon: "rotate", value: 0.68, change: 0.05, labelKey: "practiceLanding.mockReportsReturning", trend: [54, 57, 59, 58, 62, 65, 68], isRate: true },
+] as const satisfies readonly {
+  id: string;
+  icon: string;
+  value: number;
+  change: number;
+  labelKey: MessageKey;
+  trend: readonly number[];
+  isRate?: boolean;
+}[];
 
-function AppointmentsMock() {
-  const { t } = useLocalizedText();
-  const [confirmed, setConfirmed] = useState<ReadonlySet<string>>(new Set(["consultation"]));
+/** This week's practice figures, each with its trend against last week. */
+function ReportsMock() {
+  const { t, locale } = useLocalizedText();
+  return (
+    <Widget>
+      <Widget.Header>
+        <Widget.Title>{t("practiceLanding.mockReportsTitle")}</Widget.Title>
+      </Widget.Header>
+      <Widget.Content>
+        <KPIGroup className="grid gap-3 sm:grid-cols-3">
+          {reportFigures.map((figure) => (
+            <KPI key={figure.id}>
+              <KPI.Header>
+                <KPI.Icon status="success">
+                  <FaIcon aria-hidden="true" icon={figure.icon} />
+                </KPI.Icon>
+                <KPI.Title>{t(figure.labelKey)}</KPI.Title>
+              </KPI.Header>
+              <KPI.Content>
+                <KPI.Value
+                  maximumFractionDigits={0}
+                  style={"isRate" in figure ? "percent" : "decimal"}
+                  value={figure.value}
+                />
+                <KPI.Trend trend="up">{formatPercent(figure.change, locale)}</KPI.Trend>
+              </KPI.Content>
+              <KPI.Chart color="var(--color-success)" data={figure.trend.map((value) => ({ value }))} height={48} />
+              <KPI.Footer className="text-xs text-muted">{t("practiceLanding.mockReportsVsLastWeek")}</KPI.Footer>
+            </KPI>
+          ))}
+        </KPIGroup>
+      </Widget.Content>
+    </Widget>
+  );
+}
+
+type BookingState = "pending" | "confirmed" | "present";
+
+const agenda = [
+  { id: "consultation", time: "09:00", serviceKey: "practiceLanding.mockAgendaConsultation", providerKey: "practiceLanding.mockProviderOne", initial: "confirmed" },
+  { id: "followUp", time: "10:30", serviceKey: "practiceLanding.mockAgendaFollowUp", providerKey: "practiceLanding.mockProviderTwo", initial: "pending" },
+  { id: "procedure", time: "13:00", serviceKey: "practiceLanding.mockAgendaProcedure", providerKey: "practiceLanding.mockProviderOne", initial: "pending" },
+] as const satisfies readonly { id: string; time: string; serviceKey: MessageKey; providerKey: MessageKey; initial: BookingState }[];
+
+// Reservation status colors from the Web color convention: pending is warning, confirmed success, present accent.
+const bookingChips = {
+  pending: { color: "warning", labelKey: "practiceLanding.mockPending" },
+  confirmed: { color: "success", labelKey: "practiceLanding.mockConfirmed" },
+  present: { color: "accent", labelKey: "practiceLanding.mockPresent" },
+} as const satisfies Record<BookingState, { color: "warning" | "success" | "accent"; labelKey: MessageKey }>;
+
+/** Today's bookings: confirm a pending one, then check the patient in when they arrive. */
+function BookingsMock() {
+  const { t, locale } = useLocalizedText();
+  const [states, setStates] = useState<Record<string, BookingState>>(() =>
+    Object.fromEntries(agenda.map((slot) => [slot.id, slot.initial])),
+  );
+  const advance = (id: string, next: BookingState) => setStates((current) => ({ ...current, [id]: next }));
 
   return (
     <ul className="flex flex-col gap-2">
       {agenda.map((slot) => {
-        const isConfirmed = confirmed.has(slot.id);
+        const state = states[slot.id];
+        const chip = bookingChips[state];
         return (
-          <MockRow key={slot.id}>
+          <li key={slot.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-surface p-3">
             <span className="flex flex-col text-sm">
-              <span className="font-medium text-foreground">{slot.time} · {t(slot.serviceKey)}</span>
+              <span className="font-medium text-foreground">
+                {formatTimeOfDay(slot.time, locale)} · {t(slot.serviceKey)}
+              </span>
               <span className="text-muted">{t(slot.providerKey)}</span>
             </span>
-            {isConfirmed ? (
-              <Chip size="sm" variant="soft" color="success">{t("practiceLanding.mockConfirmed")}</Chip>
-            ) : (
-              <span className="flex items-center gap-2">
-                <Chip size="sm" variant="soft" color="warning">{t("practiceLanding.mockPending")}</Chip>
+            <span className="flex items-center gap-2">
+              <Chip size="sm" variant="soft" color={chip.color}>{t(chip.labelKey)}</Chip>
+              {state === "pending" && (
                 <MockAction
                   icon="check"
                   label={t("practiceLanding.mockConfirm")}
                   tooltip={t("practiceLanding.mockConfirmTooltip")}
-                  onPress={() => setConfirmed((current) => new Set(current).add(slot.id))}
+                  onPress={() => advance(slot.id, "confirmed")}
                 />
-              </span>
-            )}
-          </MockRow>
+              )}
+              {state === "confirmed" && (
+                <MockAction
+                  icon="right-to-bracket"
+                  label={t("practiceLanding.mockCheckIn")}
+                  tooltip={t("practiceLanding.mockCheckInTooltip")}
+                  onPress={() => advance(slot.id, "present")}
+                />
+              )}
+            </span>
+          </li>
         );
       })}
     </ul>
   );
 }
 
-const templateOptions = [
-  { id: "prescription", icon: "prescription-bottle-medical", labelKey: "practiceLanding.mockTemplatePrescription", bodyKey: "practiceLanding.mockTemplatePrescriptionBody" },
-  { id: "procedure", icon: "notes-medical", labelKey: "practiceLanding.mockTemplateProcedure", bodyKey: "practiceLanding.mockTemplateProcedureBody" },
-  { id: "insurance", icon: "file-invoice-dollar", labelKey: "practiceLanding.mockTemplateInsurance", bodyKey: "practiceLanding.mockTemplateInsuranceBody" },
-] as const satisfies readonly { id: string; icon: string; labelKey: MessageKey; bodyKey: MessageKey }[];
-
-function TemplatesMock() {
-  const { t } = useLocalizedText();
-  const [selectedId, setSelectedId] = useState<string>(templateOptions[0].id);
-  const selected = templateOptions.find((option) => option.id === selectedId) ?? templateOptions[0];
-
-  return (
-    <div className="flex flex-col gap-3">
-      <div className="flex flex-wrap gap-2">
-        {templateOptions.map((option) => (
-          <Button
-            key={option.id}
-            aria-pressed={option.id === selectedId}
-            size="sm"
-            variant={option.id === selectedId ? "primary" : "secondary"}
-            onPress={() => setSelectedId(option.id)}
-          >
-            <FaIcon aria-hidden="true" icon={option.icon} />
-            {t(option.labelKey)}
-          </Button>
-        ))}
-      </div>
-      <p aria-live="polite" className="rounded-xl bg-surface p-4 text-sm leading-6 text-muted">
-        {t(selected.bodyKey)}
-      </p>
-    </div>
-  );
-}
-
-const expectedPatients = ["practiceLanding.mockPatientOne", "practiceLanding.mockPatientTwo"] as const satisfies readonly MessageKey[];
-
-function CheckinMock() {
-  const { t } = useLocalizedText();
-  const [arrived, setArrived] = useState<readonly MessageKey[]>([]);
-  const expected = expectedPatients.filter((key) => !arrived.includes(key));
-
-  return (
-    <div className="grid gap-4 sm:grid-cols-2">
-      <section aria-label={t("practiceLanding.mockExpected")} className="flex flex-col gap-2">
-        <h4 className="text-xs font-semibold uppercase tracking-wide text-muted">{t("practiceLanding.mockExpected")}</h4>
-        <ul className="flex flex-col gap-2">
-          {expected.map((key) => (
-            <MockRow key={key}>
-              <span className="text-sm font-medium text-foreground">{t(key)}</span>
-              <MockAction
-                icon="right-to-bracket"
-                label={t("practiceLanding.mockCheckIn")}
-                tooltip={t("practiceLanding.mockCheckInTooltip")}
-                onPress={() => setArrived((current) => [...current, key])}
-              />
-            </MockRow>
-          ))}
-        </ul>
-      </section>
-      <section aria-label={t("practiceLanding.mockArrived")} className="flex flex-col gap-2">
-        <h4 className="text-xs font-semibold uppercase tracking-wide text-muted">{t("practiceLanding.mockArrived")}</h4>
-        <ul className="flex flex-col gap-2">
-          {arrived.map((key) => (
-            <MockRow key={key}>
-              <span className="text-sm font-medium text-foreground">{t(key)}</span>
-              <Chip size="sm" variant="soft" color="success">{t("practiceLanding.mockArrived")}</Chip>
-            </MockRow>
-          ))}
-        </ul>
-      </section>
-    </div>
-  );
-}
-
-const oversightFigures = [
-  { id: "patients", value: "128", labelKey: "practiceLanding.mockOversightPatients" },
-  { id: "today", value: "18", labelKey: "practiceLanding.mockOversightToday" },
-  { id: "attention", value: "3", labelKey: "practiceLanding.mockOversightAttention" },
-] as const satisfies readonly { id: string; value: string; labelKey: MessageKey }[];
-
-function OversightMock() {
-  const { t } = useLocalizedText();
-  return (
-    <dl className="grid gap-3 sm:grid-cols-3">
-      {oversightFigures.map((figure) => (
-        <div key={figure.id} className="flex flex-col gap-1 rounded-xl bg-surface p-4">
-          <dd className="text-3xl font-semibold tabular-nums text-foreground">{figure.value}</dd>
-          <dt className="text-sm text-muted">{t(figure.labelKey)}</dt>
-        </div>
-      ))}
-    </dl>
-  );
-}
-
-type SuggestionState = "open" | "accepted" | "dismissed";
-
-function AiGuidanceMock() {
-  const { t } = useLocalizedText();
-  const [state, setState] = useState<SuggestionState>("open");
-
-  if (state !== "open") {
-    return (
-      <div aria-live="polite" className="flex flex-col items-start gap-3">
-        <p className="text-sm text-muted">
-          {state === "accepted" ? t("practiceLanding.mockAiAccepted") : t("practiceLanding.mockAiDismissed")}
-        </p>
-        <MockAction
-          icon="rotate-left"
-          label={t("practiceLanding.mockAiReset")}
-          tooltip={t("practiceLanding.mockAiResetTooltip")}
-          onPress={() => setState("open")}
-        />
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex flex-col gap-3">
-      <p className="flex gap-3 rounded-xl bg-surface p-4 text-sm leading-6 text-foreground">
-        <FaIcon aria-hidden="true" icon="wand-magic-sparkles" className="mt-1 shrink-0 text-accent" />
-        {t("practiceLanding.mockAiSummary")}
-      </p>
-      <div className="flex flex-wrap gap-2">
-        <MockAction
-          icon="check"
-          label={t("practiceLanding.mockAiAccept")}
-          tooltip={t("practiceLanding.mockAiAcceptTooltip")}
-          onPress={() => setState("accepted")}
-        />
-        <MockAction
-          icon="xmark"
-          label={t("practiceLanding.mockAiDismiss")}
-          tooltip={t("practiceLanding.mockAiDismissTooltip")}
-          onPress={() => setState("dismissed")}
-        />
-      </div>
-    </div>
-  );
-}
-
 const mocks: Record<LandingFeatureId, () => ReactNode> = {
-  patientContext: PatientContextMock,
-  appointments: AppointmentsMock,
-  templates: TemplatesMock,
-  checkin: CheckinMock,
-  oversight: OversightMock,
-  ai: AiGuidanceMock,
+  assistant: AssistantMock,
+  reports: ReportsMock,
+  bookings: BookingsMock,
 };
 
 export function LandingFeatureMock({ feature }: { feature: LandingFeatureId }) {
   const { t } = useLocalizedText();
   const Mock = mocks[feature];
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-4">
       <p className="text-xs text-muted">{t("practiceLanding.mockLabel")}</p>
       <Mock />
     </div>

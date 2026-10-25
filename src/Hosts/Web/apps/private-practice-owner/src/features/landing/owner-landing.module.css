@@ -1,7 +1,10 @@
-/* The owner front door, laid out like the Vitarish front door: a bare header, the logotype across the top, titled bands, and an inverted footer closed by the logotype. */
+/*
+ * The Vitarish Darman front door: the header and hero on an anchor band carrying the sub-brand,
+ * the capabilities on the plain ground, and an anchor footer closed by the logotype.
+ */
 
 .page {
-  --gutter: clamp(1rem, 3vw, 3rem);
+  --gutter: clamp(1rem, 4vw, 4rem);
   --header-height: 5.5rem;
 
   display: flex;
@@ -17,7 +20,20 @@
   flex-direction: column;
 }
 
-/* No bar: the mark and the actions sit on the page itself. */
+/* The anchor ground of the header, hero and footer, in both themes. */
+.anchorBand {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--anchor);
+  color: var(--anchor-foreground);
+}
+
+/* Controls drawn on the anchor take its ink, not the page's. */
+.onAnchor {
+  color: var(--anchor-foreground);
+}
+
 .header {
   display: flex;
   align-items: center;
@@ -27,43 +43,69 @@
   padding-inline: var(--gutter);
 }
 
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: inherit;
+}
+
 .headerMark {
   display: block;
   height: 2.25rem;
+  width: auto;
 }
 
-.headerActions {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
+.headerSubBrand {
+  font-size: 1.25rem;
+  text-transform: uppercase;
 }
 
+/* The sub-brand is the hero: a small "by VITARISH" line above a giant accent wordmark. */
 .hero {
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  align-items: flex-start;
+  gap: 1.75rem;
+  padding: clamp(3rem, 10vh, 7rem) var(--gutter) clamp(4rem, 12vh, 8rem);
 }
 
-.heroText {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-  padding: clamp(2rem, 6vh, 4rem) var(--gutter) 4rem;
+.byline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.125rem;
+  opacity: 0.8;
 }
 
+.bylineLogotype {
+  display: block;
+  height: 1.5rem;
+  width: auto;
+}
+
+/* Owner-approved (docs/hosts/web/color-roles.md): the sub-brand wordmark takes the accent. */
 .heroTitle {
-  max-width: 48rem;
-  font-size: clamp(1.75rem, 4vw, 3.5rem);
-  font-weight: 600;
-  line-height: 1.15;
-  text-wrap: balance;
+  font-size: clamp(4.5rem, 16vw, 13rem);
+  line-height: 0.95;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+/* Tracking only for Latin: spacing letters apart breaks the joins of Persian script. */
+:global(html:not([dir="rtl"])) .headerSubBrand {
+  letter-spacing: 0.04em;
+}
+
+:global(html:not([dir="rtl"])) .heroTitle {
+  letter-spacing: -0.02em;
 }
 
 .heroIntro {
   max-width: 40rem;
-  font-size: 1.0625rem;
+  font-size: 1.1875rem;
   line-height: 1.7;
-  color: var(--muted);
+  opacity: 0.85;
 }
 
 .heroActions {
@@ -72,86 +114,64 @@
   gap: 0.75rem;
 }
 
-.logotype {
-  display: block;
-  width: 100%;
-}
-
-.logotype img {
-  width: 100%;
-  height: auto;
-}
-
-/* One section per capability: a centred title above a wide panel; both fade in as they scroll into view. */
-.feature {
+.features {
   display: flex;
   flex-direction: column;
+}
+
+/* One capability per section: title and sample side by side on wide screens, sides alternating. */
+.feature {
+  display: grid;
   align-items: center;
-  gap: 3rem;
-  margin-inline: var(--gutter);
-  padding-block: 6rem;
+  gap: 2.5rem;
+  padding: clamp(4rem, 10vh, 7rem) var(--gutter);
 }
 
-/* The ground behind the sections takes the tone of the section in view, mixed from theme tokens so it reads in both modes. */
-.tones {
-  --tone-strength: 16%;
-
-  background-color: var(--tone, var(--background));
-  transition: background-color 700ms ease;
+.feature + .feature {
+  border-top: 1px solid var(--separator);
 }
 
-:global([data-theme="dark"]) .tones {
-  --tone-strength: 34%;
-}
+@media (min-width: 64rem) {
+  .feature {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: 4rem;
+  }
 
-.tones[data-tone="patientContext"] { --tone: color-mix(in oklch, var(--accent) var(--tone-strength), var(--background)); }
-.tones[data-tone="appointments"] { --tone: color-mix(in oklch, var(--chroma-primary) var(--tone-strength), var(--background)); }
-.tones[data-tone="templates"] { --tone: color-mix(in oklch, var(--chroma-tertiary) var(--tone-strength), var(--background)); }
-.tones[data-tone="checkin"] { --tone: color-mix(in oklch, var(--chroma-quinary) var(--tone-strength), var(--background)); }
-.tones[data-tone="oversight"] { --tone: color-mix(in oklch, var(--chroma-senary) var(--tone-strength), var(--background)); }
-.tones[data-tone="ai"] { --tone: color-mix(in oklch, var(--chroma-quaternary) var(--tone-strength), var(--background)); }
+  /* The sample keeps the wider column when the sides swap. */
+  .feature:nth-child(even) {
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  }
 
-@media (prefers-reduced-motion: reduce) {
-  .tones {
-    transition-duration: 1ms;
+  .feature:nth-child(even) .featureText {
+    order: 2;
   }
 }
 
 .featureText {
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: 1rem;
-  text-align: center;
 }
 
 .display {
-  max-width: 40rem;
-  font-size: clamp(2rem, 4vw, 3.5rem);
-  font-weight: 600;
-  line-height: 1.1;
+  font-size: clamp(2rem, 4vw, 3.25rem);
+  line-height: 1.15;
   text-wrap: balance;
 }
 
 .featureLine {
+  max-width: 32rem;
   font-size: 1.0625rem;
+  line-height: 1.7;
   color: var(--muted);
 }
 
 .featurePanel {
   width: 100%;
-  max-width: 46rem;
-  padding: clamp(1.25rem, 3vw, 2.5rem);
-  border-radius: 2rem;
-  background: var(--surface-secondary);
 }
 
 .footer {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  background: var(--foreground);
-  color: var(--background);
+  padding-bottom: 0;
 }
 
 .footerTop {
@@ -160,26 +180,17 @@
   padding: 2rem var(--gutter) 0;
 }
 
-.footer .toTop {
-  color: inherit;
-}
-
-.footerBottom {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 1.5rem 3rem;
-  margin-top: clamp(8rem, 30vh, 18rem);
-  padding-inline: var(--gutter);
-}
-
 .footerNote {
   max-width: 28rem;
+  margin-top: clamp(6rem, 24vh, 14rem);
+  padding-inline: var(--gutter);
   font-size: 1.0625rem;
   line-height: 1.6;
 }
 
 .footerLogotype {
+  display: block;
+  width: 100%;
+  height: auto;
   margin-top: 2rem;
 }
