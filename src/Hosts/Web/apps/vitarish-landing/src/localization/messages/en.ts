@@ -15,7 +15,6 @@ export const enMessages = {
   landing: {
     brand: {
       name: "Vitarish",
-      home: "Vitarish home",
     },
     loading: { label: "Loading Vitarish" },
     header: {
@@ -24,9 +23,7 @@ export const enMessages = {
     },
     hero: {
       lead: "The glory of purpose.",
-      follow: "Focused apps that help you achieve yours.",
-      intro:
-        "Vitarish is an AI-native platform for people and small businesses. Its first app runs private practices, and more are planned.",
+      intro: "Vitarish is an AI-native platform for people and small businesses.",
     },
     apps: {
       title: "Apps.",
