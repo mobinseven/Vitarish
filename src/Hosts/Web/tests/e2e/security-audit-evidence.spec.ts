@@ -405,6 +405,12 @@ test("real actions create visible platform security-audit evidence", async ({ pa
       return { status: response.status, body: await response.json().catch(() => null) };
     }, browserApiOrigin);
     expect(accessHistory.status).toBe(200);
+    // The access history keeps the address of the owner's sign-in (the forwarded test client IP).
+    expect((accessHistory.body as { lastSuccessfulIpAddress?: string } | null)?.lastSuccessfulIpAddress).toBe("198.51.100.61");
+    await page.goto(ClinicRoutes.Account.Security, { waitUntil: "domcontentloaded" });
+    await expect(page.getByText(/198\.51\.100\.61/).first()).toBeVisible({ timeout: 30_000 });
+    mkdirSync(evidenceDirectory, { recursive: true });
+    await page.screenshot({ path: join(evidenceDirectory, "account-security-access-history.png"), fullPage: true });
     expect((await postJson(page, "/api/modules/authentication/access-history/acknowledge")).status).toBe(200);
 
     // OTP establishes a second session and may invalidate the owner session under

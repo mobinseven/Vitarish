@@ -237,7 +237,10 @@ public static class AuthenticationSecurityEndpoints
         history.LastUnsuccessfulAt,
         history.FailedAttemptsSincePreviousSuccessful,
         history.CurrentFailedAttempts,
-        history.AcknowledgedAt);
+        history.AcknowledgedAt,
+        history.PreviousSuccessfulIpAddress,
+        history.LastSuccessfulIpAddress,
+        history.LastUnsuccessfulIpAddress);
 
     private static AuthenticationSessionNoticeType ToNoticeType(string noticeType) =>
         noticeType == AuthenticationSessionNotice.ParallelSessionEstablishedNoticeType

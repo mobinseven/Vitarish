@@ -62,6 +62,9 @@ public sealed class AuthenticationDbContext(DbContextOptions<AuthenticationDbCon
             _ = entity.HasKey(history => new { history.UserId, history.TenantId });
             _ = entity.Property(history => history.UserId).HasMaxLength(450);
             _ = entity.Property(history => history.TenantId).HasMaxLength(64);
+            _ = entity.Property(history => history.PreviousSuccessfulIpAddress).HasMaxLength(45);
+            _ = entity.Property(history => history.LastSuccessfulIpAddress).HasMaxLength(45);
+            _ = entity.Property(history => history.LastUnsuccessfulIpAddress).HasMaxLength(45);
         });
         _ = modelBuilder.Entity<AuthenticationUserSessionPolicyRecord>(entity =>
         {

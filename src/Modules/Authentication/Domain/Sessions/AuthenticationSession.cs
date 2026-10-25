@@ -41,6 +41,9 @@ public sealed class AuthenticationAccessHistory
     public DateTime? PreviousSuccessfulAt { get; set; }
     public DateTime? LastSuccessfulAt { get; set; }
     public DateTime? LastUnsuccessfulAt { get; set; }
+    public string? PreviousSuccessfulIpAddress { get; set; }
+    public string? LastSuccessfulIpAddress { get; set; }
+    public string? LastUnsuccessfulIpAddress { get; set; }
     public int FailedAttemptsSincePreviousSuccessful { get; set; }
     public int CurrentFailedAttempts { get; set; }
     public DateTime? AcknowledgedAt { get; set; }

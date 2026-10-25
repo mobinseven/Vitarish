@@ -71,6 +71,39 @@ public sealed class AuthenticationSessionRegistryTests
     }
 
     [Fact]
+    public async Task Access_history_records_the_ip_address_of_each_successful_and_unsuccessful_attempt()
+    {
+        string currentAddress = "203.0.113.9";
+        DbContextOptions<AuthenticationDbContext> options = new DbContextOptionsBuilder<AuthenticationDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString("N"))
+            .Options;
+        AuthenticationDbContext db = new(options);
+        Mock<IAuthenticationSecurityPolicyProvider> policyProvider = new();
+        policyProvider.Setup(provider => provider.GetAsync(It.IsAny<CancellationToken>())).ReturnsAsync(SecurityAccessPolicy.Default);
+        Mock<IClientIpAddressAccessor> clientIp = new();
+        clientIp.SetupGet(accessor => accessor.ClientIpAddress).Returns(() => currentAddress);
+        Mock<IRequestContext> requestContext = new();
+        requestContext.SetupGet(context => context.TenantId).Returns("tenant-1");
+        requestContext.SetupGet(context => context.RequestId).Returns("request-1");
+        TestTimeProvider clock = new(new DateTimeOffset(2026, 8, 30, 10, 0, 0, TimeSpan.Zero));
+        AuthenticationSessionRegistry registry = new(db, policyProvider.Object, clientIp.Object, requestContext.Object, new RecordingAuditWriter(), clock);
+
+        await registry.RecordFailedAttemptAsync("user-1", CancellationToken.None);
+        currentAddress = "198.51.100.7";
+        _ = await registry.EstablishAsync("user-1", CancellationToken.None);
+        clock.UtcNow = clock.UtcNow.AddMinutes(1);
+        currentAddress = "198.51.100.8";
+        AuthenticationSessionEstablishmentResult second = await registry.EstablishAsync("user-1", CancellationToken.None);
+
+        second.AccessHistory!.LastUnsuccessfulIpAddress.Should().Be("203.0.113.9");
+        second.AccessHistory.PreviousSuccessfulIpAddress.Should().Be("198.51.100.7");
+        second.AccessHistory.LastSuccessfulIpAddress.Should().Be("198.51.100.8");
+        AuthenticationAccessHistory stored = (await registry.GetAccessHistoryAsync("user-1", "tenant-1", CancellationToken.None))!;
+        stored.LastSuccessfulIpAddress.Should().Be("198.51.100.8");
+        stored.LastUnsuccessfulIpAddress.Should().Be("203.0.113.9");
+    }
+
+    [Fact]
     public async Task User_inactivity_timeout_rejects_a_stale_expected_version()
     {
         (AuthenticationSessionRegistry registry, AuthenticationDbContext db, _) = CreateRegistry(SecurityAccessPolicy.Default, TimeProvider.System);

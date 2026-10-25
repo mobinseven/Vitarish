@@ -9,11 +9,12 @@ import {
 } from "@/components/account/AccountSurface";
 import { HeaderIcon } from "@vitarish/ui";
 
-function SecurityValue({ label, value }: { label: string; value: string }) {
+function SecurityValue({ label, value, detail }: { label: string; value: string; detail?: string }) {
   return (
     <Surface variant="secondary" className="rounded-xl p-4">
       <dt className="text-sm text-foreground-muted">{label}</dt>
       <dd className="mt-1 text-sm font-medium text-foreground">{value}</dd>
+      {detail && <dd className="mt-1 text-sm text-foreground-muted">{detail}</dd>}
     </Surface>
   );
 }
@@ -26,6 +27,8 @@ export default function AccountSecurityPage() {
   const history = historyQuery.data;
   const date = (value: string | null | undefined) =>
     value ? formatDateTime(value, locale) : t("account.security.notRecorded");
+  const ipAddress = (value: string | null | undefined) =>
+    value ? t("account.security.ipAddress", { address: `\u2066${value}\u2069` }) : undefined;
 
   return (
     <AccountSurface>
@@ -59,9 +62,9 @@ export default function AccountSecurityPage() {
             )}
             {history && (
               <dl className="grid gap-3 sm:grid-cols-2">
-                <SecurityValue label={t("account.security.previousSuccessful")} value={date(history.previousSuccessfulAt)} />
-                <SecurityValue label={t("account.security.lastSuccessful")} value={date(history.lastSuccessfulAt)} />
-                <SecurityValue label={t("account.security.lastUnsuccessful")} value={date(history.lastUnsuccessfulAt)} />
+                <SecurityValue label={t("account.security.previousSuccessful")} value={date(history.previousSuccessfulAt)} detail={ipAddress(history.previousSuccessfulIpAddress)} />
+                <SecurityValue label={t("account.security.lastSuccessful")} value={date(history.lastSuccessfulAt)} detail={ipAddress(history.lastSuccessfulIpAddress)} />
+                <SecurityValue label={t("account.security.lastUnsuccessful")} value={date(history.lastUnsuccessfulAt)} detail={ipAddress(history.lastUnsuccessfulIpAddress)} />
                 <SecurityValue label={t("account.security.failedAttempts")} value={String(history.failedAttemptsSincePreviousSuccessful)} />
                 <SecurityValue label={t("account.security.currentFailedAttempts")} value={String(history.currentFailedAttempts)} />
               </dl>

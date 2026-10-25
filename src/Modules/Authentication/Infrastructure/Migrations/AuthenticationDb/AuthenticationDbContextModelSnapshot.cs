@@ -45,11 +45,23 @@ namespace Vitarish.Authentication.Infrastructure.Migrations.AuthenticationDb
                     b.Property<DateTime?>("LastSuccessfulAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("LastSuccessfulIpAddress")
+                        .HasMaxLength(45)
+                        .HasColumnType("character varying(45)");
+
                     b.Property<DateTime?>("LastUnsuccessfulAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("LastUnsuccessfulIpAddress")
+                        .HasMaxLength(45)
+                        .HasColumnType("character varying(45)");
+
                     b.Property<DateTime?>("PreviousSuccessfulAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("PreviousSuccessfulIpAddress")
+                        .HasMaxLength(45)
+                        .HasColumnType("character varying(45)");
 
                     b.HasKey("UserId", "TenantId");
 

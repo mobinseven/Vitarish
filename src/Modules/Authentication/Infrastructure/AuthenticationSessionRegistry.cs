@@ -219,7 +219,7 @@ public sealed class AuthenticationSessionRegistry(
         _ = await WriteAuditAsync(AuthenticationSecurityAuditEvents.SessionEstablished, SecurityAuditOutcome.Pending, userId, null, AuthenticationSecurityAuditEvents.SessionEstablishedOperation, session.Id.ToString("N"), cancellationToken);
         foreach ((AuthenticationSession sessionToTerminate, AuthenticationSessionTerminationReason reason) in sessionsToTerminate)
             Terminate(sessionToTerminate, now, reason);
-        AuthenticationAccessHistory history = await RecordSuccessfulAttemptAsync(userId, tenantId, now, cancellationToken);
+        AuthenticationAccessHistory history = await RecordSuccessfulAttemptAsync(userId, tenantId, now, address, cancellationToken);
         await SaveAsync(cancellationToken);
 
         return new AuthenticationSessionPreparation(
@@ -263,6 +263,7 @@ public sealed class AuthenticationSessionRegistry(
         }
         history ??= new AuthenticationAccessHistory { UserId = userId, TenantId = tenantId };
         history.LastUnsuccessfulAt = timeProvider.GetUtcNow().UtcDateTime;
+        history.LastUnsuccessfulIpAddress = clientIp.ClientIpAddress;
         history.CurrentFailedAttempts++;
         if (dbContext.Entry(history).State == EntityState.Detached)
             _ = dbContext.AuthenticationAccessHistories.Add(history);
@@ -656,12 +657,14 @@ public sealed class AuthenticationSessionRegistry(
         return saved;
     }
 
-    private async Task<AuthenticationAccessHistory> RecordSuccessfulAttemptAsync(string userId, string tenantId, DateTime now, CancellationToken cancellationToken)
+    private async Task<AuthenticationAccessHistory> RecordSuccessfulAttemptAsync(string userId, string tenantId, DateTime now, string? ipAddress, CancellationToken cancellationToken)
     {
         AuthenticationAccessHistory? history = await dbContext.AuthenticationAccessHistories.SingleOrDefaultAsync(item => item.UserId == userId && item.TenantId == tenantId, cancellationToken);
         history ??= new AuthenticationAccessHistory { UserId = userId, TenantId = tenantId };
         history.PreviousSuccessfulAt = history.LastSuccessfulAt;
         history.LastSuccessfulAt = now;
+        history.PreviousSuccessfulIpAddress = history.LastSuccessfulIpAddress;
+        history.LastSuccessfulIpAddress = ipAddress;
         history.FailedAttemptsSincePreviousSuccessful = history.CurrentFailedAttempts;
         history.CurrentFailedAttempts = 0;
         if (history.UserId == userId && history.TenantId == tenantId && dbContext.Entry(history).State == EntityState.Detached)
@@ -682,6 +685,9 @@ public sealed class AuthenticationSessionRegistry(
         PreviousSuccessfulAt = history.PreviousSuccessfulAt,
         LastSuccessfulAt = history.LastSuccessfulAt,
         LastUnsuccessfulAt = history.LastUnsuccessfulAt,
+        PreviousSuccessfulIpAddress = history.PreviousSuccessfulIpAddress,
+        LastSuccessfulIpAddress = history.LastSuccessfulIpAddress,
+        LastUnsuccessfulIpAddress = history.LastUnsuccessfulIpAddress,
         FailedAttemptsSincePreviousSuccessful = history.FailedAttemptsSincePreviousSuccessful,
         CurrentFailedAttempts = history.CurrentFailedAttempts,
         AcknowledgedAt = history.AcknowledgedAt
@@ -745,6 +751,9 @@ public sealed class AuthenticationSessionRegistry(
             history.PreviousSuccessfulAt,
             history.LastSuccessfulAt,
             history.LastUnsuccessfulAt,
+            history.PreviousSuccessfulIpAddress,
+            history.LastSuccessfulIpAddress,
+            history.LastUnsuccessfulIpAddress,
             history.FailedAttemptsSincePreviousSuccessful,
             history.CurrentFailedAttempts,
             history.AcknowledgedAt);
@@ -754,6 +763,9 @@ public sealed class AuthenticationSessionRegistry(
         history.PreviousSuccessfulAt = original.PreviousSuccessfulAt;
         history.LastSuccessfulAt = original.LastSuccessfulAt;
         history.LastUnsuccessfulAt = original.LastUnsuccessfulAt;
+        history.PreviousSuccessfulIpAddress = original.PreviousSuccessfulIpAddress;
+        history.LastSuccessfulIpAddress = original.LastSuccessfulIpAddress;
+        history.LastUnsuccessfulIpAddress = original.LastUnsuccessfulIpAddress;
         history.FailedAttemptsSincePreviousSuccessful = original.FailedAttemptsSincePreviousSuccessful;
         history.CurrentFailedAttempts = original.CurrentFailedAttempts;
         history.AcknowledgedAt = original.AcknowledgedAt;
@@ -896,6 +908,9 @@ public sealed class AuthenticationSessionRegistry(
         DateTime? PreviousSuccessfulAt,
         DateTime? LastSuccessfulAt,
         DateTime? LastUnsuccessfulAt,
+        string? PreviousSuccessfulIpAddress,
+        string? LastSuccessfulIpAddress,
+        string? LastUnsuccessfulIpAddress,
         int FailedAttemptsSincePreviousSuccessful,
         int CurrentFailedAttempts,
         DateTime? AcknowledgedAt);
