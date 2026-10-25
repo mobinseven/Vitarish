@@ -2,13 +2,14 @@
 @import "@heroui/styles";
 @import "@heroui-pro/react/css";
 @import "@vitarish/ui/layout.css";
+@import "@vitarish/ui/typography.css";
 
 @source "../../../../shared/platform/src/**/*.{ts,tsx}";
 @source "../../../../shared/security/src/**/*.{ts,tsx}";
 @source "../../../../shared/ui/src/**/*.{ts,tsx}";
 
 html[dir="rtl"] {
-  --font-sans: var(--font-vazirmatn), Tahoma, Arial, sans-serif;
+  --font-sans: var(--font-ahang);
   font-family: var(--font-sans);
 }
 

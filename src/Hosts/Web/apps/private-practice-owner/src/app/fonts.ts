@@ -1,4 +1,4 @@
-import { Inter, Vazirmatn } from "next/font/google";
+import { Inter } from "next/font/google";
 
 export const inter = Inter({
   display: "swap",
@@ -6,10 +6,4 @@ export const inter = Inter({
   variable: "--font-inter",
 });
 
-export const vazirmatn = Vazirmatn({
-  display: "swap",
-  subsets: ["arabic"],
-  variable: "--font-vazirmatn",
-});
-
-export const applicationFontVariables = [inter.variable, vazirmatn.variable].join(" ");
+export const applicationFontVariables = [inter.variable].join(" ");

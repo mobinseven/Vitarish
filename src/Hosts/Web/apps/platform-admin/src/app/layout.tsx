@@ -5,7 +5,6 @@ import { Providers } from "@/components/Providers";
 import { PlatformAdminAccessBoundary } from "@/components/PlatformAdminAccessBoundary";
 import { getMessages } from "@/localization/messages";
 import { ContentSecurityPolicyNonceMeta, contentSecurityPolicyNonce } from "@vitarish/ui/content-security-policy";
-import { vazirmatn } from "./fonts";
 import "./globals.css";
 
 export const metadata = { title: "Vitarish Platform Administration", description: "Vitarish platform operator control plane" };
@@ -18,7 +17,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <head>
       <link rel="stylesheet" href="/fontawesome/css/all.min.css" />
       <ContentSecurityPolicyNonceMeta nonce={nonce} /></head>
-    <I18nAppLayout cookieHeader={headerStore.get("cookie")} acceptLanguageHeader={headerStore.get("accept-language")} getMessages={getMessages} htmlClassName={`${vazirmatn.variable} bg-background text-foreground`} bodyClassName="bg-background text-foreground font-sans antialiased">
+    <I18nAppLayout cookieHeader={headerStore.get("cookie")} acceptLanguageHeader={headerStore.get("accept-language")} getMessages={getMessages} htmlClassName="bg-background text-foreground" bodyClassName="bg-background text-foreground font-sans antialiased">
       <header className="w-full">
         <picture>
           <source media="(prefers-color-scheme: dark)" srcSet="/Master-Hel-Logotype-Dark.svg" />
