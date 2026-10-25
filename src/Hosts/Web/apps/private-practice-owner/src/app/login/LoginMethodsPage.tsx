@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ItemCard } from "@heroui-pro/react";
 import {
@@ -13,6 +12,7 @@ import {
 import { useAuthenticationProfile } from "@vitarish/auth";
 import { useLocalizedText, type MessageKey } from "@/localization";
 import { Routes } from "@/app/routes";
+import { useCreateClinicHref } from "@/features/onboarding/useCreateClinicHref";
 
 const authMethods: {
   id: SignInMethod;
@@ -54,17 +54,6 @@ const authMethods: {
 interface LoginMethodsPageProps {
   /** The onboarding host's address, where people create their own clinic; null when not offered. */
   onboardingUrl: string | null;
-}
-
-/** The onboarding link, unless this page already is the onboarding host. */
-function useCreateClinicHref(onboardingUrl: string | null): string | null {
-  const [href, setHref] = useState<string | null>(null);
-  useEffect(() => {
-    if (!onboardingUrl) return;
-    const target = new URL(onboardingUrl);
-    if (target.host !== window.location.host) setHref(target.toString());
-  }, [onboardingUrl]);
-  return href;
 }
 
 export function LoginMethodsPage({ onboardingUrl }: LoginMethodsPageProps) {

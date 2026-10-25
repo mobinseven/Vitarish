@@ -18,6 +18,7 @@ const { Clinic } = Routes;
 const { Appointments, Patients, Settings } = Clinic;
 
 const pages: ScreenshotPage[] = [
+  signedOut("landing", Routes.Root),
   signedOut("login", Routes.Login.Index),
   signedOut("login-password", Routes.Login.Password),
   signedOut("login-phone", Routes.Login.Phone),
