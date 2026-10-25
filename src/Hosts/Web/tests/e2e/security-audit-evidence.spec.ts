@@ -400,6 +400,20 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     expect(uploadedFileId).toBeTruthy();
     expect(await downloadEvidenceFile(page, uploadedFileId!)).toBe(200);
 
+    // An unauthorized read is recorded once, naming the attempted operation; the
+    // clinic owner may review only its own tenant, not the platform audit.
+    const deniedReview = { ...auditEvents.auditReview, outcome: "denied" };
+    const deniedBefore = await platformAuditQuery(administratorPage, deniedReview);
+    const forbiddenStatus = await page.evaluate(async (origin) => {
+      const url = new URL("/api/audit/platform/security-events", origin || window.location.origin);
+      url.search = new URLSearchParams({ page: "1", pageSize: "1", sortBy: "1", descending: "true", uncataloguedOnly: "false" }).toString();
+      return (await fetch(url, { credentials: "include" })).status;
+    }, browserApiOrigin);
+    expect(forbiddenStatus).toBe(403);
+    const deniedAfter = await platformAuditQuery(administratorPage, deniedReview);
+    expect(deniedAfter.totalCount).toBe(deniedBefore.totalCount + 1);
+    expect(deniedAfter.items[0]?.resource).toBe("endpoint/Audit_PlatformSecurityEvents_List");
+
     const accessHistory = await page.evaluate(async (origin) => {
       const response = await fetch(`${origin}/api/modules/authentication/access-history`, { credentials: "include" });
       return { status: response.status, body: await response.json().catch(() => null) };
