@@ -70,7 +70,7 @@ const integrityVerificationPath = (fileId: string) => `${e2eAuditEvidenceBase}/f
 const integrityTamperPath = (fileId: string) => `${e2eAuditEvidenceBase}/files/${fileId}/tamper`;
 
 type AuditEventExpectation = (typeof auditEvents)[keyof typeof auditEvents] & { outcome: string };
-type AuditPage = { items: Array<{ id?: string; eventName?: string; eventCategory?: string; operation?: string; outcome?: string; actorId?: string; actorKind?: string; tenantId?: string; subjectId?: string; resource?: string; redactedReason?: string }>; totalCount: number };
+type AuditPage = { items: Array<{ id?: string; eventName?: string; eventCategory?: string; operation?: string; outcome?: string; actorId?: string; actorKind?: string; tenantId?: string; subjectId?: string; resource?: string; resourceName?: string; redactedReason?: string }>; totalCount: number };
 
 async function login(page: Page, username: string, origin = "", clientIp = "198.51.100.60"): Promise<void> {
   await page.context().addCookies([
@@ -487,6 +487,11 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     await captureAuditEvidence(administratorPage, { ...auditEvents.tenantMemberProvisioning, outcome: "succeeded" }, "tenant-member-provisioned.png");
     await captureAuditEvidence(administratorPage, { ...auditEvents.tenantMemberRemoval, outcome: "succeeded" }, "tenant-member-removed.png");
     await captureAuditEvidence(administratorPage, { ...auditEvents.tenantRoleReplacement, outcome: "succeeded" }, "tenant-role-replaced.png");
+    const importRecords = await platformAuditQuery(administratorPage, { ...auditEvents.dataImport, outcome: "succeeded" });
+    expect(importRecords.items.some((item) => item.resourceName === "audit-evidence.png"), "an upload records the uploaded file's name").toBe(true);
+    const exportRecords = await platformAuditQuery(administratorPage, { ...auditEvents.auditExport, outcome: "succeeded" });
+    const downloadRecord = exportRecords.items.find((item) => item.resource === `files/${uploadedFileId!.replaceAll("-", "")}`);
+    expect(downloadRecord?.resourceName, "a download records the stored file's name").toEqual(expect.any(String));
     await captureAuditEvidence(administratorPage, { ...auditEvents.dataImport, outcome: "succeeded" }, "data-import.png");
     const reviewEvent = { ...auditEvents.auditReview, outcome: "succeeded" };
     const reviewEventsBefore = await platformAuditQuery(administratorPage, reviewEvent);

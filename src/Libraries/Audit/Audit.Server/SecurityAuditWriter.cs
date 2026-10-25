@@ -130,6 +130,7 @@ internal sealed class SecurityAuditWriter(
                 SubjectId = pending.SubjectId,
                 TenantId = pending.TenantId,
                 Resource = pending.Resource,
+                ResourceName = pending.ResourceName,
                 Operation = pending.Operation,
                 OccurredAt = DateTime.UtcNow,
                 CorrelationId = pending.CorrelationId,
@@ -214,6 +215,9 @@ internal sealed class SecurityAuditWriter(
             throw new ArgumentException("Client security audit events require a normalized IP address.", nameof(auditEvent));
         if (auditEvent.SourceIpKind is not SecurityAuditSourceKind.Client and not SecurityAuditSourceKind.System and not SecurityAuditSourceKind.Unknown)
             throw new ArgumentException("Security audit source kinds are invalid.", nameof(auditEvent));
+        if (auditEvent.ResourceName is { } resourceName &&
+            (resourceName.Length is 0 or > SecurityAuditEvent.MaximumResourceNameLength || resourceName.Any(char.IsControl)))
+            throw new ArgumentException("Security audit resource names must be non-empty, bounded, and free of control characters.", nameof(auditEvent));
         if (auditEvent.OccurredAt.Kind != DateTimeKind.Utc)
             throw new ArgumentException("Security audit timestamps must be UTC.", nameof(auditEvent));
     }

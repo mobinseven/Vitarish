@@ -219,7 +219,7 @@ export function SecurityAuditReviewPage() {
                 <tbody>
                   {result.items.map((item) => (
                     <tr key={item.id} className="border-b border-separator transition-colors last:border-0 hover:bg-surface-secondary">
-                      <td className="px-3 py-3 font-mono text-xs font-medium text-accent"><span dir="ltr">{item.eventName ?? "—"}</span></td>
+                      <td className="px-3 py-3 font-mono text-xs font-medium text-accent"><span dir="ltr">{item.eventName ?? "—"}</span>{item.resourceName && <span className="mt-1 block font-sans text-sm font-normal text-muted"><span className="sr-only">{t("security.audit.resourceName")}: </span><bdi>{item.resourceName}</bdi></span>}</td>
                       <td className="px-3 py-3 text-foreground">{item.actorId ?? item.actorKind ?? t("security.audit.unknownActor")}</td>
                       <td className="px-3 py-3">
                         <Chip color={auditOutcomeColor(item.outcome)} size="sm" variant="soft">

@@ -706,6 +706,12 @@
               "string"
             ]
           },
+          "resourceName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
           "operation": {
             "type": "string"
           },

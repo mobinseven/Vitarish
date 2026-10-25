@@ -113,7 +113,7 @@ public class FilesService(
                 FileIntegrityVerificationResult existingIntegrity = await integrityService.VerifyAsync(existing, cancellationToken).ConfigureAwait(false);
                 if (existingIntegrity.IsVerified)
                 {
-                    await transferAudit.RecordImportAsync(existing.Id, SecurityAuditOutcome.Succeeded, null, cancellationToken).ConfigureAwait(false);
+                    await transferAudit.RecordImportAsync(existing.Id, givenInformation.FileName, SecurityAuditOutcome.Succeeded, null, cancellationToken).ConfigureAwait(false);
                     return existing;
                 }
             }
@@ -123,7 +123,8 @@ public class FilesService(
                 Owner = tenantId,
                 Checksum = computedChecksum,
                 Thumbnail = givenInformation.Thumbnail,
-                ContentType = normalizedContentType
+                ContentType = normalizedContentType,
+                FileName = FileTransferPolicy.NormalizeFileName(givenInformation.FileName)
             };
             long fileSize = new FileInfo(tempServerPath).Length;
             FileInformationReadDto saved = await fileInfoService.AddAsync(info, cancellationToken).EnsureValueAsync();
@@ -151,27 +152,27 @@ public class FilesService(
                 throw new InvalidOperationException("Uploaded content could not be verified.");
             }
 
-            await transferAudit.RecordImportAsync(saved.Id, SecurityAuditOutcome.Succeeded, null, cancellationToken).ConfigureAwait(false);
+            await transferAudit.RecordImportAsync(saved.Id, givenInformation.FileName, SecurityAuditOutcome.Succeeded, null, cancellationToken).ConfigureAwait(false);
             return saved;
         }
         catch (InvalidDataException)
         {
-            await transferAudit.RecordImportAsync(null, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.MutationRejected, CancellationToken.None).ConfigureAwait(false);
+            await transferAudit.RecordImportAsync(null, givenInformation.FileName, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.MutationRejected, CancellationToken.None).ConfigureAwait(false);
             throw;
         }
         catch (InvalidOperationException)
         {
-            await transferAudit.RecordImportAsync(null, SecurityAuditOutcome.Failed, SecurityAuditReasonCatalog.IntegrityValidationFailed, CancellationToken.None).ConfigureAwait(false);
+            await transferAudit.RecordImportAsync(null, givenInformation.FileName, SecurityAuditOutcome.Failed, SecurityAuditReasonCatalog.IntegrityValidationFailed, CancellationToken.None).ConfigureAwait(false);
             throw;
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            await transferAudit.RecordImportAsync(null, SecurityAuditOutcome.Failed, SecurityAuditReasonCatalog.EndpointException, CancellationToken.None).ConfigureAwait(false);
+            await transferAudit.RecordImportAsync(null, givenInformation.FileName, SecurityAuditOutcome.Failed, SecurityAuditReasonCatalog.EndpointException, CancellationToken.None).ConfigureAwait(false);
             throw;
         }
         catch (Exception)
         {
-            await transferAudit.RecordImportAsync(null, SecurityAuditOutcome.Failed, SecurityAuditReasonCatalog.EndpointException, CancellationToken.None).ConfigureAwait(false);
+            await transferAudit.RecordImportAsync(null, givenInformation.FileName, SecurityAuditOutcome.Failed, SecurityAuditReasonCatalog.EndpointException, CancellationToken.None).ConfigureAwait(false);
             throw;
         }
         finally

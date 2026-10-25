@@ -84,6 +84,38 @@ public sealed class SecurityAuditWriterTests
         (await context.SecurityAuditEvents.CountAsync()).Should().Be(0);
     }
 
+    [Theory]
+    [InlineData("")]
+    [InlineData("scan\n.pdf")]
+    public async Task Rejects_an_empty_or_control_character_resource_name_before_persisting(string resourceName)
+    {
+        DbContextOptions<AuditDbContext> options = CreateOptions("security-audit-resource-name-" + resourceName.Length);
+        await using AuditDbContext context = CreateContext(options, "tenant-a");
+        await context.Database.EnsureCreatedAsync();
+
+        SecurityAuditEvent invalid = CreateEvent("tenant-a", "request-1");
+        invalid.ResourceName = resourceName;
+        Func<Task> write = () => new SecurityAuditWriter(context).WriteAsync(invalid, CancellationToken.None);
+
+        await write.Should().ThrowAsync<ArgumentException>();
+        (await context.SecurityAuditEvents.CountAsync()).Should().Be(0);
+    }
+
+    [Fact]
+    public async Task Rejects_a_resource_name_longer_than_the_bound_before_persisting()
+    {
+        DbContextOptions<AuditDbContext> options = CreateOptions("security-audit-resource-name-length");
+        await using AuditDbContext context = CreateContext(options, "tenant-a");
+        await context.Database.EnsureCreatedAsync();
+
+        SecurityAuditEvent invalid = CreateEvent("tenant-a", "request-1");
+        invalid.ResourceName = new string('a', SecurityAuditEvent.MaximumResourceNameLength + 1);
+        Func<Task> write = () => new SecurityAuditWriter(context).WriteAsync(invalid, CancellationToken.None);
+
+        await write.Should().ThrowAsync<ArgumentException>();
+        (await context.SecurityAuditEvents.CountAsync()).Should().Be(0);
+    }
+
     [Fact]
     public async Task Rejects_audit_review_without_a_tenant_owner_or_platform_admin_role()
     {
@@ -158,6 +190,7 @@ public sealed class SecurityAuditWriterTests
 
         SecurityAuditEvent pending = CreateEvent("tenant-a", "request-pending");
         pending.Outcome = SecurityAuditOutcome.Pending;
+        pending.ResourceName = "referral.pdf";
         await using (AuditDbContext initial = CreateContext(options, "tenant-a"))
         {
             SecurityAuditWriter writer = new(initial);
@@ -174,7 +207,7 @@ public sealed class SecurityAuditWriterTests
                 .Should().Be(SecurityAuditWriteResult.AlreadyRecorded);
             (await restarted.SecurityAuditEvents.CountAsync()).Should().Be(2);
             (await restarted.SecurityAuditEvents.SingleAsync(item => item.Outcome == SecurityAuditOutcome.Pending)).Outcome.Should().Be(SecurityAuditOutcome.Pending);
-            (await restarted.SecurityAuditEvents.SingleAsync(item => item.Outcome == SecurityAuditOutcome.Succeeded)).Outcome.Should().Be(SecurityAuditOutcome.Succeeded);
+            (await restarted.SecurityAuditEvents.SingleAsync(item => item.Outcome == SecurityAuditOutcome.Succeeded)).ResourceName.Should().Be("referral.pdf");
         }
     }
 

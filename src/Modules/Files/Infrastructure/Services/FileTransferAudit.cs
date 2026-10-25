@@ -10,19 +10,19 @@ public sealed class FileTransferAudit(
     ISecurityAuditWriter auditWriter,
     IRequestContext requestContext) : IFileTransferAudit
 {
-    public Task RecordImportAsync(Guid? fileId, string outcome, string? reason, CancellationToken cancellationToken = default) =>
-        RecordAsync(fileId, SecurityAuditEventCatalog.ImportEvent, SecurityAuditEventCatalog.ImportOperation,
+    public Task RecordImportAsync(Guid? fileId, string? fileName, string outcome, string? reason, CancellationToken cancellationToken = default) =>
+        RecordAsync(fileId, fileName, SecurityAuditEventCatalog.ImportEvent, SecurityAuditEventCatalog.ImportOperation,
             FileTransferAuditContract.ImportIdempotencySuffix, outcome, reason, cancellationToken);
 
-    public Task RecordExportAsync(Guid fileId, string outcome, string? reason, CancellationToken cancellationToken = default) =>
-        RecordAsync(fileId, SecurityAuditEventCatalog.ExportEvent, SecurityAuditEventCatalog.ExportOperation,
+    public Task RecordExportAsync(Guid fileId, string? fileName, string outcome, string? reason, CancellationToken cancellationToken = default) =>
+        RecordAsync(fileId, fileName, SecurityAuditEventCatalog.ExportEvent, SecurityAuditEventCatalog.ExportOperation,
             FileTransferAuditContract.ExportIdempotencySuffix, outcome, reason, cancellationToken);
 
     public Task RecordIntegrityVerificationAsync(Guid fileId, string outcome, string? reason, CancellationToken cancellationToken = default) =>
-        RecordAsync(fileId, SecurityAuditEventCatalog.IntegrityVerificationEvent, SecurityAuditEventCatalog.IntegrityVerificationOperation,
+        RecordAsync(fileId, null, SecurityAuditEventCatalog.IntegrityVerificationEvent, SecurityAuditEventCatalog.IntegrityVerificationOperation,
             FileTransferAuditContract.IntegrityVerificationIdempotencySuffix, outcome, reason, cancellationToken);
 
-    private async Task RecordAsync(Guid? fileId, string eventName, string operation, string suffix, string outcome, string? reason, CancellationToken cancellationToken)
+    private async Task RecordAsync(Guid? fileId, string? fileName, string eventName, string operation, string suffix, string outcome, string? reason, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(requestContext.TenantId))
         {
@@ -41,6 +41,7 @@ public sealed class FileTransferAudit(
                 SubjectId = requestContext.UserId,
                 TenantId = requestContext.TenantId,
                 Resource = fileId is { } id ? FileTransferAuditContract.ResourcePrefix + id.ToString("N") : null,
+                ResourceName = FileTransferPolicy.NormalizeFileName(fileName),
                 Operation = operation,
                 OccurredAt = DateTime.UtcNow,
                 CorrelationId = correlationId,

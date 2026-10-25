@@ -789,6 +789,7 @@ function PlatformAuditDetailSheet({
                     <DetailField label={t("security.platformAudit.subject")} value={displayValue(event.subjectId, t("security.platformAudit.notAvailable"))} />
                     <DetailField label={t("security.platformAudit.scope")} value={displayValue(event.tenantId, t("security.platformAudit.notAvailable"))} />
                     <DetailField label={t("security.platformAudit.resource")} value={displayValue(event.resource, t("security.platformAudit.notAvailable"))} />
+                    <DetailField label={t("security.platformAudit.resourceName")} value={<bdi>{displayValue(event.resourceName, t("security.platformAudit.notAvailable"))}</bdi>} />
                     <DetailField label={t("security.platformAudit.occurredAt")} value={event.occurredAt ? formatDateTime(event.occurredAt, locale) : t("security.platformAudit.notAvailable")} />
                     <DetailField label={t("security.platformAudit.correlationId")} value={displayValue(event.correlationId, t("security.platformAudit.notAvailable"))} />
                     <DetailField label={t("security.platformAudit.sourceBoundary")} value={displayValue(event.sourceBoundary, t("security.platformAudit.notAvailable"))} />

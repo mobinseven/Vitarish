@@ -32,6 +32,7 @@ public class FileInformation : Entity
         set => TenantId = value;
     }
     public string? Tag { get; set; }
+    public string? FileName { get; set; }
 
     private static readonly JsonSerializerOptions MetadataSerializerOptions = new(JsonSerializerDefaults.Web)
     {

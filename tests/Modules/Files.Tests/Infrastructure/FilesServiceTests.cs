@@ -26,7 +26,8 @@ public sealed class FilesServiceTests
         FileInformationReadDto file = new()
         {
             Checksum = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData("content"u8.ToArray())),
-            ContentType = "application/pdf"
+            ContentType = "application/pdf",
+            FileName = "referral.pdf"
         };
 
         Func<Task> save = () => service.SaveFile(channel.Reader, file);
@@ -34,6 +35,7 @@ public sealed class FilesServiceTests
         await save.Should().ThrowAsync<IOException>();
         audit.Verify(value => value.RecordImportAsync(
             null,
+            "referral.pdf",
             SecurityAuditOutcome.Failed,
             SecurityAuditReasonCatalog.EndpointException,
             CancellationToken.None), Times.Once);

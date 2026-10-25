@@ -100,7 +100,7 @@ public sealed class FilesUploadEndpointTests : IAsyncDisposable
     {
         (int status, JsonElement body) = await InvokeAsync(EndpointNamed("FilesUploadFile"), await MultipartContextAsync(PngHeader, contentType, fileName));
 
-        AssertRejected(status, body, StatusCodes.Status415UnsupportedMediaType, FilesErrorCode.UnsupportedContentType, SecurityAuditReasonCatalog.ContentTypeNotAllowed);
+        AssertRejected(status, body, StatusCodes.Status415UnsupportedMediaType, FilesErrorCode.UnsupportedContentType, SecurityAuditReasonCatalog.ContentTypeNotAllowed, fileName);
     }
 
     [Fact]
@@ -110,7 +110,7 @@ public sealed class FilesUploadEndpointTests : IAsyncDisposable
 
         (int status, JsonElement body) = await InvokeAsync(EndpointNamed("FilesUploadFile"), await MultipartContextAsync(executable, "image/png", "scan.png"));
 
-        AssertRejected(status, body, StatusCodes.Status415UnsupportedMediaType, FilesErrorCode.UnsupportedContentType, SecurityAuditReasonCatalog.ContentTypeNotAllowed);
+        AssertRejected(status, body, StatusCodes.Status415UnsupportedMediaType, FilesErrorCode.UnsupportedContentType, SecurityAuditReasonCatalog.ContentTypeNotAllowed, "scan.png");
     }
 
     [Fact]
@@ -121,7 +121,7 @@ public sealed class FilesUploadEndpointTests : IAsyncDisposable
 
         (int status, JsonElement body) = await InvokeAsync(EndpointNamed("FilesUploadFile"), context);
 
-        AssertRejected(status, body, StatusCodes.Status413PayloadTooLarge, FilesErrorCode.ContentTooLarge, SecurityAuditReasonCatalog.ContentTooLarge);
+        AssertRejected(status, body, StatusCodes.Status413PayloadTooLarge, FilesErrorCode.ContentTooLarge, SecurityAuditReasonCatalog.ContentTooLarge, null);
     }
 
     [Fact]
@@ -135,16 +135,16 @@ public sealed class FilesUploadEndpointTests : IAsyncDisposable
 
         (int status, JsonElement body) = await InvokeAsync(EndpointNamed("FilesUploadFile"), context);
 
-        AssertRejected(status, body, StatusCodes.Status413PayloadTooLarge, FilesErrorCode.ContentTooLarge, SecurityAuditReasonCatalog.ContentTooLarge);
+        AssertRejected(status, body, StatusCodes.Status413PayloadTooLarge, FilesErrorCode.ContentTooLarge, SecurityAuditReasonCatalog.ContentTooLarge, null);
     }
 
     public async ValueTask DisposeAsync() => await _app.DisposeAsync();
 
-    private void AssertRejected(int status, JsonElement body, int expectedStatus, FilesErrorCode expectedCode, string expectedReason)
+    private void AssertRejected(int status, JsonElement body, int expectedStatus, FilesErrorCode expectedCode, string expectedReason, string? expectedFileName)
     {
         status.Should().Be(expectedStatus);
         body.Deserialize<FilesError>(JsonSerializerOptions.Web)!.Code.Should().Be(expectedCode);
-        _audit.Verify(value => value.RecordImportAsync(null, SecurityAuditOutcome.Denied, expectedReason, It.IsAny<CancellationToken>()), Times.Once);
+        _audit.Verify(value => value.RecordImportAsync(null, expectedFileName, SecurityAuditOutcome.Denied, expectedReason, It.IsAny<CancellationToken>()), Times.Once);
         _files.Verify(value => value.SaveFile(It.IsAny<ChannelReader<byte[]>>(), It.IsAny<FileInformationReadDto>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
