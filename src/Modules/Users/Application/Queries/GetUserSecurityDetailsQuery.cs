@@ -18,7 +18,19 @@ public sealed record UserSecurityDetailsQueryResult(
     UserSecurityHistoryResult? SecurityHistory,
     bool SecurityHistoryAvailable,
     UserSecurityHistoryResult? AuthenticationHistory,
-    bool AuthenticationHistoryAvailable);
+    bool AuthenticationHistoryAvailable,
+    UserAuthenticationMethodsResult? AuthenticationMethods = null);
+
+public sealed record UserAuthenticationMethodsResult(
+    bool PasswordSet,
+    bool EmailVerified,
+    bool PhoneNumberVerified,
+    IReadOnlyList<UserPasskeyEntry> Passkeys);
+
+public sealed record UserPasskeyEntry(
+    string? FriendlyName,
+    DateTime RegisteredAt,
+    DateTime? LastUsedAt);
 
 public sealed record UserSecurityHistoryResult(
     IReadOnlyList<UserSecurityHistoryEntry> Items,
@@ -40,6 +52,7 @@ public sealed record UserSecurityHistoryEntry(
 internal sealed class GetUserSecurityDetailsQueryHandler(
     IRequestContext requestContext,
     IUsersService usersService,
+    IWebAuthnService webAuthn,
     ISecurityAuditQueryService auditQuery) : IRequestHandler<GetUserSecurityDetailsQuery, UserSecurityDetailsQueryResult>
 {
     public async Task<UserSecurityDetailsQueryResult> Handle(
@@ -62,7 +75,8 @@ internal sealed class GetUserSecurityDetailsQueryHandler(
             null,
             false,
             null,
-            false);
+            false,
+            await GetAuthenticationMethodsAsync(user, cancellationToken));
 
         try
         {
@@ -118,6 +132,17 @@ internal sealed class GetUserSecurityDetailsQueryHandler(
         }
 
         return result;
+    }
+
+    // Reports which authentication data the user holds, never the data itself.
+    private async Task<UserAuthenticationMethodsResult> GetAuthenticationMethodsAsync(User user, CancellationToken cancellationToken)
+    {
+        IEnumerable<WebAuthnCredentialDto> credentials = await webAuthn.ListCredentialsAsync(user.Id, cancellationToken);
+        return new(
+            !string.IsNullOrWhiteSpace(user.PasswordHash),
+            !string.IsNullOrWhiteSpace(user.Email) && user.EmailConfirmed,
+            !string.IsNullOrWhiteSpace(user.PhoneNumber) && user.PhoneNumberConfirmed,
+            credentials.Select(credential => new UserPasskeyEntry(credential.FriendlyName, credential.RegisteredAt, credential.LastUsedAt)).ToArray());
     }
 
     private static UserSecurityHistoryResult MapHistory(SecurityAuditPageReadDto history) => new(

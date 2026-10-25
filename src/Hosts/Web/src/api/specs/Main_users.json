@@ -2773,6 +2773,32 @@
           }
         }
       },
+      "UserAuthenticationMethodsResponse": {
+        "required": [
+          "passwordSet",
+          "emailVerified",
+          "phoneNumberVerified",
+          "passkeys"
+        ],
+        "type": "object",
+        "properties": {
+          "passwordSet": {
+            "type": "boolean"
+          },
+          "emailVerified": {
+            "type": "boolean"
+          },
+          "phoneNumberVerified": {
+            "type": "boolean"
+          },
+          "passkeys": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserPasskeyResponse"
+            }
+          }
+        }
+      },
       "UserExistenceResponse": {
         "required": [
           "exists"
@@ -2781,6 +2807,33 @@
         "properties": {
           "exists": {
             "type": "boolean"
+          }
+        }
+      },
+      "UserPasskeyResponse": {
+        "required": [
+          "friendlyName",
+          "registeredAt",
+          "lastUsedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "friendlyName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "registeredAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastUsedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
           }
         }
       },
@@ -2925,7 +2978,8 @@
           "securityHistory",
           "authenticationHistory",
           "securityHistoryAvailable",
-          "authenticationHistoryAvailable"
+          "authenticationHistoryAvailable",
+          "authenticationMethods"
         ],
         "type": "object",
         "properties": {
@@ -2975,6 +3029,9 @@
           },
           "authenticationHistoryAvailable": {
             "type": "boolean"
+          },
+          "authenticationMethods": {
+            "$ref": "#/components/schemas/UserAuthenticationMethodsResponse"
           }
         }
       },

@@ -240,7 +240,8 @@ public static class UsersApi
             details.SecurityHistory is null ? null : MapUserSecurityHistory(details.SecurityHistory),
             details.AuthenticationHistory is null ? null : MapUserSecurityHistory(details.AuthenticationHistory),
             details.SecurityHistoryAvailable,
-            details.AuthenticationHistoryAvailable);
+            details.AuthenticationHistoryAvailable,
+            MapAuthenticationMethods(details.AuthenticationMethods!));
 
         if (!details.SecurityHistoryAvailable || !details.AuthenticationHistoryAvailable)
         {
@@ -249,6 +250,12 @@ public static class UsersApi
 
         return Results.Ok(response);
     }
+
+    private static UserAuthenticationMethodsResponse MapAuthenticationMethods(UserAuthenticationMethodsResult methods) => new(
+        methods.PasswordSet,
+        methods.EmailVerified,
+        methods.PhoneNumberVerified,
+        methods.Passkeys.Select(passkey => new UserPasskeyResponse(passkey.FriendlyName, passkey.RegisteredAt, passkey.LastUsedAt)).ToArray());
 
     private static UserSecurityHistoryResponse MapUserSecurityHistory(UserSecurityHistoryResult history) => new(
         history.Items.Select(item => new UserSecurityEventResponse(

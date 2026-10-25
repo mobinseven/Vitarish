@@ -108,6 +108,8 @@ export {
 export type {
   ChangeTenantRoleRequest,
   TenantRoleMembershipResponse,
+  UserAuthenticationMethodsResponse,
+  UserPasskeyResponse,
   UsersListTenantMembersParams,
   ProvisionTenantMemberRequest,
   ProvisionTenantMemberResponse,

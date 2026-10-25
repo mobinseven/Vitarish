@@ -67,6 +67,12 @@ const userSecurityDetails = {
   },
   securityHistoryAvailable: true,
   authenticationHistoryAvailable: true,
+  authenticationMethods: {
+    passwordSet: true,
+    emailVerified: true,
+    phoneNumberVerified: false,
+    passkeys: [{ friendlyName: "Office laptop", registeredAt: "2026-09-01T08:00:00Z", lastUsedAt: null }],
+  },
 };
 
 vi.mock("@vitarish/auth", () => ({
@@ -228,6 +234,31 @@ describe("UserManagementSurface", () => {
     expect(screen.getByText("Passkey login")).toBeInTheDocument();
     expect(screen.getByText("User security attributes changed")).toBeInTheDocument();
     expect(screen.getAllByText("admin.example.test")).toHaveLength(2);
+  });
+
+  it("shows which authentication data the user holds without showing any secret value", () => {
+    renderSurface("platform", { platformView: "detail", userId: "platform-user" });
+
+    const section = screen.getByRole("heading", { name: "Authentication methods" }).closest("section")!;
+    const facts = within(section).getAllByRole("definition").map((value) => value.textContent);
+    expect(facts).toEqual(["Set", "Verified", "Not verified"]);
+    const passkeys = within(section).getByRole("list", { name: "Passkeys" });
+    expect(within(passkeys).getByRole("listitem")).toHaveTextContent("Office laptop");
+    expect(within(passkeys).getByRole("listitem")).toHaveTextContent("Not used yet");
+  });
+
+  it("does not trust an unavailable-history response with a malformed authentication summary", () => {
+    securityDetailsQueryResponse = {
+      data: undefined,
+      error: { status: 503, problem: { ...userSecurityDetails, authenticationMethods: { passwordSet: "yes", passkeys: [] }, securityHistoryAvailable: false, authenticationHistoryAvailable: false } },
+      isLoading: false,
+      isError: true,
+      refetch,
+    };
+    renderSurface("platform", { platformView: "detail", userId: "platform-user" });
+
+    expect(screen.getByRole("alert")).toHaveTextContent("User security details could not be loaded.");
+    expect(screen.queryByRole("heading", { name: "Authentication methods" })).toBeNull();
   });
 
   it("pages the sign-in history on its own without moving the security history", async () => {

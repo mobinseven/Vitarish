@@ -374,6 +374,12 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
         })),
         securityHistoryAvailable: true,
         authenticationHistoryAvailable: true,
+        authenticationMethods: {
+          passwordSet: true,
+          emailVerified: true,
+          phoneNumberVerified: false,
+          passkeys: [{ friendlyName: "Office laptop", registeredAt: occurredAt(0), lastUsedAt: null }],
+        },
       });
     }),
     http.all(/\/api\/modules\/(?:parties\/administration|users\/administration)\/.+/, async ({ request }) => {

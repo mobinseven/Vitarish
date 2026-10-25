@@ -8,7 +8,19 @@ public sealed record UserSecurityDetailsResponse(
     UserSecurityHistoryResponse? SecurityHistory,
     UserSecurityHistoryResponse? AuthenticationHistory,
     bool SecurityHistoryAvailable,
-    bool AuthenticationHistoryAvailable);
+    bool AuthenticationHistoryAvailable,
+    UserAuthenticationMethodsResponse AuthenticationMethods);
+
+public sealed record UserAuthenticationMethodsResponse(
+    bool PasswordSet,
+    bool EmailVerified,
+    bool PhoneNumberVerified,
+    IReadOnlyList<UserPasskeyResponse> Passkeys);
+
+public sealed record UserPasskeyResponse(
+    string? FriendlyName,
+    DateTime RegisteredAt,
+    DateTime? LastUsedAt);
 
 public sealed record UserSecurityIdentityResponse(
     string Id,
