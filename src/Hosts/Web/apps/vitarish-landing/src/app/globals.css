@@ -3,6 +3,7 @@
 @import "@heroui-pro/react/css";
 @import "@heroui-pro/react/themes/brutalism";
 @import "@vitarish/ui/layout.css";
+@import "@vitarish/ui/typography.css";
 
 @source "../../../../shared/ui/src/**/*.{ts,tsx}";
 
@@ -11,7 +12,8 @@
  * The palette class is applied from the next-themes mode by
  * ThemePaletteClassScript; keep these selectors in sync with
  * brutalismThemePaletteClasses in @vitarish/ui/theme-palette.
- * Michroma (LTR), Cairo (RTL headings) and Vazirmatn (RTL text) are loaded through next/font in ./fonts.ts.
+ * Michroma (LTR) and Cairo (RTL headings) are loaded through next/font in ./fonts.ts; Ahang (RTL
+ * text) comes from @vitarish/ui/typography.css.
  */
 
 .brutalism-light,
@@ -115,11 +117,11 @@
 
 /*
  * Michroma has no Arabic-script glyphs. RTL documents keep Cairo for headings, which carries the
- * visual identity, and read running text in Vazirmatn, which is designed for Persian.
+ * visual identity, and read running text in the Ahang brand font.
  */
 html[dir="rtl"] {
-  --font-sans: var(--font-vazirmatn), Tahoma, Arial, sans-serif;
+  --font-sans: var(--font-ahang);
   --font-heading: var(--font-cairo), Tahoma, Arial, sans-serif;
-  --brutalism-font-body: var(--font-vazirmatn), Tahoma, Arial, sans-serif;
+  --brutalism-font-body: var(--font-ahang);
   --brutalism-font-display: var(--font-cairo), Tahoma, Arial, sans-serif;
 }
