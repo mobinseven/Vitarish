@@ -18,11 +18,11 @@
   flex-direction: column;
 }
 
-/* No bar: the logotype and the actions sit on the page itself. */
+/* No bar: the actions sit on the page itself. */
 .header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 1rem;
   height: var(--header-height);
   padding-inline: var(--gutter);
@@ -32,16 +32,6 @@
   min-height: 2.5rem;
   padding: 0.5rem 1rem;
   border-radius: 0;
-}
-
-.brand {
-  display: inline-flex;
-  align-items: center;
-}
-
-.headerMark {
-  display: block;
-  height: 2.5rem;
 }
 
 /* The first screen: the logotype across the top, then the headline. */
@@ -70,10 +60,6 @@
 
 .heroLead {
   color: var(--foreground);
-}
-
-.heroFollow {
-  color: var(--muted);
 }
 
 .heroIntro {
