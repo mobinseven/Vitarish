@@ -22,6 +22,9 @@
   <ItemGroup>
     <Compile Include="..\Main\Infrastructure\BackgroundJobs\AuditCapacityAlertMonitor.cs" Link="Infrastructure\Main\AuditCapacityAlertMonitor.cs" />
     <Compile Include="..\Main\Infrastructure\BackgroundJobs\AuditCapacityAlertServiceCollectionExtensions.cs" Link="Infrastructure\Main\AuditCapacityAlertServiceCollectionExtensions.cs" />
+    <Compile Include="..\Main\Infrastructure\BackgroundJobs\AuditStorageOutageReporter.cs" Link="Infrastructure\Main\AuditStorageOutageReporter.cs" />
+    <Compile Include="..\Main\Infrastructure\BackgroundJobs\AuditStorageOutageServiceCollectionExtensions.cs" Link="Infrastructure\Main\AuditStorageOutageServiceCollectionExtensions.cs" />
+    <Compile Include="..\Main\Infrastructure\BackgroundJobs\RedisAuditStorageOutageCounter.cs" Link="Infrastructure\Main\RedisAuditStorageOutageCounter.cs" />
     <Compile Include="..\Main\Infrastructure\Options\AuditCapacityAlertOptions.cs" Link="Infrastructure\Main\AuditCapacityAlertOptions.cs" />
   </ItemGroup>
 </Project>

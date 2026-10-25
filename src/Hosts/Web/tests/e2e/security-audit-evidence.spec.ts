@@ -1,4 +1,4 @@
-import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
+import { expect, request as playwrightRequest, test, type APIRequestContext, type Page } from "@playwright/test";
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { twoHostE2eApiOriginEnvironmentKey, twoHostE2eAuditEvidenceDirectoryEnvironmentKey, twoHostE2eLocaleEnvironmentKey } from "../../scripts/two-host-e2e-artifacts.mjs";
@@ -41,6 +41,7 @@ const uiText = {
   outcome: locale === "fa" ? "نتیجه" : "Outcome",
   export: locale === "fa" ? "خروجی CSV" : "Export CSV",
   next: locale === "fa" ? "بعدی" : "Next",
+  eventDetails: locale === "fa" ? "جزئیات رویداد" : "Event details",
 } as const;
 
 const auditEvents = {
@@ -66,6 +67,8 @@ const auditEvents = {
 // verification service and corrupt the E2E in-memory stored object.
 const e2eAuditEvidenceBase = "/api/e2e/audit-evidence";
 const storageThresholdCheckPath = `${e2eAuditEvidenceBase}/storage-threshold/check`;
+const storeOutageStartPath = `${e2eAuditEvidenceBase}/store-outage/start`;
+const storeOutageEndPath = `${e2eAuditEvidenceBase}/store-outage/end`;
 const integrityVerificationPath = (fileId: string) => `${e2eAuditEvidenceBase}/files/${fileId}/integrity-verification`;
 const integrityTamperPath = (fileId: string) => `${e2eAuditEvidenceBase}/files/${fileId}/tamper`;
 
@@ -521,6 +524,42 @@ test("real actions create visible platform security-audit evidence", async ({ pa
       { timeout: 60_000 },
     ).toBeGreaterThan(0);
     await captureAuditEvidence(administratorPage, thresholdEvent, "audit-storage-threshold.png");
+
+    // While every audit-store save fails, a sign-in attempt still gets its normal answer. Once the
+    // store accepts writes again, one security-failure record summarizes the outage.
+    expect((await postJson(administratorPage, storeOutageStartPath)).status).toBe(204);
+    let statusDuringOutage = 0;
+    try {
+      const outageRequest = await playwrightRequest.newContext({ ignoreHTTPSErrors: true });
+      try {
+        const response = await outageRequest.post(`${apiOrigin}/api/modules/authentication/login/password`, {
+          data: { userNameOrEmail: `e2e-outage-${Date.now()}@example.invalid`, password: "E2E-Outage-Wrong-Password", returnUrl: null },
+          headers: { "X-Forwarded-For": "203.0.113.67", "X-Vitarish-Tenant-Host": "localhost", "X-Request-Id": `e2e-audit-outage-${Date.now()}` },
+        });
+        statusDuringOutage = response.status();
+      } finally {
+        await outageRequest.dispose();
+      }
+    } finally {
+      expect((await postJson(administratorPage, storeOutageEndPath)).status).toBe(204);
+    }
+    expect(statusDuringOutage).toBe(401);
+    const outageEvent = { ...auditEvents.securityFunctionFailure, outcome: "failed" };
+    const outageRecords = await platformAuditQuery(administratorPage, outageEvent);
+    expect(outageRecords.items.some((item) =>
+      /^audit_storage_outage:start=[^;]+;end=[^;]+;failed_writes=[1-9]\d*$/.test(item.redactedReason ?? ""),
+    ), "the recovered audit store must hold one summary of the outage").toBe(true);
+    await captureAuditEvidence(administratorPage, outageEvent, "audit-storage-outage.png");
+    // The newest record is the summary; its detail sheet shows the outage window and the failed-write count.
+    await administratorPage.locator("tbody tr").first()
+      .getByText(localizePlatformAuditEvent(locale, outageEvent.name, outageEvent.name), { exact: true }).first().click();
+    await expect(administratorPage.getByRole("heading", { name: uiText.eventDetails })).toBeVisible();
+    const outageReason = administratorPage.getByText(/^audit_storage_outage:/);
+    await expect(outageReason).toBeVisible();
+    await outageReason.scrollIntoViewIfNeeded();
+    await hideDevelopmentIndicator(administratorPage);
+    await administratorPage.screenshot({ path: join(evidenceDirectory, "audit-storage-outage-detail.png") });
+    await administratorPage.keyboard.press("Escape");
 
     const verifiedIntegrityEvent = { ...auditEvents.integrityVerification, outcome: "succeeded" };
     expect((await postJson(administratorPage, integrityVerificationPath(uploadedFileId!))).status).toBe(204);

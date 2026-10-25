@@ -101,6 +101,7 @@ builder.Configuration["Vitarish:Security:TokenValidation:Audiences:0"] = "vitari
 SecurityConfigurationOptions securityConfiguration = SecurityConfigurationValidator.Validate(builder.Configuration, builder.Environment);
 
 Dictionary<Type, string> databaseNames = [];
+E2eAuditStoreOutageSimulation auditStoreOutage = new();
 void configureInMemory(DbContextOptionsBuilder options)
 {
     Type contextType = options.Options.ContextType;
@@ -110,6 +111,8 @@ void configureInMemory(DbContextOptionsBuilder options)
         databaseNames[contextType] = databaseName;
     }
     options.UseInMemoryDatabase(databaseName);
+    if (contextType == typeof(AuditDbContext))
+        options.AddInterceptors(auditStoreOutage);
     // The in-memory store has no transactions; workflows that open one (e.g. reminder replacement) run without it here.
     options.ConfigureWarnings(warnings => warnings.Ignore(InMemoryEventId.TransactionIgnoredWarning));
 }
@@ -127,6 +130,9 @@ builder.Services.Replace(ServiceDescriptor.Singleton<ISmsProvider>(_ => new E2eS
 _ = builder.Services.AddSingleton<E2eAuditCapacitySimulation>();
 builder.Services.Replace(ServiceDescriptor.Transient<IAuditStorageSizeReader, E2eAuditStorageSizeReader>());
 _ = builder.Services.AddAuditCapacityAlertMonitoring(builder.Environment, openApiGeneration: false);
+_ = builder.Services.AddSingleton(auditStoreOutage);
+_ = builder.Services.AddSingleton<IAuditStorageOutageCounter, E2eAuditStorageOutageCounter>();
+_ = builder.Services.AddAuditStorageOutageReporting(openApiGeneration: false);
 builder.Services.AddSingleton<Hangfire.IBackgroundJobClient, E2eBackgroundJobClient>();
 builder.Services.Replace(ServiceDescriptor.Singleton<IClinicalEventProposalStore, E2eClinicalEventProposalStore>());
 builder.Services.Replace(ServiceDescriptor.Singleton<IAssistantActionStore, E2eAssistantActionStore>());

@@ -37,6 +37,11 @@ meaning and resource authorization remain with the initiating use case.
   structured host error and does not replace the initiating operation result.
   The review query returns dependency-unavailable when the store cannot be
   read.
+- **[MUST]** Each refused write is also counted outside the audit store, by
+  time only, never content. Once the store accepts writes again, Main records
+  one `security.failure` summary of the outage: when it started, the last
+  failure, and how many writes failed. The refused events are not spooled or
+  replayed (owner decision 2026-10-25).
 - **[MUST]** Review is a side-effect-free, paged DTO query supporting filter
   and sort by actor, UTC date/time, and event type at minimum. Enforce
   platform/tenant scope in the authorized Application boundary; never return

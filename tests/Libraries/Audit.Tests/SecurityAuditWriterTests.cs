@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Vitarish.Audit.Application;
 using Vitarish.Audit.Domain;
 using Vitarish.Audit.Server;
@@ -139,6 +140,42 @@ public sealed class SecurityAuditWriterTests
     }
 
     [Fact]
+    public async Task A_refused_write_still_fails_and_counts_toward_the_outage_summary()
+    {
+        RecordingOutageCounter counter = new();
+        await using AuditDbContext context = CreateUnavailableContext("security-audit-outage-count");
+
+        Func<Task> write = () => new SecurityAuditWriter(context, outageCounter: counter).WriteAsync(CreateEvent("tenant-a", "refused"), CancellationToken.None);
+
+        await write.Should().ThrowAsync<SecurityAuditStoreException>();
+        counter.FailedWrites.Should().ContainSingle().Which.Kind.Should().Be(DateTimeKind.Utc);
+    }
+
+    [Fact]
+    public async Task An_unavailable_outage_counter_does_not_change_the_write_failure()
+    {
+        RecordingOutageCounter counter = new() { Unavailable = true };
+        await using AuditDbContext context = CreateUnavailableContext("security-audit-outage-counter-down");
+
+        Func<Task> write = () => new SecurityAuditWriter(context, outageCounter: counter).WriteAsync(CreateEvent("tenant-a", "refused"), CancellationToken.None);
+
+        await write.Should().ThrowAsync<SecurityAuditStoreException>();
+    }
+
+    [Fact]
+    public async Task A_successful_write_does_not_touch_the_outage_counter()
+    {
+        RecordingOutageCounter counter = new();
+        DbContextOptions<AuditDbContext> options = CreateOptions("security-audit-outage-success");
+        await using AuditDbContext context = CreateContext(options, "tenant-a");
+        await context.Database.EnsureCreatedAsync();
+
+        (await new SecurityAuditWriter(context, outageCounter: counter).WriteAsync(CreateEvent("tenant-a", "stored"), CancellationToken.None))
+            .Should().Be(SecurityAuditWriteResult.Recorded);
+        counter.FailedWrites.Should().BeEmpty();
+    }
+
+    [Fact]
     public void PostgreSql_capacity_query_aliases_the_scalar_and_counts_indexes_once()
     {
         PostgresAuditStorageSizeReader.StorageSizeSql.Should().Contain("pg_table_size");
@@ -243,6 +280,43 @@ public sealed class SecurityAuditWriterTests
 
     private static DbContextOptions<AuditDbContext> CreateOptions(string databaseName) =>
         new DbContextOptionsBuilder<AuditDbContext>().UseInMemoryDatabase(databaseName).Options;
+
+    private static AuditDbContext CreateUnavailableContext(string databaseName)
+    {
+        DbContextOptions<AuditDbContext> options = new DbContextOptionsBuilder<AuditDbContext>()
+            .UseInMemoryDatabase(databaseName)
+            .AddInterceptors(new RefusingSaveInterceptor())
+            .Options;
+        return CreateContext(options, "tenant-a");
+    }
+
+    private sealed class RefusingSaveInterceptor : SaveChangesInterceptor
+    {
+        public override ValueTask<InterceptionResult<int>> SavingChangesAsync(
+            DbContextEventData eventData,
+            InterceptionResult<int> result,
+            CancellationToken cancellationToken = default) =>
+            throw new DbUpdateException("The audit store refused the write.");
+    }
+
+    private sealed class RecordingOutageCounter : IAuditStorageOutageCounter
+    {
+        public bool Unavailable { get; init; }
+
+        public List<DateTime> FailedWrites { get; } = [];
+
+        public Task RecordFailedWriteAsync(DateTime failedAt, CancellationToken cancellationToken)
+        {
+            if (Unavailable)
+                throw new InvalidOperationException("The outage counter store is unavailable.");
+            FailedWrites.Add(failedAt);
+            return Task.CompletedTask;
+        }
+
+        public Task<AuditStorageOutage?> GetAsync(CancellationToken cancellationToken) => throw new NotSupportedException();
+
+        public Task<bool> ClearAsync(AuditStorageOutage summarized, CancellationToken cancellationToken) => throw new NotSupportedException();
+    }
 
     private static SecurityAuditEvent CreateEvent(string tenantId, string idempotencyKey) => new()
     {

@@ -56,6 +56,21 @@ public sealed class SecurityAuditReviewTests
     }
 
     [Fact]
+    public void Audit_storage_outage_reason_is_kept_only_in_its_typed_form()
+    {
+        DateTime started = new(2026, 10, 25, 9, 0, 0, DateTimeKind.Utc);
+        DateTime lastFailed = new(2026, 10, 25, 9, 42, 5, DateTimeKind.Utc);
+
+        SecurityAuditRedaction.Apply(SecurityAuditReasonCatalog.AuditStorageOutage(started, lastFailed, 37))
+            .Should().Be("audit_storage_outage:start=2026-10-25T09:00:00Z;end=2026-10-25T09:42:05Z;failed_writes=37");
+        SecurityAuditRedaction.Apply("audit_storage_outage:start=2026-10-25T09:00:00Z;end=yesterday;failed_writes=37")
+            .Should().Be(SecurityAuditRedaction.Replacement);
+        SecurityAuditRedaction.Apply("audit_storage_outage:start=2026-10-25T09:00:00Z;end=2026-10-25T09:42:05Z;failed_writes=0")
+            .Should().Be(SecurityAuditRedaction.Replacement);
+        ((Action)(() => SecurityAuditReasonCatalog.AuditStorageOutage(lastFailed, started, 1))).Should().Throw<ArgumentException>();
+    }
+
+    [Fact]
     public void Redaction_preserves_only_catalogued_reasons_and_typed_dynamic_reasons()
     {
         SecurityAuditRedaction.Apply(SecurityAuditReasonCatalog.PasswordLoginDisabled).Should().Be(SecurityAuditReasonCatalog.PasswordLoginDisabled);
