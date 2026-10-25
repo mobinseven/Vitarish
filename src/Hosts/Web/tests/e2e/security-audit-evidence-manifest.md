@@ -31,7 +31,7 @@ to more than one control.
 | 17 Security administration | Audit review, access-history acknowledgement, membership administration, and role replacement | `audit-review.png`, `access-history.png`, `tenant-member-provisioned.png`, `tenant-member-removed.png`, `tenant-role-replaced.png` | Covered for implemented operations |
 | 18 Group/role/membership change | Tenant-member provisioning/removal and tenant-role replacement | `tenant-member-provisioned.png`, `tenant-member-removed.png`, `tenant-role-replaced.png` | Covered |
 | 19 Security-function failure | Invalid `sessionPolicy` validation path with durable security event | `security-function-failure.png` | Covered by `security.failure` |
-| 20 Security-capability unavailable | Audit/dependency unavailable path | None | No deterministic public trigger |
+| 20 Security-capability unavailable | Audit-store outage: saves fail, then one `security.failure` summary of the outage is recorded after recovery | `audit-storage-outage.png`, `audit-storage-outage-detail.png` | Covered by `security.failure` through the E2E-only store-outage composition |
 | 21 Session establishment | Password login session establishment | `session-established.png` | Covered |
 | 22 Concurrent-session limit | Establish a third administrator session after setting maximum sessions to two | `session-concurrent-limit-denied.png` | Covered |
 | 23 Idle-session termination | Advance the E2E clock past inactivity timeout | None | Requires clock-control adapter or deterministic timeout procedure |
