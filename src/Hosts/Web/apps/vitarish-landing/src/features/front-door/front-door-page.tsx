@@ -15,7 +15,6 @@ interface FrontDoorPageProps {
 
 // Each mark has dark ink for the light theme and white ink for the dark theme; an inverted ground swaps them.
 const logotypes = {
-  mark: { light: "/Logo-Dark-®.svg", dark: "/Logo-®.svg" },
   registered: { light: "/Master-Hel-Logotype-Dark-®.svg", dark: "/Master-Hel-Logotype-®.svg" },
   copyright: { light: "/Master-Hel-Logotype-Dark-©.svg", dark: "/Master-Hel-Logotype-©.svg" },
 } as const;
@@ -50,9 +49,6 @@ export function FrontDoorPage({ onboardingUrl, whatsappNumber }: FrontDoorPagePr
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-        <a aria-label={t("landing.brand.home")} className={styles.brand} href="/">
-          <Logotype alt="" className={styles.headerMark} mark="mark" />
-        </a>
         {otherLocale && (
           <MarketingActionLink
             action={{
@@ -75,7 +71,6 @@ export function FrontDoorPage({ onboardingUrl, whatsappNumber }: FrontDoorPagePr
           <div className={styles.heroText}>
             <h1 className={styles.heroTitle} id="landing-hero">
               <span className={styles.heroLead}>{t("landing.hero.lead")}</span>
-              <span className={styles.heroFollow}>{t("landing.hero.follow")}</span>
             </h1>
             <p className={styles.heroIntro}>{t("landing.hero.intro")}</p>
           </div>
