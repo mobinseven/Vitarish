@@ -80,6 +80,8 @@ internal sealed class ClientOriginTrust(IReadOnlyCollection<string> exactOrigins
     private static string Normalize(string origin) =>
         Uri.TryCreate(origin, UriKind.Absolute, out Uri? parsed) ? parsed.GetLeftPart(UriPartial.Authority) : origin;
 
+    public static string? TrustedOriginFor(HttpContext? context) => context?.Features.Get<TrustedClientOrigin>()?.Origin;
+
     public static bool IsTrustedForRequest(HttpContext? context, string origin) =>
         context?.Features.Get<TrustedClientOrigin>() is { } trusted
         && string.Equals(trusted.Origin, origin, StringComparison.OrdinalIgnoreCase);
