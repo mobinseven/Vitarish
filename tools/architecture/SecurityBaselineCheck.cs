@@ -282,7 +282,8 @@ internal static class SecurityBaselineCheck
                 string binding = Regex.Escape("{$" + variable + "}");
                 if (!ingress.Contains($"{variable}: ${{VITARISH_{variable}:?", StringComparison.Ordinal) ||
                     !Regex.IsMatch(caddy, @"(?ms)^http://" + binding + @"\s*\{\s*redir https://\{host\}\{uri\} 308\s*\}") ||
-                    !Regex.IsMatch(caddy, @"(?ms)^https://" + binding + @"\s*\{\s*import security_headers\s+import " + environment + @"_api\s+reverse_proxy " + environment.ToLowerInvariant() + @"-private-practice-owner:3000\s*\}"))
+                    // brand_fonts only serves the licensed font file; no other handler may precede the owner proxy.
+                    !Regex.IsMatch(caddy, @"(?ms)^https://" + binding + @"\s*\{\s*import security_headers\s+import " + environment + @"_api\s+(?:import brand_fonts\s+)?reverse_proxy " + environment.ToLowerInvariant() + @"-private-practice-owner:3000\s*\}"))
                     violations.Add(DeploymentViolation(caddyPath, "WildcardRouteSecurityMissing", $"Redirect {variable} to HTTPS and route it through Main API and the owner Web service."));
             }
             Dictionary<string, string[]> routeTargets = new(StringComparer.Ordinal)

@@ -94,6 +94,7 @@ internal static class SelfTests
                 (files[0], @"(?m)^\s+import production_api\s*$", "", "ApiRouteCoverageMissing"),
                 (files[0], "reverse_proxy production-platform-admin:3003", "reverse_proxy wrong-service:3003", "IngressRouteTargetMissing"),
                 (files[0], "redir https://{host}{uri} 308", "redir http://{host}{uri} 308", "WildcardRouteSecurityMissing"),
+                (files[0], @"(?m)^\s+import brand_fonts\s*$", "    import untrusted_handler", "WildcardRouteSecurityMissing"),
                 (files[4], "VITARISH_PRODUCTION_OPENROUTER_API_KEY", "VITARISH_WRONG_PROVIDER_API_KEY", "AgentRuntimeBoundaryMissing"),
                 (files[4], "OPENAI_BASE_URL: https://openrouter.ai/api/v1", "OPENAI_BASE_URL: https://provider.example.invalid/v1", "AgentRuntimeBoundaryMissing"),
                 (files[5], @"$", Environment.NewLine + "VITARISH_ACME_EMAIL=duplicate@example.invalid", "EnvironmentInputDuplicate"),
