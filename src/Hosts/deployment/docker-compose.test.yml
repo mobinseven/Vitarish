@@ -71,6 +71,11 @@ services:
       Cors__AllowedOrigins__3: https://${VITARISH_TEST_PM_HOST:?VITARISH_TEST_PM_HOST is required}
       Cors__AllowedOrigins__4: https://${VITARISH_TEST_KNOWLEDGE_QA_HOST:?VITARISH_TEST_KNOWLEDGE_QA_HOST is required}
       Cors__AllowedOrigins__5: https://${VITARISH_TEST_LANDING_HOST:?VITARISH_TEST_LANDING_HOST is required}
+      # Passkeys belong to the site domain so every host under it can use them; clinic hosts are
+      # accepted per request through the host's origin trust, not listed here.
+      WebAuthn__ServerDomain: ${VITARISH_TEST_SITE_DOMAIN:?VITARISH_TEST_SITE_DOMAIN is required}
+      WebAuthn__Origins__0: https://${VITARISH_TEST_PUBLIC_HOST:?VITARISH_TEST_PUBLIC_HOST is required}
+      WebAuthn__Origins__1: https://${VITARISH_TEST_PATIENTS_HOST:?VITARISH_TEST_PATIENTS_HOST is required}
     depends_on:
       postgres: { condition: service_healthy }
       redis: { condition: service_healthy }

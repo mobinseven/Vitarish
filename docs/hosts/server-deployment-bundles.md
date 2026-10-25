@@ -74,8 +74,9 @@ Keep these operator-owned files on the server under
 - `.env.shared` for shared image references, hostnames, ingress credentials,
   proxy subnet/address pairs, the shared response model, and each
   environment's site domain (`VITARISH_<ENV>_SITE_DOMAIN`, the domain all its
-  hosts share), which scopes the locale cookie so a language choice holds on
-  every host.
+  hosts share). It scopes the locale cookie so a language choice holds on
+  every host, and it is the passkey (WebAuthn) domain, so a passkey works on
+  every host under it.
 - `.env.test` and `.env.production` for their environment's images and runtime
   credentials.
 - Optional `.env.production.mediatr` for protected production MediatR values.
