@@ -85,6 +85,73 @@ public sealed class SecurityAuditWriterTests
     }
 
     [Fact]
+    public async Task Changes_survive_storage_and_review_while_unchanged_rows_review_as_empty()
+    {
+        DbContextOptions<AuditDbContext> options = CreateOptions("security-audit-changes");
+        await using (AuditDbContext setup = CreateContext(options, "tenant-a"))
+        {
+            await setup.Database.EnsureCreatedAsync();
+        }
+
+        SecurityAuditEvent edited = CreateEvent("tenant-a", "request-edit");
+        edited.Changes = [new SecurityAuditChange(SecurityAuditChangeFields.Email, "old@example.test", "new@example.test")];
+        await using (AuditDbContext writeContext = CreateContext(options, "tenant-a"))
+        {
+            _ = await new SecurityAuditWriter(writeContext).WriteAsync(edited, CancellationToken.None);
+            _ = await new SecurityAuditWriter(writeContext).WriteAsync(CreateEvent("tenant-a", "request-plain"), CancellationToken.None);
+        }
+
+        await using AuditDbContext restarted = CreateContext(options, "tenant-a", [IdentityDefinitions.PlatformAdmin]);
+        SecurityAuditQueryService query = new(restarted, new TestRequestContext("tenant-a", [IdentityDefinitions.PlatformAdmin]));
+        (await query.GetByIdempotencyKeyAsync("request-edit", CancellationToken.None))!.Changes
+            .Should().Equal(new SecurityAuditChange(SecurityAuditChangeFields.Email, "old@example.test", "new@example.test"));
+        (await query.GetByIdempotencyKeyAsync("request-plain", CancellationToken.None))!.Changes.Should().BeEmpty();
+    }
+
+    [Theory]
+    [InlineData("password", "old", "new")]
+    [InlineData(SecurityAuditChangeFields.Email, "old", "new\nline")]
+    public async Task Rejects_an_uncatalogued_field_or_a_control_character_value_before_persisting(string field, string previous, string current)
+    {
+        DbContextOptions<AuditDbContext> options = CreateOptions("security-audit-invalid-change-" + field + current.Length);
+        await using AuditDbContext context = CreateContext(options, "tenant-a");
+        await context.Database.EnsureCreatedAsync();
+
+        SecurityAuditEvent invalid = CreateEvent("tenant-a", "request-1");
+        invalid.Changes = [new SecurityAuditChange(field, previous, current)];
+        Func<Task> write = () => new SecurityAuditWriter(context).WriteAsync(invalid, CancellationToken.None);
+
+        await write.Should().ThrowAsync<ArgumentException>();
+        (await context.SecurityAuditEvents.CountAsync()).Should().Be(0);
+    }
+
+    [Fact]
+    public async Task Rejects_empty_duplicated_oversized_or_too_many_changes()
+    {
+        DbContextOptions<AuditDbContext> options = CreateOptions("security-audit-change-bounds");
+        await using AuditDbContext context = CreateContext(options, "tenant-a");
+        await context.Database.EnsureCreatedAsync();
+        SecurityAuditChange email = new(SecurityAuditChangeFields.Email, "a@example.test", "b@example.test");
+        IReadOnlyList<SecurityAuditChange>[] invalidLists =
+        [
+            [],
+            [email, email],
+            [new SecurityAuditChange(SecurityAuditChangeFields.FirstName, null, new string('a', SecurityAuditChangeFields.MaximumValueLength + 1))],
+            Enumerable.Range(0, SecurityAuditChangeFields.MaximumChanges + 1).Select(_ => email).ToArray()
+        ];
+
+        foreach (IReadOnlyList<SecurityAuditChange> changes in invalidLists)
+        {
+            SecurityAuditEvent invalid = CreateEvent("tenant-a", "request-1");
+            invalid.Changes = changes;
+            Func<Task> write = () => new SecurityAuditWriter(context).WriteAsync(invalid, CancellationToken.None);
+            await write.Should().ThrowAsync<ArgumentException>();
+        }
+
+        (await context.SecurityAuditEvents.CountAsync()).Should().Be(0);
+    }
+
+    [Fact]
     public async Task Rejects_audit_review_without_a_tenant_owner_or_platform_admin_role()
     {
         DbContextOptions<AuditDbContext> options = CreateOptions("security-audit-authorization");
@@ -158,6 +225,7 @@ public sealed class SecurityAuditWriterTests
 
         SecurityAuditEvent pending = CreateEvent("tenant-a", "request-pending");
         pending.Outcome = SecurityAuditOutcome.Pending;
+        pending.Changes = [new SecurityAuditChange(SecurityAuditChangeFields.GlobalRole, null, IdentityDefinitions.PlatformAdmin)];
         await using (AuditDbContext initial = CreateContext(options, "tenant-a"))
         {
             SecurityAuditWriter writer = new(initial);
@@ -174,7 +242,8 @@ public sealed class SecurityAuditWriterTests
                 .Should().Be(SecurityAuditWriteResult.AlreadyRecorded);
             (await restarted.SecurityAuditEvents.CountAsync()).Should().Be(2);
             (await restarted.SecurityAuditEvents.SingleAsync(item => item.Outcome == SecurityAuditOutcome.Pending)).Outcome.Should().Be(SecurityAuditOutcome.Pending);
-            (await restarted.SecurityAuditEvents.SingleAsync(item => item.Outcome == SecurityAuditOutcome.Succeeded)).Outcome.Should().Be(SecurityAuditOutcome.Succeeded);
+            (await restarted.SecurityAuditEvents.SingleAsync(item => item.Outcome == SecurityAuditOutcome.Succeeded)).Changes
+                .Should().Equal(new SecurityAuditChange(SecurityAuditChangeFields.GlobalRole, null, IdentityDefinitions.PlatformAdmin));
         }
     }
 

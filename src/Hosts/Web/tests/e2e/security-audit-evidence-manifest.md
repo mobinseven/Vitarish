@@ -29,7 +29,7 @@ to more than one control.
 | 15 Information export | Audit CSV export | `audit-export.png` | Covered for audit export |
 | 16 Security-behavior change | `sessionPolicy` security session-policy PUT | `session-policy.png` | Covered by `authentication.security-access-policy` |
 | 17 Security administration | Audit review, access-history acknowledgement, membership administration, and role replacement | `audit-review.png`, `access-history.png`, `tenant-member-provisioned.png`, `tenant-member-removed.png`, `tenant-role-replaced.png` | Covered for implemented operations |
-| 18 Group/role/membership change | Tenant-member provisioning/removal and tenant-role replacement | `tenant-member-provisioned.png`, `tenant-member-removed.png`, `tenant-role-replaced.png` | Covered |
+| 18 Group/role/membership change | Tenant-member provisioning/removal and tenant-role replacement, with the previous and new role on the record | `tenant-member-provisioned.png`, `tenant-member-removed.png`, `tenant-role-replaced.png`, `tenant-role-change-detail.png` | Covered |
 | 19 Security-function failure | Invalid `sessionPolicy` validation path with durable security event | `security-function-failure.png` | Covered by `security.failure` |
 | 20 Security-capability unavailable | Audit/dependency unavailable path | None | No deterministic public trigger |
 | 21 Session establishment | Password login session establishment | `session-established.png` | Covered |

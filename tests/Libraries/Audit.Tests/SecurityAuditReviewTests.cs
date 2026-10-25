@@ -610,13 +610,15 @@ public sealed class SecurityAuditReviewTests
                 CorrelationId = "request-1",
                 SourceBoundary = "tests",
                 SourceIpKind = SecurityAuditSourceKind.Unknown,
-                RedactedReason = "line one\nline two"
+                RedactedReason = "line one\nline two",
+                Changes = [new SecurityAuditChange(SecurityAuditChangeFields.Email, "old@example.test", "new@example.test")]
             }
         ]));
 
         csv.Should().Contain("\"'=unsafe\"");
         csv.Should().Contain("\"actor,one\"");
         csv.Should().Contain("\"line one\nline two\"");
+        csv.Should().Contain("\"changes\"\r\n").And.Contain("\"email: old@example.test -> new@example.test\"\r\n");
         csv.Should().NotContain("idempotency");
         csv.Should().NotContain("payload");
     }

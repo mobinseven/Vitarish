@@ -285,6 +285,7 @@ internal sealed class SecurityAuditQueryService(
         SourceIpKind = item.SourceIpKind,
         SourceIpAddress = item.SourceIpAddress,
         ClientInterfaceHost = item.ClientInterfaceHost,
-        RedactedReason = item.RedactedReason
+        RedactedReason = item.RedactedReason,
+        Changes = item.Changes ?? Array.Empty<SecurityAuditChange>()
     };
 }

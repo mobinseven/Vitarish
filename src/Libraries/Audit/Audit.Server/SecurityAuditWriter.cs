@@ -138,6 +138,7 @@ internal sealed class SecurityAuditWriter(
                 SourceIpAddress = pending.SourceIpAddress,
                 ClientInterfaceHost = pending.ClientInterfaceHost,
                 RedactedReason = SecurityAuditRedaction.Apply(reason),
+                Changes = pending.Changes,
                 IdempotencyKey = terminalKey
             }, cancellationToken);
             _ = await dbContext.SaveChangesAsync(cancellationToken);
@@ -214,6 +215,8 @@ internal sealed class SecurityAuditWriter(
             throw new ArgumentException("Client security audit events require a normalized IP address.", nameof(auditEvent));
         if (auditEvent.SourceIpKind is not SecurityAuditSourceKind.Client and not SecurityAuditSourceKind.System and not SecurityAuditSourceKind.Unknown)
             throw new ArgumentException("Security audit source kinds are invalid.", nameof(auditEvent));
+        if (auditEvent.Changes is { } changes && (changes.Count == 0 || !SecurityAuditChangeFields.AreValid(changes)))
+            throw new ArgumentException("Security audit changes must use catalogued fields with bounded values.", nameof(auditEvent));
         if (auditEvent.OccurredAt.Kind != DateTimeKind.Utc)
             throw new ArgumentException("Security audit timestamps must be UTC.", nameof(auditEvent));
     }

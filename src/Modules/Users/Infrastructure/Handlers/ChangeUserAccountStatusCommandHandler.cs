@@ -166,7 +166,8 @@ internal sealed class ChangeUserAccountStatusCommandHandler(
             request.Enabled,
             SecurityAuditOutcome.Succeeded,
             null,
-            CancellationToken.None);
+            CancellationToken.None,
+            statusChanged: true);
         await UserCacheExtensions.SetUserAsync(cache, user, cancellationToken);
         await UserCacheExtensions.RemoveUsersAsync(cache, cancellationToken);
         return result;

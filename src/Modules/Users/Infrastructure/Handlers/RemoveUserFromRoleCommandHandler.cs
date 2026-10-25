@@ -102,7 +102,7 @@ internal sealed class RemoveUserFromRoleCommandHandler(
         _ = dbContext.UserRoles.Remove(userRole);
         _ = await dbContext.SaveChangesAsync(cancellationToken);
 
-        await WriteAuditAsync(request, SecurityAuditOutcome.Succeeded, null, cancellationToken);
+        await WriteAuditAsync(request, SecurityAuditOutcome.Succeeded, null, cancellationToken, [new SecurityAuditChange(SecurityAuditChangeFields.GlobalRole, request.RoleName, null)]);
         return IdentityResult.Success;
     }
 
@@ -110,7 +110,8 @@ internal sealed class RemoveUserFromRoleCommandHandler(
         RemoveUserFromRoleCommand request,
         string outcome,
         string? reason,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        IReadOnlyList<SecurityAuditChange>? changes = null)
     {
         string operationKey = requestContext.RequestId ?? Guid.NewGuid().ToString("N");
         try
@@ -129,6 +130,7 @@ internal sealed class RemoveUserFromRoleCommandHandler(
                 CorrelationId = requestContext.TraceId ?? requestContext.RequestId ?? operationKey,
                 SourceBoundary = UsersSecurityAuditEvents.SourceBoundary,
                 RedactedReason = reason,
+                Changes = changes,
                 IdempotencyKey = operationKey + UsersSecurityAuditEvents.GlobalRoleRevocationIdempotencySuffix
             }, cancellationToken);
         }

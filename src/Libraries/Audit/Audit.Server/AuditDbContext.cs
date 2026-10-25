@@ -115,6 +115,9 @@ public sealed class AuditDbContext : DbContext, IMultiTenantDbContext
             _ = entity.Property(e => e.SourceIpAddress).HasMaxLength(64);
             _ = entity.Property(e => e.ClientInterfaceHost).HasMaxLength(253);
             _ = entity.Property(e => e.RedactedReason).HasMaxLength(256);
+            _ = entity.Property(e => e.Changes)
+                .HasConversion(SecurityAuditChangeColumn.Converter, SecurityAuditChangeColumn.Comparer)
+                .HasMaxLength(SecurityAuditChangeColumn.MaximumLength);
             _ = entity.Property(e => e.IdempotencyKey).HasMaxLength(256);
             _ = entity.Property(e => e.OccurredAt);
             _ = entity.IsMultiTenant();

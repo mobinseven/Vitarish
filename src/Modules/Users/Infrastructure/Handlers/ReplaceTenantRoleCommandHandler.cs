@@ -70,7 +70,10 @@ internal sealed class ReplaceTenantRoleCommandHandler(
                     operationKey,
                     SecurityAuditOutcome.Succeeded,
                     SecurityAuditReasonCatalog.TenantRoleReplacement(replacement.BeforeState, replacement.AfterState),
-                    cancellationToken);
+                    cancellationToken,
+                    replacement.BeforeState == replacement.AfterState
+                        ? null
+                        : [new SecurityAuditChange(SecurityAuditChangeFields.TenantRole, replacement.BeforeState, replacement.AfterState)]);
                 return replacement.Result;
             }
             catch (DbUpdateConcurrencyException) when (attempt < MaxConcurrencyAttempts)
@@ -205,7 +208,8 @@ internal sealed class ReplaceTenantRoleCommandHandler(
         string operationKey,
         string outcome,
         string? reason,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        IReadOnlyList<SecurityAuditChange>? changes = null)
     {
         if (string.IsNullOrWhiteSpace(requestContext.TenantId))
             throw new InvalidOperationException("A tenant context is required for tenant-role auditing.");
@@ -226,6 +230,7 @@ internal sealed class ReplaceTenantRoleCommandHandler(
                 CorrelationId = requestContext.TraceId ?? requestContext.RequestId ?? operationKey,
                 SourceBoundary = UsersSecurityAuditEvents.SourceBoundary,
                 RedactedReason = reason,
+                Changes = changes,
                 IdempotencyKey = operationKey + UsersSecurityAuditEvents.IdempotencySuffix
             }, cancellationToken);
         }

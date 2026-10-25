@@ -6,7 +6,13 @@ import { ApiError } from "@vitarish/api-client";
 import { formatDateTime, formatNumber, localizeApiError, parseIsoDateValue, useLocalizedText, type SupportedLocale } from "@vitarish/localization";
 import { FaIcon, LoadingSpinner  } from "@vitarish/ui";
 import { useMemo, useState, type FormEvent, type ReactNode } from "react";
-import { localizePlatformAuditCategory, localizePlatformAuditEvent, localizeSecurityAuditOutcome } from "../localization";
+import {
+  localizePlatformAuditCategory,
+  localizePlatformAuditChangeField,
+  localizePlatformAuditChangeValue,
+  localizePlatformAuditEvent,
+  localizeSecurityAuditOutcome,
+} from "../localization";
 import { AuditDateFilter } from "./AuditDateFilter";
 import { auditOutcomeColor } from "./auditOutcomeColor";
 import {
@@ -17,6 +23,7 @@ import {
 import type {
   AuditPlatformSecurityEventsExportParams,
   AuditPlatformSecurityEventsListParams,
+  SecurityAuditChange,
   SecurityAuditEventReadDto,
   SecurityAuditSortField,
 } from "../api/generated/audit/model";
@@ -190,6 +197,38 @@ function FilterSelect({
         </Select.Popover>
       </Select>
     </div>
+  );
+}
+
+// The change fields whose values are catalogued codes rather than user data.
+const CODED_CHANGE_FIELDS: ReadonlySet<string> = new Set(["accountStatus", "tenantRole"]);
+
+function AuditChangeList({
+  changes,
+  locale,
+  t,
+}: {
+  changes: SecurityAuditChange[];
+  locale: SupportedLocale;
+  t: ReturnType<typeof useLocalizedText>["t"];
+}) {
+  if (changes.length === 0) return <>{t("security.platformAudit.notAvailable")}</>;
+  const value = (field: string, text: string | null | undefined) => {
+    if (text == null) return t("security.platformAudit.changeNoValue");
+    return CODED_CHANGE_FIELDS.has(field) ? localizePlatformAuditChangeValue(locale, text, text) : text;
+  };
+  return (
+    <ul className="space-y-1">
+      {changes.map((change) => (
+        <li key={change.field}>
+          {t("security.platformAudit.changeValue", {
+            field: localizePlatformAuditChangeField(locale, change.field, change.field),
+            previous: `\u2068${value(change.field, change.previousValue)}\u2069`,
+            next: `\u2068${value(change.field, change.newValue)}\u2069`,
+          })}
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -795,6 +834,7 @@ function PlatformAuditDetailSheet({
                     <DetailField label={t("security.platformAudit.sourceIpKind")} value={displayValue(event.sourceIpKind, t("security.platformAudit.notAvailable"))} />
                     <DetailField label={t("security.platformAudit.sourceIpAddress")} value={displayValue(event.sourceIpAddress, t("security.platformAudit.notAvailable"))} />
                     <DetailField label={t("security.platformAudit.redactedReason")} value={displayValue(event.redactedReason, t("security.platformAudit.notAvailable"))} />
+                    <DetailField label={t("security.platformAudit.changes")} value={<AuditChangeList changes={event.changes ?? []} locale={locale} t={t} />} />
                   </dl>
                   <p className="mt-6 border-t border-separator pt-5 text-xs leading-5 text-muted">{t("security.platformAudit.detailReadOnly")}</p>
                 </>

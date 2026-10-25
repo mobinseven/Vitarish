@@ -98,7 +98,7 @@ internal sealed class AddUserToRoleCommandHandler(
             RoleId = role.Id
         });
         await dbContext.SaveChangesAsync(cancellationToken);
-        await WriteAuditAsync(request, SecurityAuditOutcome.Succeeded, null, cancellationToken);
+        await WriteAuditAsync(request, SecurityAuditOutcome.Succeeded, null, cancellationToken, [new SecurityAuditChange(SecurityAuditChangeFields.GlobalRole, null, request.RoleName)]);
         return IdentityResult.Success;
     }
 
@@ -106,7 +106,8 @@ internal sealed class AddUserToRoleCommandHandler(
         AddUserToRoleCommand request,
         string outcome,
         string? reason,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        IReadOnlyList<SecurityAuditChange>? changes = null)
     {
         string key = requestContext.RequestId ?? Guid.NewGuid().ToString("N");
         try
@@ -125,6 +126,7 @@ internal sealed class AddUserToRoleCommandHandler(
                 CorrelationId = requestContext.TraceId ?? requestContext.RequestId ?? key,
                 SourceBoundary = UsersSecurityAuditEvents.SourceBoundary,
                 RedactedReason = reason,
+                Changes = changes,
                 IdempotencyKey = key + UsersSecurityAuditEvents.GlobalRoleAssignmentIdempotencySuffix
             }, cancellationToken);
         }

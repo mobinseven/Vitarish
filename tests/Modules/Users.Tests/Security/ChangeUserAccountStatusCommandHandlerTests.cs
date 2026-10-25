@@ -51,6 +51,7 @@ public sealed class ChangeUserAccountStatusCommandHandlerTests
         disabled.ActorId.Should().Be("platform-admin");
         disabled.SubjectId.Should().Be(ManagedUserId);
         disabled.RedactedReason.Should().BeNull();
+        disabled.Changes.Should().Equal(new SecurityAuditChange(SecurityAuditChangeFields.AccountStatus, SecurityAuditChangeFields.AccountStatusEnabled, SecurityAuditChangeFields.AccountStatusDisabled));
         // Checked before the save and again after it, to catch a sign-in that raced the disable.
         activeSessions.Verify(query => query.HasActiveSessionAsync(ManagedUserId, It.IsAny<CancellationToken>()), Times.Exactly(2));
     }
@@ -145,6 +146,7 @@ public sealed class ChangeUserAccountStatusCommandHandlerTests
         SecurityAuditEvent replayed = AuditEvents(auditWriter).Single();
         replayed.EventName.Should().Be(SecurityAuditEventCatalog.UserAccountDisabledEvent);
         replayed.Outcome.Should().Be(SecurityAuditOutcome.Succeeded);
+        replayed.Changes.Should().BeNull("repeating the current status changes nothing");
     }
 
     [Fact]

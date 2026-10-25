@@ -1,5 +1,7 @@
 export {
   localizePlatformAuditCategory,
+  localizePlatformAuditChangeField,
+  localizePlatformAuditChangeValue,
   localizePlatformAuditEvent,
   localizeSecurityAuditOutcome,
   securityMessageCatalogs,

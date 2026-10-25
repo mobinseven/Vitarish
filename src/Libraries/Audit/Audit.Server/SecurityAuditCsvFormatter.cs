@@ -24,7 +24,8 @@ internal static class SecurityAuditCsvFormatter
         "sourceIpKind",
         "sourceIpAddress",
         "clientInterfaceHost",
-        "redactedReason"
+        "redactedReason",
+        "changes"
     ];
 
     public static byte[] Format(IReadOnlyList<SecurityAuditEventReadDto> rows)
@@ -51,12 +52,16 @@ internal static class SecurityAuditCsvFormatter
                 row.SourceIpKind,
                 row.SourceIpAddress,
                 row.ClientInterfaceHost,
-                row.RedactedReason
+                row.RedactedReason,
+                FormatChanges(row.Changes)
             ]);
         }
 
         return new UTF8Encoding(encoderShouldEmitUTF8Identifier: true).GetBytes(csv.ToString());
     }
+
+    private static string FormatChanges(IReadOnlyList<SecurityAuditChange> changes) =>
+        string.Join("; ", changes.Select(change => $"{change.Field}: {change.PreviousValue} -> {change.NewValue}"));
 
     private static void AppendRow(StringBuilder csv, IReadOnlyList<string?> values)
     {

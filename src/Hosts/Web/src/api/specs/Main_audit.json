@@ -660,6 +660,31 @@
           }
         }
       },
+      "SecurityAuditChange": {
+        "required": [
+          "field",
+          "previousValue",
+          "newValue"
+        ],
+        "type": "object",
+        "properties": {
+          "field": {
+            "type": "string"
+          },
+          "previousValue": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "newValue": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "SecurityAuditEventReadDto": {
         "type": "object",
         "properties": {
@@ -742,6 +767,12 @@
               "null",
               "string"
             ]
+          },
+          "changes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SecurityAuditChange"
+            }
           }
         }
       },
