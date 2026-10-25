@@ -7,7 +7,8 @@ export { defaultLocale, supportedLocales, getLocaleDirection, isSupportedLocale,
 export type { SupportedLocale } from "./locales";
 export { resolveLocale } from "./resolveLocale";
 export type { ResolveLocaleInput, ResolvedLocale, LocaleResolutionSource } from "./resolveLocale";
-export { parseLocaleCookie, serializeLocaleCookie, setLocaleCookie, localeCookieName } from "./localeCookie";
+export { parseLocaleCookie, serializeLocaleCookie, setLocaleCookie, localeCookieName, localeCookieDomainEnvironmentKey, readLocaleCookieDomain } from "./localeCookie";
+export { useSetLocaleCookie } from "./useSetLocaleCookie";
 export { parseAcceptLanguage } from "./acceptLanguage";
 export { formatDate, formatDateTime, formatTimeOfDay, formatNumber, formatPercent, formatCurrency, formatList, formatRelativeTime, formatFileSize } from "./format";
 export { getReactAriaLocale, getDateCalendar } from "./dateLocale";

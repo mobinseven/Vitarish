@@ -15,9 +15,9 @@ import { Sidebar } from "@heroui-pro/react/sidebar";
 import { useSidebar } from "@heroui-pro/react/sidebar";
 import { useTheme } from "next-themes";
 import {
-  setLocaleCookie,
   supportedLocales,
   useLocalizedText,
+  useSetLocaleCookie,
   type SupportedLocale,
 } from "@vitarish/localization";
 import { FaIcon } from "../icons/FaIcon";
@@ -373,6 +373,7 @@ function DashboardFrameSidebarContents({
   const [isSidebarTooltipOpen, setSidebarTooltipOpen] = useState(false);
   const { setTheme, theme } = useTheme();
   const { direction, locale, t } = useLocalizedText();
+  const setLocaleCookie = useSetLocaleCookie();
   const { isMobile, isOpen, toggleSidebar } = useSidebar();
   const currentTheme: ThemeMode =
     theme === "system" ? "system" : theme === "dark" ? "dark" : "light";
@@ -391,7 +392,7 @@ function DashboardFrameSidebarContents({
       setLocaleCookie(key as SupportedLocale);
       window.location.reload();
     },
-    [locale],
+    [locale, setLocaleCookie],
   );
 
   return (

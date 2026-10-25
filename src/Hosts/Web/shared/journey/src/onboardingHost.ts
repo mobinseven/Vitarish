@@ -18,6 +18,11 @@ export function readOnboardingUrl(environment: Record<string, string | undefined
   return value ? value : null;
 }
 
+/** Whether a request or page host (`name[:port]`) is the onboarding host. */
+export function isOnboardingHost(host: string | null | undefined, onboardingUrl: string): boolean {
+  return !!host && host.trim().toLowerCase() === new URL(onboardingUrl).host;
+}
+
 /** Where a one-time handoff ticket is redeemed on the onboarding host and on every clinic host. */
 export const tenantHandoffPath = "/handoff";
 

@@ -102,6 +102,7 @@ services:
     <<: *app-runtime
     image: "${VITARISH_PRODUCTION_OWNER_WEB_IMAGE:?VITARISH_PRODUCTION_OWNER_WEB_IMAGE is required}"
     environment:
+      VITARISH_LOCALE_COOKIE_DOMAIN: ${VITARISH_PRODUCTION_SITE_DOMAIN:?VITARISH_PRODUCTION_SITE_DOMAIN is required}
       # The sign-in page links here to create a clinic while the flag is true.
       VITARISH_TENANT_ONBOARDING: ${VITARISH_PRODUCTION_TENANT_ONBOARDING:-false}
       VITARISH_ONBOARDING_URL: https://${VITARISH_PRODUCTION_ONBOARDING_SUBDOMAIN:?VITARISH_PRODUCTION_ONBOARDING_SUBDOMAIN is required}.${VITARISH_PRODUCTION_CLINIC_BASE_DOMAIN:?VITARISH_PRODUCTION_CLINIC_BASE_DOMAIN is required}
@@ -111,18 +112,24 @@ services:
   patients:
     <<: *app-runtime
     image: "${VITARISH_PRODUCTION_PATIENTS_WEB_IMAGE:?VITARISH_PRODUCTION_PATIENTS_WEB_IMAGE is required}"
+    environment:
+      VITARISH_LOCALE_COOKIE_DOMAIN: ${VITARISH_PRODUCTION_SITE_DOMAIN:?VITARISH_PRODUCTION_SITE_DOMAIN is required}
     expose: [3001]
     healthcheck: *node-healthcheck
     networks: { application: {}, proxy: { aliases: [production-patients] } }
   platform-admin:
     <<: *app-runtime
     image: "${VITARISH_PRODUCTION_PLATFORM_ADMIN_WEB_IMAGE:?VITARISH_PRODUCTION_PLATFORM_ADMIN_WEB_IMAGE is required}"
+    environment:
+      VITARISH_LOCALE_COOKIE_DOMAIN: ${VITARISH_PRODUCTION_SITE_DOMAIN:?VITARISH_PRODUCTION_SITE_DOMAIN is required}
     expose: [3003]
     healthcheck: *node-healthcheck
     networks: { application: {}, proxy: { aliases: [production-platform-admin] } }
   pm:
     <<: *app-runtime
     image: "${VITARISH_PRODUCTION_PM_WEB_IMAGE:?VITARISH_PRODUCTION_PM_WEB_IMAGE is required}"
+    environment:
+      VITARISH_LOCALE_COOKIE_DOMAIN: ${VITARISH_PRODUCTION_SITE_DOMAIN:?VITARISH_PRODUCTION_SITE_DOMAIN is required}
     expose: [3004]
     healthcheck: *node-healthcheck
     networks: { application: {}, proxy: { aliases: [production-pm] } }
@@ -130,6 +137,7 @@ services:
     <<: *app-runtime
     image: "${VITARISH_PRODUCTION_LANDING_WEB_IMAGE:?VITARISH_PRODUCTION_LANDING_WEB_IMAGE is required}"
     environment:
+      VITARISH_LOCALE_COOKIE_DOMAIN: ${VITARISH_PRODUCTION_SITE_DOMAIN:?VITARISH_PRODUCTION_SITE_DOMAIN is required}
       # "Set up my clinic" links here while the flag is true.
       VITARISH_TENANT_ONBOARDING: ${VITARISH_PRODUCTION_TENANT_ONBOARDING:-false}
       VITARISH_ONBOARDING_URL: https://${VITARISH_PRODUCTION_ONBOARDING_SUBDOMAIN:?VITARISH_PRODUCTION_ONBOARDING_SUBDOMAIN is required}.${VITARISH_PRODUCTION_CLINIC_BASE_DOMAIN:?VITARISH_PRODUCTION_CLINIC_BASE_DOMAIN is required}

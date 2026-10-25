@@ -1,7 +1,7 @@
 "use client";
 
 import { Accordion, Button, Link, Tooltip } from "@heroui/react";
-import { setLocaleCookie, supportedLocales, useLocalizedText } from "@vitarish/localization";
+import { supportedLocales, useLocalizedText, useSetLocaleCookie } from "@vitarish/localization";
 import { FaIcon, FeatureItemCard, MarketingActionLink } from "@vitarish/ui";
 import { whatsappChatUrl } from "./whatsapp";
 import styles from "./front-door.module.css";
@@ -44,6 +44,7 @@ function Logotype({
 /** The public front door: the Vitarish apps, a few questions, and the brand. */
 export function FrontDoorPage({ onboardingUrl, whatsappNumber }: FrontDoorPageProps) {
   const { t, locale } = useLocalizedText();
+  const setLocaleCookie = useSetLocaleCookie();
   const otherLocale = supportedLocales.find((candidate) => candidate !== locale);
 
   return (

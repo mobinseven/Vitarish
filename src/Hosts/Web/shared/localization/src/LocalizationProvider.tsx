@@ -15,6 +15,8 @@ export interface LocalizationContextValue {
   locale: SupportedLocale;
   direction: "ltr" | "rtl";
   messages: MessageCatalog;
+  /** The domain the locale cookie is shared across, or null to keep it on the current host. */
+  localeCookieDomain: string | null;
 }
 
 export const LocalizationContext =
@@ -24,16 +26,18 @@ export interface I18nProviderProps {
   children: ReactNode;
   locale?: SupportedLocale;
   messages?: MessageCatalog;
+  localeCookieDomain?: string | null;
 }
 
 export function I18nProvider({
   children,
   locale = defaultLocale,
   messages = {},
+  localeCookieDomain = null,
 }: I18nProviderProps) {
   const value = useMemo(
-    () => ({ locale, direction: getLocaleDirection(locale), messages }),
-    [locale, messages],
+    () => ({ locale, direction: getLocaleDirection(locale), messages, localeCookieDomain }),
+    [locale, messages, localeCookieDomain],
   );
 
   return (

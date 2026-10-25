@@ -12,9 +12,9 @@ import { useAccountCulture } from "@vitarish/account";
 import { StatusAlert } from "@vitarish/ui";
 import { OptionSelector } from "@/components/account/OptionSelector";
 import {
-  setLocaleCookie,
   toSupportedLocale,
   useLocalizedText,
+  useSetLocaleCookie,
 } from "@/localization";
 
 export default function CulturePage() {
@@ -22,6 +22,7 @@ export default function CulturePage() {
   const userId = user?.userId ?? "";
   const router = useRouter();
   const { t } = useLocalizedText();
+  const setLocaleCookie = useSetLocaleCookie();
   const { selected, setSelected, success, isError, isPending, save } =
     useAccountCulture(userId);
 
@@ -30,7 +31,7 @@ export default function CulturePage() {
     const locale = toSupportedLocale(selected);
     if (locale) setLocaleCookie(locale);
     router.refresh();
-  }, [save, selected, router]);
+  }, [save, selected, router, setLocaleCookie]);
 
   const cultures = [
     { value: "en-US", label: t("account.culture.english") },

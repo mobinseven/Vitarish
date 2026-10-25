@@ -89,36 +89,48 @@ services:
   private-practice-owner:
     <<: *app-runtime
     image: ${VITARISH_TEST_OWNER_WEB_IMAGE:?VITARISH_TEST_OWNER_WEB_IMAGE is required}
+    environment:
+      VITARISH_LOCALE_COOKIE_DOMAIN: ${VITARISH_TEST_SITE_DOMAIN:?VITARISH_TEST_SITE_DOMAIN is required}
     expose: [3000]
     healthcheck: *node-healthcheck
     networks: { application: {}, proxy: { aliases: [test-private-practice-owner] } }
   patients:
     <<: *app-runtime
     image: ${VITARISH_TEST_PATIENTS_WEB_IMAGE:?VITARISH_TEST_PATIENTS_WEB_IMAGE is required}
+    environment:
+      VITARISH_LOCALE_COOKIE_DOMAIN: ${VITARISH_TEST_SITE_DOMAIN:?VITARISH_TEST_SITE_DOMAIN is required}
     expose: [3001]
     healthcheck: *node-healthcheck
     networks: { application: {}, proxy: { aliases: [test-patients] } }
   platform-admin:
     <<: *app-runtime
     image: ${VITARISH_TEST_PLATFORM_ADMIN_WEB_IMAGE:?VITARISH_TEST_PLATFORM_ADMIN_WEB_IMAGE is required}
+    environment:
+      VITARISH_LOCALE_COOKIE_DOMAIN: ${VITARISH_TEST_SITE_DOMAIN:?VITARISH_TEST_SITE_DOMAIN is required}
     expose: [3003]
     healthcheck: *node-healthcheck
     networks: { application: {}, proxy: { aliases: [test-platform-admin] } }
   pm:
     <<: *app-runtime
     image: ${VITARISH_TEST_PM_WEB_IMAGE:?VITARISH_TEST_PM_WEB_IMAGE is required}
+    environment:
+      VITARISH_LOCALE_COOKIE_DOMAIN: ${VITARISH_TEST_SITE_DOMAIN:?VITARISH_TEST_SITE_DOMAIN is required}
     expose: [3004]
     healthcheck: *node-healthcheck
     networks: { application: {}, proxy: { aliases: [test-pm] } }
   knowledge-qa:
     <<: *app-runtime
     image: ${VITARISH_TEST_KNOWLEDGE_QA_WEB_IMAGE:?VITARISH_TEST_KNOWLEDGE_QA_WEB_IMAGE is required}
+    environment:
+      VITARISH_LOCALE_COOKIE_DOMAIN: ${VITARISH_TEST_SITE_DOMAIN:?VITARISH_TEST_SITE_DOMAIN is required}
     expose: [3001]
     healthcheck: *node-healthcheck
     networks: { application: {}, proxy: { aliases: [test-knowledge-qa] } }
   landing:
     <<: *app-runtime
     image: ${VITARISH_TEST_LANDING_WEB_IMAGE:?VITARISH_TEST_LANDING_WEB_IMAGE is required}
+    environment:
+      VITARISH_LOCALE_COOKIE_DOMAIN: ${VITARISH_TEST_SITE_DOMAIN:?VITARISH_TEST_SITE_DOMAIN is required}
     expose: [3002]
     healthcheck: *node-healthcheck
     networks: { application: {}, proxy: { aliases: [test-landing] } }

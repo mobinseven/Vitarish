@@ -51,6 +51,9 @@ All three live in the server's `/opt/vitarish/deployment/.env.shared`:
    owner Web and landing apps selected, so the containers restart with the new values.
 3. Check it:
    - The sign-in page on the public host shows the link to create a clinic.
+   - Opening the onboarding host goes straight to `/setup`, which asks a
+     signed-out visitor to sign in first, in the language chosen on the
+     public host.
    - On the onboarding host, sign up with a test phone number, complete the
      profile and reach `/setup`.
    - A taken address is reported as taken; a new one as available.
