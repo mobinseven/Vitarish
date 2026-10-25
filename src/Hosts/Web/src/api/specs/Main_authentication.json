@@ -2960,6 +2960,15 @@
               "string"
             ],
             "format": "int64"
+          },
+          "sourceFailedAttemptThreshold": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
           }
         }
       },
@@ -3383,7 +3392,8 @@
           "requiredPreAuthenticationActions",
           "availableFailedAttemptResponses",
           "mandatoryPasswordMinimumLength",
-          "version"
+          "version",
+          "sourceFailedAttemptThreshold"
         ],
         "type": "object",
         "properties": {
@@ -3483,6 +3493,14 @@
               "string"
             ],
             "format": "int64"
+          },
+          "sourceFailedAttemptThreshold": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
           }
         }
       },

@@ -20,7 +20,7 @@ to more than one control.
 | 6 Audit-storage failure action | Inject audit-store failure through an E2E adapter | None | Requires named failure-injection adapter |
 | 7 User-data integrity verification | Upload a valid PNG through the public upload endpoint, run the real Files verification, tamper the E2E-stored object, and verify again | `integrity-verification.png`, `integrity-verification-failed.png` | Covered by the E2E-only `/api/e2e/audit-evidence` trigger; pending fresh focused run |
 | 8 Authentication-mechanism use | Password login and real email-OTP action | `password-login-succeeded.png`, `password-login-denied.png` | Covered for password; email-OTP action is exercised but has no catalogued durable event, and passkey has no dedicated durable event |
-| 9 Authentication outcome | Successful and denied password login | `password-login-succeeded.png`, `password-login-denied.png` | Covered for implemented password path |
+| 9 Authentication outcome | Successful and denied password login, and a client address blocked after repeated failures (threshold set in `source-threshold-setting.png`) | `password-login-succeeded.png`, `password-login-denied.png`, `source-address-blocked.png`, `source-threshold-setting.png` | Covered for implemented password path |
 | 10 Password verification | Successful password login and password change | `password-login-succeeded.png`, `password-change.png` | Covered for implemented password paths |
 | 11 Security-attribute assignment | Tenant-member provisioning | `tenant-member-provisioned.png` | Covered for tenant membership |
 | 12 Security-attribute change | Password change | `password-change.png` | Covered for password; other attributes pending |

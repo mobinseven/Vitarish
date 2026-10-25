@@ -11,6 +11,7 @@ using Vitarish.Authentication.Domain.Methods;
 using Vitarish.Authentication.Domain.Security;
 using Vitarish.Authentication.Domain.Sessions;
 using Vitarish.Requests.Application.Abstractions;
+using Vitarish.Authentication.Tests.Security;
 
 namespace Vitarish.Authentication.Tests.Handlers;
 
@@ -335,6 +336,7 @@ public sealed class TenantHandoffHandlerTests
                 hostAccessor.Object,
                 AttemptTracker.Object,
                 KeyFactory.Object,
+                TestSourceAttemptGuards.WithoutClientAddress(),
                 users.Object,
                 redirects.Object,
                 clock.Object,

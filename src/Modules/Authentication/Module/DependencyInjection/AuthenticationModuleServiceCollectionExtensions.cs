@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Vitarish.Authentication.Application.Handlers;
+using Vitarish.Authentication.Application.Security;
 using Vitarish.Authentication.Application.Services;
 using Vitarish.Authentication.Infrastructure.DependencyInjection;
 using Vitarish.Authentication.Domain.Security;
@@ -14,6 +15,7 @@ public static class AuthenticationModuleServiceCollectionExtensions
     public static IServiceCollection AddAuthenticationModuleServices(this IServiceCollection services, AuthenticationProfilePolicy profilePolicy, Action<DbContextOptionsBuilder>? configureDbContext = null)
     {
         services.AddSingleton(profilePolicy);
+        services.AddScoped<AuthenticationSourceAttemptGuard>();
         services.AddScoped<LoginWithPasswordHandler>();
         services.AddScoped<ChangePasswordHandler>();
         services.AddScoped<BeginChangeEmailHandler>();

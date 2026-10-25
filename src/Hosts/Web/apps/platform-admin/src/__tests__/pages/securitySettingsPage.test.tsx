@@ -23,6 +23,7 @@ const state = vi.hoisted(() => ({
     requirePasswordNumber: true,
     requirePasswordSpecialCharacter: true,
     failedAttemptThreshold: 5,
+    sourceFailedAttemptThreshold: 20,
     failedAttemptDenialDurationSeconds: 900,
     failedAttemptResponse: "Deny",
     enabledAuthenticationMechanisms: ["Password", "Phone"],
@@ -90,6 +91,18 @@ describe("SecuritySettingsPage", () => {
       concurrentSessionsFunctionallyRequired: true,
       expectedVersion: 5,
     });
+  });
+
+  it("loads the server's per-address threshold and saves the edited value with the authentication policy", async () => {
+    renderPage();
+
+    const perAddress = screen.getByLabelText("Failed authentication threshold per IP address");
+    expect(perAddress).toHaveValue(20);
+    fireEvent.change(perAddress, { target: { value: "3" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save authentication policy" }));
+
+    await waitFor(() => expect(state.authenticationPut).toHaveBeenCalledTimes(1));
+    expect(state.authenticationPut.mock.calls[0][0].data).toMatchObject({ sourceFailedAttemptThreshold: 3, failedAttemptThreshold: 5 });
   });
 
   it("shows each form's save result inside its own section", async () => {

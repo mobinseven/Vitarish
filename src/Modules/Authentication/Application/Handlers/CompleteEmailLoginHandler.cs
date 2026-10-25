@@ -9,7 +9,7 @@ using Vitarish.Authentication.Domain.Security;
 
 namespace Vitarish.Authentication.Application.Handlers;
 
-public sealed class CompleteEmailLoginHandler(IAuthenticationChallengeStore store, IAuthenticationCodeVerifier verifier, IAuthenticationSignInService signInService, IAuthenticationRedirectResolver redirects, IAuthenticationAttemptTracker attemptTracker, IAuthenticationSecurityPolicyProvider securityPolicyProvider, IAuthenticationAttemptKeyFactory attemptKeyFactory, AuthenticationAttemptAuditor attemptAuditor, IInitialPlatformAdministratorGrant initialAdministratorGrant, IUserAccountUpdater contactConfirmer)
+public sealed class CompleteEmailLoginHandler(IAuthenticationChallengeStore store, IAuthenticationCodeVerifier verifier, IAuthenticationSignInService signInService, IAuthenticationRedirectResolver redirects, IAuthenticationAttemptTracker attemptTracker, IAuthenticationSecurityPolicyProvider securityPolicyProvider, IAuthenticationAttemptKeyFactory attemptKeyFactory, AuthenticationSourceAttemptGuard sourceAttemptGuard, AuthenticationAttemptAuditor attemptAuditor, IInitialPlatformAdministratorGrant initialAdministratorGrant, IUserAccountUpdater contactConfirmer)
 {
     public async Task<AuthenticationResult<LoginResult>> Handle(CompleteEmailLoginCommand command, CancellationToken cancellationToken)
     {
@@ -24,7 +24,7 @@ public sealed class CompleteEmailLoginHandler(IAuthenticationChallengeStore stor
             }
             else
             {
-                result = await ChallengeCompletionHelper.CompleteChallengeAsync(command.ChallengeId, command.Code, command.ReturnUrl, AuthenticationChallengePurpose.EmailLogin, store, verifier, signInService, redirects, cancellationToken, attemptTracker, securityPolicy, attemptKeyFactory, initialAdministratorGrant, contactConfirmer, userId => knownUserId = userId);
+                result = await ChallengeCompletionHelper.CompleteChallengeAsync(command.ChallengeId, command.Code, command.ReturnUrl, AuthenticationChallengePurpose.EmailLogin, store, verifier, signInService, redirects, cancellationToken, attemptTracker, securityPolicy, attemptKeyFactory, sourceAttemptGuard, initialAdministratorGrant, contactConfirmer, userId => knownUserId = userId);
             }
         }
         catch (OperationCanceledException)

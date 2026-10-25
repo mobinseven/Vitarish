@@ -15,6 +15,7 @@ using Vitarish.Authentication.Infrastructure.Options;
 using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Requests.Domain.Entities;
 using Xunit;
+using Vitarish.Authentication.Tests.Security;
 
 namespace Vitarish.Authentication.Tests.Handlers;
 
@@ -79,6 +80,7 @@ public sealed class CompletePasswordLoginOtpHandlerTests
             new InMemoryAuthenticationAttemptTracker(),
             new TestSecurityPolicyProvider(),
             CreateKeys(),
+            TestSourceAttemptGuards.WithoutClientAddress(),
             new TestAuthenticationUtcClock());
 
         CompletePasswordLoginOtpCommand command = new(challenge.Id.Value, "123456", "/home");
@@ -118,6 +120,7 @@ public sealed class CompletePasswordLoginOtpHandlerTests
             new InMemoryAuthenticationAttemptTracker(),
             new TestSecurityPolicyProvider(),
             CreateKeys(),
+            TestSourceAttemptGuards.WithoutClientAddress(),
             new TestAuthenticationUtcClock());
 
         CompletePasswordLoginOtpCommand command = new(challenge.Id.Value, "000000", "/home");
@@ -161,6 +164,7 @@ public sealed class CompletePasswordLoginOtpHandlerTests
             new InMemoryAuthenticationAttemptTracker(),
             new TestSecurityPolicyProvider(),
             CreateKeys(),
+            TestSourceAttemptGuards.WithoutClientAddress(),
             new TestAuthenticationUtcClock());
 
         AuthenticationResult<LoginResult> wrongCode = await handler.Handle(new(challenge.Id.Value, "000000", "/home"), CancellationToken.None);
@@ -253,6 +257,7 @@ public sealed class CompletePasswordLoginOtpHandlerTests
             new InMemoryAuthenticationAttemptTracker(),
             new TestSecurityPolicyProvider(),
             CreateKeys(),
+            TestSourceAttemptGuards.WithoutClientAddress(),
             new TestAuthenticationUtcClock());
     }
 

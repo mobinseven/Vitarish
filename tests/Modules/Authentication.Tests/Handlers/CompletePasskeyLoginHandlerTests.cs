@@ -13,6 +13,7 @@ using Vitarish.Authentication.Domain.Security;
 using Vitarish.Authentication.Infrastructure;
 using Vitarish.Authentication.Infrastructure.Options;
 using Vitarish.Requests.Application.Abstractions;
+using Vitarish.Authentication.Tests.Security;
 
 namespace Vitarish.Authentication.Tests.Handlers;
 
@@ -40,6 +41,7 @@ public sealed class CompletePasskeyLoginHandlerTests
             policy.Object,
             tracker.Object,
             keys,
+            TestSourceAttemptGuards.WithoutClientAddress(),
             CreateAttemptAuditor());
 
         AuthenticationResult<LoginResult> result = await handler.Handle(
@@ -77,6 +79,7 @@ public sealed class CompletePasskeyLoginHandlerTests
             policy.Object,
             tracker.Object,
             keys,
+            TestSourceAttemptGuards.WithoutClientAddress(),
             CreateAttemptAuditor());
 
         AuthenticationResult<LoginResult> result = await handler.Handle(
@@ -111,6 +114,7 @@ public sealed class CompletePasskeyLoginHandlerTests
             policy.Object,
             tracker.Object,
             keys,
+            TestSourceAttemptGuards.WithoutClientAddress(),
             CreateAttemptAuditor());
 
         _ = await handler.Handle(new CompletePasskeyLoginCommand("challenge-1", "credential", "/home"), CancellationToken.None);
@@ -147,6 +151,7 @@ public sealed class CompletePasskeyLoginHandlerTests
             policyProvider.Object,
             tracker,
             keys,
+            TestSourceAttemptGuards.WithoutClientAddress(),
             CreateAttemptAuditor());
 
         AuthenticationResult<LoginResult> first = await handler.Handle(
@@ -195,6 +200,7 @@ public sealed class CompletePasskeyLoginHandlerTests
             policy.Object,
             tracker.Object,
             keys,
+            TestSourceAttemptGuards.WithoutClientAddress(),
             new AuthenticationAttemptAuditor(writer.Object, requestContext.Object, new TestAuthenticationUtcClock()));
 
         AuthenticationResult<LoginResult> result = await handler.Handle(
@@ -241,6 +247,7 @@ public sealed class CompletePasskeyLoginHandlerTests
             policy.Object,
             tracker.Object,
             keys,
+            TestSourceAttemptGuards.WithoutClientAddress(),
             new AuthenticationAttemptAuditor(writer.Object, requestContext.Object, new TestAuthenticationUtcClock()));
 
         AuthenticationResult<LoginResult> result = await handler.Handle(

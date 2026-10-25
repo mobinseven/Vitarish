@@ -17,4 +17,5 @@ public sealed record SecurityAuthenticationPolicyDto(
     IReadOnlyList<string> RequiredPreAuthenticationActions,
     IReadOnlyList<string> AvailableFailedAttemptResponses,
     int MandatoryPasswordMinimumLength,
-    long Version);
+    long Version,
+    int SourceFailedAttemptThreshold);

@@ -49,6 +49,7 @@ export default function SecuritySettingsPage() {
       requirePasswordNumber: authenticationPolicy.data.requirePasswordNumber,
       requirePasswordSpecialCharacter: authenticationPolicy.data.requirePasswordSpecialCharacter,
       failedAttemptThreshold: authenticationPolicy.data.failedAttemptThreshold,
+      sourceFailedAttemptThreshold: authenticationPolicy.data.sourceFailedAttemptThreshold,
       failedAttemptDenialDurationSeconds: authenticationPolicy.data.failedAttemptDenialDurationSeconds,
       failedAttemptResponse: authenticationPolicy.data.failedAttemptResponse,
       enabledAuthenticationMechanisms: authenticationPolicy.data.enabledAuthenticationMechanisms,
@@ -124,6 +125,7 @@ export default function SecuritySettingsPage() {
               {([["requirePasswordLowercase", "lowercase"], ["requirePasswordUppercase", "uppercase"], ["requirePasswordNumber", "number"], ["requirePasswordSpecialCharacter", "special"]] as const).map(([field, label]) => <label className="flex items-center gap-2" key={field}><input type="checkbox" checked={authenticationDraft[field]} onChange={(event) => setAuthenticationDraft({ ...authenticationDraft, [field]: event.target.checked })} />{t(`admin.securityPolicy.password.${label}`)}</label>)}
             </fieldset>
             <label className="block">{t("admin.securityPolicy.failedThreshold")}<input className="mt-1 w-full rounded border p-2" type="number" min={1} required value={authenticationDraft.failedAttemptThreshold} onChange={(event) => setAuthenticationDraft({ ...authenticationDraft, failedAttemptThreshold: Number(event.target.value) })} /></label>
+            <label className="block">{t("admin.securityPolicy.sourceFailedThreshold")}<input className="mt-1 w-full rounded border p-2" type="number" min={1} required value={authenticationDraft.sourceFailedAttemptThreshold ?? ""} onChange={(event) => setAuthenticationDraft({ ...authenticationDraft, sourceFailedAttemptThreshold: Number(event.target.value) })} /></label>
             <label className="block">{t("admin.securityPolicy.denialDuration")}<input className="mt-1 w-full rounded border p-2" type="number" min={1} required value={authenticationDraft.failedAttemptDenialDurationSeconds} onChange={(event) => setAuthenticationDraft({ ...authenticationDraft, failedAttemptDenialDurationSeconds: Number(event.target.value) })} /></label>
             <label className="block">{t("admin.securityPolicy.failureResponse")}<select className="mt-1 w-full rounded border p-2" required value={authenticationDraft.failedAttemptResponse} onChange={(event) => setAuthenticationDraft({ ...authenticationDraft, failedAttemptResponse: event.target.value })}>{authenticationPolicy.data!.availableFailedAttemptResponses.map((response) => <option key={response} value={response}>{t(`admin.securityPolicy.response.${response}`)}</option>)}</select></label>
             <fieldset className="space-y-2"><legend className="font-medium">{t("admin.securityPolicy.mechanisms")}</legend>

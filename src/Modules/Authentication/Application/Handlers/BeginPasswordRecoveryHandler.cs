@@ -1,6 +1,7 @@
 using Vitarish.Authentication.Application.Abstractions;
 using Vitarish.Authentication.Application.Commands;
 using Vitarish.Authentication.Application.Results;
+using Vitarish.Authentication.Application.Security;
 using Vitarish.Authentication.Application.Validation;
 using Vitarish.Authentication.Domain.Challenges;
 using Vitarish.Authentication.Domain.Methods;
@@ -20,6 +21,7 @@ public sealed class BeginPasswordRecoveryHandler(
     IAuthenticationRecoveryDeliveryFailureRecorder failureRecorder,
     AuthenticationChallengePolicy challengePolicy,
     IAuthenticationSecurityPolicyProvider securityPolicyProvider,
+    AuthenticationSourceAttemptGuard sourceAttemptGuard,
     TimeProvider timeProvider)
 {
     public async Task<AuthenticationResult<ChallengeResult>> Handle(BeginPasswordRecoveryCommand command, CancellationToken cancellationToken)
@@ -46,7 +48,7 @@ public sealed class BeginPasswordRecoveryHandler(
 
         AuthenticationMethod method = MethodFor(command.Channel);
         IReadOnlyList<string> identifierKeys = attemptKeyFactory.IdentifierCandidates(method, contact);
-        bool denied = await IsDeniedAsync(identifierKeys, cancellationToken);
+        bool denied = await sourceAttemptGuard.IsBlockedAsync(cancellationToken) || await IsDeniedAsync(identifierKeys, cancellationToken);
 
         AuthenticationUserDescriptor? user = null;
         if (!denied && smsContactUsable)

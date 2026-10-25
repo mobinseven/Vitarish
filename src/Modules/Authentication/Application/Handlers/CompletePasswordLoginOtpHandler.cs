@@ -21,6 +21,7 @@ public sealed class CompletePasswordLoginOtpHandler(
     IAuthenticationAttemptTracker attemptTracker,
     IAuthenticationSecurityPolicyProvider securityPolicyProvider,
     IAuthenticationAttemptKeyFactory attemptKeyFactory,
+    AuthenticationSourceAttemptGuard sourceAttemptGuard,
     IAuthenticationUtcClock clock)
 {
     public async Task<AuthenticationResult<LoginResult>> Handle(
@@ -66,6 +67,7 @@ public sealed class CompletePasswordLoginOtpHandler(
             attemptTracker,
             securityPolicy,
             attemptKeyFactory,
+            sourceAttemptGuard,
             onChallengeLoaded: userId => knownUserId = userId);
 
         try

@@ -1,4 +1,4 @@
-import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
+import { expect, request as playwrightRequest, test, type APIRequestContext, type Page } from "@playwright/test";
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { twoHostE2eApiOriginEnvironmentKey, twoHostE2eAuditEvidenceDirectoryEnvironmentKey, twoHostE2eLocaleEnvironmentKey } from "../../scripts/two-host-e2e-artifacts.mjs";
@@ -41,6 +41,7 @@ const uiText = {
   outcome: locale === "fa" ? "نتیجه" : "Outcome",
   export: locale === "fa" ? "خروجی CSV" : "Export CSV",
   next: locale === "fa" ? "بعدی" : "Next",
+  sourceThreshold: locale === "fa" ? "آستانه تلاش ناموفق احراز هویت برای هر نشانی IP" : "Failed authentication threshold per IP address",
 } as const;
 
 const auditEvents = {
@@ -60,6 +61,7 @@ const auditEvents = {
   integrityVerification: { controls: [7], category: "import-export", name: "security.data.integrity-verification", operation: "data.integrity.verify" },
   tenantRoleReplacement: { controls: [11, 17, 18], category: "management", name: "users.tenant-role-replacement", operation: "Users_ReplaceTenantRole" },
   dataImport: { controls: [14], category: "import-export", name: "security.data.import", operation: "data.import" },
+  sourceBlocked: { controls: [9], category: "authentication", name: "authentication.source.blocked", operation: "authentication.source.block" },
 } as const;
 
 // E2E-host-only triggers mapped by src/Hosts/E2e; they run the real Files
@@ -70,7 +72,62 @@ const integrityVerificationPath = (fileId: string) => `${e2eAuditEvidenceBase}/f
 const integrityTamperPath = (fileId: string) => `${e2eAuditEvidenceBase}/files/${fileId}/tamper`;
 
 type AuditEventExpectation = (typeof auditEvents)[keyof typeof auditEvents] & { outcome: string };
-type AuditPage = { items: Array<{ id?: string; eventName?: string; eventCategory?: string; operation?: string; outcome?: string; actorId?: string; actorKind?: string; tenantId?: string; subjectId?: string; resource?: string; redactedReason?: string }>; totalCount: number };
+const authenticationPolicyPath = "/api/modules/authentication/security/authentication-policy";
+const passwordLoginPath = "/api/modules/authentication/login/password";
+
+type AuthenticationPolicy = {
+  minimumPasswordLength: number;
+  requirePasswordLowercase: boolean;
+  requirePasswordUppercase: boolean;
+  requirePasswordNumber: boolean;
+  requirePasswordSpecialCharacter: boolean;
+  failedAttemptThreshold: number;
+  sourceFailedAttemptThreshold: number;
+  failedAttemptDenialDurationSeconds: number;
+  failedAttemptResponse: string;
+  enabledAuthenticationMechanisms: string[];
+  permittedPreAuthenticationActions: string[];
+  version: number;
+};
+
+async function readAuthenticationPolicy(page: Page): Promise<AuthenticationPolicy> {
+  const result = await page.evaluate(async ({ origin, path }) => {
+    const response = await fetch(`${origin}${path}`, { credentials: "include", headers: { "X-Vitarish-Tenant-Host": window.location.host } });
+    return { status: response.status, body: await response.json() };
+  }, { origin: browserApiOrigin, path: authenticationPolicyPath });
+  expect(result.status).toBe(200);
+  return result.body as AuthenticationPolicy;
+}
+
+async function saveSourceFailedAttemptThreshold(page: Page, threshold: number): Promise<void> {
+  const policy = await readAuthenticationPolicy(page);
+  const saved = await putJson(page, authenticationPolicyPath, {
+    minimumPasswordLength: policy.minimumPasswordLength,
+    requirePasswordLowercase: policy.requirePasswordLowercase,
+    requirePasswordUppercase: policy.requirePasswordUppercase,
+    requirePasswordNumber: policy.requirePasswordNumber,
+    requirePasswordSpecialCharacter: policy.requirePasswordSpecialCharacter,
+    failedAttemptThreshold: policy.failedAttemptThreshold,
+    failedAttemptDenialDurationSeconds: policy.failedAttemptDenialDurationSeconds,
+    failedAttemptResponse: policy.failedAttemptResponse,
+    enabledAuthenticationMechanisms: policy.enabledAuthenticationMechanisms,
+    permittedPreAuthenticationActions: policy.permittedPreAuthenticationActions,
+    expectedVersion: policy.version,
+    sourceFailedAttemptThreshold: threshold,
+  });
+  expect(saved.status).toBe(200);
+}
+
+async function passwordLoginFrom(request: APIRequestContext, clientIp: string, username: string, attemptPassword: string, attempt: string): Promise<number> {
+  const response = await request.post(`${apiOrigin}${passwordLoginPath}`, {
+    data: { userNameOrEmail: username, password: attemptPassword, returnUrl: null },
+    headers: { "X-Forwarded-For": clientIp, "X-Vitarish-Tenant-Host": "localhost", "X-Request-Id": `e2e-source-block-${attempt}-${Date.now()}` },
+    ignoreHTTPSErrors: true,
+  });
+  return response.status();
+}
+
+type AuditPage = { items: Array<{ id?: string; eventName?: string; eventCategory?: string; operation?: string; outcome?: string; actorId?: string; actorKind?: string; tenantId?: string; subjectId?: string; resource?: string; redactedReason?: string; sourceIpAddress?: string }>; totalCount: number };
 
 async function login(page: Page, username: string, origin = "", clientIp = "198.51.100.60"): Promise<void> {
   await page.context().addCookies([
@@ -331,6 +388,8 @@ test("real actions create visible platform security-audit evidence", async ({ pa
   // in place would refuse later specs' sign-ins with 429, so the test puts it back last:
   // restoring the one-session limit ends this administrator's session.
   let restoreSessionPolicy: (() => Promise<void>) | undefined;
+  // The per-address threshold is lowered so three failures block one address; it is put back in finally.
+  let restoreSourceThreshold: (() => Promise<void>) | undefined;
 
   try {
     await login(page, ownerUsername, ownerOrigin, "198.51.100.61");
@@ -481,6 +540,39 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     await captureAuditEvidence(administratorPage, { ...auditEvents.identityPasswordCheck, outcome: "denied" }, "identity-password-check-denied.png");
     await captureAuditEvidence(administratorPage, { ...auditEvents.sessionEstablished, outcome: "succeeded" }, "session-established.png");
     await captureAuditEvidence(administratorPage, { ...auditEvents.passwordChange, outcome: "succeeded" }, "password-change.png");
+    // Repeated failures from one address, each against a different unknown name, block that
+    // address: even the correct password is then refused there, with the account-lockout response.
+    const originalSourceThreshold = (await readAuthenticationPolicy(administratorPage)).sourceFailedAttemptThreshold;
+    restoreSourceThreshold = () => saveSourceFailedAttemptThreshold(administratorPage, originalSourceThreshold);
+    await saveSourceFailedAttemptThreshold(administratorPage, 3);
+    await administratorPage.goto(`${platformOrigin}${PlatformRoutes.Settings.Security}`, { waitUntil: "domcontentloaded" });
+    const sourceThresholdField = administratorPage.getByRole("spinbutton", { name: uiText.sourceThreshold });
+    await expect(sourceThresholdField).toHaveValue("3", { timeout: 30_000 });
+    await sourceThresholdField.scrollIntoViewIfNeeded();
+    mkdirSync(evidenceDirectory, { recursive: true });
+    await hideDevelopmentIndicator(administratorPage);
+    await administratorPage.screenshot({ path: join(evidenceDirectory, "source-threshold-setting.png") });
+    // No other spec uses this address: once blocked it stays denied for the denial duration.
+    const blockedClientIp = "203.0.113.66";
+    // A fresh context carries no session cookie, like an anonymous client guessing credentials.
+    const anonymousRequest = await playwrightRequest.newContext({ ignoreHTTPSErrors: true });
+    try {
+      const sourceStatuses: number[] = [];
+      for (let attempt = 0; attempt < 3; attempt += 1)
+        sourceStatuses.push(await passwordLoginFrom(anonymousRequest, blockedClientIp, `e2e-unknown-source-${attempt}-${Date.now()}@example.invalid`, "E2E-Source-Wrong-Password", String(attempt)));
+      expect(sourceStatuses).toEqual([401, 401, 423]);
+      expect(await passwordLoginFrom(anonymousRequest, blockedClientIp, ownerUsername, password!, "correct")).toBe(423);
+    } finally {
+      await anonymousRequest.dispose();
+    }
+    const sourceBlockedRecords = await platformAuditQuery(administratorPage, { ...auditEvents.sourceBlocked, outcome: "denied" });
+    expect(sourceBlockedRecords.items.some((item) =>
+      item.sourceIpAddress === blockedClientIp && item.redactedReason === "source_failed_attempt_threshold" && !item.actorId,
+    )).toBe(true);
+    await captureAuditEvidence(administratorPage, { ...auditEvents.sourceBlocked, outcome: "denied" }, "source-address-blocked.png");
+    await restoreSourceThreshold();
+    restoreSourceThreshold = undefined;
+
     const passwordPolicyRecords = await platformAuditQuery(administratorPage, { ...auditEvents.passwordPolicyRejected, outcome: "denied" });
     expect(passwordPolicyRecords.items.every((item) => item.redactedReason === "password_policy_rejected")).toBe(true);
     await captureAuditEvidence(administratorPage, { ...auditEvents.passwordPolicyRejected, outcome: "denied" }, "password-policy-rejected.png");
@@ -542,6 +634,7 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     await captureAuditEvidence(administratorPage, failedIntegrityEvent, "integrity-verification-failed.png");
   } finally {
     try {
+      await restoreSourceThreshold?.();
       await restoreSessionPolicy?.();
     } finally {
       await administratorPage.close();

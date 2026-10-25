@@ -27,6 +27,7 @@ public static class SecurityAuditReasonCatalog
     public const string NoAccess = "no_access";
     public const string AuthenticationFailed = "authentication_failed";
     public const string AuthenticationLockout = "authentication_lockout";
+    public const string SourceFailedAttemptThreshold = "source_failed_attempt_threshold";
     public const string MfaFailure = "mfa_failure";
     public const string SecondFactorRequired = "second_factor_required";
     public const string AuthenticationProviderFailure = "authentication_provider_failure";
@@ -95,6 +96,7 @@ public static class SecurityAuditReasonCatalog
         NoAccess,
         AuthenticationFailed,
         AuthenticationLockout,
+        SourceFailedAttemptThreshold,
         MfaFailure,
         SecondFactorRequired,
         AuthenticationProviderFailure,

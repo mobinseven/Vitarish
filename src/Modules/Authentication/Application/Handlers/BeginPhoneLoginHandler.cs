@@ -1,6 +1,7 @@
 using Vitarish.Authentication.Application.Abstractions;
 using Vitarish.Authentication.Application.Commands;
 using Vitarish.Authentication.Application.Results;
+using Vitarish.Authentication.Application.Security;
 using Vitarish.Authentication.Application.Validation;
 using Vitarish.Authentication.Domain.Challenges;
 using Vitarish.Authentication.Domain.Methods;
@@ -17,7 +18,8 @@ public sealed class BeginPhoneLoginHandler(
     AuthenticationChallengePolicy policy,
     IAuthenticationAttemptTracker attemptTracker,
     IAuthenticationSecurityPolicyProvider securityPolicyProvider,
-    IAuthenticationAttemptKeyFactory attemptKeyFactory)
+    IAuthenticationAttemptKeyFactory attemptKeyFactory,
+    AuthenticationSourceAttemptGuard sourceAttemptGuard)
 {
     public async Task<AuthenticationResult<ChallengeResult>> Handle(BeginPhoneLoginCommand command, CancellationToken cancellationToken)
     {
@@ -30,7 +32,8 @@ public sealed class BeginPhoneLoginHandler(
         if (!securityPolicy.Allows(AuthenticationMethod.Phone, PreAuthenticationAction.PhoneLogin))
             return new AuthenticationResult<ChallengeResult>.Failure(new(AuthenticationFailureReason.NotAllowed, "Phone authentication is not enabled."));
 
-        if (await IsDeniedAsync(attemptKeyFactory.IdentifierCandidates(AuthenticationMethod.Phone, phoneNumber), cancellationToken))
+        if (await sourceAttemptGuard.IsBlockedAsync(cancellationToken) ||
+            await IsDeniedAsync(attemptKeyFactory.IdentifierCandidates(AuthenticationMethod.Phone, phoneNumber), cancellationToken))
             return new AuthenticationResult<ChallengeResult>.Failure(AttemptDenied(securityPolicy));
 
         DateTimeOffset now = DateTimeOffset.UtcNow;
