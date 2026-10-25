@@ -36,6 +36,13 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - ingress-data:/data
       - ingress-config:/config
+      # Licensed brand font served by the Caddyfile brand_fonts snippet; never part of an image.
+      - type: bind
+        source: ${VITARISH_BRAND_FONT_DIR:?VITARISH_BRAND_FONT_DIR is required}
+        target: /srv/brand-fonts
+        read_only: true
+        bind:
+          create_host_path: false
     networks:
       test-proxy:
         ipv4_address: ${VITARISH_TEST_INGRESS_IPV4:?VITARISH_TEST_INGRESS_IPV4 is required}

@@ -71,12 +71,6 @@ Applies to every `apps/*` and `shared/*` package.
 - Add a font only when it serves a defined language or typographic role, and
   load only its required subsets and weights. A new role or different font
   family requires an explicit product/design need.
-- **[MUST]** Never commit the licensed Ahang brand font; this repository is
-  public. `@vitarish/ui/typography.css` owns its `@font-face`, the
-  `--font-ahang` role, and the `font-tone-*`/`font-sharp-*` utilities. A host
-  that uses it imports that stylesheet and calls `syncBrandFonts` from
-  `scripts/sync-brand-fonts.mjs` in `next.config.ts`, which copies the font
-  from `VITARISH_BRAND_FONT_DIR` into the gitignored `public/fonts/ahang/`.
 
 ## Theme conventions
 

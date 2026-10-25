@@ -57,6 +57,17 @@
     }
 }
 
+(brand_fonts) {
+    # The licensed Ahang font is in no image or repository file (docs/hosts/web/brand-font.md). The
+    # ingress serves the operator's copy, mounted from VITARISH_BRAND_FONT_DIR, at the one URL
+    # @vitarish/ui/typography.css requests; without the file browsers fall back to system fonts.
+    handle /fonts/ahang/AhangVariable.woff {
+        root * /srv/brand-fonts
+        rewrite * /AhangVariableGX.woff
+        file_server
+    }
+}
+
 (test_api) {
     @api path /api/*
     reverse_proxy @api test-main:8080
@@ -127,6 +138,7 @@ http://{$PRODUCTION_CLINIC_WILDCARD_HOST} {
 https://{$TEST_PUBLIC_HOST} {
     import security_headers
     import test_api
+    import brand_fonts
     reverse_proxy test-private-practice-owner:3000
 }
 https://{$TEST_PATIENTS_HOST} {
@@ -137,6 +149,7 @@ https://{$TEST_PATIENTS_HOST} {
 https://{$TEST_PLATFORM_ADMIN_HOST} {
     import security_headers
     import test_api
+    import brand_fonts
     reverse_proxy test-platform-admin:3003
 }
 https://{$TEST_PM_HOST} {
@@ -152,16 +165,19 @@ https://{$TEST_KNOWLEDGE_QA_HOST} {
 https://{$TEST_LANDING_HOST} {
     import security_headers
     import test_api
+    import brand_fonts
     reverse_proxy test-landing:3002
 }
 https://{$TEST_WILDCARD_HOST} {
     import security_headers
     import test_api
+    import brand_fonts
     reverse_proxy test-private-practice-owner:3000
 }
 https://{$TEST_CLINIC_WILDCARD_HOST} {
     import security_headers
     import test_api
+    import brand_fonts
     reverse_proxy test-private-practice-owner:3000
 }
 
@@ -169,6 +185,7 @@ https://{$PRODUCTION_PUBLIC_HOST} {
     import security_headers
     import production_api
     import production_readiness
+    import brand_fonts
     reverse_proxy production-private-practice-owner:3000
 }
 https://{$PRODUCTION_PATIENTS_HOST} {
@@ -179,6 +196,7 @@ https://{$PRODUCTION_PATIENTS_HOST} {
 https://{$PRODUCTION_PLATFORM_ADMIN_HOST} {
     import security_headers
     import production_api
+    import brand_fonts
     reverse_proxy production-platform-admin:3003
 }
 https://{$PRODUCTION_PM_HOST} {
@@ -189,15 +207,18 @@ https://{$PRODUCTION_PM_HOST} {
 https://{$PRODUCTION_LANDING_HOST} {
     import security_headers
     import production_api
+    import brand_fonts
     reverse_proxy production-landing:3002
 }
 https://{$PRODUCTION_WILDCARD_HOST} {
     import security_headers
     import production_api
+    import brand_fonts
     reverse_proxy production-private-practice-owner:3000
 }
 https://{$PRODUCTION_CLINIC_WILDCARD_HOST} {
     import security_headers
     import production_api
+    import brand_fonts
     reverse_proxy production-private-practice-owner:3000
 }
