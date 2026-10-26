@@ -134,6 +134,10 @@ public static class SecurityAuditEventCatalog
     [
         new(FunctionCategory, EndpointMutationEvent, OperationWildcard, Controls: [SecurityAuditControl.SecurityFunctionLifecycle]),
         new(ReviewCategory, AuditReviewEvent, AuditReviewOperation, Controls: [SecurityAuditControl.FailedSecurityRecordRead, SecurityAuditControl.SecurityRecordRead, SecurityAuditControl.SecurityAdministration]),
+        new(ReviewCategory, AuditReviewEvent, SecurityAuditApiOperations.ListSecurityEvents, Controls: [SecurityAuditControl.FailedSecurityRecordRead, SecurityAuditControl.SecurityRecordRead, SecurityAuditControl.SecurityAdministration]),
+        new(ReviewCategory, AuditReviewEvent, SecurityAuditApiOperations.ListPlatformSecurityEvents, Controls: [SecurityAuditControl.FailedSecurityRecordRead, SecurityAuditControl.SecurityRecordRead, SecurityAuditControl.SecurityAdministration]),
+        new(ReviewCategory, AuditReviewEvent, SecurityAuditApiOperations.GetPlatformSecurityEventCatalog, Controls: [SecurityAuditControl.FailedSecurityRecordRead, SecurityAuditControl.SecurityRecordRead, SecurityAuditControl.SecurityAdministration]),
+        new(ReviewCategory, AuditReviewEvent, SecurityAuditApiOperations.ExportPlatformSecurityEvents, Controls: [SecurityAuditControl.FailedSecurityRecordRead, SecurityAuditControl.SecurityRecordRead, SecurityAuditControl.SecurityAdministration]),
         new(ConfigurationCategory, AuditConfigurationEvent, AuditConfigurationOperation, Controls: [SecurityAuditControl.SecurityConfigurationChange, SecurityAuditControl.SecurityBehaviorChange]),
         new(SecurityFailureCategory, AuditStorageThresholdEvent, AuditStorageThresholdOperation, Controls: [SecurityAuditControl.AuditStorageThresholdAction]),
         new(AuthenticationCategory, AuthenticationPasswordChangeEvent, PasswordChangeOperation, Controls: [SecurityAuditControl.AuthenticationMechanismUse, SecurityAuditControl.PasswordVerification, SecurityAuditControl.SecurityAttributeChange]),

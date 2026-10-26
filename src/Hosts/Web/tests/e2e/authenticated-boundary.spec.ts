@@ -1153,7 +1153,7 @@ test("enforces platform-admin authorization through the API", async ({ page }) =
 
 });
 
-test("shows a generic 403 page while audit reads remain side-effect-free", async ({ page }) => {
+test("shows a generic 403 page while recording each denied audit review once", async ({ page }) => {
   test.setTimeout(120_000);
   await login(page, tenantBOwnerUsername, platformAdminOrigin, e2ePassword, "198.51.100.23");
 
@@ -1161,7 +1161,7 @@ test("shows a generic 403 page while audit reads remain side-effect-free", async
   const administratorPage = await administratorContext.newPage();
   try {
     await login(administratorPage, platformAdminUsername, platformAdminOrigin, e2ePassword, "198.51.100.24");
-    const deniedReviewPath = `/api/audit/platform/security-events?page=1&pageSize=25&eventName=security.audit.review&eventCategory=audit-review&operation=audit.security-events.list&outcome=denied&actorId=${encodeURIComponent(tenantBOwnerUserId)}&sortBy=0&descending=true&uncataloguedOnly=false`;
+    const deniedReviewPath = `/api/audit/platform/security-events?page=1&pageSize=25&eventName=security.audit.review&eventCategory=audit-review&operation=Audit_PlatformSecurityEvents_List&outcome=denied&actorId=${encodeURIComponent(tenantBOwnerUserId)}&sortBy=0&descending=true&uncataloguedOnly=false`;
     const reviewEventsBefore = await fetchJson(administratorPage, deniedReviewPath);
     expect(reviewEventsBefore.status).toBe(200);
     const reviewEventCountBefore = (reviewEventsBefore.body as { totalCount: number }).totalCount;
@@ -1175,9 +1175,12 @@ test("shows a generic 403 page while audit reads remain side-effect-free", async
       await page.screenshot({ path: forbiddenScreenshotPath, fullPage: true });
     }
 
+    const deniedAuditRead = await fetchJson(page, "/api/audit/platform/security-events?page=1&pageSize=25&sortBy=1&descending=true&uncataloguedOnly=false");
+    expect(deniedAuditRead.status).toBe(403);
+
     const reviewEventsAfter = await fetchJson(administratorPage, deniedReviewPath);
     expect(reviewEventsAfter.status).toBe(200);
-    expect((reviewEventsAfter.body as { totalCount: number }).totalCount).toBe(reviewEventCountBefore);
+    expect((reviewEventsAfter.body as { totalCount: number }).totalCount).toBe(reviewEventCountBefore + 1);
 
     const platformOriginLogin = await fetchJson(
       administratorPage,
