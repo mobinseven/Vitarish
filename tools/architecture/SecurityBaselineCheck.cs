@@ -287,7 +287,8 @@ internal static class SecurityBaselineCheck
                 // the sign-in host, has its own site, and every other host goes to the landing page.
                 bool redirectsToLanding = environment == "production" && wildcard == "WILDCARD_HOST";
                 string httpsBody = redirectsToLanding
-                    ? @"\s*\{\s*import security_headers\s+redir https://" + Regex.Escape("{$PRODUCTION_LANDING_HOST}") + @"/ 302\s*\}"
+                    // redir runs before respond, so the unsafe-method guard must come first inside a route.
+                    ? @"\s*\{\s*import security_headers\s+route\s*\{\s*respond @unsafe_method 405\s+redir https://" + Regex.Escape("{$PRODUCTION_LANDING_HOST}") + @"/ 302\s*\}\s*\}"
                     : OwnerSiteBody(environment);
                 if (!ingress.Contains($"{variable}: ${{VITARISH_{variable}:?", StringComparison.Ordinal) ||
                     !Regex.IsMatch(caddy, @"(?ms)^http://" + binding + @"\s*\{\s*redir https://\{host\}\{uri\} 308\s*\}") ||

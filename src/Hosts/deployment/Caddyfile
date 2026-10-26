@@ -217,9 +217,13 @@ https://{$PRODUCTION_SIGN_IN_HOST} {
     reverse_proxy production-private-practice-owner:3000
 }
 # Every other host under the site domain is not an application; send it to the landing page.
+# Caddy orders redir before respond, so the route keeps the unsafe-method guard first.
 https://{$PRODUCTION_WILDCARD_HOST} {
     import security_headers
-    redir https://{$PRODUCTION_LANDING_HOST}/ 302
+    route {
+        respond @unsafe_method 405
+        redir https://{$PRODUCTION_LANDING_HOST}/ 302
+    }
 }
 https://{$PRODUCTION_CLINIC_WILDCARD_HOST} {
     import security_headers
