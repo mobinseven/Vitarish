@@ -390,7 +390,7 @@ async function captureAllAuthenticationCatalogEvidence(page: Page): Promise<void
   });
 }
 
-test("real actions create visible platform security-audit evidence", async ({ page, browser, request }) => {
+test("real actions create visible platform security-audit evidence", async ({ page, browser, request }, testInfo) => {
   test.setTimeout(300_000);
   const fileTransferAuditKey = process.env[twoHostE2eFileTransferAuditKeyEnvironmentKey];
   if (!fileTransferAuditKey) throw new Error("The disposable file transfer audit key must be supplied by the two-host runner.");
@@ -588,8 +588,8 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     mkdirSync(evidenceDirectory, { recursive: true });
     await hideDevelopmentIndicator(administratorPage);
     await administratorPage.screenshot({ path: join(evidenceDirectory, "source-threshold-setting.png") });
-    // No other spec uses this address: once blocked it stays denied for the denial duration.
-    const blockedClientIp = "203.0.113.66";
+    // Each attempt uses its own address: a blocked address remains denied for the denial duration.
+    const blockedClientIp = `203.0.113.${66 + testInfo.retry * 2}`;
     // A fresh context carries no session cookie, like an anonymous client guessing credentials.
     const anonymousRequest = await playwrightRequest.newContext({ ignoreHTTPSErrors: true });
     try {

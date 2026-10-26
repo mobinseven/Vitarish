@@ -25,6 +25,9 @@ public sealed class FilesUploadEndpointTests : IAsyncDisposable
 
     private readonly Mock<IFilesService> _files = new();
     private readonly Mock<IFileTransferAudit> _audit = new();
+    private readonly Mock<IFileMetadataAccess> _metadata = new();
+    private readonly Mock<IFileIntegrityService> _integrity = new();
+    private readonly Mock<IObjectStorageService> _storage = new();
     private readonly WebApplication _app;
 
     public FilesUploadEndpointTests()
@@ -33,9 +36,10 @@ public sealed class FilesUploadEndpointTests : IAsyncDisposable
         _ = builder.Services.AddRouting();
         _ = builder.Services.AddSingleton(_files.Object);
         _ = builder.Services.AddSingleton(_audit.Object);
+        _ = builder.Services.AddSingleton(_storage.Object);
         _ = builder.Services.AddSingleton(Mock.Of<IFileTransferAuthorization>(value => value.CanUploadAsync(It.IsAny<CancellationToken>()) == Task.FromResult(true)));
-        _ = builder.Services.AddSingleton(Mock.Of<IFileMetadataAccess>());
-        _ = builder.Services.AddSingleton(Mock.Of<IFileIntegrityService>());
+        _ = builder.Services.AddSingleton(_metadata.Object);
+        _ = builder.Services.AddSingleton(_integrity.Object);
         _ = builder.Services.AddSingleton(Mock.Of<ISecurityAuditWriter>());
         _ = builder.Services.AddSingleton(Mock.Of<IRequestContext>());
         _app = builder.Build();
@@ -144,6 +148,44 @@ public sealed class FilesUploadEndpointTests : IAsyncDisposable
         (int status, JsonElement body) = await InvokeAsync(EndpointNamed("FilesUploadFile"), await MultipartContextAsync([], "image/png", "empty.png"));
 
         AssertRejected(status, body, StatusCodes.Status400BadRequest, FilesErrorCode.Validation, SecurityAuditReasonCatalog.MutationRejected, "empty.png", 0L);
+    }
+
+    [Theory]
+    [InlineData("GET", "FilesDownloadFile")]
+    [InlineData("HEAD", "FilesDownloadFileHead")]
+    public async Task Download_audits_the_verified_length_even_when_stored_metadata_is_stale(string method, string operationId)
+    {
+        Guid fileId = Guid.NewGuid();
+        FileInformationReadDto file = new()
+        {
+            Id = fileId,
+            Checksum = "stored-checksum",
+            FileName = "scan.png",
+            ContentType = "image/png",
+            Metadata = new FileMetadata { Size = 0 }
+        };
+        const long verifiedLength = 70;
+        _metadata.Setup(value => value.AuthorizeDownloadAsync(fileId, It.IsAny<CancellationToken>())).ReturnsAsync(file);
+        _integrity.Setup(value => value.VerifyAsync(file, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new FileIntegrityVerificationResult(FileIntegrityState.Verified, "files/verified", verifiedLength, file.ContentType));
+        _storage.Setup(value => value.StreamToAsync("files/verified", It.IsAny<Stream>(), null, null, It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+        await using AsyncServiceScope scope = _app.Services.CreateAsyncScope();
+        using MemoryStream response = new();
+        DefaultHttpContext context = new();
+        context.RequestServices = scope.ServiceProvider;
+        context.Request.Method = method;
+        context.Request.RouteValues["fileId"] = fileId.ToString();
+        context.Response.Body = response;
+
+        await EndpointNamed(operationId).RequestDelegate!(context);
+
+        context.Response.StatusCode.Should().Be(StatusCodes.Status200OK);
+        context.Response.ContentLength.Should().Be(verifiedLength);
+        _audit.Verify(value => value.RecordExportAsync(fileId, file.FileName, verifiedLength,
+            SecurityAuditOutcome.Succeeded, null, It.IsAny<CancellationToken>()), Times.Once);
+        _storage.Verify(value => value.StreamToAsync("files/verified", It.IsAny<Stream>(), null, null, It.IsAny<CancellationToken>()),
+            method == HttpMethods.Head ? Times.Never() : Times.Once());
     }
 
     public async ValueTask DisposeAsync() => await _app.DisposeAsync();

@@ -254,7 +254,7 @@ public static class FilesApiEndpointMapping
 
         if (!verification.IsVerified || string.IsNullOrWhiteSpace(verification.ObjectKey))
         {
-            await transferAudit.RecordExportAsync(fileId, fileInfo.FileName, fileInfo.Metadata.Size, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.IntegrityValidationFailed, CancellationToken.None).ConfigureAwait(false);
+            await transferAudit.RecordExportAsync(fileId, fileInfo.FileName, verification.ExpectedLength, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.IntegrityValidationFailed, CancellationToken.None).ConfigureAwait(false);
             return Results.NotFound(new FilesError(FilesErrorCode.NotFound, "File content was not found."));
         }
 
@@ -264,14 +264,14 @@ public static class FilesApiEndpointMapping
 
         if (HttpMethods.IsHead(context.Request.Method))
         {
-            await transferAudit.RecordExportAsync(fileId, fileInfo.FileName, fileInfo.Metadata.Size, SecurityAuditOutcome.Succeeded, null, context.RequestAborted).ConfigureAwait(false);
+            await transferAudit.RecordExportAsync(fileId, fileInfo.FileName, verification.ExpectedLength, SecurityAuditOutcome.Succeeded, null, context.RequestAborted).ConfigureAwait(false);
             return Results.Empty;
         }
 
         try
         {
             await storageService.StreamToAsync(verification.ObjectKey, context.Response.Body, cancellationToken: context.RequestAborted).ConfigureAwait(false);
-            await transferAudit.RecordExportAsync(fileId, fileInfo.FileName, fileInfo.Metadata.Size, SecurityAuditOutcome.Succeeded, null, context.RequestAborted).ConfigureAwait(false);
+            await transferAudit.RecordExportAsync(fileId, fileInfo.FileName, verification.ExpectedLength, SecurityAuditOutcome.Succeeded, null, context.RequestAborted).ConfigureAwait(false);
             return Results.Empty;
         }
         catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested)
@@ -280,7 +280,7 @@ public static class FilesApiEndpointMapping
         }
         catch (Exception)
         {
-            await transferAudit.RecordExportAsync(fileId, fileInfo.FileName, fileInfo.Metadata.Size, SecurityAuditOutcome.Failed, SecurityAuditReasonCatalog.EndpointException, CancellationToken.None).ConfigureAwait(false);
+            await transferAudit.RecordExportAsync(fileId, fileInfo.FileName, verification.ExpectedLength, SecurityAuditOutcome.Failed, SecurityAuditReasonCatalog.EndpointException, CancellationToken.None).ConfigureAwait(false);
             return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
         }
     }

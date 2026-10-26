@@ -80,7 +80,7 @@ public sealed class FilesServiceTests
             Checksum = checksum,
             ContentType = "application/pdf",
             FileName = "C:\\scans\\referral\u202E.pdf",
-            Metadata = new FileMetadata { Size = content.Length }
+            Metadata = new FileMetadata { Size = content.Length + 100 }
         };
 
         FileInformationReadDto? saved = await service.SaveFile(channel.Reader, file);
@@ -133,7 +133,7 @@ public sealed class FilesServiceTests
             Checksum = checksum,
             ContentType = "application/pdf",
             FileName = "second-uploader.pdf",
-            Metadata = new FileMetadata { Size = content.Length }
+            Metadata = new FileMetadata { Size = content.Length + 100 }
         };
 
         FileInformationReadDto? saved = await service.SaveFile(channel.Reader, file);

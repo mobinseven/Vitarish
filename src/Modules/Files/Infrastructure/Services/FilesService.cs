@@ -113,7 +113,7 @@ public class FilesService(
                 FileIntegrityVerificationResult existingIntegrity = await integrityService.VerifyAsync(existing, cancellationToken).ConfigureAwait(false);
                 if (existingIntegrity.IsVerified)
                 {
-                    await transferAudit.RecordImportAsync(existing.Id, givenInformation.FileName, givenInformation.Metadata.Size, SecurityAuditOutcome.Succeeded, null, cancellationToken).ConfigureAwait(false);
+                    await transferAudit.RecordImportAsync(existing.Id, givenInformation.FileName, receivedBytes, SecurityAuditOutcome.Succeeded, null, cancellationToken).ConfigureAwait(false);
                     return existing;
                 }
             }
@@ -152,7 +152,7 @@ public class FilesService(
                 throw new InvalidOperationException("Uploaded content could not be verified.");
             }
 
-            await transferAudit.RecordImportAsync(saved.Id, givenInformation.FileName, givenInformation.Metadata.Size, SecurityAuditOutcome.Succeeded, null, cancellationToken).ConfigureAwait(false);
+            await transferAudit.RecordImportAsync(saved.Id, givenInformation.FileName, receivedBytes, SecurityAuditOutcome.Succeeded, null, cancellationToken).ConfigureAwait(false);
             return saved;
         }
         catch (InvalidDataException)
