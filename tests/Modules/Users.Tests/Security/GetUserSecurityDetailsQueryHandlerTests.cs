@@ -1,6 +1,8 @@
 using System.Security.Claims;
 using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Vitarish.Audit.Application;
 using Vitarish.Audit.Domain;
@@ -36,7 +38,7 @@ public sealed class GetUserSecurityDetailsQueryHandlerTests
                     query.Query.EventCategory == SecurityAuditEventCatalog.AuthenticationCategory),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(Page(authenticationEvent));
-        GetUserSecurityDetailsQueryHandler handler = new(RequestContext(IdentityDefinitions.PlatformAdmin), users.Object, Passkeys().Object, audit.Object);
+        GetUserSecurityDetailsQueryHandler handler = new(RequestContext(IdentityDefinitions.PlatformAdmin), users.Object, Passkeys().Object, audit.Object, NullLogger<GetUserSecurityDetailsQueryHandler>.Instance);
 
         UserSecurityDetailsQueryResult result = await handler.Handle(new(UserId, 2, 10), CancellationToken.None);
 
@@ -69,7 +71,7 @@ public sealed class GetUserSecurityDetailsQueryHandlerTests
                     query.Query.EventCategory == SecurityAuditEventCatalog.AuthenticationCategory),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(Page(authenticationEvent));
-        GetUserSecurityDetailsQueryHandler handler = new(RequestContext(IdentityDefinitions.PlatformAdmin), users.Object, Passkeys().Object, audit.Object);
+        GetUserSecurityDetailsQueryHandler handler = new(RequestContext(IdentityDefinitions.PlatformAdmin), users.Object, Passkeys().Object, audit.Object, NullLogger<GetUserSecurityDetailsQueryHandler>.Instance);
 
         UserSecurityDetailsQueryResult result = await handler.Handle(new(UserId, 1, 10, 3), CancellationToken.None);
 
@@ -101,7 +103,7 @@ public sealed class GetUserSecurityDetailsQueryHandlerTests
                     query.Query.EventCategory == SecurityAuditEventCatalog.AuthenticationCategory),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(Page(authenticationEvent));
-        GetUserSecurityDetailsQueryHandler handler = new(RequestContext(IdentityDefinitions.PlatformAdmin), users.Object, Passkeys().Object, audit.Object);
+        GetUserSecurityDetailsQueryHandler handler = new(RequestContext(IdentityDefinitions.PlatformAdmin), users.Object, Passkeys().Object, audit.Object, NullLogger<GetUserSecurityDetailsQueryHandler>.Instance);
 
         UserSecurityDetailsQueryResult result = await handler.Handle(new(UserId, 2, 10), CancellationToken.None);
 
@@ -128,7 +130,7 @@ public sealed class GetUserSecurityDetailsQueryHandlerTests
                 It.Is<SecurityAuditPlatformQuery>(query => query.Query.Page < 1),
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(new ArgumentOutOfRangeException("query"));
-        GetUserSecurityDetailsQueryHandler handler = new(RequestContext(IdentityDefinitions.PlatformAdmin), users.Object, Passkeys().Object, audit.Object);
+        GetUserSecurityDetailsQueryHandler handler = new(RequestContext(IdentityDefinitions.PlatformAdmin), users.Object, Passkeys().Object, audit.Object, NullLogger<GetUserSecurityDetailsQueryHandler>.Instance);
 
         Func<Task> securityPageZero = () => handler.Handle(new(UserId, 0, 10), CancellationToken.None);
         Func<Task> authenticationPageZero = () => handler.Handle(new(UserId, 1, 10, 0), CancellationToken.None);
@@ -144,7 +146,7 @@ public sealed class GetUserSecurityDetailsQueryHandlerTests
         Mock<ISecurityAuditQueryService> audit = new();
         audit.Setup(value => value.QueryPlatformAsync(It.IsAny<SecurityAuditPlatformQuery>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new SecurityAuditStoreException("Audit unavailable.", new InvalidOperationException()));
-        GetUserSecurityDetailsQueryHandler handler = new(RequestContext(IdentityDefinitions.PlatformAdmin), users.Object, Passkeys().Object, audit.Object);
+        GetUserSecurityDetailsQueryHandler handler = new(RequestContext(IdentityDefinitions.PlatformAdmin), users.Object, Passkeys().Object, audit.Object, NullLogger<GetUserSecurityDetailsQueryHandler>.Instance);
 
         UserSecurityDetailsQueryResult result = await handler.Handle(new(UserId, 1, 25), CancellationToken.None);
 
@@ -173,11 +175,12 @@ public sealed class GetUserSecurityDetailsQueryHandlerTests
         users.Setup(value => value.GetUserRolesAsync(UserId, It.IsAny<CancellationToken>())).ReturnsAsync([]);
         DateTime registeredAt = new(2026, 9, 1, 8, 0, 0, DateTimeKind.Utc);
         DateTime lastUsedAt = new(2026, 10, 20, 9, 30, 0, DateTimeKind.Utc);
-        Mock<IWebAuthnService> passkeys = Passkeys(new WebAuthnCredentialDto { Id = Guid.NewGuid(), FriendlyName = "Office laptop", RegisteredAt = registeredAt, LastUsedAt = lastUsedAt, Transports = "internal" });
+        Guid credentialId = Guid.NewGuid();
+        Mock<IWebAuthnService> passkeys = Passkeys(new WebAuthnCredentialDto { Id = credentialId, FriendlyName = "Office laptop", RegisteredAt = registeredAt, LastUsedAt = lastUsedAt, Transports = "internal" });
         Mock<ISecurityAuditQueryService> audit = new();
         audit.Setup(value => value.QueryPlatformAsync(It.IsAny<SecurityAuditPlatformQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Page(AuditEvent(SecurityAuditEventCatalog.UserSecurityAttributeChangeEvent, SecurityAuditEventCatalog.SecurityAttributeCategory)));
-        GetUserSecurityDetailsQueryHandler handler = new(RequestContext(IdentityDefinitions.PlatformAdmin), users.Object, passkeys.Object, audit.Object);
+        GetUserSecurityDetailsQueryHandler handler = new(RequestContext(IdentityDefinitions.PlatformAdmin), users.Object, passkeys.Object, audit.Object, NullLogger<GetUserSecurityDetailsQueryHandler>.Instance);
 
         UserSecurityDetailsQueryResult result = await handler.Handle(new(UserId, 1, 25), CancellationToken.None);
 
@@ -185,8 +188,63 @@ public sealed class GetUserSecurityDetailsQueryHandlerTests
             PasswordSet: true,
             EmailVerified: true,
             PhoneNumberVerified: false,
-            Passkeys: [new UserPasskeyEntry("Office laptop", registeredAt, lastUsedAt)]));
+            Passkeys: [new UserPasskeyEntry(credentialId, "Office laptop", registeredAt, lastUsedAt)]));
         passkeys.Verify(value => value.ListCredentialsAsync(UserId, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Reports_authentication_methods_unavailable_when_the_passkey_lookup_fails()
+    {
+        Mock<IUsersService> users = AuthorizedUsers();
+        Mock<IWebAuthnService> passkeys = new();
+        passkeys.Setup(value => value.ListCredentialsAsync(UserId, It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Passkey store unavailable."));
+        Mock<ISecurityAuditQueryService> audit = new();
+        audit.Setup(value => value.QueryPlatformAsync(It.IsAny<SecurityAuditPlatformQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Page(AuditEvent(SecurityAuditEventCatalog.UserSecurityAttributeChangeEvent, SecurityAuditEventCatalog.SecurityAttributeCategory)));
+        RecordingLogger<GetUserSecurityDetailsQueryHandler> logger = new();
+        GetUserSecurityDetailsQueryHandler handler = new(RequestContext(IdentityDefinitions.PlatformAdmin), users.Object, passkeys.Object, audit.Object, logger);
+
+        UserSecurityDetailsQueryResult result = await handler.Handle(new(UserId, 1, 25), CancellationToken.None);
+
+        result.IsAuthorized.Should().BeTrue();
+        result.User.Should().NotBeNull();
+        result.AuthenticationMethods.Should().BeNull();
+        result.AuthenticationMethodsUnavailable.Should().BeTrue();
+        result.SecurityHistoryAvailable.Should().BeTrue();
+        logger.ErrorCount.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task Does_not_load_authentication_methods_for_history_page_changes()
+    {
+        Mock<IUsersService> users = AuthorizedUsers();
+        Mock<IWebAuthnService> passkeys = Passkeys();
+        Mock<ISecurityAuditQueryService> audit = new();
+        audit.Setup(value => value.QueryPlatformAsync(It.IsAny<SecurityAuditPlatformQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Page(AuditEvent(SecurityAuditEventCatalog.UserSecurityAttributeChangeEvent, SecurityAuditEventCatalog.SecurityAttributeCategory)));
+        GetUserSecurityDetailsQueryHandler handler = new(RequestContext(IdentityDefinitions.PlatformAdmin), users.Object, passkeys.Object, audit.Object, NullLogger<GetUserSecurityDetailsQueryHandler>.Instance);
+
+        UserSecurityDetailsQueryResult result = await handler.Handle(new(UserId, 2, 25, 3), CancellationToken.None);
+
+        result.SecurityHistoryAvailable.Should().BeTrue();
+        result.AuthenticationMethods.Should().BeNull();
+        result.AuthenticationMethodsUnavailable.Should().BeFalse();
+        passkeys.Verify(value => value.ListCredentialsAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Propagates_cancellation_from_the_passkey_lookup()
+    {
+        Mock<IUsersService> users = AuthorizedUsers();
+        Mock<IWebAuthnService> passkeys = new();
+        passkeys.Setup(value => value.ListCredentialsAsync(UserId, It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new OperationCanceledException());
+        GetUserSecurityDetailsQueryHandler handler = new(RequestContext(IdentityDefinitions.PlatformAdmin), users.Object, passkeys.Object, Mock.Of<ISecurityAuditQueryService>(), NullLogger<GetUserSecurityDetailsQueryHandler>.Instance);
+
+        Func<Task> load = () => handler.Handle(new(UserId, 1, 25), CancellationToken.None);
+
+        await load.Should().ThrowAsync<OperationCanceledException>();
     }
 
     [Fact]
@@ -199,7 +257,7 @@ public sealed class GetUserSecurityDetailsQueryHandlerTests
         Mock<ISecurityAuditQueryService> audit = new();
         audit.Setup(value => value.QueryPlatformAsync(It.IsAny<SecurityAuditPlatformQuery>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new SecurityAuditStoreException("Audit unavailable.", new InvalidOperationException()));
-        GetUserSecurityDetailsQueryHandler handler = new(RequestContext(IdentityDefinitions.PlatformAdmin), users.Object, Passkeys().Object, audit.Object);
+        GetUserSecurityDetailsQueryHandler handler = new(RequestContext(IdentityDefinitions.PlatformAdmin), users.Object, Passkeys().Object, audit.Object, NullLogger<GetUserSecurityDetailsQueryHandler>.Instance);
 
         UserSecurityDetailsQueryResult result = await handler.Handle(new(UserId, 1, 25), CancellationToken.None);
 
@@ -213,7 +271,7 @@ public sealed class GetUserSecurityDetailsQueryHandlerTests
         Mock<IUsersService> users = new();
         Mock<ISecurityAuditQueryService> audit = new();
         Mock<IWebAuthnService> passkeys = Passkeys();
-        GetUserSecurityDetailsQueryHandler handler = new(RequestContext("ordinary-user"), users.Object, passkeys.Object, audit.Object);
+        GetUserSecurityDetailsQueryHandler handler = new(RequestContext("ordinary-user"), users.Object, passkeys.Object, audit.Object, NullLogger<GetUserSecurityDetailsQueryHandler>.Instance);
 
         UserSecurityDetailsQueryResult result = await handler.Handle(new(UserId, 1, 25), CancellationToken.None);
 
@@ -263,4 +321,24 @@ public sealed class GetUserSecurityDetailsQueryHandlerTests
         OccurredAt = new DateTime(2026, 9, 28, 7, 0, 0, DateTimeKind.Utc),
         ClientInterfaceHost = "admin.example.test"
     };
+
+    private sealed class RecordingLogger<T> : ILogger<T>
+    {
+        public int ErrorCount { get; private set; }
+
+        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+
+        public bool IsEnabled(LogLevel logLevel) => true;
+
+        public void Log<TState>(
+            LogLevel logLevel,
+            EventId eventId,
+            TState state,
+            Exception? exception,
+            Func<TState, Exception?, string> formatter)
+        {
+            if (logLevel == LogLevel.Error)
+                ErrorCount++;
+        }
+    }
 }

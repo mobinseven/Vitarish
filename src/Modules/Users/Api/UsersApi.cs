@@ -183,7 +183,7 @@ public static class UsersApi
     private static IResult ContactInUseConflict() =>
         Results.Conflict(UsersCommandResponse.Failed(
             [UsersCommandErrorKinds.ForCode(UsersCommandErrorCodes.ContactIdentifierInUse, UsersCommandErrorCodes.ContactIdentifierInUseDescription)]));
-    private static async Task<IResult> GetUserSecurityDetailsAsync(
+    internal static async Task<IResult> GetUserSecurityDetailsAsync(
         string userId,
         int page,
         int pageSize,
@@ -241,7 +241,8 @@ public static class UsersApi
             details.AuthenticationHistory is null ? null : MapUserSecurityHistory(details.AuthenticationHistory),
             details.SecurityHistoryAvailable,
             details.AuthenticationHistoryAvailable,
-            MapAuthenticationMethods(details.AuthenticationMethods!));
+            details.AuthenticationMethods is null ? null : MapAuthenticationMethods(details.AuthenticationMethods),
+            details.AuthenticationMethodsUnavailable);
 
         if (!details.SecurityHistoryAvailable || !details.AuthenticationHistoryAvailable)
         {
@@ -255,7 +256,7 @@ public static class UsersApi
         methods.PasswordSet,
         methods.EmailVerified,
         methods.PhoneNumberVerified,
-        methods.Passkeys.Select(passkey => new UserPasskeyResponse(passkey.FriendlyName, passkey.RegisteredAt, passkey.LastUsedAt)).ToArray());
+        methods.Passkeys.Select(passkey => new UserPasskeyResponse(passkey.Id, passkey.FriendlyName, passkey.RegisteredAt, passkey.LastUsedAt)).ToArray());
 
     private static UserSecurityHistoryResponse MapUserSecurityHistory(UserSecurityHistoryResult history) => new(
         history.Items.Select(item => new UserSecurityEventResponse(

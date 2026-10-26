@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ComponentProps, type FormEvent } from "react";
+import { useEffect, useId, useMemo, useState, type ComponentProps, type FormEvent } from "react";
 import { Alert, Button, Chip, Modal, Pagination, Surface, Table, Tooltip } from "@heroui/react";
 import {
   useAuthSession,
@@ -428,6 +428,13 @@ function PlatformUserDetail({ title, userId, memberships, t }: { title: string; 
   const historyUnavailable = !securityHistoryAvailable || !authenticationHistoryAvailable || securityQuery.isError;
   const securityHistory = securityDetails?.securityHistory ?? undefined;
   const authenticationHistory = securityDetails?.authenticationHistory ?? undefined;
+  // History page changes do not reload the methods, so keep the ones from the first details load.
+  const [authenticationMethods, setAuthenticationMethods] = useState<UserAuthenticationMethodsResponse>();
+  useEffect(() => setAuthenticationMethods(undefined), [userId]);
+  useEffect(() => {
+    if (securityDetails?.authenticationMethods) setAuthenticationMethods(securityDetails.authenticationMethods);
+  }, [securityDetails?.authenticationMethods]);
+  const authenticationMethodsUnavailable = securityDetails?.authenticationMethodsUnavailable ?? false;
 
   useEffect(() => {
     setSecurityPage(1);
@@ -627,7 +634,7 @@ function PlatformUserDetail({ title, userId, memberships, t }: { title: string; 
       </div>
     </Surface>
 
-    {securityDetails.authenticationMethods && <AuthenticationMethodsSection methods={securityDetails.authenticationMethods} locale={locale} t={t} />}
+    {(authenticationMethods || authenticationMethodsUnavailable) && <AuthenticationMethodsSection methods={authenticationMethodsUnavailable ? undefined : authenticationMethods} locale={locale} t={t} />}
 
     <Surface className="flex flex-col gap-6 rounded-3xl p-6" render={renderSection}>
       <div className="flex flex-col items-start gap-1">
@@ -764,7 +771,8 @@ function PlatformUserDetail({ title, userId, memberships, t }: { title: string; 
   </main>;
 }
 
-function AuthenticationMethodsSection({ methods, locale, t }: { methods: UserAuthenticationMethodsResponse; locale: ReturnType<typeof useLocalizedText>["locale"]; t: Translate }) {
+function AuthenticationMethodsSection({ methods, locale, t }: { methods: UserAuthenticationMethodsResponse | undefined; locale: ReturnType<typeof useLocalizedText>["locale"]; t: Translate }) {
+  const passkeysHeadingId = useId();
   return <Surface className="flex flex-col gap-6 rounded-3xl p-6" render={renderSection}>
     <div className="flex flex-col items-start gap-1">
       <div className="flex items-center gap-3">
@@ -775,21 +783,25 @@ function AuthenticationMethodsSection({ methods, locale, t }: { methods: UserAut
         </div>
       </div>
     </div>
+    {!methods
+      ? <Alert status="warning" role="status"><Alert.Indicator /><Alert.Content><Alert.Title>{t("users.management.authenticationMethodsUnavailable")}</Alert.Title></Alert.Content></Alert>
+      : <>
     <dl className="grid gap-3 sm:grid-cols-3">
       <div><dt className="text-sm text-muted">{t("users.management.password")}</dt><dd>{methods.passwordSet ? t("users.management.passwordSet") : t("users.management.passwordNotSet")}</dd></div>
       <div><dt className="text-sm text-muted">{t("users.management.emailVerification")}</dt><dd>{methods.emailVerified ? t("users.management.verified") : t("users.management.notVerified")}</dd></div>
       <div><dt className="text-sm text-muted">{t("users.management.phoneVerification")}</dt><dd>{methods.phoneNumberVerified ? t("users.management.verified") : t("users.management.notVerified")}</dd></div>
     </dl>
     <div className="space-y-2">
-      <h3 className="font-medium" id="user-passkeys">{t("users.management.passkeys")}</h3>
+      <h3 className="font-medium" id={methods.passkeys.length === 0 ? undefined : passkeysHeadingId}>{t("users.management.passkeys")}</h3>
       {methods.passkeys.length === 0
         ? <p className="text-muted">{t("users.management.noPasskeys")}</p>
-        : <ul aria-labelledby="user-passkeys" className="space-y-2">{methods.passkeys.map((passkey, index) => <li className="rounded-2xl bg-surface-secondary p-3" key={`${passkey.registeredAt}:${index}`}>
+        : <ul aria-labelledby={passkeysHeadingId} className="space-y-2">{methods.passkeys.map((passkey) => <li className="rounded-2xl bg-surface-secondary p-3" key={passkey.id}>
             <div className="font-medium">{passkey.friendlyName || t("users.management.unnamedPasskey")}</div>
             <div className="text-sm text-muted">{t("users.management.passkeyRegistered", { date: formatDateTime(passkey.registeredAt, locale, { timeZone: "UTC" }) })}</div>
             <div className="text-sm text-muted">{passkey.lastUsedAt ? t("users.management.passkeyLastUsed", { date: formatDateTime(passkey.lastUsedAt, locale, { timeZone: "UTC" }) }) : t("users.management.passkeyNeverUsed")}</div>
           </li>)}</ul>}
     </div>
+    </>}
   </Surface>;
 }
 
@@ -1049,7 +1061,8 @@ function isUserSecurityDetailsResponse(value: unknown, userId: string): value is
     && isOptionalHistory(details.authenticationHistory)
     && typeof details.securityHistoryAvailable === "boolean"
     && typeof details.authenticationHistoryAvailable === "boolean"
-    && (details.authenticationMethods === undefined || isAuthenticationMethods(details.authenticationMethods));
+    && (details.authenticationMethods === null || isAuthenticationMethods(details.authenticationMethods))
+    && typeof details.authenticationMethodsUnavailable === "boolean";
 }
 
 function isAuthenticationMethods(value: unknown): value is UserAuthenticationMethodsResponse {
@@ -1064,7 +1077,8 @@ function isAuthenticationMethods(value: unknown): value is UserAuthenticationMet
 function isPasskey(value: unknown): value is UserPasskeyResponse {
   if (typeof value !== "object" || value === null || Array.isArray(value)) return false;
   const passkey = value as Record<string, unknown>;
-  return isOptionalString(passkey.friendlyName)
+  return typeof passkey.id === "string"
+    && isOptionalString(passkey.friendlyName)
     && typeof passkey.registeredAt === "string"
     && (passkey.lastUsedAt === null || typeof passkey.lastUsedAt === "string");
 }

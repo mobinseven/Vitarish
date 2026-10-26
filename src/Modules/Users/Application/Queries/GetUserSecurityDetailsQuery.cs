@@ -1,4 +1,5 @@
 using MediatR;
+using Microsoft.Extensions.Logging;
 using Vitarish.Audit.Application;
 using Vitarish.Audit.Domain;
 using Vitarish.Requests.Application.Abstractions;
@@ -19,7 +20,8 @@ public sealed record UserSecurityDetailsQueryResult(
     bool SecurityHistoryAvailable,
     UserSecurityHistoryResult? AuthenticationHistory,
     bool AuthenticationHistoryAvailable,
-    UserAuthenticationMethodsResult? AuthenticationMethods = null);
+    UserAuthenticationMethodsResult? AuthenticationMethods,
+    bool AuthenticationMethodsUnavailable);
 
 public sealed record UserAuthenticationMethodsResult(
     bool PasswordSet,
@@ -28,6 +30,7 @@ public sealed record UserAuthenticationMethodsResult(
     IReadOnlyList<UserPasskeyEntry> Passkeys);
 
 public sealed record UserPasskeyEntry(
+    Guid Id,
     string? FriendlyName,
     DateTime RegisteredAt,
     DateTime? LastUsedAt);
@@ -53,21 +56,44 @@ internal sealed class GetUserSecurityDetailsQueryHandler(
     IRequestContext requestContext,
     IUsersService usersService,
     IWebAuthnService webAuthn,
-    ISecurityAuditQueryService auditQuery) : IRequestHandler<GetUserSecurityDetailsQuery, UserSecurityDetailsQueryResult>
+    ISecurityAuditQueryService auditQuery,
+    ILogger<GetUserSecurityDetailsQueryHandler> logger) : IRequestHandler<GetUserSecurityDetailsQuery, UserSecurityDetailsQueryResult>
 {
+    private static readonly UserAuthenticationMethodsResult EmptyAuthenticationMethods = new(false, false, false, []);
+
     public async Task<UserSecurityDetailsQueryResult> Handle(
         GetUserSecurityDetailsQuery request,
         CancellationToken cancellationToken)
     {
         if (!UsersSecurityAuthorization.CanReadSecurityState(requestContext.User))
-            return new(false, null, [], null, false, null, false);
+            return new(false, null, [], null, false, null, false, EmptyAuthenticationMethods, false);
 
         User? user = await usersService.GetUserAsync(request.UserId, cancellationToken);
         if (user is null)
-            return new(true, null, [], null, false, null, false);
+            return new(true, null, [], null, false, null, false, EmptyAuthenticationMethods, false);
 
         IEnumerable<Microsoft.AspNetCore.Identity.IdentityRole> roles =
             await usersService.GetUserRolesAsync(user.Id, cancellationToken);
+
+        UserAuthenticationMethodsResult? authenticationMethods = null;
+        bool authenticationMethodsUnavailable = false;
+        if (IsFirstDetailsLoad(request))
+        {
+            try
+            {
+                authenticationMethods = await GetAuthenticationMethodsAsync(user, cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception exception)
+            {
+                logger.LogError(exception, "Failed to load authentication methods for user {UserId}.", user.Id);
+                authenticationMethodsUnavailable = true;
+            }
+        }
+
         UserSecurityDetailsQueryResult result = new(
             true,
             user,
@@ -76,7 +102,8 @@ internal sealed class GetUserSecurityDetailsQueryHandler(
             false,
             null,
             false,
-            await GetAuthenticationMethodsAsync(user, cancellationToken));
+            authenticationMethods,
+            authenticationMethodsUnavailable);
 
         try
         {
@@ -101,7 +128,7 @@ internal sealed class GetUserSecurityDetailsQueryHandler(
         }
         catch (UnauthorizedAccessException)
         {
-            return new(false, null, [], null, false, null, false);
+            return new(false, null, [], null, false, null, false, EmptyAuthenticationMethods, false);
         }
 
         try
@@ -128,11 +155,15 @@ internal sealed class GetUserSecurityDetailsQueryHandler(
         }
         catch (UnauthorizedAccessException)
         {
-            return new(false, null, [], null, false, null, false);
+            return new(false, null, [], null, false, null, false, EmptyAuthenticationMethods, false);
         }
 
         return result;
     }
+
+    // History pagination only changes the audit pages; the method inventory belongs to the first details load.
+    private static bool IsFirstDetailsLoad(GetUserSecurityDetailsQuery request) =>
+        request.Page == 1 && (request.AuthenticationPage ?? 1) == 1;
 
     // Reports which authentication data the user holds, never the data itself.
     private async Task<UserAuthenticationMethodsResult> GetAuthenticationMethodsAsync(User user, CancellationToken cancellationToken)
@@ -142,7 +173,7 @@ internal sealed class GetUserSecurityDetailsQueryHandler(
             !string.IsNullOrWhiteSpace(user.PasswordHash),
             !string.IsNullOrWhiteSpace(user.Email) && user.EmailConfirmed,
             !string.IsNullOrWhiteSpace(user.PhoneNumber) && user.PhoneNumberConfirmed,
-            credentials.Select(credential => new UserPasskeyEntry(credential.FriendlyName, credential.RegisteredAt, credential.LastUsedAt)).ToArray());
+            credentials.Select(credential => new UserPasskeyEntry(credential.Id, credential.FriendlyName, credential.RegisteredAt, credential.LastUsedAt)).ToArray());
     }
 
     private static UserSecurityHistoryResult MapHistory(SecurityAuditPageReadDto history) => new(

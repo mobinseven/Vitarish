@@ -9,7 +9,8 @@ public sealed record UserSecurityDetailsResponse(
     UserSecurityHistoryResponse? AuthenticationHistory,
     bool SecurityHistoryAvailable,
     bool AuthenticationHistoryAvailable,
-    UserAuthenticationMethodsResponse AuthenticationMethods);
+    UserAuthenticationMethodsResponse? AuthenticationMethods,
+    bool AuthenticationMethodsUnavailable);
 
 public sealed record UserAuthenticationMethodsResponse(
     bool PasswordSet,
@@ -18,6 +19,7 @@ public sealed record UserAuthenticationMethodsResponse(
     IReadOnlyList<UserPasskeyResponse> Passkeys);
 
 public sealed record UserPasskeyResponse(
+    Guid Id,
     string? FriendlyName,
     DateTime RegisteredAt,
     DateTime? LastUsedAt);

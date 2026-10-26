@@ -2812,12 +2812,17 @@
       },
       "UserPasskeyResponse": {
         "required": [
+          "id",
           "friendlyName",
           "registeredAt",
           "lastUsedAt"
         ],
         "type": "object",
         "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
           "friendlyName": {
             "type": [
               "null",
@@ -2979,7 +2984,8 @@
           "authenticationHistory",
           "securityHistoryAvailable",
           "authenticationHistoryAvailable",
-          "authenticationMethods"
+          "authenticationMethods",
+          "authenticationMethodsUnavailable"
         ],
         "type": "object",
         "properties": {
@@ -3031,7 +3037,17 @@
             "type": "boolean"
           },
           "authenticationMethods": {
-            "$ref": "#/components/schemas/UserAuthenticationMethodsResponse"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/UserAuthenticationMethodsResponse"
+              }
+            ]
+          },
+          "authenticationMethodsUnavailable": {
+            "type": "boolean"
           }
         }
       },
