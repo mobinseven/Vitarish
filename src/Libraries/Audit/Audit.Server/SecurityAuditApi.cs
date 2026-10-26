@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Routing;
 using Vitarish.Audit.Application;
 using Vitarish.Audit.Domain;
 using Vitarish.Modules.Base.Core.Endpoints;
-using Vitarish.Requests.Application.Abstractions;
 
 namespace Vitarish.Audit.Server;
 
@@ -13,10 +12,8 @@ public static class SecurityAuditApi
     {
         RouteGroupBuilder group = endpoints
             .MapProtectedModuleGroup(SecurityAuditApiRoutes.Base, requireTenantAccess: false)
-            .WithTags(SecurityAuditApiRoutes.DocumentTag);
-        RouteGroupBuilder platformGroup = endpoints
-            .MapProtectedModuleGroup(SecurityAuditApiRoutes.Base, requireTenantAccess: false)
-            .WithTags(SecurityAuditApiRoutes.DocumentTag);
+            .WithTags(SecurityAuditApiRoutes.DocumentTag)
+            .AddEndpointFilter<AuditReviewDenialFilter>();
 
         _ = group.MapModuleGet(
             SecurityAuditApiRoutes.SecurityEvents,
@@ -25,20 +22,20 @@ public static class SecurityAuditApi
             typeof(SecurityAuditPageReadDto))
             .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
 
-        _ = platformGroup.MapModuleGet(
+        _ = group.MapModuleGet(
             SecurityAuditApiRoutes.PlatformSecurityEvents,
             GetPlatformSecurityEventsAsync,
             SecurityAuditApiOperations.ListPlatformSecurityEvents,
             typeof(SecurityAuditPageReadDto))
             .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
 
-        _ = platformGroup.MapModuleGet(
+        _ = group.MapModuleGet(
             SecurityAuditApiRoutes.PlatformSecurityEventCatalog,
             GetPlatformSecurityEventCatalogAsync,
             SecurityAuditApiOperations.GetPlatformSecurityEventCatalog,
             typeof(SecurityAuditCatalogEntryReadDto[]));
 
-        _ = platformGroup.MapModuleGet(
+        _ = group.MapModuleGet(
             SecurityAuditApiRoutes.PlatformSecurityEventsExport,
             ExportPlatformSecurityEventsAsync,
             SecurityAuditApiOperations.ExportPlatformSecurityEvents,
@@ -65,8 +62,6 @@ public static class SecurityAuditApi
         string? outcome,
         string? eventId,
         ISecurityAuditQueryService queryService,
-        ISecurityAuditWriter auditWriter,
-        IRequestContext requestContext,
         CancellationToken cancellationToken)
     {
         try
@@ -75,11 +70,6 @@ public static class SecurityAuditApi
                 new SecurityAuditQuery(page, pageSize, actorId, eventName, eventCategory, fromUtc, toUtc, sortBy, descending, operation, outcome, eventId),
                 cancellationToken);
             return Results.Ok(result);
-        }
-        catch (UnauthorizedAccessException)
-        {
-            await AuditReviewDenialAudit.RecordAsync(auditWriter, requestContext, SecurityAuditApiOperations.ListSecurityEvents).ConfigureAwait(false);
-            return Results.Forbid();
         }
         catch (ArgumentException)
         {
@@ -108,8 +98,6 @@ public static class SecurityAuditApi
         string? eventId,
         string? subjectId,
         ISecurityAuditQueryService queryService,
-        ISecurityAuditWriter auditWriter,
-        IRequestContext requestContext,
         CancellationToken cancellationToken)
     {
         try
@@ -121,11 +109,6 @@ public static class SecurityAuditApi
                     uncataloguedOnly),
                 cancellationToken);
             return Results.Ok(result);
-        }
-        catch (UnauthorizedAccessException)
-        {
-            await AuditReviewDenialAudit.RecordAsync(auditWriter, requestContext, SecurityAuditApiOperations.ListPlatformSecurityEvents).ConfigureAwait(false);
-            return Results.Forbid();
         }
         catch (ArgumentException)
         {
@@ -139,20 +122,8 @@ public static class SecurityAuditApi
 
     private static async Task<IResult> GetPlatformSecurityEventCatalogAsync(
         ISecurityAuditQueryService queryService,
-        ISecurityAuditWriter auditWriter,
-        IRequestContext requestContext,
-        CancellationToken cancellationToken)
-    {
-        try
-        {
-            return Results.Ok(await queryService.GetPlatformCatalogAsync(cancellationToken));
-        }
-        catch (UnauthorizedAccessException)
-        {
-            await AuditReviewDenialAudit.RecordAsync(auditWriter, requestContext, SecurityAuditApiOperations.GetPlatformSecurityEventCatalog).ConfigureAwait(false);
-            return Results.Forbid();
-        }
-    }
+        CancellationToken cancellationToken) =>
+        Results.Ok(await queryService.GetPlatformCatalogAsync(cancellationToken));
 
     private static async Task<IResult> ExportPlatformSecurityEventsAsync(
         string? tenantId,
@@ -170,8 +141,6 @@ public static class SecurityAuditApi
         string? subjectId,
         HttpContext httpContext,
         ISecurityAuditQueryService queryService,
-        ISecurityAuditWriter auditWriter,
-        IRequestContext requestContext,
         CancellationToken cancellationToken)
     {
         try
@@ -195,11 +164,6 @@ public static class SecurityAuditApi
                 cancellationToken);
             httpContext.Response.Headers.CacheControl = SecurityAuditApiRoutes.NoStoreCacheControl;
             return Results.File(SecurityAuditCsvFormatter.Format(rows), SecurityAuditApiRoutes.CsvContentType);
-        }
-        catch (UnauthorizedAccessException)
-        {
-            await AuditReviewDenialAudit.RecordAsync(auditWriter, requestContext, SecurityAuditApiOperations.ExportPlatformSecurityEvents).ConfigureAwait(false);
-            return Results.Forbid();
         }
         catch (SecurityAuditExportLimitException)
         {

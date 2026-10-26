@@ -402,7 +402,7 @@ test("real actions create visible platform security-audit evidence", async ({ pa
 
     // An unauthorized read is recorded once, naming the attempted operation; the
     // clinic owner may review only its own tenant, not the platform audit.
-    const deniedReview = { ...auditEvents.auditReview, outcome: "denied" };
+    const deniedReview = { ...auditEvents.auditReview, operation: "Audit_PlatformSecurityEvents_List", outcome: "denied" };
     const deniedBefore = await platformAuditQuery(administratorPage, deniedReview);
     const forbiddenStatus = await page.evaluate(async (origin) => {
       const url = new URL("/api/audit/platform/security-events", origin || window.location.origin);
