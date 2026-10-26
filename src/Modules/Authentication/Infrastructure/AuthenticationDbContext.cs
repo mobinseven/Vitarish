@@ -29,6 +29,7 @@ public sealed class AuthenticationDbContext(DbContextOptions<AuthenticationDbCon
             _ = entity.Property(policy => policy.MaximumConcurrentSessions).HasDefaultValue(1);
             _ = entity.Property(policy => policy.ConcurrentSessionsFunctionallyRequired).HasDefaultValue(false);
             _ = entity.Property(policy => policy.DefaultInactivityTimeoutMinutes).HasDefaultValue(SessionInactivityTimeout.DefaultMinutes);
+            _ = entity.Property(policy => policy.SourceFailedAttemptThreshold).HasDefaultValue(SecurityAccessPolicy.DefaultSourceFailedAttemptThreshold);
             _ = entity.Property(policy => policy.Version).IsConcurrencyToken();
         });
         _ = modelBuilder.Entity<AuthenticationSession>(entity =>

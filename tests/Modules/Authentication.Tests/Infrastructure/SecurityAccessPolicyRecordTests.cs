@@ -18,6 +18,17 @@ public sealed class SecurityAccessPolicyRecordTests
     }
 
     [Fact]
+    public void Persistence_record_round_trips_the_per_address_threshold()
+    {
+        SecurityAccessPolicy policy = SecurityAccessPolicy.Default with { SourceFailedAttemptThreshold = 7 };
+
+        SecurityAccessPolicy result = SecurityAccessPolicyRecord.FromDomain(policy).ToDomain();
+
+        result.SourceFailedAttemptThreshold.Should().Be(7);
+        result.EquivalentTo(SecurityAccessPolicy.Default).Should().BeFalse("a threshold change is a policy change");
+    }
+
+    [Fact]
     public void Persistence_record_round_trips_normalized_cidrs()
     {
         SecurityAccessPolicy policy = SecurityAccessPolicy.Default with

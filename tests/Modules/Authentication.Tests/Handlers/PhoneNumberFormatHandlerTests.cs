@@ -10,6 +10,7 @@ using Vitarish.Authentication.Domain.Security;
 using Vitarish.Authentication.Infrastructure;
 using Vitarish.Authentication.Infrastructure.Options;
 using Vitarish.Users.Domain.Security;
+using Vitarish.Authentication.Tests.Security;
 
 namespace Vitarish.Authentication.Tests.Handlers;
 
@@ -46,7 +47,8 @@ public sealed class PhoneNumberFormatHandlerTests
             {
                 Realm = "tests",
                 CurrentPepper = "test-authentication-attempt-key-pepper-20260829"
-            })));
+            })),
+            TestSourceAttemptGuards.WithoutClientAddress());
 
         AuthenticationResult<ChallengeResult> result = await handler.Handle(
             new BeginPhoneLoginCommand(localPhoneNumber, null),
@@ -88,7 +90,8 @@ public sealed class PhoneNumberFormatHandlerTests
             {
                 Realm = "tests",
                 CurrentPepper = "test-authentication-attempt-key-pepper-20260829"
-            })));
+            })),
+            TestSourceAttemptGuards.WithoutClientAddress());
 
         AuthenticationResult<ChallengeResult> result = await handler.Handle(
             new BeginPhoneLoginCommand(phoneNumber, null),

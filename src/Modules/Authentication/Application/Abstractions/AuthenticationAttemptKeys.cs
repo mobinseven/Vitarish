@@ -9,11 +9,14 @@ public interface IAuthenticationAttemptKeyFactory
     string Subject(AuthenticationMethod method, string userId);
     string Challenge(AuthenticationMethod method, string challengeId);
     string Challenge(AuthenticationChallengePurpose purpose, string userId);
+    /// <summary>The key for every failed attempt from one host-normalized client IP address.</summary>
+    string Source(string clientIpAddress);
 
     IReadOnlyList<string> IdentifierCandidates(AuthenticationMethod method, string identifier) => [Identifier(method, identifier)];
     IReadOnlyList<string> SubjectCandidates(AuthenticationMethod method, string userId) => [Subject(method, userId)];
     IReadOnlyList<string> ChallengeCandidates(AuthenticationMethod method, string challengeId) => [Challenge(method, challengeId)];
     IReadOnlyList<string> ChallengeCandidates(AuthenticationChallengePurpose purpose, string userId) => [Challenge(purpose, userId)];
+    IReadOnlyList<string> SourceCandidates(string clientIpAddress) => [Source(clientIpAddress)];
 }
 
 public static class AuthenticationAttemptKeyMethods

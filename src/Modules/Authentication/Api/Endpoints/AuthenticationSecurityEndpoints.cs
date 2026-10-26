@@ -119,7 +119,8 @@ public static class AuthenticationSecurityEndpoints
                     request.FailedAttemptResponse,
                     request.EnabledAuthenticationMechanisms,
                     request.PermittedPreAuthenticationActions,
-                    request.ExpectedVersion), ct);
+                    request.ExpectedVersion,
+                    request.SourceFailedAttemptThreshold), ct);
                 SecurityAuthenticationPolicyManagementState managed = SecurityAuthenticationPolicyManagementState.ForState(saved, profilePolicy);
                 return Results.Ok(ToDto(managed));
             }
@@ -229,7 +230,8 @@ public static class AuthenticationSecurityEndpoints
         managed.RequiredActions.Select(value => value.ToString()).OrderBy(value => value, StringComparer.Ordinal).ToArray(),
         managed.AvailableFailedAttemptResponses.Select(value => value.ToString()).OrderBy(value => value, StringComparer.Ordinal).ToArray(),
         PasswordPolicy.Default.MinimumLength,
-        managed.State.Version);
+        managed.State.Version,
+        managed.State.Policy.SourceFailedAttemptThreshold);
 
     private static AuthenticationAccessHistoryDto ToDto(AuthenticationAccessHistory history) => new(
         history.PreviousSuccessfulAt,

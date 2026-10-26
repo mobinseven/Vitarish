@@ -1,5 +1,6 @@
 using Vitarish.Authentication.Application.Abstractions;
 using Vitarish.Authentication.Application.Results;
+using Vitarish.Authentication.Application.Security;
 using Vitarish.Authentication.Application.Validation;
 using Vitarish.Authentication.Domain.Challenges;
 using Vitarish.Authentication.Domain.Security;
@@ -22,6 +23,7 @@ internal static class ChallengeCompletionHelper
         SecurityAccessPolicy securityPolicy,
         IAuthenticationAttemptKeyFactory attemptKeyFactory,
         IAuthenticationSessionRegistry sessionRegistry,
+        AuthenticationSourceAttemptGuard sourceAttemptGuard,
         IInitialPlatformAdministratorGrant? initialAdministratorGrant = null,
         IUserAccountUpdater? contactConfirmer = null,
         Action<string>? onChallengeLoaded = null)
@@ -39,7 +41,7 @@ internal static class ChallengeCompletionHelper
         onChallengeLoaded?.Invoke(challenge.UserId);
 
         IReadOnlyList<string> attemptKeys = attemptKeyFactory.ChallengeCandidates(expectedPurpose, challenge.UserId);
-        if (await IsDeniedAsync(attemptKeys, attemptTracker, cancellationToken))
+        if (await sourceAttemptGuard.IsBlockedAsync(cancellationToken) || await IsDeniedAsync(attemptKeys, attemptTracker, cancellationToken))
             return new AuthenticationResult<LoginResult>.Failure(new(
                 securityPolicy.FailedAttemptResponse is FailedAttemptResponse.Lockout ? AuthenticationFailureReason.LockedOut : AuthenticationFailureReason.TooManyAttempts,
                 securityPolicy.FailedAttemptResponse is FailedAttemptResponse.Lockout ? "Authentication is temporarily locked out." : "Too many authentication attempts."));
@@ -91,7 +93,8 @@ internal static class ChallengeCompletionHelper
                     cancellationToken));
             }
             await sessionRegistry.RecordFailedAttemptAsync(challenge.UserId, cancellationToken);
-            if (globalFailures >= securityPolicy.FailedAttemptThreshold)
+            bool sourceBlocked = await sourceAttemptGuard.RegisterFailureAsync(securityPolicy, cancellationToken);
+            if (globalFailures >= securityPolicy.FailedAttemptThreshold || sourceBlocked)
                 return new AuthenticationResult<LoginResult>.Failure(new(
                     MapFailureReason(AuthenticationFailureReason.ChallengeAttemptsExhausted, securityPolicy.FailedAttemptResponse),
                     GetErrorMessage(MapFailureReason(AuthenticationFailureReason.ChallengeAttemptsExhausted, securityPolicy.FailedAttemptResponse))));

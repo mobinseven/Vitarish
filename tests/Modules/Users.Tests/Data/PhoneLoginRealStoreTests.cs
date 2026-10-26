@@ -19,6 +19,7 @@ using Vitarish.Authentication.Application.Abstractions;
 using Vitarish.Authentication.Application.Commands;
 using Vitarish.Authentication.Application.Handlers;
 using Vitarish.Authentication.Application.Results;
+using Vitarish.Authentication.Application.Security;
 using Vitarish.Authentication.Domain.Challenges;
 using Vitarish.Authentication.Domain.Security;
 using Vitarish.Authentication.Infrastructure;
@@ -95,6 +96,11 @@ public sealed class PhoneLoginRealStoreTests
         securityPolicy.Setup(value => value.GetAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(SecurityAccessPolicy.Default);
 
+        AuthenticationAttemptKeyFactory attemptKeys = new(Options.Create(new AuthenticationAttemptKeyOptions
+        {
+            Realm = "tests",
+            CurrentPepper = "test-authentication-attempt-key-pepper-20260829"
+        }));
         BeginPhoneLoginHandler handler = new(
             new InMemoryAuthenticationChallengeStore(),
             directory,
@@ -103,11 +109,13 @@ public sealed class PhoneLoginRealStoreTests
             AuthenticationChallengePolicy.Default,
             attemptTracker.Object,
             securityPolicy.Object,
-            new AuthenticationAttemptKeyFactory(Options.Create(new AuthenticationAttemptKeyOptions
-            {
-                Realm = "tests",
-                CurrentPepper = "test-authentication-attempt-key-pepper-20260829"
-            })));
+            attemptKeys,
+            new AuthenticationSourceAttemptGuard(
+                attemptTracker.Object,
+                attemptKeys,
+                Mock.Of<IClientIpAddressAccessor>(),
+                Mock.Of<ISecurityAuditWriter>(),
+                Mock.Of<IRequestContext>()));
         return (directory, handler);
     }
 

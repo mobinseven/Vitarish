@@ -13,6 +13,7 @@ using Vitarish.Authentication.Domain.Security;
 using Vitarish.Authentication.Infrastructure;
 using Vitarish.Authentication.Infrastructure.Options;
 using Vitarish.Requests.Application.Abstractions;
+using Vitarish.Authentication.Tests.Security;
 
 namespace Vitarish.Authentication.Tests.Handlers;
 
@@ -214,6 +215,7 @@ public sealed class NoAccessContactLoginAuditTests
         new InMemoryAuthenticationAttemptTracker(),
         CreatePolicyProvider(),
         CreateKeys(),
+        TestSourceAttemptGuards.WithoutClientAddress(),
         CreateAuditor(events),
         grant ?? Mock.Of<IInitialPlatformAdministratorGrant>(),
         contactConfirmer ?? Mock.Of<IUserAccountUpdater>(),
@@ -233,6 +235,7 @@ public sealed class NoAccessContactLoginAuditTests
         new InMemoryAuthenticationAttemptTracker(),
         CreatePolicyProvider(),
         CreateKeys(),
+        TestSourceAttemptGuards.WithoutClientAddress(),
         CreateAuditor(events),
         grant ?? Mock.Of<IInitialPlatformAdministratorGrant>(),
         contactConfirmer ?? Mock.Of<IUserAccountUpdater>(),

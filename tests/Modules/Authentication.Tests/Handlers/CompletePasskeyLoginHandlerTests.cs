@@ -13,6 +13,7 @@ using Vitarish.Authentication.Domain.Security;
 using Vitarish.Authentication.Infrastructure;
 using Vitarish.Authentication.Infrastructure.Options;
 using Vitarish.Requests.Application.Abstractions;
+using Vitarish.Authentication.Tests.Security;
 
 namespace Vitarish.Authentication.Tests.Handlers;
 
@@ -40,6 +41,7 @@ public sealed class CompletePasskeyLoginHandlerTests
             policy.Object,
             tracker.Object,
             keys,
+            TestSourceAttemptGuards.WithoutClientAddress(),
             CreateAttemptAuditor(),
             Mock.Of<IAuthenticationSessionRegistry>());
 
@@ -78,6 +80,7 @@ public sealed class CompletePasskeyLoginHandlerTests
             policy.Object,
             tracker.Object,
             keys,
+            TestSourceAttemptGuards.WithoutClientAddress(),
             CreateAttemptAuditor(),
             Mock.Of<IAuthenticationSessionRegistry>());
 
@@ -151,6 +154,7 @@ public sealed class CompletePasskeyLoginHandlerTests
             policy.Object,
             tracker.Object,
             keys,
+            TestSourceAttemptGuards.WithoutClientAddress(),
             CreateAttemptAuditor(),
             Mock.Of<IAuthenticationSessionRegistry>());
 
@@ -188,6 +192,7 @@ public sealed class CompletePasskeyLoginHandlerTests
             policyProvider.Object,
             tracker,
             keys,
+            TestSourceAttemptGuards.WithoutClientAddress(),
             CreateAttemptAuditor(),
             Mock.Of<IAuthenticationSessionRegistry>());
 
@@ -237,6 +242,7 @@ public sealed class CompletePasskeyLoginHandlerTests
             policy.Object,
             tracker.Object,
             keys,
+            TestSourceAttemptGuards.WithoutClientAddress(),
             new AuthenticationAttemptAuditor(writer.Object, requestContext.Object, new TestAuthenticationUtcClock()),
             Mock.Of<IAuthenticationSessionRegistry>());
 
@@ -284,6 +290,7 @@ public sealed class CompletePasskeyLoginHandlerTests
             policy.Object,
             tracker.Object,
             keys,
+            TestSourceAttemptGuards.WithoutClientAddress(),
             new AuthenticationAttemptAuditor(writer.Object, requestContext.Object, new TestAuthenticationUtcClock()),
             Mock.Of<IAuthenticationSessionRegistry>());
 

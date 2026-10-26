@@ -15,6 +15,10 @@ using Vitarish.Authentication.Domain.Methods;
 using Vitarish.Authentication.Domain.Security;
 using Vitarish.Authentication.Infrastructure;
 using Vitarish.Users.Domain.Entities;
+using Vitarish.Authentication.Tests.Security;
+using Vitarish.Requests.Application.Abstractions;
+using Vitarish.Authentication.Application.Security;
+using Vitarish.Audit.Application;
 
 namespace Vitarish.Authentication.Tests.Infrastructure.Identity;
 
@@ -76,7 +80,8 @@ public sealed class AspNetIdentitySignInServiceTests
             new UnknownPasswordVerifier(new PasswordHasher<User>()),
             attemptKeyFactory.Object,
             sessionRegistry.Object,
-            new HttpContextAccessor());
+            new HttpContextAccessor(),
+            TestSourceAttemptGuards.WithoutClientAddress());
 
         PasswordSignInResult result = await service.PasswordSignInAsync(user.UserName!, "unused-password", CancellationToken.None);
 
@@ -109,6 +114,39 @@ public sealed class AspNetIdentitySignInServiceTests
         sessionRegistry.Verify(
             registry => registry.RecordFailedAttemptAsync(user.Id, It.IsAny<CancellationToken>()),
             Times.Once);
+    }
+
+    [Fact]
+    public async Task A_denied_client_address_is_refused_before_the_password_is_checked()
+    {
+        User user = CreateUser(isEnabled: true);
+        Mock<IUserStore<User>> userStore = new();
+        Mock<UserManager<User>> userManager = CreateUserManager(userStore);
+        userManager.Setup(manager => manager.FindByNameAsync(user.UserName!)).ReturnsAsync(user);
+        Mock<SignInManager<User>> signInManager = CreateSignInManager(userManager.Object);
+        Mock<IAuthenticationAttemptTracker> sourceTracker = new();
+        sourceTracker.Setup(tracker => tracker.IsDeniedAsync("source-key", It.IsAny<CancellationToken>())).ReturnsAsync(true);
+        Mock<IAuthenticationAttemptKeyFactory> sourceKeys = new();
+        sourceKeys.Setup(factory => factory.SourceCandidates("203.0.113.9")).Returns(["source-key"]);
+        Mock<IClientIpAddressAccessor> clientIp = new();
+        clientIp.SetupGet(accessor => accessor.ClientIpAddress).Returns("203.0.113.9");
+        AuthenticationSourceAttemptGuard deniedAddress = new(sourceTracker.Object, sourceKeys.Object, clientIp.Object, Mock.Of<ISecurityAuditWriter>(), Mock.Of<IRequestContext>());
+
+        AspNetIdentitySignInService service = CreateService(
+            userManager,
+            signInManager,
+            CreateAttemptTracker(),
+            new Mock<IAuthenticationSessionRegistry>(),
+            CreateAttemptKeyFactory(user),
+            sourceAttemptGuard: deniedAddress);
+
+        PasswordSignInResult result = await service.PasswordSignInAsync(user.UserName!, "correct-password", CancellationToken.None);
+
+        result.Status.Should().Be(PasswordSignInStatus.LockedOut);
+        result.UserId.Should().BeNull("a denied address learns nothing about the account");
+        signInManager.Verify(
+            manager => manager.CheckPasswordSignInAsync(It.IsAny<User>(), It.IsAny<string>(), It.IsAny<bool>()),
+            Times.Never);
     }
 
     [Fact]
@@ -505,6 +543,7 @@ public sealed class AspNetIdentitySignInServiceTests
             new Mock<IAuthenticationAttemptKeyFactory>().Object,
             sessionRegistry.Object,
             new HttpContextAccessor { HttpContext = httpContext },
+            TestSourceAttemptGuards.WithoutClientAddress(),
             [refusing.Object, admitting.Object]);
 
         AuthenticationSessionSignInResult result = await service.SignInAsync(user.Id, CancellationToken.None);
@@ -576,7 +615,8 @@ public sealed class AspNetIdentitySignInServiceTests
         Mock<IAuthenticationSessionRegistry> sessionRegistry,
         Mock<IAuthenticationAttemptKeyFactory> attemptKeyFactory,
         IHttpContextAccessor? httpContextAccessor = null,
-        IRoleFreeSessionPolicy? roleFreeSessions = null)
+        IRoleFreeSessionPolicy? roleFreeSessions = null,
+        AuthenticationSourceAttemptGuard? sourceAttemptGuard = null)
     {
         Mock<IAuthenticationSecurityPolicyProvider> policyProvider = new();
         policyProvider.Setup(provider => provider.GetAsync(It.IsAny<CancellationToken>())).ReturnsAsync(SecurityAccessPolicy.Default);
@@ -590,6 +630,7 @@ public sealed class AspNetIdentitySignInServiceTests
             attemptKeyFactory.Object,
             sessionRegistry.Object,
             httpContextAccessor ?? new HttpContextAccessor(),
+            sourceAttemptGuard ?? TestSourceAttemptGuards.WithoutClientAddress(),
             roleFreeSessions is null ? null : [roleFreeSessions]);
     }
 

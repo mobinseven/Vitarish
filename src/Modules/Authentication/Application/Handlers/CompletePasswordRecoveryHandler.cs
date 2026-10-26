@@ -1,6 +1,7 @@
 using Vitarish.Authentication.Application.Abstractions;
 using Vitarish.Authentication.Application.Commands;
 using Vitarish.Authentication.Application.Results;
+using Vitarish.Authentication.Application.Security;
 using Vitarish.Authentication.Application.Validation;
 using Vitarish.Authentication.Domain.Challenges;
 using Vitarish.Authentication.Domain.Methods;
@@ -15,6 +16,7 @@ public sealed class CompletePasswordRecoveryHandler(
     IAuthenticationAttemptTracker attemptTracker,
     IAuthenticationAttemptKeyFactory attemptKeyFactory,
     IAuthenticationSecurityPolicyProvider securityPolicyProvider,
+    AuthenticationSourceAttemptGuard sourceAttemptGuard,
     TimeProvider timeProvider)
 {
     public async Task<AuthenticationResult<bool>> Handle(CompletePasswordRecoveryCommand command, CancellationToken cancellationToken)
@@ -27,6 +29,8 @@ public sealed class CompletePasswordRecoveryHandler(
         SecurityAccessPolicy securityPolicy = await securityPolicyProvider.GetAsync(cancellationToken);
         if (!securityPolicy.PermittedPreAuthenticationActions.Contains(PreAuthenticationAction.PasswordRecovery))
             return Failure(AuthenticationFailureReason.NotAllowed, "Password recovery is not enabled.");
+        if (await sourceAttemptGuard.IsBlockedAsync(cancellationToken))
+            return AttemptDenied(securityPolicy);
 
         AuthenticationChallenge? challenge = await challengeStore.GetAsync(AuthenticationChallengeId.Create(command.ChallengeId), cancellationToken);
         if (challenge is null || !IsRecoveryPurpose(challenge.Purpose))
@@ -79,6 +83,7 @@ public sealed class CompletePasswordRecoveryHandler(
             foreach (string key in attemptKeys)
                 denied |= await attemptTracker.RegisterFailureAsync(key, securityPolicy.FailedAttemptThreshold,
                     securityPolicy.FailedAttemptDenialDuration, cancellationToken) >= securityPolicy.FailedAttemptThreshold;
+            denied |= await sourceAttemptGuard.RegisterFailureAsync(securityPolicy, cancellationToken);
 
             return denied || failedAttempts >= challenge.MaximumAttempts
                 ? AttemptDenied(securityPolicy)

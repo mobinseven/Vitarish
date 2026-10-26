@@ -15,6 +15,7 @@ public sealed class CompletePasskeyLoginHandler(
     IAuthenticationSecurityPolicyProvider securityPolicyProvider,
     IAuthenticationAttemptTracker attemptTracker,
     IAuthenticationAttemptKeyFactory attemptKeyFactory,
+    AuthenticationSourceAttemptGuard sourceAttemptGuard,
     AuthenticationAttemptAuditor attemptAuditor,
     IAuthenticationSessionRegistry sessionRegistry)
 {
@@ -71,6 +72,8 @@ public sealed class CompletePasskeyLoginHandler(
         SecurityAccessPolicy securityPolicy = await securityPolicyProvider.GetAsync(cancellationToken);
         if (!securityPolicy.Allows(AuthenticationMethod.Passkey, PreAuthenticationAction.PasskeyLogin))
             return new AuthenticationResult<LoginResult>.Failure(new(AuthenticationFailureReason.NotAllowed, "Passkey authentication is not enabled."));
+        if (await sourceAttemptGuard.IsBlockedAsync(cancellationToken))
+            return new AuthenticationResult<LoginResult>.Failure(CreateAttemptFailure(securityPolicy));
 
         List<string> attemptKeys = [.. attemptKeyFactory.ChallengeCandidates(AuthenticationMethod.Passkey, command.ChallengeId)];
         string? attemptKey = await webAuthn.GetAttemptKeyAsync(command.ChallengeId, command.CredentialJson, cancellationToken);
@@ -93,7 +96,8 @@ public sealed class CompletePasskeyLoginHandler(
                     cancellationToken));
             }
             await sessionRegistry.RecordFailedAttemptAsync(result.UserId ?? knownUserId, cancellationToken);
-            if (failures >= securityPolicy.FailedAttemptThreshold)
+            bool sourceBlocked = await sourceAttemptGuard.RegisterFailureAsync(securityPolicy, cancellationToken);
+            if (failures >= securityPolicy.FailedAttemptThreshold || sourceBlocked)
                 return new AuthenticationResult<LoginResult>.Failure(CreateAttemptFailure(securityPolicy));
 
             return new AuthenticationResult<LoginResult>.Failure(result.Failure ?? new AuthenticationFailure(AuthenticationFailureReason.InvalidCredentials, "Passkey authentication failed."));

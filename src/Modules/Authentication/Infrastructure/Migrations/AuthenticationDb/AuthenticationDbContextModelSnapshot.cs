@@ -257,6 +257,11 @@ namespace Vitarish.Authentication.Infrastructure.Migrations.AuthenticationDb
                     b.Property<bool>("RequirePasswordUppercase")
                         .HasColumnType("boolean");
 
+                    b.Property<int>("SourceFailedAttemptThreshold")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(20);
+
                     b.Property<long>("Version")
                         .IsConcurrencyToken()
                         .HasColumnType("bigint");

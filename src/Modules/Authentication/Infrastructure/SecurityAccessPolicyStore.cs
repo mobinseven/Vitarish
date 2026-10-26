@@ -136,6 +136,7 @@ public sealed class SecurityAccessPolicyRecord
     public bool RequirePasswordSpecialCharacter { get; set; }
     public int FailedAttemptThreshold { get; set; }
     public int FailedAttemptDenialDurationSeconds { get; set; }
+    public int SourceFailedAttemptThreshold { get; set; } = SecurityAccessPolicy.DefaultSourceFailedAttemptThreshold;
     public FailedAttemptResponse FailedAttemptResponse { get; set; }
     public string EnabledAuthenticationMechanisms { get; set; } = string.Empty;
     public string PermittedPreAuthenticationActions { get; set; } = string.Empty;
@@ -157,6 +158,7 @@ public sealed class SecurityAccessPolicyRecord
         RequirePasswordSpecialCharacter = policy.PasswordPolicy.RequireSpecialCharacter,
         FailedAttemptThreshold = policy.FailedAttemptThreshold,
         FailedAttemptDenialDurationSeconds = checked((int)policy.FailedAttemptDenialDuration.TotalSeconds),
+        SourceFailedAttemptThreshold = policy.SourceFailedAttemptThreshold,
         FailedAttemptResponse = policy.FailedAttemptResponse,
         EnabledAuthenticationMechanisms = Serialize(policy.EnabledAuthenticationMechanisms),
         PermittedPreAuthenticationActions = Serialize(policy.PermittedPreAuthenticationActions),
@@ -178,6 +180,7 @@ public sealed class SecurityAccessPolicyRecord
         RequirePasswordSpecialCharacter = policy.PasswordPolicy.RequireSpecialCharacter;
         FailedAttemptThreshold = policy.FailedAttemptThreshold;
         FailedAttemptDenialDurationSeconds = checked((int)policy.FailedAttemptDenialDuration.TotalSeconds);
+        SourceFailedAttemptThreshold = policy.SourceFailedAttemptThreshold;
         FailedAttemptResponse = policy.FailedAttemptResponse;
         EnabledAuthenticationMechanisms = Serialize(policy.EnabledAuthenticationMechanisms);
         PermittedPreAuthenticationActions = Serialize(policy.PermittedPreAuthenticationActions);
@@ -201,7 +204,8 @@ public sealed class SecurityAccessPolicyRecord
         MaximumConcurrentSessions,
         ConcurrentSessionsFunctionallyRequired,
         DefaultInactivityTimeoutMinutes,
-        DeserializeStringSet(AllowedSessionStartIpAddresses));
+        DeserializeStringSet(AllowedSessionStartIpAddresses),
+        SourceFailedAttemptThreshold);
 
     private static string Serialize<T>(IEnumerable<T> values) where T : notnull => string.Join(',', values.OrderBy(value => value).Select(value => value.ToString()));
 

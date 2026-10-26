@@ -29,6 +29,17 @@ public sealed class SecurityAccessPolicyTests
         act.Should().Throw<ArgumentOutOfRangeException>();
     }
 
+    [Theory]
+    [InlineData(0)]
+    [InlineData(SecurityAccessPolicy.MaximumSourceFailedAttemptThreshold + 1)]
+    public void Per_address_failed_attempt_threshold_must_stay_within_bounds(int threshold)
+    {
+        Action act = () => (SecurityAccessPolicy.Default with { SourceFailedAttemptThreshold = threshold }).ValidateConfiguration();
+
+        act.Should().Throw<ArgumentOutOfRangeException>();
+        SecurityAccessPolicy.Default.SourceFailedAttemptThreshold.Should().Be(20);
+    }
+
     [Fact]
     public void Password_complexity_requirements_cannot_be_disabled()
     {

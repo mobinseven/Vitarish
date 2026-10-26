@@ -77,6 +77,8 @@ public static class SecurityAuditEventCatalog
     public const string IdentityAuthenticatorMfaOperation = "identity.mfa.authenticator";
     public const string IdentityRecoveryCodeMfaOperation = "identity.mfa.recovery-code";
     public const string IdentityProviderMfaOperation = "identity.mfa.provider";
+    public const string AuthenticationSourceBlockedEvent = "authentication.source.blocked";
+    public const string AuthenticationSourceBlockOperation = "authentication.source.block";
     public const string AuthenticationSecurityAccessPolicyEvent = "authentication.security-access-policy";
     public const string SecurityAccessPolicyOperation = "Authentication_SecurityAccessPolicy_Change";
     public const string SecurityAttributesChangedEvent = "authentication.security-attributes.changed";
@@ -156,6 +158,7 @@ public static class SecurityAuditEventCatalog
         new(AuthenticationCategory, AuthenticationIdentityAuthenticatorMfaEvent, IdentityAuthenticatorMfaOperation, Controls: [SecurityAuditControl.AuthenticationMechanismUse, SecurityAuditControl.AuthenticationOutcome]),
         new(AuthenticationCategory, AuthenticationIdentityRecoveryCodeMfaEvent, IdentityRecoveryCodeMfaOperation, Controls: [SecurityAuditControl.AuthenticationMechanismUse, SecurityAuditControl.AuthenticationOutcome]),
         new(AuthenticationCategory, AuthenticationIdentityProviderMfaEvent, IdentityProviderMfaOperation, Controls: [SecurityAuditControl.AuthenticationMechanismUse, SecurityAuditControl.AuthenticationOutcome]),
+        new(AuthenticationCategory, AuthenticationSourceBlockedEvent, AuthenticationSourceBlockOperation, Controls: [SecurityAuditControl.AuthenticationOutcome]),
         new(AuthenticationCategory, AuthenticationSecurityAccessPolicyEvent, SecurityAccessPolicyOperation, Controls: [SecurityAuditControl.SecurityConfigurationChange, SecurityAuditControl.SecurityBehaviorChange]),
         new(SecurityAttributeCategory, SecurityAttributesChangedEvent, SecurityAttributesChangedOperation, Controls: [SecurityAuditControl.SecurityAttributeAssignment, SecurityAuditControl.SecurityAttributeChange]),
         new(ImportExportCategory, ImportEvent, ImportOperation, Controls: [SecurityAuditControl.UserDataImport]),

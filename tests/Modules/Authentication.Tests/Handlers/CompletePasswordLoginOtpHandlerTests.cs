@@ -15,6 +15,7 @@ using Vitarish.Authentication.Infrastructure.Options;
 using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Requests.Domain.Entities;
 using Xunit;
+using Vitarish.Authentication.Tests.Security;
 
 namespace Vitarish.Authentication.Tests.Handlers;
 
@@ -79,6 +80,7 @@ public sealed class CompletePasswordLoginOtpHandlerTests
             new InMemoryAuthenticationAttemptTracker(),
             new TestSecurityPolicyProvider(),
             CreateKeys(),
+            TestSourceAttemptGuards.WithoutClientAddress(),
             new TestAuthenticationUtcClock(),
             Mock.Of<IAuthenticationSessionRegistry>());
 
@@ -119,6 +121,7 @@ public sealed class CompletePasswordLoginOtpHandlerTests
             new InMemoryAuthenticationAttemptTracker(),
             new TestSecurityPolicyProvider(),
             CreateKeys(),
+            TestSourceAttemptGuards.WithoutClientAddress(),
             new TestAuthenticationUtcClock(),
             Mock.Of<IAuthenticationSessionRegistry>());
 
@@ -163,6 +166,7 @@ public sealed class CompletePasswordLoginOtpHandlerTests
             new InMemoryAuthenticationAttemptTracker(),
             new TestSecurityPolicyProvider(),
             CreateKeys(),
+            TestSourceAttemptGuards.WithoutClientAddress(),
             new TestAuthenticationUtcClock(),
             Mock.Of<IAuthenticationSessionRegistry>());
 
@@ -275,6 +279,7 @@ public sealed class CompletePasswordLoginOtpHandlerTests
             new InMemoryAuthenticationAttemptTracker(),
             new TestSecurityPolicyProvider(),
             CreateKeys(),
+            TestSourceAttemptGuards.WithoutClientAddress(),
             new TestAuthenticationUtcClock(),
             registry ?? Mock.Of<IAuthenticationSessionRegistry>());
     }
