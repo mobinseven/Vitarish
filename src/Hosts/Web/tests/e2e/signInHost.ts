@@ -40,6 +40,11 @@ export async function continueToClinic(page: Page, clinicOrigin = defaultClinicO
     waitUntil: "domcontentloaded",
     timeout: handoffTimeoutMilliseconds,
   });
+  // The URL changes before the destination journey/session gate finishes. Its dashboard heading
+  // confirms that initialization is complete before a caller starts another navigation.
+  await expect(page.getByRole("main").getByRole("heading", { level: 1 })).toBeVisible({
+    timeout: handoffTimeoutMilliseconds,
+  });
 }
 
 /** Signs in with a password on the sign-in host and lands signed in on the clinic at `clinicOrigin`. */
