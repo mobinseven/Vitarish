@@ -73,7 +73,7 @@ public sealed class AuditStorageOutageReporterTests
     }
 
     [Fact]
-    public async Task A_failure_between_reading_and_clearing_the_outage_still_records_one_summary()
+    public async Task A_failure_during_summary_persistence_is_preserved_in_the_next_outage_interval()
     {
         TestOutageCounter counter = new(new AuditStorageOutage(Started, LastFailed, 2));
         HashSet<string> recordedKeys = [];
@@ -101,7 +101,11 @@ public sealed class AuditStorageOutageReporterTests
         await reporter.CheckOnceAsync(CancellationToken.None);
 
         (await counter.GetAsync(CancellationToken.None)).Should().BeNull();
-        Written(writer).Select(item => item.IdempotencyKey).Distinct().Should().ContainSingle();
+        SecurityAuditEvent[] summaries = Written(writer);
+        summaries.Should().HaveCount(2);
+        summaries.Select(item => item.IdempotencyKey).Distinct().Should().HaveCount(2);
+        summaries[0].RedactedReason.Should().Be(SecurityAuditReasonCatalog.AuditStorageOutage(Started, LastFailed, 2));
+        summaries[1].RedactedReason.Should().Be(SecurityAuditReasonCatalog.AuditStorageOutage(LastFailed.AddSeconds(1), LastFailed.AddSeconds(1), 1));
     }
 
     private static AuditStorageOutageReporter CreateReporter(
@@ -152,6 +156,7 @@ public sealed class AuditStorageOutageReporterTests
     private sealed class TestOutageCounter(AuditStorageOutage? outage = null) : IAuditStorageOutageCounter
     {
         private AuditStorageOutage? current = outage;
+        private AuditStorageOutage? reserved;
 
         public Task RecordFailedWriteAsync(DateTime failedAt, CancellationToken cancellationToken)
         {
@@ -161,13 +166,23 @@ public sealed class AuditStorageOutageReporterTests
             return Task.CompletedTask;
         }
 
-        public Task<AuditStorageOutage?> GetAsync(CancellationToken cancellationToken) => Task.FromResult(current);
+        public Task<AuditStorageOutage?> GetAsync(CancellationToken cancellationToken) => Task.FromResult(reserved ?? current);
+
+        public Task<AuditStorageOutage?> ReserveSummaryAsync(CancellationToken cancellationToken)
+        {
+            if (reserved is null)
+            {
+                reserved = current;
+                current = null;
+            }
+            return Task.FromResult(reserved);
+        }
 
         public Task<bool> ClearAsync(AuditStorageOutage summarized, CancellationToken cancellationToken)
         {
-            if (current != summarized)
+            if (reserved != summarized)
                 return Task.FromResult(false);
-            current = null;
+            reserved = null;
             return Task.FromResult(true);
         }
     }

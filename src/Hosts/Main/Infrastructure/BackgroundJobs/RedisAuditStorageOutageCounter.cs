@@ -11,6 +11,7 @@ namespace Vitarish.Main.Infrastructure.BackgroundJobs;
 internal sealed class RedisAuditStorageOutageCounter(IConnectionMultiplexer redis) : IAuditStorageOutageCounter
 {
     private const string Key = "audit:storage-outage";
+    private const string PendingSummaryKey = Key + ":pending-summary";
     private const string StartedField = "started";
     private const string LastFailedField = "last-failed";
     private const string FailedWritesField = "failed-writes";
@@ -23,6 +24,13 @@ internal sealed class RedisAuditStorageOutageCounter(IConnectionMultiplexer redi
         local last = tonumber(redis.call('HGET', KEYS[1], ARGV[2]) or '0')
         if now > last then redis.call('HSET', KEYS[1], ARGV[2], ARGV[4]) end
         return redis.call('HINCRBY', KEYS[1], ARGV[3], 1)
+        """;
+
+    private const string ReserveScript = """
+        if redis.call('EXISTS', KEYS[2]) == 0 and redis.call('EXISTS', KEYS[1]) == 1 then
+          redis.call('RENAME', KEYS[1], KEYS[2])
+        end
+        return redis.call('HMGET', KEYS[2], ARGV[1], ARGV[2], ARGV[3])
         """;
 
     private const string ClearScript = """
@@ -46,14 +54,23 @@ internal sealed class RedisAuditStorageOutageCounter(IConnectionMultiplexer redi
     public async Task<AuditStorageOutage?> GetAsync(CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        RedisValue[] values = await redis.GetDatabase().HashGetAsync(Key, [StartedField, LastFailedField, FailedWritesField]);
+        RedisValue[] values = await redis.GetDatabase()
+            .HashGetAsync(PendingSummaryKey, [StartedField, LastFailedField, FailedWritesField])
+            .WaitAsync(RecordTimeout, cancellationToken).ConfigureAwait(false);
         if (values.Any(value => value.IsNull))
-            return null;
+            values = await redis.GetDatabase()
+                .HashGetAsync(Key, [StartedField, LastFailedField, FailedWritesField])
+                .WaitAsync(RecordTimeout, cancellationToken).ConfigureAwait(false);
+        return FromValues(values);
+    }
 
-        return new AuditStorageOutage(
-            FromUnixMilliseconds((long)values[0]),
-            FromUnixMilliseconds((long)values[1]),
-            (long)values[2]);
+    public async Task<AuditStorageOutage?> ReserveSummaryAsync(CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        RedisResult result = await redis.GetDatabase().ScriptEvaluateAsync(
+            ReserveScript, [Key, PendingSummaryKey], [StartedField, LastFailedField, FailedWritesField])
+            .WaitAsync(RecordTimeout, cancellationToken).ConfigureAwait(false);
+        return FromValues((RedisValue[])result!);
     }
 
     public async Task<bool> ClearAsync(AuditStorageOutage summarized, CancellationToken cancellationToken)
@@ -61,10 +78,15 @@ internal sealed class RedisAuditStorageOutageCounter(IConnectionMultiplexer redi
         cancellationToken.ThrowIfCancellationRequested();
         RedisResult result = await redis.GetDatabase().ScriptEvaluateAsync(
             ClearScript,
-            [Key],
-            [StartedField, FailedWritesField, ToUnixMilliseconds(summarized.StartedAt), summarized.FailedWrites]);
+            [PendingSummaryKey],
+            [StartedField, FailedWritesField, ToUnixMilliseconds(summarized.StartedAt), summarized.FailedWrites])
+            .WaitAsync(RecordTimeout, cancellationToken).ConfigureAwait(false);
         return (long)result == 1;
     }
+
+    private static AuditStorageOutage? FromValues(RedisValue[] values) =>
+        values.Any(value => value.IsNull) ? null : new AuditStorageOutage(
+            FromUnixMilliseconds((long)values[0]), FromUnixMilliseconds((long)values[1]), (long)values[2]);
 
     private static long ToUnixMilliseconds(DateTime value) => new DateTimeOffset(DateTime.SpecifyKind(value, DateTimeKind.Utc)).ToUnixTimeMilliseconds();
 

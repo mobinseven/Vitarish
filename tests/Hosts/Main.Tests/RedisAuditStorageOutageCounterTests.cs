@@ -23,13 +23,17 @@ public sealed class RedisAuditStorageOutageCounterTests
         await counter.RecordFailedWriteAsync(started.AddMinutes(3), CancellationToken.None);
         await counter.RecordFailedWriteAsync(started, CancellationToken.None);
 
-        AuditStorageOutage outage = (await counter.GetAsync(CancellationToken.None))!;
+        AuditStorageOutage outage = (await counter.ReserveSummaryAsync(CancellationToken.None))!;
         outage.Should().Be(new AuditStorageOutage(started, started.AddMinutes(5), 3));
 
         await counter.RecordFailedWriteAsync(started.AddMinutes(6), CancellationToken.None);
-        (await counter.ClearAsync(outage, CancellationToken.None)).Should().BeFalse("a write failed after the outage was read");
-        AuditStorageOutage latest = (await counter.GetAsync(CancellationToken.None))!;
-        (await counter.ClearAsync(latest, CancellationToken.None)).Should().BeTrue();
+        (await counter.ReserveSummaryAsync(CancellationToken.None)).Should().Be(outage, "a pending snapshot is stable across retries");
+        (await counter.ClearAsync(outage, CancellationToken.None)).Should().BeTrue();
+        RedisAuditStorageOutageCounter restarted = new(multiplexer);
+        AuditStorageOutage latest = (await restarted.ReserveSummaryAsync(CancellationToken.None))!;
+        latest.Should().Be(new AuditStorageOutage(started.AddMinutes(6), started.AddMinutes(6), 1));
+        (await counter.ClearAsync(outage, CancellationToken.None)).Should().BeFalse("an old acknowledgement cannot clear a later snapshot");
+        (await restarted.ClearAsync(latest, CancellationToken.None)).Should().BeTrue();
         (await counter.GetAsync(CancellationToken.None)).Should().BeNull();
     }
 }

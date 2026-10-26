@@ -45,11 +45,15 @@ internal sealed class AuditStorageOutageReporter(
             _ = await scope.ServiceProvider.GetRequiredService<IAuditStorageSizeReader>()
                 .GetStorageSizeBytesAsync(timeout.Token).ConfigureAwait(false);
 
+            outage = await outageCounter.ReserveSummaryAsync(cancellationToken).ConfigureAwait(false);
+            if (outage is null)
+                return;
+
             SecurityAuditEvent summary = CreateSummaryEvent(outage);
             bool recorded = await auditRecorder.TryRecordAsync(summary, cancellationToken).ConfigureAwait(false);
 
-            // A write that failed after the outage was read keeps it open; the next check records the
-            // same start-keyed summary and clears the larger snapshot.
+            // The reserved snapshot survives retries and restarts. Failures after reservation stay
+            // in the active counter and cannot be cleared by this snapshot's acknowledgement.
             if (recorded)
                 _ = await outageCounter.ClearAsync(outage, cancellationToken).ConfigureAwait(false);
         }

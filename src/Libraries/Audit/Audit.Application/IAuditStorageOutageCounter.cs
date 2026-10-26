@@ -12,7 +12,10 @@ public interface IAuditStorageOutageCounter
     /// <summary>The outage not yet summarized, or null when no write has failed since the last summary.</summary>
     Task<AuditStorageOutage?> GetAsync(CancellationToken cancellationToken);
 
-    /// <summary>Clears the outage once it is summarized, unless another write failed after it was read.</summary>
+    /// <summary>Reserves a stable snapshot after a healthy probe. Later failures belong to the next outage interval.</summary>
+    Task<AuditStorageOutage?> ReserveSummaryAsync(CancellationToken cancellationToken);
+
+    /// <summary>Clears only the reserved snapshot after its summary is durably recorded.</summary>
     Task<bool> ClearAsync(AuditStorageOutage summarized, CancellationToken cancellationToken);
 }
 

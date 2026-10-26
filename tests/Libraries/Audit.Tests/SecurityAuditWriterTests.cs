@@ -593,6 +593,8 @@ public sealed class SecurityAuditWriterTests
 
         public Task<AuditStorageOutage?> GetAsync(CancellationToken cancellationToken) => throw new NotSupportedException();
 
+        public Task<AuditStorageOutage?> ReserveSummaryAsync(CancellationToken cancellationToken) => throw new NotSupportedException();
+
         public Task<bool> ClearAsync(AuditStorageOutage summarized, CancellationToken cancellationToken) => throw new NotSupportedException();
     }
 

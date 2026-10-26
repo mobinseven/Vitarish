@@ -35,6 +35,7 @@ internal sealed class E2eAuditStorageOutageCounter : IAuditStorageOutageCounter
 {
     private readonly Lock gate = new();
     private AuditStorageOutage? outage;
+    private AuditStorageOutage? reserved;
 
     public Task RecordFailedWriteAsync(DateTime failedAt, CancellationToken cancellationToken)
     {
@@ -54,16 +55,29 @@ internal sealed class E2eAuditStorageOutageCounter : IAuditStorageOutageCounter
     public Task<AuditStorageOutage?> GetAsync(CancellationToken cancellationToken)
     {
         lock (gate)
-            return Task.FromResult(outage);
+            return Task.FromResult(reserved ?? outage);
+    }
+
+    public Task<AuditStorageOutage?> ReserveSummaryAsync(CancellationToken cancellationToken)
+    {
+        lock (gate)
+        {
+            if (reserved is null)
+            {
+                reserved = outage;
+                outage = null;
+            }
+            return Task.FromResult(reserved);
+        }
     }
 
     public Task<bool> ClearAsync(AuditStorageOutage summarized, CancellationToken cancellationToken)
     {
         lock (gate)
         {
-            if (outage != summarized)
+            if (reserved != summarized)
                 return Task.FromResult(false);
-            outage = null;
+            reserved = null;
             return Task.FromResult(true);
         }
     }
