@@ -9,6 +9,9 @@
     <PackageReference Include="Testcontainers.Redis" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\Shared\DockerFactAttribute.cs" Link="DockerFactAttribute.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\..\src\Libraries\Hosting\Hosting.csproj" />
     <ProjectReference Include="..\..\..\src\Hosts\Main\Main.csproj" />
     <ProjectReference Include="..\..\..\src\Modules\Aggregator\Core\Modules.Aggregator.Core.csproj" />

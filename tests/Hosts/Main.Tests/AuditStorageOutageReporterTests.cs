@@ -1,5 +1,6 @@
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Vitarish.Audit.Application;
@@ -72,21 +73,35 @@ public sealed class AuditStorageOutageReporterTests
     }
 
     [Fact]
-    public async Task A_write_that_fails_while_the_summary_is_recorded_is_reported_under_a_new_key()
+    public async Task A_failure_between_reading_and_clearing_the_outage_still_records_one_summary()
     {
         TestOutageCounter counter = new(new AuditStorageOutage(Started, LastFailed, 2));
-        Mock<ISecurityAuditWriter> writer = CreateWriter(SecurityAuditWriteResult.Recorded);
+        HashSet<string> recordedKeys = [];
+        bool failedWriteRecorded = false;
+        Mock<ISecurityAuditWriter> writer = new();
         writer.Setup(item => item.WriteAsync(It.IsAny<SecurityAuditEvent>(), It.IsAny<CancellationToken>()))
-            .Callback(() => counter.RecordFailedWriteAsync(LastFailed.AddSeconds(1), CancellationToken.None))
-            .ReturnsAsync(SecurityAuditWriteResult.Recorded);
+            .ReturnsAsync((SecurityAuditEvent auditEvent, CancellationToken _) =>
+            {
+                if (!failedWriteRecorded)
+                {
+                    failedWriteRecorded = true;
+                    counter.RecordFailedWriteAsync(LastFailed.AddSeconds(1), CancellationToken.None).GetAwaiter().GetResult();
+                }
+
+                return recordedKeys.Add(auditEvent.IdempotencyKey)
+                    ? SecurityAuditWriteResult.Recorded
+                    : SecurityAuditWriteResult.AlreadyRecorded;
+            });
         AuditStorageOutageReporter reporter = CreateReporter(counter, ReadableStore(), writer);
 
         await reporter.CheckOnceAsync(CancellationToken.None);
-        AuditStorageOutage? remaining = await counter.GetAsync(CancellationToken.None);
+        (await counter.GetAsync(CancellationToken.None)).Should()
+            .NotBeNull("the failure after the read keeps the outage open");
 
-        remaining.Should().NotBeNull("the failure after the read belongs to an outage not yet summarized");
-        remaining!.FailedWrites.Should().Be(3);
-        Written(writer).Single().IdempotencyKey.Should().EndWith(":2");
+        await reporter.CheckOnceAsync(CancellationToken.None);
+
+        (await counter.GetAsync(CancellationToken.None)).Should().BeNull();
+        Written(writer).Select(item => item.IdempotencyKey).Distinct().Should().ContainSingle();
     }
 
     private static AuditStorageOutageReporter CreateReporter(
@@ -98,9 +113,13 @@ public sealed class AuditStorageOutageReporterTests
         _ = services.AddSingleton(probe);
         _ = services.AddSingleton(writer.Object);
         _ = services.AddSingleton<IBackgroundRequestContextWriter, TestBackgroundRequestContextWriter>();
+        _ = services.AddSingleton<ILogger<PlatformBackgroundAuditRecorder>>(NullLogger<PlatformBackgroundAuditRecorder>.Instance);
+        _ = services.AddSingleton<PlatformBackgroundAuditRecorder>();
+        ServiceProvider provider = services.BuildServiceProvider();
         return new AuditStorageOutageReporter(
-            services.BuildServiceProvider().GetRequiredService<IServiceScopeFactory>(),
+            provider.GetRequiredService<IServiceScopeFactory>(),
             counter,
+            provider.GetRequiredService<PlatformBackgroundAuditRecorder>(),
             NullLogger<AuditStorageOutageReporter>.Instance);
     }
 

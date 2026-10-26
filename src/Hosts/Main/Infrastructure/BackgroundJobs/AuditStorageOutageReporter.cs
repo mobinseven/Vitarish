@@ -1,6 +1,6 @@
 using Vitarish.Audit.Application;
 using Vitarish.Audit.Domain;
-using Vitarish.Modules.Base.Core.BackgroundJobs;
+using Vitarish.Main.Infrastructure.Options;
 
 namespace Vitarish.Main.Infrastructure.BackgroundJobs;
 
@@ -12,10 +12,10 @@ namespace Vitarish.Main.Infrastructure.BackgroundJobs;
 internal sealed class AuditStorageOutageReporter(
     IServiceScopeFactory scopeFactory,
     IAuditStorageOutageCounter outageCounter,
+    PlatformBackgroundAuditRecorder auditRecorder,
     ILogger<AuditStorageOutageReporter> logger) : BackgroundService
 {
     internal static readonly TimeSpan CheckInterval = TimeSpan.FromMinutes(1);
-    private static readonly TimeSpan OperationTimeout = TimeSpan.FromSeconds(30);
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -38,7 +38,7 @@ internal sealed class AuditStorageOutageReporter(
 
             await using AsyncServiceScope scope = scopeFactory.CreateAsyncScope();
             using CancellationTokenSource timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            timeout.CancelAfter(OperationTimeout);
+            timeout.CancelAfter(AuditCapacityAlertOptions.OperationTimeout);
 
             // Read first: while the store is still unreachable, writing the summary would only count
             // as one more failed write of the outage it describes.
@@ -46,19 +46,12 @@ internal sealed class AuditStorageOutageReporter(
                 .GetStorageSizeBytesAsync(timeout.Token).ConfigureAwait(false);
 
             SecurityAuditEvent summary = CreateSummaryEvent(outage);
-            scope.ServiceProvider.GetRequiredService<IBackgroundRequestContextWriter>().SetContext(new BackgroundRequestContext(
-                TenantBackgroundExecutor.BackgroundAuthority,
-                ClientId: null,
-                OwnerId: null,
-                TenantId: SecurityAuditScopeCatalog.PlatformScopeId,
-                ResourceId: summary.Resource,
-                RequestId: summary.IdempotencyKey));
-            _ = await scope.ServiceProvider.GetRequiredService<ISecurityAuditWriter>()
-                .WriteAsync(summary, timeout.Token).ConfigureAwait(false);
+            bool recorded = await auditRecorder.TryRecordAsync(summary, cancellationToken).ConfigureAwait(false);
 
             // A write that failed after the outage was read keeps it open; the next check records the
-            // larger count under its own key.
-            _ = await outageCounter.ClearAsync(outage, cancellationToken).ConfigureAwait(false);
+            // same start-keyed summary and clears the larger snapshot.
+            if (recorded)
+                _ = await outageCounter.ClearAsync(outage, cancellationToken).ConfigureAwait(false);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -72,8 +65,8 @@ internal sealed class AuditStorageOutageReporter(
 
     private static SecurityAuditEvent CreateSummaryEvent(AuditStorageOutage outage)
     {
-        // One key per outage and count, so a retry after a crash finds the summary already recorded.
-        string idempotencyKey = $"{SecurityAuditEventCatalog.SecurityFailureOperation}:{SecurityAuditEventCatalog.AuditStorageOutageSourceBoundary}:{outage.StartedAt.Ticks}:{outage.FailedWrites}";
+        // One key per outage, so a retry after a refused clear or a crash finds the summary already recorded.
+        string idempotencyKey = $"{SecurityAuditEventCatalog.SecurityFailureOperation}:{SecurityAuditEventCatalog.AuditStorageOutageSourceBoundary}:{outage.StartedAt.Ticks}";
         return new SecurityAuditEvent
         {
             EventName = SecurityAuditEventCatalog.SecurityFailureEvent,

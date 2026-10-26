@@ -3,6 +3,7 @@ using StackExchange.Redis;
 using Testcontainers.Redis;
 using Vitarish.Audit.Application;
 using Vitarish.Main.Infrastructure.BackgroundJobs;
+using Vitarish.Testing;
 
 namespace Main.Tests;
 
@@ -18,9 +19,9 @@ public sealed class RedisAuditStorageOutageCounterTests
         DateTime started = new(2026, 10, 25, 9, 0, 0, DateTimeKind.Utc);
 
         (await counter.GetAsync(CancellationToken.None)).Should().BeNull();
-        await counter.RecordFailedWriteAsync(started, CancellationToken.None);
         await counter.RecordFailedWriteAsync(started.AddMinutes(5), CancellationToken.None);
         await counter.RecordFailedWriteAsync(started.AddMinutes(3), CancellationToken.None);
+        await counter.RecordFailedWriteAsync(started, CancellationToken.None);
 
         AuditStorageOutage outage = (await counter.GetAsync(CancellationToken.None))!;
         outage.Should().Be(new AuditStorageOutage(started, started.AddMinutes(5), 3));
@@ -30,20 +31,5 @@ public sealed class RedisAuditStorageOutageCounterTests
         AuditStorageOutage latest = (await counter.GetAsync(CancellationToken.None))!;
         (await counter.ClearAsync(latest, CancellationToken.None)).Should().BeTrue();
         (await counter.GetAsync(CancellationToken.None)).Should().BeNull();
-    }
-
-    private sealed class DockerFactAttribute : FactAttribute
-    {
-        public DockerFactAttribute()
-        {
-            if (!IsDockerAvailable())
-                Skip = "Redis integration coverage requires an available Docker engine.";
-        }
-
-        private static bool IsDockerAvailable() =>
-            !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("DOCKER_HOST")) ||
-            (OperatingSystem.IsWindows()
-                ? File.Exists(@"\.\pipe\docker_engine") || File.Exists(@"\.\pipe\dockerDesktopLinuxEngine")
-                : File.Exists("/var/run/docker.sock"));
     }
 }

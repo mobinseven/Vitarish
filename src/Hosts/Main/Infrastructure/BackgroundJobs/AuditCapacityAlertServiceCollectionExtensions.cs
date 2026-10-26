@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Vitarish.Main.Infrastructure.Options;
@@ -20,6 +21,7 @@ internal static class AuditCapacityAlertServiceCollectionExtensions
         _ = services.AddOptions<AuditCapacityAlertOptions>()
             .BindConfiguration(AuditCapacityAlertOptions.SectionName)
             .ValidateOnStart();
+        services.TryAddSingleton<PlatformBackgroundAuditRecorder>();
 
         if (!openApiGeneration)
             _ = services.AddHostedService<AuditCapacityAlertMonitor>();

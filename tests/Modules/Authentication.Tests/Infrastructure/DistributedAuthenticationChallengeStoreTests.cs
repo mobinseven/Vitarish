@@ -6,6 +6,7 @@ using StackExchange.Redis;
 using Testcontainers.Redis;
 using Vitarish.Authentication.Domain.Challenges;
 using Vitarish.Authentication.Infrastructure;
+using Vitarish.Testing;
 using Xunit;
 
 namespace Vitarish.Authentication.Tests.Infrastructure;
@@ -106,23 +107,4 @@ public sealed class DistributedAuthenticationChallengeStoreTests
         challenge.Status,
         challenge.CompletedAt,
         challenge.RequiresProfileCompletion);
-
-    private sealed class DockerFactAttribute : FactAttribute
-    {
-        public DockerFactAttribute()
-        {
-            if (!IsDockerAvailable())
-                Skip = "Redis integration coverage requires an available Docker engine.";
-        }
-
-        private static bool IsDockerAvailable()
-        {
-            if (!string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("DOCKER_HOST")))
-                return true;
-
-            return OperatingSystem.IsWindows()
-                ? File.Exists(@"\\.\pipe\docker_engine") || File.Exists(@"\\.\pipe\dockerDesktopLinuxEngine")
-                : File.Exists("/var/run/docker.sock");
-        }
-    }
 }

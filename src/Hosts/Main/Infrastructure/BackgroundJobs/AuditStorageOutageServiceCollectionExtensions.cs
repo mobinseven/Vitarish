@@ -10,6 +10,7 @@ internal static class AuditStorageOutageServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(services);
 
         services.TryAddSingleton<IAuditStorageOutageCounter, RedisAuditStorageOutageCounter>();
+        services.TryAddSingleton<PlatformBackgroundAuditRecorder>();
         if (!openApiGeneration)
             _ = services.AddHostedService<AuditStorageOutageReporter>();
 

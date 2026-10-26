@@ -5,7 +5,8 @@ namespace Vitarish.Main.Infrastructure.BackgroundJobs;
 
 /// <summary>
 /// Keeps the audit-store outage counter in Redis, which persists it (append-only file) independently of
-/// the PostgreSQL audit store, so the count survives a restart of Main during the outage.
+/// the PostgreSQL audit store, so the count survives a restart of Main during the outage. A refused write
+/// waits on Redis for at most <see cref="RecordTimeout"/>, so an unreachable Redis does not stall the request.
 /// </summary>
 internal sealed class RedisAuditStorageOutageCounter(IConnectionMultiplexer redis) : IAuditStorageOutageCounter
 {
@@ -13,11 +14,14 @@ internal sealed class RedisAuditStorageOutageCounter(IConnectionMultiplexer redi
     private const string StartedField = "started";
     private const string LastFailedField = "last-failed";
     private const string FailedWritesField = "failed-writes";
+    internal static readonly TimeSpan RecordTimeout = TimeSpan.FromMilliseconds(250);
 
     private const string RecordScript = """
-        redis.call('HSETNX', KEYS[1], ARGV[1], ARGV[4])
+        local now = tonumber(ARGV[4])
+        local started = redis.call('HGET', KEYS[1], ARGV[1])
+        if not started or now < tonumber(started) then redis.call('HSET', KEYS[1], ARGV[1], ARGV[4]) end
         local last = tonumber(redis.call('HGET', KEYS[1], ARGV[2]) or '0')
-        if tonumber(ARGV[4]) > last then redis.call('HSET', KEYS[1], ARGV[2], ARGV[4]) end
+        if now > last then redis.call('HSET', KEYS[1], ARGV[2], ARGV[4]) end
         return redis.call('HINCRBY', KEYS[1], ARGV[3], 1)
         """;
 
@@ -32,9 +36,11 @@ internal sealed class RedisAuditStorageOutageCounter(IConnectionMultiplexer redi
     {
         cancellationToken.ThrowIfCancellationRequested();
         _ = await redis.GetDatabase().ScriptEvaluateAsync(
-            RecordScript,
-            [Key],
-            [StartedField, LastFailedField, FailedWritesField, ToUnixMilliseconds(failedAt)]);
+                RecordScript,
+                [Key],
+                [StartedField, LastFailedField, FailedWritesField, ToUnixMilliseconds(failedAt)])
+            .WaitAsync(RecordTimeout, cancellationToken)
+            .ConfigureAwait(false);
     }
 
     public async Task<AuditStorageOutage?> GetAsync(CancellationToken cancellationToken)

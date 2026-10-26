@@ -231,7 +231,11 @@ internal sealed class SecurityAuditWriter(
     private async Task ReportWriteFailureAsync(SecurityAuditEvent? auditEvent, Exception exception)
     {
         LogWriteFailure(auditEvent, exception);
-        if (outageCounter is null)
+        if (outageCounter is null || !SecurityAuditStoreAvailability.IsUnavailable(exception))
+            return;
+
+        // The summary of an outage must not count as one more failed write of that same outage.
+        if (auditEvent?.SourceBoundary == SecurityAuditEventCatalog.AuditStorageOutageSourceBoundary)
             return;
 
         try
@@ -240,7 +244,7 @@ internal sealed class SecurityAuditWriter(
         }
         catch (Exception counterException)
         {
-            logger?.LogError(
+            logger?.LogWarning(
                 "Security audit outage counter unavailable. Code={Code} Cause={Cause}",
                 SecurityAuditEventCatalog.WriteFailureCode,
                 counterException.GetType().FullName);

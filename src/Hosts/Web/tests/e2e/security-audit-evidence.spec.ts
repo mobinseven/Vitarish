@@ -1,4 +1,4 @@
-import { expect, request as playwrightRequest, test, type APIRequestContext, type Page } from "@playwright/test";
+import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { twoHostE2eApiOriginEnvironmentKey, twoHostE2eAuditEvidenceDirectoryEnvironmentKey, twoHostE2eLocaleEnvironmentKey } from "../../scripts/two-host-e2e-artifacts.mjs";
@@ -527,28 +527,32 @@ test("real actions create visible platform security-audit evidence", async ({ pa
 
     // While every audit-store save fails, a sign-in attempt still gets its normal answer. Once the
     // store accepts writes again, one security-failure record summarizes the outage.
+    const outageSummaryPattern = /^audit_storage_outage:start=[^;]+;end=[^;]+;failed_writes=(\d+)$/;
+    // The refused password login records its started and completed events; the summary itself is not refused.
+    const refusedAuditWrites = 2;
     expect((await postJson(administratorPage, storeOutageStartPath)).status).toBe(204);
     let statusDuringOutage = 0;
     try {
-      const outageRequest = await playwrightRequest.newContext({ ignoreHTTPSErrors: true });
-      try {
-        const response = await outageRequest.post(`${apiOrigin}/api/modules/authentication/login/password`, {
-          data: { userNameOrEmail: `e2e-outage-${Date.now()}@example.invalid`, password: "E2E-Outage-Wrong-Password", returnUrl: null },
-          headers: { "X-Forwarded-For": "203.0.113.67", "X-Vitarish-Tenant-Host": "localhost", "X-Request-Id": `e2e-audit-outage-${Date.now()}` },
-        });
-        statusDuringOutage = response.status();
-      } finally {
-        await outageRequest.dispose();
-      }
+      const response = await request.post(`${apiOrigin}/api/modules/authentication/login/password`, {
+        data: { userNameOrEmail: `e2e-outage-${Date.now()}@example.invalid`, password: "E2E-Outage-Wrong-Password", returnUrl: null },
+        headers: { "X-Forwarded-For": "203.0.113.67", "X-Vitarish-Tenant-Host": "localhost", "X-Request-Id": `e2e-audit-outage-${Date.now()}` },
+        ignoreHTTPSErrors: true,
+      });
+      statusDuringOutage = response.status();
     } finally {
+      const outageEvent = { ...auditEvents.securityFunctionFailure, outcome: "failed" };
+      const summariesDuringOutage = (await platformAuditQuery(administratorPage, outageEvent)).items
+        .filter((item) => outageSummaryPattern.test(item.redactedReason ?? ""));
+      expect(summariesDuringOutage, "no summary may be written while the store is still down").toHaveLength(0);
       expect((await postJson(administratorPage, storeOutageEndPath)).status).toBe(204);
     }
     expect(statusDuringOutage).toBe(401);
     const outageEvent = { ...auditEvents.securityFunctionFailure, outcome: "failed" };
     const outageRecords = await platformAuditQuery(administratorPage, outageEvent);
-    expect(outageRecords.items.some((item) =>
-      /^audit_storage_outage:start=[^;]+;end=[^;]+;failed_writes=[1-9]\d*$/.test(item.redactedReason ?? ""),
-    ), "the recovered audit store must hold one summary of the outage").toBe(true);
+    const outageSummaries = outageRecords.items.filter((item) => outageSummaryPattern.test(item.redactedReason ?? ""));
+    expect(outageSummaries, "the recovered audit store must hold one summary of the outage").toHaveLength(1);
+    const failedWrites = outageSummaryPattern.exec(outageSummaries[0].redactedReason ?? "");
+    expect(Number(failedWrites?.[1]), "the summary counts only the writes the outage refused").toBe(refusedAuditWrites);
     await captureAuditEvidence(administratorPage, outageEvent, "audit-storage-outage.png");
     // The newest record is the summary; its detail sheet shows the outage window and the failed-write count.
     await administratorPage.locator("tbody tr").first()

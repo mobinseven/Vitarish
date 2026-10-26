@@ -19,11 +19,16 @@ internal sealed class E2eAuditCapacitySimulation
     }
 }
 
-internal sealed class E2eAuditStorageSizeReader(IOptions<SecurityAuditOptions> options, E2eAuditCapacitySimulation simulation) : IAuditStorageSizeReader
+internal sealed class E2eAuditStorageSizeReader(
+    IOptions<SecurityAuditOptions> options,
+    E2eAuditCapacitySimulation simulation,
+    E2eAuditStoreOutageSimulation outage) : IAuditStorageSizeReader
 {
     public Task<long> GetStorageSizeBytesAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        if (outage.Unavailable)
+            throw new InvalidOperationException("The E2E audit store is simulating an outage.");
 
         long threshold = options.Value.CapacityWarningBytes;
         return Task.FromResult(simulation.ThresholdExceeded && threshold is > 0 and < long.MaxValue ? threshold + 1 : 0);

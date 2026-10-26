@@ -188,7 +188,8 @@ public sealed class AuditCapacityAlertMonitorTests
         AuditCapacityAlertMonitor monitor = CreateMonitor(
             services,
             threshold: 1024,
-            logger: new CapturingLogger<AuditCapacityAlertMonitor>(logs));
+            logger: new CapturingLogger<AuditCapacityAlertMonitor>(logs),
+            auditLogger: new CapturingLogger<PlatformBackgroundAuditRecorder>(logs));
 
         Func<Task> check = () => monitor.CheckOnceAsync(CancellationToken.None);
 
@@ -278,7 +279,8 @@ public sealed class AuditCapacityAlertMonitorTests
         AuditCapacityAlertMonitor monitor = CreateMonitor(
             services,
             threshold: 1024,
-            logger: new CapturingLogger<AuditCapacityAlertMonitor>(logs));
+            logger: new CapturingLogger<AuditCapacityAlertMonitor>(logs),
+            auditLogger: new CapturingLogger<PlatformBackgroundAuditRecorder>(logs));
 
         Func<Task> check = () => monitor.CheckOnceAsync(CancellationToken.None);
 
@@ -409,7 +411,8 @@ public sealed class AuditCapacityAlertMonitorTests
         long threshold,
         string emailRecipient = "admin@vitarish.com",
         string smsRecipient = "+989120000000",
-        ILogger<AuditCapacityAlertMonitor>? logger = null) =>
+        ILogger<AuditCapacityAlertMonitor>? logger = null,
+        ILogger<PlatformBackgroundAuditRecorder>? auditLogger = null) =>
         new(
             services.GetRequiredService<IServiceScopeFactory>(),
             Options.Create(new SecurityAuditOptions { CapacityWarningBytes = threshold }),
@@ -418,6 +421,9 @@ public sealed class AuditCapacityAlertMonitorTests
                 EmailRecipient = emailRecipient,
                 SmsRecipient = smsRecipient
             }),
+            new PlatformBackgroundAuditRecorder(
+                services.GetRequiredService<IServiceScopeFactory>(),
+                auditLogger ?? NullLogger<PlatformBackgroundAuditRecorder>.Instance),
             logger ?? NullLogger<AuditCapacityAlertMonitor>.Instance);
 
     private static ServiceProvider CreateServices(

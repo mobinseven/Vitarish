@@ -1,3 +1,4 @@
+using System.Data.Common;
 using System.Security.Claims;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
@@ -151,6 +152,37 @@ public sealed class SecurityAuditWriterTests
         counter.FailedWrites.Should().ContainSingle().Which.Kind.Should().Be(DateTimeKind.Utc);
     }
 
+    [Theory]
+    [InlineData("23514")]
+    [InlineData("22001")]
+    [InlineData("42501")]
+    public async Task An_event_rejected_by_the_store_does_not_count_toward_the_outage(string sqlState)
+    {
+        RecordingOutageCounter counter = new();
+        await using AuditDbContext context = CreateFailingContext(
+            $"security-audit-rejected-{sqlState}",
+            new SqlStateException(sqlState));
+
+        Func<Task> write = () => new SecurityAuditWriter(context, outageCounter: counter).WriteAsync(CreateEvent("tenant-a", "rejected"), CancellationToken.None);
+
+        await write.Should().ThrowAsync<SecurityAuditStoreException>();
+        counter.FailedWrites.Should().BeEmpty("a rejected event is not an unavailable store");
+    }
+
+    [Fact]
+    public async Task The_outage_summary_write_does_not_count_toward_the_outage()
+    {
+        RecordingOutageCounter counter = new();
+        await using AuditDbContext context = CreateUnavailableContext("security-audit-outage-summary");
+
+        Func<Task> write = () => new SecurityAuditWriter(context, outageCounter: counter).WriteAsync(
+            CreateOutageSummaryEvent("tenant-a", "outage-summary"),
+            CancellationToken.None);
+
+        await write.Should().ThrowAsync<SecurityAuditStoreException>();
+        counter.FailedWrites.Should().BeEmpty("the summary describes the outage and must not inflate it");
+    }
+
     [Fact]
     public async Task An_unavailable_outage_counter_does_not_change_the_write_failure()
     {
@@ -281,22 +313,30 @@ public sealed class SecurityAuditWriterTests
     private static DbContextOptions<AuditDbContext> CreateOptions(string databaseName) =>
         new DbContextOptionsBuilder<AuditDbContext>().UseInMemoryDatabase(databaseName).Options;
 
-    private static AuditDbContext CreateUnavailableContext(string databaseName)
+    private static AuditDbContext CreateUnavailableContext(string databaseName) =>
+        CreateFailingContext(databaseName, new SqlStateException("08006"));
+
+    private static AuditDbContext CreateFailingContext(string databaseName, Exception failure)
     {
         DbContextOptions<AuditDbContext> options = new DbContextOptionsBuilder<AuditDbContext>()
             .UseInMemoryDatabase(databaseName)
-            .AddInterceptors(new RefusingSaveInterceptor())
+            .AddInterceptors(new RefusingSaveInterceptor(failure))
             .Options;
         return CreateContext(options, "tenant-a");
     }
 
-    private sealed class RefusingSaveInterceptor : SaveChangesInterceptor
+    private sealed class RefusingSaveInterceptor(Exception failure) : SaveChangesInterceptor
     {
         public override ValueTask<InterceptionResult<int>> SavingChangesAsync(
             DbContextEventData eventData,
             InterceptionResult<int> result,
             CancellationToken cancellationToken = default) =>
-            throw new DbUpdateException("The audit store refused the write.");
+            throw new DbUpdateException("The audit store refused the write.", failure);
+    }
+
+    private sealed class SqlStateException(string sqlState) : DbException("The audit store is unavailable.")
+    {
+        public override string? SqlState => sqlState;
     }
 
     private sealed class RecordingOutageCounter : IAuditStorageOutageCounter
@@ -330,6 +370,22 @@ public sealed class SecurityAuditWriterTests
         OccurredAt = DateTime.UtcNow,
         CorrelationId = idempotencyKey,
         SourceBoundary = "authentication.api",
+        IdempotencyKey = idempotencyKey
+    };
+
+    private static SecurityAuditEvent CreateOutageSummaryEvent(string tenantId, string idempotencyKey) => new()
+    {
+        EventName = SecurityAuditEventCatalog.SecurityFailureEvent,
+        EventCategory = SecurityAuditEventCatalog.SecurityFailureCategory,
+        Outcome = SecurityAuditOutcome.Failed,
+        ActorKind = SecurityAuditActorKind.System,
+        TenantId = tenantId,
+        Resource = SecurityAuditScopeCatalog.PlatformResource,
+        Operation = SecurityAuditEventCatalog.SecurityFailureOperation,
+        OccurredAt = DateTime.UtcNow,
+        CorrelationId = idempotencyKey,
+        SourceBoundary = SecurityAuditEventCatalog.AuditStorageOutageSourceBoundary,
+        SourceIpKind = SecurityAuditSourceKind.System,
         IdempotencyKey = idempotencyKey
     };
 

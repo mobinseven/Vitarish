@@ -80,13 +80,21 @@ internal static class E2eAuditEvidenceEndpoints
         return Results.NoContent();
     }
 
-    // Ends the simulated outage and runs one real outage-summary check, as the reporter's timer would.
+    // Runs one reporter check while the store is still down (the read-only probe refuses the summary),
+    // then ends the simulated outage and runs the recovery check the reporter's timer would run.
     private static async Task<IResult> EndStoreOutageAsync(
         IServiceProvider services,
         E2eAuditStoreOutageSimulation simulation,
         CancellationToken cancellationToken)
     {
+        await RunOutageReporterCheckAsync(services, cancellationToken).ConfigureAwait(false);
         simulation.Unavailable = false;
+        await RunOutageReporterCheckAsync(services, cancellationToken).ConfigureAwait(false);
+        return Results.NoContent();
+    }
+
+    private static async Task RunOutageReporterCheckAsync(IServiceProvider services, CancellationToken cancellationToken)
+    {
         AuditStorageOutageReporter reporter = services.GetServices<IHostedService>().OfType<AuditStorageOutageReporter>().Single();
         Task check;
         using (ExecutionContext.SuppressFlow())
@@ -95,7 +103,6 @@ internal static class E2eAuditEvidenceEndpoints
         }
 
         await check.ConfigureAwait(false);
-        return Results.NoContent();
     }
 
     private static async Task<IResult> VerifyFileIntegrityAsync(

@@ -23,11 +23,11 @@ internal sealed class E2eAuditStoreOutageSimulation : SaveChangesInterceptor
         InterceptionResult<int> result,
         CancellationToken cancellationToken = default) =>
         unavailable
-            ? throw new DbUpdateException("The E2E audit store is simulating an outage.")
+            ? throw new DbUpdateException("The E2E audit store is simulating an outage.", new TimeoutException("The E2E audit store is simulating an outage."))
             : ValueTask.FromResult(result);
 
     public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result) =>
-        unavailable ? throw new DbUpdateException("The E2E audit store is simulating an outage.") : result;
+        unavailable ? throw new DbUpdateException("The E2E audit store is simulating an outage.", new TimeoutException("The E2E audit store is simulating an outage.")) : result;
 }
 
 /// <summary>The E2E host has no Redis; its outage counter lives as long as the host process.</summary>
