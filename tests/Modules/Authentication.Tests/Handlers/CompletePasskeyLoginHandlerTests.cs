@@ -117,6 +117,7 @@ public sealed class CompletePasskeyLoginHandlerTests
             policy.Object,
             tracker.Object,
             keys,
+            TestSourceAttemptGuards.WithoutClientAddress(),
             CreateAttemptAuditor(),
             registry.Object);
 

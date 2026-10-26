@@ -11,7 +11,6 @@ using Vitarish.Clinic.Infrastructure.Data;
 using Vitarish.Hosting.Infrastructure.Options;
 using Vitarish.Modules.Base.Core.Platform.Idempotency;
 using Vitarish.Files.Application.Abstractions;
-using Vitarish.Files.Infrastructure.Options;
 using Vitarish.E2e.Infrastructure.Audit;
 using Vitarish.E2e.Infrastructure.Storage;
 using Vitarish.E2e.Infrastructure.Events;
@@ -96,7 +95,6 @@ builder.Configuration["Vitarish:Security:Audit:CapacityWarningBytes"] = "1073741
 builder.Configuration["Vitarish:Security:AuthenticationAttempts:Realm"] = apiOrigin.Host;
 builder.Configuration["Vitarish:Security:AuthenticationAttempts:CurrentPepper"] = "e2e-authentication-attempt-key-pepper-20260829";
 builder.Configuration["Vitarish:Security:AuthenticationAttempts:CurrentVersion"] = "v1";
-builder.Configuration[$"{FileTransferAuditKeyOptions.SectionName}:{nameof(FileTransferAuditKeyOptions.CurrentKey)}"] = "e2e-file-transfer-audit-key-20261026";
 builder.Configuration["Vitarish:Security:Tls:RequireHttps"] = "true";
 builder.Configuration["Vitarish:Security:TokenValidation:Issuer"] = apiOrigin.ToString().TrimEnd('/');
 builder.Configuration["Vitarish:Security:TokenValidation:Audiences:0"] = "vitarish-api";
