@@ -141,8 +141,26 @@ internal sealed class ProvisionTenantMemberCommandHandler(
 
             membershipCommitted = true;
             if (created)
-                await managementAudit.AccountCreatedAsync(user.Id, CancellationToken.None);
-            await WriteAuditAsync(request, tenantId, operationKey, SecurityAuditOutcome.Succeeded, null, CancellationToken.None, user.Id);
+            {
+                await managementAudit.AccountCreatedAsync(
+                    user.Id,
+                    UserAuditChanges.Between(
+                        (null, null, null, null),
+                        (user.Email, user.PhoneNumber, user.FirstName, user.LastName)),
+                    CancellationToken.None);
+            }
+            await WriteAuditAsync(
+                request,
+                tenantId,
+                operationKey,
+                SecurityAuditOutcome.Succeeded,
+                null,
+                CancellationToken.None,
+                user.Id,
+                [new SecurityAuditChange(
+                    SecurityAuditChangeFields.TenantRole,
+                    SecurityAuditReasonCatalog.TenantRoleStateNone,
+                    SecurityAuditReasonCatalog.TenantRoleStateUser)]);
             await UserCacheExtensions.SetUserAsync(cache, user, cancellationToken);
             await UserCacheExtensions.RemoveUsersAsync(cache, cancellationToken);
             return new ProvisionTenantMemberResult(user, IdentityDefinitions.TenantUser, created, false);
@@ -214,7 +232,15 @@ internal sealed class ProvisionTenantMemberCommandHandler(
          where membership.UserId == userId && role.Name == roleName
          select membership).AnyAsync(cancellationToken);
 
-    private async Task WriteAuditAsync(ProvisionTenantMemberCommand request, Guid tenantId, string operationKey, string outcome, string? reason, CancellationToken cancellationToken, string? subjectId = null)
+    private async Task WriteAuditAsync(
+        ProvisionTenantMemberCommand request,
+        Guid tenantId,
+        string operationKey,
+        string outcome,
+        string? reason,
+        CancellationToken cancellationToken,
+        string? subjectId = null,
+        IReadOnlyList<SecurityAuditChange>? changes = null)
     {
         string? targetId = subjectId ?? request.UserId;
         try
@@ -235,6 +261,7 @@ internal sealed class ProvisionTenantMemberCommandHandler(
                 CorrelationId = requestContext.TraceId ?? requestContext.RequestId ?? operationKey,
                 SourceBoundary = UsersSecurityAuditEvents.SourceBoundary,
                 RedactedReason = reason,
+                Changes = changes,
                 IdempotencyKey = operationKey + UsersSecurityAuditEvents.TenantMemberProvisioningIdempotencySuffix
             }, cancellationToken);
         }

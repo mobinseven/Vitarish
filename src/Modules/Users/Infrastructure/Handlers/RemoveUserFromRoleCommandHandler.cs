@@ -99,12 +99,24 @@ internal sealed class RemoveUserFromRoleCommandHandler(
             return result;
         }
 
+        string[] previousRoles = await AssignedRoleNamesAsync(request.User.Id, cancellationToken);
         _ = dbContext.UserRoles.Remove(userRole);
         _ = await dbContext.SaveChangesAsync(cancellationToken);
 
-        await WriteAuditAsync(request, SecurityAuditOutcome.Succeeded, null, cancellationToken, [new SecurityAuditChange(SecurityAuditChangeFields.GlobalRole, request.RoleName, null)]);
+        await WriteAuditAsync(
+            request,
+            SecurityAuditOutcome.Succeeded,
+            null,
+            cancellationToken,
+            UserAuditChanges.GlobalRoles(previousRoles, previousRoles.Where(name => name != request.RoleName)));
         return IdentityResult.Success;
     }
+
+    private Task<string[]> AssignedRoleNamesAsync(string userId, CancellationToken cancellationToken) =>
+        (from membership in dbContext.UserRoles
+         join role in dbContext.Roles on membership.RoleId equals role.Id
+         where membership.UserId == userId
+         select role.Name!).ToArrayAsync(cancellationToken);
 
     private async Task WriteAuditAsync(
         RemoveUserFromRoleCommand request,

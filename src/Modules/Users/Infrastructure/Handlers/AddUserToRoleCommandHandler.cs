@@ -92,15 +92,27 @@ internal sealed class AddUserToRoleCommandHandler(
             return result;
         }
 
+        string[] previousRoles = await AssignedRoleNamesAsync(request.User.Id, cancellationToken);
         dbContext.UserRoles.Add(new IdentityUserRole<string>
         {
             UserId = request.User.Id,
             RoleId = role.Id
         });
         await dbContext.SaveChangesAsync(cancellationToken);
-        await WriteAuditAsync(request, SecurityAuditOutcome.Succeeded, null, cancellationToken, [new SecurityAuditChange(SecurityAuditChangeFields.GlobalRole, null, request.RoleName)]);
+        await WriteAuditAsync(
+            request,
+            SecurityAuditOutcome.Succeeded,
+            null,
+            cancellationToken,
+            UserAuditChanges.GlobalRoles(previousRoles, previousRoles.Append(request.RoleName)));
         return IdentityResult.Success;
     }
+
+    private Task<string[]> AssignedRoleNamesAsync(string userId, CancellationToken cancellationToken) =>
+        (from membership in dbContext.UserRoles
+         join role in dbContext.Roles on membership.RoleId equals role.Id
+         where membership.UserId == userId
+         select role.Name!).ToArrayAsync(cancellationToken);
 
     private async Task WriteAuditAsync(
         AddUserToRoleCommand request,

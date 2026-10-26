@@ -1,11 +1,14 @@
 using System.Globalization;
 using System.Text;
+using System.Text.Json;
 using Vitarish.Audit.Domain;
 
 namespace Vitarish.Audit.Server;
 
 internal static class SecurityAuditCsvFormatter
 {
+    private static readonly JsonSerializerOptions ChangeSerializerOptions = new(JsonSerializerDefaults.Web);
+
     private static readonly string[] Headers =
     [
         "id",
@@ -53,15 +56,22 @@ internal static class SecurityAuditCsvFormatter
                 row.SourceIpAddress,
                 row.ClientInterfaceHost,
                 row.RedactedReason,
-                FormatChanges(row.Changes)
+                FormatChanges(row.Changes ?? [])
             ]);
         }
 
         return new UTF8Encoding(encoderShouldEmitUTF8Identifier: true).GetBytes(csv.ToString());
     }
 
-    private static string FormatChanges(IReadOnlyList<SecurityAuditChange> changes) =>
-        string.Join("; ", changes.Select(change => $"{change.Field}: {change.PreviousValue} -> {change.NewValue}"));
+    internal static string FormatChanges(IReadOnlyList<SecurityAuditChange> changes) =>
+        JsonSerializer.Serialize(
+            changes.Select(change => new
+            {
+                field = change.Field,
+                previousValue = change.PreviousValue ?? SecurityAuditEventCatalog.ChangeValueNone,
+                newValue = change.NewValue ?? SecurityAuditEventCatalog.ChangeValueNone
+            }),
+            ChangeSerializerOptions);
 
     private static void AppendRow(StringBuilder csv, IReadOnlyList<string?> values)
     {

@@ -19,10 +19,44 @@ public sealed class UserAuditChangesTests
     }
 
     [Fact]
-    public void Treats_a_case_only_email_difference_and_blank_values_as_unchanged()
+    public void Treats_a_case_only_email_difference_as_a_change_but_blank_values_as_unchanged()
     {
-        UserAuditChanges.Between(("User@Example.test", null, " ", null), ("user@example.test", "", null, null))
-            .Should().BeEmpty();
+        IReadOnlyList<SecurityAuditChange> changes = UserAuditChanges.Between(
+            ("User@Example.test", null, " ", null),
+            ("user@example.test", "", null, null));
+
+        changes.Should().Equal(
+            new SecurityAuditChange(SecurityAuditChangeFields.Email, "User@Example.test", "user@example.test"));
+    }
+
+    [Fact]
+    public void Records_a_difference_past_the_display_bound_after_comparing_the_full_values()
+    {
+        string prefix = new('a', SecurityAuditChangeFields.MaximumValueLength);
+        IReadOnlyList<SecurityAuditChange> changes = UserAuditChanges.Between(
+            (null, null, prefix + "x", null),
+            (null, null, prefix + "y", null));
+
+        changes.Should().ContainSingle();
+        changes[0].Field.Should().Be(SecurityAuditChangeFields.FirstName);
+        changes[0].PreviousValue.Should().HaveLength(SecurityAuditChangeFields.MaximumValueLength);
+        changes[0].NewValue.Should().HaveLength(SecurityAuditChangeFields.MaximumValueLength);
+        changes[0].PreviousValue.Should().Be(changes[0].NewValue);
+    }
+
+    [Fact]
+    public void Records_the_previous_and_new_global_role_sets()
+    {
+        UserAuditChanges.GlobalRoles(["PlatformUser"], ["PlatformUser", "PlatformAdmin"])
+            .Should().Equal(new SecurityAuditChange(
+                SecurityAuditChangeFields.GlobalRole,
+                "PlatformUser",
+                "PlatformAdmin,PlatformUser"));
+        UserAuditChanges.GlobalRoles([], ["PlatformAdmin"])
+            .Should().Equal(new SecurityAuditChange(
+                SecurityAuditChangeFields.GlobalRole,
+                SecurityAuditReasonCatalog.TenantRoleStateNone,
+                "PlatformAdmin"));
     }
 
     [Fact]

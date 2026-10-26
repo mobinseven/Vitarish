@@ -103,26 +103,79 @@ public sealed class SecurityAuditWriterTests
 
         await using AuditDbContext restarted = CreateContext(options, "tenant-a", [IdentityDefinitions.PlatformAdmin]);
         SecurityAuditQueryService query = new(restarted, new TestRequestContext("tenant-a", [IdentityDefinitions.PlatformAdmin]));
-        (await query.GetByIdempotencyKeyAsync("request-edit", CancellationToken.None))!.Changes
+        SecurityAuditPageReadDto platform = await query.QueryPlatformAsync(
+            new SecurityAuditPlatformQuery(new SecurityAuditQuery(PageSize: 10)),
+            CancellationToken.None);
+        platform.Items.Single(item => item.CorrelationId == "request-edit").Changes
             .Should().Equal(new SecurityAuditChange(SecurityAuditChangeFields.Email, "old@example.test", "new@example.test"));
-        (await query.GetByIdempotencyKeyAsync("request-plain", CancellationToken.None))!.Changes.Should().BeEmpty();
+        platform.Items.Single(item => item.CorrelationId == "request-plain").Changes.Should().BeEmpty();
+
+        SecurityAuditEventReadDto? tenant = await query.GetByIdempotencyKeyAsync("request-edit", CancellationToken.None);
+        tenant.Should().NotBeNull();
+        tenant!.Changes.Should().BeNull();
     }
 
     [Theory]
-    [InlineData("password", "old", "new")]
-    [InlineData(SecurityAuditChangeFields.Email, "old", "new\nline")]
-    public async Task Rejects_an_uncatalogued_field_or_a_control_character_value_before_persisting(string field, string previous, string current)
+    [InlineData("old", "new\nline")]
+    public async Task Rejects_a_control_character_value_before_persisting(string previous, string current)
     {
-        DbContextOptions<AuditDbContext> options = CreateOptions("security-audit-invalid-change-" + field + current.Length);
+        DbContextOptions<AuditDbContext> options = CreateOptions("security-audit-invalid-change-control");
         await using AuditDbContext context = CreateContext(options, "tenant-a");
         await context.Database.EnsureCreatedAsync();
 
         SecurityAuditEvent invalid = CreateEvent("tenant-a", "request-1");
-        invalid.Changes = [new SecurityAuditChange(field, previous, current)];
+        invalid.Changes = [new SecurityAuditChange(SecurityAuditChangeFields.Email, previous, current)];
         Func<Task> write = () => new SecurityAuditWriter(context).WriteAsync(invalid, CancellationToken.None);
 
         await write.Should().ThrowAsync<ArgumentException>();
         (await context.SecurityAuditEvents.CountAsync()).Should().Be(0);
+    }
+
+    [Fact]
+    public async Task Rejects_an_uncatalogued_change_field_before_persisting()
+    {
+        DbContextOptions<AuditDbContext> options = CreateOptions("security-audit-invalid-change-field");
+        await using AuditDbContext context = CreateContext(options, "tenant-a");
+        await context.Database.EnsureCreatedAsync();
+
+        SecurityAuditEvent invalid = CreateEvent("tenant-a", "request-1");
+        invalid.Changes = [new SecurityAuditChange((SecurityAuditChangeField)999, "old", "new")];
+        Func<Task> write = () => new SecurityAuditWriter(context).WriteAsync(invalid, CancellationToken.None);
+
+        await write.Should().ThrowAsync<ArgumentException>();
+        (await context.SecurityAuditEvents.CountAsync()).Should().Be(0);
+    }
+
+    [Fact]
+    public void Persian_change_values_are_serialized_without_unicode_escaping_and_fit_the_column()
+    {
+        string value = new('ی', SecurityAuditChangeFields.MaximumValueLength);
+        SecurityAuditChangeField[] fields = Enum.GetValues<SecurityAuditChangeField>();
+        SecurityAuditChange[] changes = Enumerable.Range(0, SecurityAuditChangeFields.MaximumChanges)
+            .Select(index => new SecurityAuditChange(fields[index % fields.Length], value, value))
+            .ToArray();
+
+        string json = SecurityAuditChangeColumn.Serialize(SecurityAuditChangeColumn.Fit(changes));
+
+        json.Should().NotContain("\\u06");
+        json.Should().Contain(value);
+        json.Length.Should().BeLessThanOrEqualTo(SecurityAuditChangeColumn.MaximumLength);
+    }
+
+    [Fact]
+    public void Change_values_are_shortened_until_the_serialized_column_fits()
+    {
+        string value = new('"', SecurityAuditChangeFields.MaximumValueLength);
+        SecurityAuditChangeField[] fields = Enum.GetValues<SecurityAuditChangeField>();
+        SecurityAuditChange[] changes = Enumerable.Range(0, SecurityAuditChangeFields.MaximumChanges)
+            .Select(index => new SecurityAuditChange(fields[index % fields.Length], value, value))
+            .ToArray();
+
+        IReadOnlyList<SecurityAuditChange> fitted = SecurityAuditChangeColumn.Fit(changes);
+
+        SecurityAuditChangeColumn.Serialize(fitted).Length.Should().BeLessThanOrEqualTo(SecurityAuditChangeColumn.MaximumLength);
+        fitted.Should().HaveCount(changes.Length);
+        fitted.Select(change => change.Field).Should().Equal(changes.Select(change => change.Field));
     }
 
     [Fact]
@@ -243,6 +296,34 @@ public sealed class SecurityAuditWriterTests
             (await restarted.SecurityAuditEvents.CountAsync()).Should().Be(2);
             (await restarted.SecurityAuditEvents.SingleAsync(item => item.Outcome == SecurityAuditOutcome.Pending)).Outcome.Should().Be(SecurityAuditOutcome.Pending);
             (await restarted.SecurityAuditEvents.SingleAsync(item => item.Outcome == SecurityAuditOutcome.Succeeded)).Changes
+                .Should().Equal(new SecurityAuditChange(SecurityAuditChangeFields.GlobalRole, null, IdentityDefinitions.PlatformAdmin));
+        }
+    }
+
+    [Fact]
+    public async Task Failed_terminal_outcome_does_not_copy_pending_changes()
+    {
+        DbContextOptions<AuditDbContext> options = CreateOptions("security-audit-pending-failed");
+        await using (AuditDbContext setup = CreateContext(options, "tenant-a"))
+        {
+            await setup.Database.EnsureCreatedAsync();
+        }
+
+        SecurityAuditEvent pending = CreateEvent("tenant-a", "request-pending-failed");
+        pending.Outcome = SecurityAuditOutcome.Pending;
+        pending.Changes = [new SecurityAuditChange(SecurityAuditChangeFields.GlobalRole, null, IdentityDefinitions.PlatformAdmin)];
+        await using (AuditDbContext initial = CreateContext(options, "tenant-a"))
+        {
+            _ = await new SecurityAuditWriter(initial).WriteAsync(pending, CancellationToken.None);
+        }
+
+        await using (AuditDbContext restarted = CreateContext(options, "tenant-a"))
+        {
+            SecurityAuditWriter writer = new(restarted);
+            (await writer.UpdateAsync("tenant-a", "request-pending-failed", SecurityAuditOutcome.Failed, "version:1", CancellationToken.None))
+                .Should().Be(SecurityAuditWriteResult.Recorded);
+            (await restarted.SecurityAuditEvents.SingleAsync(item => item.Outcome == SecurityAuditOutcome.Failed)).Changes.Should().BeNull();
+            (await restarted.SecurityAuditEvents.SingleAsync(item => item.Outcome == SecurityAuditOutcome.Pending)).Changes
                 .Should().Equal(new SecurityAuditChange(SecurityAuditChangeFields.GlobalRole, null, IdentityDefinitions.PlatformAdmin));
         }
     }

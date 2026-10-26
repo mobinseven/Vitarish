@@ -95,7 +95,7 @@ public sealed class UsersManagementAudit(
             outcome,
             reason,
             cancellationToken,
-            statusChanged && outcome == SecurityAuditOutcome.Succeeded
+            statusChanged
                 ? [new SecurityAuditChange(
                     SecurityAuditChangeFields.AccountStatus,
                     enabled ? SecurityAuditChangeFields.AccountStatusDisabled : SecurityAuditChangeFields.AccountStatusEnabled,

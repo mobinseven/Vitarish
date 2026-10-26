@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -100,6 +101,35 @@ public sealed class ChangeUserAccountStatusCommandHandlerTests
         (await dbContext.Users.AsNoTracking().SingleAsync(user => user.Id == ManagedUserId)).IsEnabled.Should().BeTrue();
         AuditEvents(auditWriter).Should().ContainSingle(audit =>
             audit.Outcome == SecurityAuditOutcome.Denied && audit.RedactedReason == SecurityAuditReasonCatalog.ActiveSessionConflict);
+    }
+
+    [Fact]
+    public async Task A_failed_restore_records_the_actual_disabled_state()
+    {
+        await using TestUsersDbContext dbContext = await CreateDbContextWithManagedUserAsync();
+        Mock<IAuthenticationActiveSessionQuery> activeSessions = new();
+        activeSessions.SetupSequence(query => query.HasActiveSessionAsync(ManagedUserId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false)
+            .ReturnsAsync(true);
+        Mock<ISecurityAuditWriter> auditWriter = AuditWriter();
+        ChangeUserAccountStatusCommandHandler handler = new(
+            CreateRestoreFailingUserManager(dbContext),
+            activeSessions.Object,
+            RequestContext(isPlatformAdministrator: true),
+            new UsersManagementAudit(auditWriter.Object, RequestContext(isPlatformAdministrator: true), TimeProvider.System),
+            CreateCache());
+
+        Func<Task> handle = () => handler.Handle(new ChangeUserAccountStatusCommand(ManagedUserId, Enabled: false), CancellationToken.None);
+
+        await handle.Should().ThrowAsync<InvalidOperationException>();
+        (await dbContext.Users.AsNoTracking().SingleAsync(user => user.Id == ManagedUserId)).IsEnabled.Should().BeFalse();
+        SecurityAuditEvent failed = AuditEvents(auditWriter).Single();
+        failed.EventName.Should().Be(SecurityAuditEventCatalog.UserAccountDisabledEvent);
+        failed.Outcome.Should().Be(SecurityAuditOutcome.Failed);
+        failed.Changes.Should().Equal(new SecurityAuditChange(
+            SecurityAuditChangeFields.AccountStatus,
+            SecurityAuditChangeFields.AccountStatusEnabled,
+            SecurityAuditChangeFields.AccountStatusDisabled));
     }
 
     [Fact]
@@ -271,6 +301,17 @@ public sealed class ChangeUserAccountStatusCommandHandlerTests
         new ServiceCollection().BuildServiceProvider(),
         NullLogger<UserManager<User>>.Instance);
 
+    private static UserManager<User> CreateRestoreFailingUserManager(UsersDbContext dbContext) => new RestoreFailingUserManager(
+        new UserStore<User>(dbContext),
+        Options.Create(new IdentityOptions()),
+        new PasswordHasher<User>(),
+        [new UserValidator<User>()],
+        [new PasswordValidator<User>()],
+        new UpperInvariantLookupNormalizer(),
+        new IdentityErrorDescriber(),
+        new ServiceCollection().BuildServiceProvider(),
+        NullLogger<UserManager<User>>.Instance);
+
     private static TestUsersDbContext CreateDbContext()
     {
         DbContextOptions<UsersDbContext> options = new DbContextOptionsBuilder<UsersDbContext>()
@@ -301,4 +342,36 @@ public sealed class ChangeUserAccountStatusCommandHandlerTests
     }
 
     private sealed class TestUsersDbContext(DbContextOptions<UsersDbContext> options) : UsersDbContext(options);
+
+    private sealed class RestoreFailingUserManager(
+        IUserStore<User> store,
+        IOptions<IdentityOptions> optionsAccessor,
+        IPasswordHasher<User> passwordHasher,
+        IEnumerable<IUserValidator<User>> userValidators,
+        IEnumerable<IPasswordValidator<User>> passwordValidators,
+        ILookupNormalizer keyNormalizer,
+        IdentityErrorDescriber errors,
+        IServiceProvider services,
+        ILogger<UserManager<User>> logger)
+        : UserManager<User>(
+            store,
+            optionsAccessor,
+            passwordHasher,
+            userValidators,
+            passwordValidators,
+            keyNormalizer,
+            errors,
+            services,
+            logger)
+    {
+        private int _updateAttempts;
+
+        public override Task<IdentityResult> UpdateAsync(User user)
+        {
+            _updateAttempts++;
+            return _updateAttempts == 1
+                ? base.UpdateAsync(user)
+                : Task.FromResult(IdentityResult.Failed(new IdentityError { Code = "RestoreFailure", Description = "restore failed" }));
+        }
+    }
 }

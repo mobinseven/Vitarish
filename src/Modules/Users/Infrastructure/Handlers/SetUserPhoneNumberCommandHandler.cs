@@ -40,6 +40,7 @@ public class SetUserPhoneNumberCommandHandler(UserManager<User> userManager, ISe
             return IdentityResult.Failed(new IdentityError { Description = "User not found" });
         }
 
+        string? previousPhoneNumber = user.PhoneNumber;
         string? phoneNumber = null;
         bool phoneConversionFailed = false;
         if (!string.IsNullOrWhiteSpace(request.PhoneNumber))
@@ -104,6 +105,9 @@ public class SetUserPhoneNumberCommandHandler(UserManager<User> userManager, ISe
             await managementAudit.AccountEditedAsync(
                 user.Id,
                 changed ? SecurityAuditReasonCatalog.UserContactIdentifierChanged : null,
+                UserAuditChanges.Between(
+                    (user.Email, previousPhoneNumber, user.FirstName, user.LastName),
+                    (user.Email, user.PhoneNumber, user.FirstName, user.LastName)),
                 CancellationToken.None);
             await UserCacheExtensions.SetUserAsync(cache, user, cancellationToken);
             await UserCacheExtensions.RemoveUsersAsync(cache, cancellationToken);

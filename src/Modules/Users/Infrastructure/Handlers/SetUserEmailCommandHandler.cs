@@ -39,6 +39,7 @@ public class SetUserEmailCommandHandler(UserManager<User> userManager, ISender s
             return IdentityResult.Failed(new IdentityError { Description = "User not found" });
         }
 
+        string? previousEmail = user.Email;
         string? email = string.IsNullOrWhiteSpace(request.Email) ? null : request.Email.Trim();
         if (!UserContactIdentifierPolicy.IsValid(email, user.PhoneNumber, user.FirstName, user.LastName))
         {
@@ -100,6 +101,9 @@ public class SetUserEmailCommandHandler(UserManager<User> userManager, ISender s
             await managementAudit.AccountEditedAsync(
                 user.Id,
                 changed ? SecurityAuditReasonCatalog.UserContactIdentifierChanged : null,
+                UserAuditChanges.Between(
+                    (previousEmail, user.PhoneNumber, user.FirstName, user.LastName),
+                    (user.Email, user.PhoneNumber, user.FirstName, user.LastName)),
                 CancellationToken.None);
             await UserCacheExtensions.SetUserAsync(cache, user, cancellationToken);
             await UserCacheExtensions.RemoveUsersAsync(cache, cancellationToken);

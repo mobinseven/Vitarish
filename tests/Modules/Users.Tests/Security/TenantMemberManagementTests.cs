@@ -107,6 +107,19 @@ public sealed class TenantMemberManagementTests
                 entry.EventName == SecurityAuditEventCatalog.UserCreationEvent &&
                 entry.SubjectId == first.User!.Id),
             It.IsAny<CancellationToken>()), Times.Once);
+        SecurityAuditEvent[] events = AuditEvents(auditWriter);
+        events.Single(entry => entry.EventName == SecurityAuditEventCatalog.UserCreationEvent).Changes.Should().Equal(
+            new SecurityAuditChange(SecurityAuditChangeFields.Email, null, "new@example.com"),
+            new SecurityAuditChange(SecurityAuditChangeFields.FirstName, null, "New"),
+            new SecurityAuditChange(SecurityAuditChangeFields.LastName, null, "Member"));
+        events.Single(entry =>
+            entry.EventName == SecurityAuditEventCatalog.TenantMemberProvisioningEvent &&
+            entry.Outcome == SecurityAuditOutcome.Succeeded &&
+            entry.Changes is not null).Changes.Should().Equal(
+            new SecurityAuditChange(
+                SecurityAuditChangeFields.TenantRole,
+                SecurityAuditReasonCatalog.TenantRoleStateNone,
+                SecurityAuditReasonCatalog.TenantRoleStateUser));
     }
 
     [Fact]
@@ -172,7 +185,8 @@ public sealed class TenantMemberManagementTests
     public async Task Removal_revokes_staff_membership_but_rejects_owner_removal()
     {
         await using TestUsersDbContext dbContext = await CreateDbContextAsync();
-        RemoveTenantMemberCommandHandler handler = new(dbContext, ActiveSessions(false).Object, AuditWriter().Object, RequestContext(TenantId, IdentityDefinitions.PlatformAdmin));
+        Mock<ISecurityAuditWriter> auditWriter = AuditWriter();
+        RemoveTenantMemberCommandHandler handler = new(dbContext, ActiveSessions(false).Object, auditWriter.Object, RequestContext(TenantId, IdentityDefinitions.PlatformAdmin));
 
         IdentityResult staffResult = await handler.Handle(new RemoveTenantMemberCommand("staff"), CancellationToken.None);
         IdentityResult ownerResult = await handler.Handle(new RemoveTenantMemberCommand("owner"), CancellationToken.None);
@@ -181,6 +195,13 @@ public sealed class TenantMemberManagementTests
         (await dbContext.UserRoles.AnyAsync(membership => membership.UserId == "staff")).Should().BeFalse();
         ownerResult.Errors.Single().Code.Should().Be(UsersCommandErrorCodes.TenantOwnerRemovalRejected);
         (await dbContext.UserRoles.AnyAsync(membership => membership.UserId == "owner")).Should().BeTrue();
+        AuditEvents(auditWriter).Single(entry =>
+            entry.EventName == SecurityAuditEventCatalog.TenantMemberRemovalEvent &&
+            entry.Outcome == SecurityAuditOutcome.Succeeded).Changes.Should().Equal(
+            new SecurityAuditChange(
+                SecurityAuditChangeFields.TenantRole,
+                SecurityAuditReasonCatalog.TenantRoleStateUser,
+                SecurityAuditReasonCatalog.TenantRoleStateNone));
     }
 
     private static ISender CreateSender(UsersDbContext dbContext)
@@ -218,6 +239,10 @@ public sealed class TenantMemberManagementTests
         audit.Setup(value => value.WriteAsync(It.IsAny<SecurityAuditEvent>(), It.IsAny<CancellationToken>())).ReturnsAsync(SecurityAuditWriteResult.Recorded);
         return audit;
     }
+
+    private static SecurityAuditEvent[] AuditEvents(Mock<ISecurityAuditWriter> auditWriter) => auditWriter.Invocations
+        .Select(invocation => (SecurityAuditEvent)invocation.Arguments[0])
+        .ToArray();
 
     private static IRequestContext RequestContext(Guid tenantId, string role)
     {

@@ -669,7 +669,7 @@
         "type": "object",
         "properties": {
           "field": {
-            "type": "string"
+            "$ref": "#/components/schemas/SecurityAuditChangeField"
           },
           "previousValue": {
             "type": [
@@ -684,6 +684,17 @@
             ]
           }
         }
+      },
+      "SecurityAuditChangeField": {
+        "enum": [
+          "email",
+          "phoneNumber",
+          "firstName",
+          "lastName",
+          "accountStatus",
+          "globalRole",
+          "tenantRole"
+        ]
       },
       "SecurityAuditEventReadDto": {
         "type": "object",
@@ -769,7 +780,10 @@
             ]
           },
           "changes": {
-            "type": "array",
+            "type": [
+              "null",
+              "array"
+            ],
             "items": {
               "$ref": "#/components/schemas/SecurityAuditChange"
             }

@@ -19,5 +19,5 @@ public sealed record SecurityAuditEventReadDto
     public string? SourceIpAddress { get; init; }
     public string? ClientInterfaceHost { get; init; }
     public string? RedactedReason { get; init; }
-    public IReadOnlyList<SecurityAuditChange> Changes { get; init; } = [];
+    public IReadOnlyList<SecurityAuditChange>? Changes { get; init; }
 }

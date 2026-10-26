@@ -27,6 +27,7 @@ import type {
   SecurityAuditEventReadDto,
   SecurityAuditSortField,
 } from "../api/generated/audit/model";
+import { SecurityAuditChangeField } from "../api/generated/audit/model";
 
 const pageSize = 25;
 const securityAuditExportFileName = "security-audit-events.csv";
@@ -201,7 +202,7 @@ function FilterSelect({
 }
 
 // The change fields whose values are catalogued codes rather than user data.
-const CODED_CHANGE_FIELDS: ReadonlySet<string> = new Set(["accountStatus", "tenantRole"]);
+const CODED_CHANGE_FIELDS: ReadonlySet<SecurityAuditChangeField> = new Set([SecurityAuditChangeField.accountStatus, SecurityAuditChangeField.tenantRole]);
 
 function AuditChangeList({
   changes,
@@ -213,7 +214,7 @@ function AuditChangeList({
   t: ReturnType<typeof useLocalizedText>["t"];
 }) {
   if (changes.length === 0) return <>{t("security.platformAudit.notAvailable")}</>;
-  const value = (field: string, text: string | null | undefined) => {
+  const value = (field: SecurityAuditChangeField, text: string | null | undefined) => {
     if (text == null) return t("security.platformAudit.changeNoValue");
     return CODED_CHANGE_FIELDS.has(field) ? localizePlatformAuditChangeValue(locale, text, text) : text;
   };
