@@ -175,10 +175,11 @@ public sealed class FilesUploadEndpointTests : IAsyncDisposable
         DefaultHttpContext context = new();
         context.RequestServices = scope.ServiceProvider;
         context.Request.Method = method;
-        context.Request.RouteValues["fileId"] = fileId.ToString();
+        RouteEndpoint endpoint = (RouteEndpoint)EndpointNamed(operationId);
+        context.Request.RouteValues[endpoint.RoutePattern.Parameters.Single().Name] = fileId.ToString();
         context.Response.Body = response;
 
-        await EndpointNamed(operationId).RequestDelegate!(context);
+        await endpoint.RequestDelegate!(context);
 
         context.Response.StatusCode.Should().Be(StatusCodes.Status200OK);
         context.Response.ContentLength.Should().Be(verifiedLength);
