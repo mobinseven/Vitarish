@@ -289,7 +289,8 @@ test("uses the real Web and Main hosts for an authenticated tenant-scoped reques
   );
   expect(sessionNotices.status).toBe(200);
   expect(sessionNotices.body).toEqual(expect.any(Array));
-  await expect(page.locator("#initial-page-loader")).toHaveCount(0);
+  // The E2E Web host is next dev, where hydrating the dashboard takes several seconds.
+  await expect(page.locator("#initial-page-loader")).toHaveCount(0, { timeout: 15_000 });
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible({ timeout: 30_000 });
 
   const browserDisclosure = await page.evaluate((secret) => ({
