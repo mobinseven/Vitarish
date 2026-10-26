@@ -31,7 +31,8 @@ const event = {
   subjectId: "subject-a",
   tenantId: "tenant-a",
   resource: "authentication",
-  resourceName: "referral.pdf",
+  resourceExtension: "pdf",
+  resourceSize: 2_516_582,
   occurredAt: "2026-09-14T07:00:00.000Z",
   correlationId: "request-a",
   sourceBoundary: "tests",
@@ -144,7 +145,7 @@ describe("PlatformSecurityAuditReviewPage", () => {
     expect(screen.getByText("subject-a")).toBeInTheDocument();
     expect(screen.getAllByText("203.0.113.7")).toHaveLength(2);
     expect(screen.getByText("redacted")).toBeInTheDocument();
-    expect(screen.getByText("Resource name").closest("div")).toHaveTextContent("referral.pdf");
+    expect(screen.getByText("File").closest("div")).toHaveTextContent("PDF · 2.4 MB");
   });
 
   it("renders capacity warnings and service authorization errors", async () => {
