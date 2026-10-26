@@ -214,4 +214,39 @@ describe("PlatformSecurityAuditReviewPage", () => {
     expect(screen.getByText("request-a")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /delete|edit|update/i })).not.toBeInTheDocument();
   });
+
+  it("shows previous and new values, localizing only catalogued status codes", async () => {
+    vi.mocked(useAuditPlatformSecurityEventsList).mockReturnValue({
+      data: {
+        items: [{
+          ...event,
+          changes: [
+            { field: "accountStatus", previousValue: "enabled", newValue: "disabled" },
+            { field: "tenantRole", previousValue: "none", newValue: "tenant_user" },
+            { field: "email", previousValue: null, newValue: "enabled" },
+          ],
+        }],
+        page: 1,
+        pageSize: 25,
+        totalCount: 1,
+        capacityThresholdReached: false,
+      },
+      isPending: false,
+      isError: false,
+      isFetching: false,
+      error: null,
+    } as never);
+    renderPage();
+
+    const eventCells = screen.getAllByText("Password login");
+    fireEvent.click(eventCells[eventCells.length - 1]);
+    await waitFor(() => expect(screen.getByRole("heading", { name: "Event details" })).toBeInTheDocument());
+
+    const changeLines = screen.getAllByRole("listitem").map((item) => item.textContent?.replace(/[⁨⁩]/g, ""));
+    expect(changeLines).toEqual(expect.arrayContaining([
+      "Account status: from Enabled to Disabled",
+      "Clinic role: from No role to Clinic user",
+      "Email: from none to enabled",
+    ]));
+  });
 });

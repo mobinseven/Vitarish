@@ -26,6 +26,7 @@ public static class SecurityAuditEventCatalog
     public const string CompletedKeySuffix = ":completed";
     public const string WriteFailureCode = "security_audit_write_unavailable";
     public const string TerminalIdempotencyPrefix = "security-audit-terminal:";
+    public const string ChangeValueNone = "(none)";
     public const string FunctionCategory = "function";
     public const string ReviewCategory = "audit-review";
     public const string ConfigurationCategory = "audit-configuration";

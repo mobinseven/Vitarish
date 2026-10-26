@@ -102,6 +102,10 @@ namespace Vitarish.Audit.Server.Migrations.AuditDb
                         .HasMaxLength(32)
                         .HasColumnType("character varying(32)");
 
+                    b.Property<string>("Changes")
+                        .HasMaxLength(8192)
+                        .HasColumnType("character varying(8192)");
+
                     b.Property<string>("ClientInterfaceHost")
                         .HasMaxLength(253)
                         .HasColumnType("character varying(253)");

@@ -10,6 +10,9 @@ public sealed class UsersManagementAudit(
     TimeProvider timeProvider)
 {
     public Task AccountCreatedAsync(string userId, CancellationToken cancellationToken) =>
+        AccountCreatedAsync(userId, null, cancellationToken);
+
+    public Task AccountCreatedAsync(string userId, IReadOnlyList<SecurityAuditChange>? changes, CancellationToken cancellationToken) =>
         WriteAsync(
             UsersSecurityAuditEvents.UserCreation,
             UsersSecurityAuditEvents.UserCreationOperation,
@@ -18,7 +21,8 @@ public sealed class UsersManagementAudit(
             SecurityAuditEventCatalog.ManagementCategory,
             SecurityAuditOutcome.Succeeded,
             null,
-            cancellationToken);
+            cancellationToken,
+            changes);
 
     public Task AccountCreationFailedAsync(string? userId, CancellationToken cancellationToken) =>
         AccountCreationFailedAsync(userId, SecurityAuditReasonCatalog.MutationRejected, cancellationToken);
@@ -34,7 +38,10 @@ public sealed class UsersManagementAudit(
             reason,
             cancellationToken);
 
-    public async Task AccountEditedAsync(string userId, string? securityAttributeChangeReason, CancellationToken cancellationToken)
+    public Task AccountEditedAsync(string userId, string? securityAttributeChangeReason, CancellationToken cancellationToken) =>
+        AccountEditedAsync(userId, securityAttributeChangeReason, null, cancellationToken);
+
+    public async Task AccountEditedAsync(string userId, string? securityAttributeChangeReason, IReadOnlyList<SecurityAuditChange>? changes, CancellationToken cancellationToken)
     {
         await WriteAsync(
             UsersSecurityAuditEvents.UserEdit,
@@ -44,7 +51,8 @@ public sealed class UsersManagementAudit(
             SecurityAuditEventCatalog.ManagementCategory,
             SecurityAuditOutcome.Succeeded,
             null,
-            cancellationToken);
+            cancellationToken,
+            changes);
 
         if (securityAttributeChangeReason is not null)
         {
@@ -76,7 +84,8 @@ public sealed class UsersManagementAudit(
         bool enabled,
         string outcome,
         string? reason,
-        CancellationToken cancellationToken) =>
+        CancellationToken cancellationToken,
+        bool statusChanged = false) =>
         WriteAsync(
             enabled ? UsersSecurityAuditEvents.UserAccountEnabled : UsersSecurityAuditEvents.UserAccountDisabled,
             enabled ? UsersSecurityAuditEvents.UserAccountEnableOperation : UsersSecurityAuditEvents.UserAccountDisableOperation,
@@ -85,7 +94,13 @@ public sealed class UsersManagementAudit(
             SecurityAuditEventCatalog.ManagementCategory,
             outcome,
             reason,
-            cancellationToken);
+            cancellationToken,
+            statusChanged
+                ? [new SecurityAuditChange(
+                    SecurityAuditChangeFields.AccountStatus,
+                    enabled ? SecurityAuditChangeFields.AccountStatusDisabled : SecurityAuditChangeFields.AccountStatusEnabled,
+                    enabled ? SecurityAuditChangeFields.AccountStatusEnabled : SecurityAuditChangeFields.AccountStatusDisabled)]
+                : null);
 
     public Task SecurityAttributeChangedAsync(string userId, string outcome, string reason, CancellationToken cancellationToken) =>
         WriteAsync(
@@ -106,7 +121,8 @@ public sealed class UsersManagementAudit(
         string category,
         string outcome,
         string? reason,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        IReadOnlyList<SecurityAuditChange>? changes = null)
     {
         string requestKey = requestContext.RequestId ?? requestContext.TraceId ?? Guid.NewGuid().ToString("N");
         try
@@ -127,6 +143,7 @@ public sealed class UsersManagementAudit(
                 CorrelationId = requestContext.TraceId ?? requestKey,
                 SourceBoundary = UsersSecurityAuditEvents.SourceBoundary,
                 RedactedReason = reason,
+                Changes = changes is { Count: > 0 } ? changes : null,
                 IdempotencyKey = requestKey + idempotencySuffix
             }, cancellationToken);
         }

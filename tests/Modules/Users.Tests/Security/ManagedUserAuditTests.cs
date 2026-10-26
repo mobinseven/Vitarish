@@ -56,6 +56,56 @@ public sealed class ManagedUserAuditTests
     }
 
     [Fact]
+    public async Task Setting_an_email_records_the_previous_and_new_value()
+    {
+        await using TestUsersDbContext dbContext = await CreateDbContextWithManagedUserAsync();
+        Mock<ISecurityAuditWriter> auditWriter = AuditWriter();
+        SetUserEmailCommandHandler handler = new(
+            CreateUserManager(dbContext),
+            CreateSender(dbContext),
+            CreateCache(),
+            new UsersManagementAudit(auditWriter.Object, RequestContext(), TimeProvider.System));
+
+        IdentityResult result = await handler.Handle(
+            new SetUserEmailCommand(ManagedUserId, "updated@example.test"),
+            CancellationToken.None);
+
+        result.Succeeded.Should().BeTrue();
+        AuditEvents(auditWriter).Single(entry =>
+            entry.EventName == SecurityAuditEventCatalog.UserEditEvent &&
+            entry.Outcome == SecurityAuditOutcome.Succeeded).Changes.Should().Equal(
+            new SecurityAuditChange(
+                SecurityAuditChangeFields.Email,
+                "original@example.test",
+                "updated@example.test"));
+    }
+
+    [Fact]
+    public async Task Setting_a_phone_number_records_the_previous_and_new_value()
+    {
+        await using TestUsersDbContext dbContext = await CreateDbContextWithManagedUserAsync(user => user.PhoneNumber = "+14155552671");
+        Mock<ISecurityAuditWriter> auditWriter = AuditWriter();
+        SetUserPhoneNumberCommandHandler handler = new(
+            CreateUserManager(dbContext),
+            CreateSender(dbContext),
+            CreateCache(),
+            new UsersManagementAudit(auditWriter.Object, RequestContext(), TimeProvider.System));
+
+        IdentityResult result = await handler.Handle(
+            new SetUserPhoneNumberCommand(ManagedUserId, "+14155552672"),
+            CancellationToken.None);
+
+        result.Succeeded.Should().BeTrue();
+        AuditEvents(auditWriter).Single(entry =>
+            entry.EventName == SecurityAuditEventCatalog.UserEditEvent &&
+            entry.Outcome == SecurityAuditOutcome.Succeeded).Changes.Should().Equal(
+            new SecurityAuditChange(
+                SecurityAuditChangeFields.PhoneNumber,
+                "+14155552671",
+                "+14155552672"));
+    }
+
+    [Fact]
     public async Task Invalid_account_creation_records_a_failure_without_creating_a_user()
     {
         await using TestUsersDbContext dbContext = CreateDbContext();

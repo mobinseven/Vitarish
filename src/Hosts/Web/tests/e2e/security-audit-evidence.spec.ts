@@ -8,8 +8,10 @@ import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/ap
 import { Routes as PlatformRoutes } from "../../apps/platform-admin/src/app/routes";
 import {
   localizePlatformAuditCategory,
+  localizePlatformAuditChangeField,
   localizePlatformAuditEvent,
   localizeSecurityAuditOutcome,
+  securityMessageCatalogs,
 } from "../../shared/security/src/localization";
 
 // Main itself, for API-boundary checks made without the browser.
@@ -72,7 +74,7 @@ const integrityVerificationPath = (fileId: string) => `${e2eAuditEvidenceBase}/f
 const integrityTamperPath = (fileId: string) => `${e2eAuditEvidenceBase}/files/${fileId}/tamper`;
 
 type AuditEventExpectation = (typeof auditEvents)[keyof typeof auditEvents] & { outcome: string };
-type AuditPage = { items: Array<{ id?: string; eventName?: string; eventCategory?: string; operation?: string; outcome?: string; actorId?: string; actorKind?: string; tenantId?: string; subjectId?: string; resource?: string; resourceNameHash?: string; resourceExtension?: string; resourceSize?: number; redactedReason?: string }>; totalCount: number };
+type AuditPage = { items: Array<{ id?: string; eventName?: string; eventCategory?: string; operation?: string; outcome?: string; actorId?: string; actorKind?: string; tenantId?: string; subjectId?: string; resource?: string; resourceNameHash?: string; resourceExtension?: string; resourceSize?: number; redactedReason?: string; changes?: Array<{ field: string; previousValue: string | null; newValue: string | null }> }>; totalCount: number };
 
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -523,6 +525,21 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     expect(downloadRecord?.resourceNameHash, "a download records the stored file's name hash").toBe(evidenceFileNameHash);
     expect(downloadRecord?.resourceExtension, "a download records the stored file's extension").toBe("png");
     expect(downloadRecord?.resourceSize, "a download records the stored file's size").toBe(evidenceFileSize);
+    // Role changes keep the previous and new role on the record, shown in its detail sheet.
+    const roleChangeRecords = await platformAuditQuery(administratorPage, { ...auditEvents.tenantRoleReplacement, outcome: "succeeded" });
+    expect(roleChangeRecords.items.some((item) =>
+      item.subjectId === memberId && item.changes?.some((change) => change.field === "tenantRole" && change.previousValue !== change.newValue),
+    ), "the member's role replacement must carry its previous and new role").toBe(true);
+    const roleEventCell = administratorPage.locator("tbody tr").first()
+      .getByText(localizePlatformAuditEvent(locale, auditEvents.tenantRoleReplacement.name, auditEvents.tenantRoleReplacement.name), { exact: true }).first();
+    await roleEventCell.click();
+    await expect(administratorPage.getByRole("heading", { name: securityMessageCatalogs[locale].security.platformAudit.detailTitle })).toBeVisible();
+    const roleChangeLine = administratorPage.getByRole("listitem").filter({ hasText: localizePlatformAuditChangeField(locale, "tenantRole", "tenantRole") });
+    await expect(roleChangeLine).toBeVisible();
+    // The sheet scrolls on its own, so a full-page capture would leave the change line below its fold.
+    await roleChangeLine.scrollIntoViewIfNeeded();
+    await hideDevelopmentIndicator(administratorPage);
+    await administratorPage.screenshot({ path: join(evidenceDirectory, "tenant-role-change-detail.png") });
     await captureAuditEvidence(administratorPage, { ...auditEvents.dataImport, outcome: "succeeded" }, "data-import.png");
     const reviewEvent = { ...auditEvents.auditReview, outcome: "succeeded" };
     const reviewEventsBefore = await platformAuditQuery(administratorPage, reviewEvent);

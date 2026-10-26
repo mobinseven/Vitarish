@@ -92,21 +92,34 @@ internal sealed class AddUserToRoleCommandHandler(
             return result;
         }
 
+        string[] previousRoles = await AssignedRoleNamesAsync(request.User.Id, cancellationToken);
         dbContext.UserRoles.Add(new IdentityUserRole<string>
         {
             UserId = request.User.Id,
             RoleId = role.Id
         });
         await dbContext.SaveChangesAsync(cancellationToken);
-        await WriteAuditAsync(request, SecurityAuditOutcome.Succeeded, null, cancellationToken);
+        await WriteAuditAsync(
+            request,
+            SecurityAuditOutcome.Succeeded,
+            null,
+            cancellationToken,
+            UserAuditChanges.GlobalRoles(previousRoles, previousRoles.Append(request.RoleName)));
         return IdentityResult.Success;
     }
+
+    private Task<string[]> AssignedRoleNamesAsync(string userId, CancellationToken cancellationToken) =>
+        (from membership in dbContext.UserRoles
+         join role in dbContext.Roles on membership.RoleId equals role.Id
+         where membership.UserId == userId
+         select role.Name!).ToArrayAsync(cancellationToken);
 
     private async Task WriteAuditAsync(
         AddUserToRoleCommand request,
         string outcome,
         string? reason,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        IReadOnlyList<SecurityAuditChange>? changes = null)
     {
         string key = requestContext.RequestId ?? Guid.NewGuid().ToString("N");
         try
@@ -125,6 +138,7 @@ internal sealed class AddUserToRoleCommandHandler(
                 CorrelationId = requestContext.TraceId ?? requestContext.RequestId ?? key,
                 SourceBoundary = UsersSecurityAuditEvents.SourceBoundary,
                 RedactedReason = reason,
+                Changes = changes,
                 IdempotencyKey = key + UsersSecurityAuditEvents.GlobalRoleAssignmentIdempotencySuffix
             }, cancellationToken);
         }

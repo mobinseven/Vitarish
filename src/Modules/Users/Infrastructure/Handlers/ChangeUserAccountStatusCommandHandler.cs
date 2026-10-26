@@ -151,7 +151,8 @@ internal sealed class ChangeUserAccountStatusCommandHandler(
                 request.Enabled,
                 restored.Succeeded ? SecurityAuditOutcome.Denied : SecurityAuditOutcome.Failed,
                 SecurityAuditReasonCatalog.ActiveSessionConflict,
-                CancellationToken.None);
+                CancellationToken.None,
+                statusChanged: !restored.Succeeded);
             if (!restored.Succeeded)
                 throw new InvalidOperationException("A sign-in raced the account disable and the account could not be re-enabled.");
             return IdentityResult.Failed(new IdentityError
@@ -166,7 +167,8 @@ internal sealed class ChangeUserAccountStatusCommandHandler(
             request.Enabled,
             SecurityAuditOutcome.Succeeded,
             null,
-            CancellationToken.None);
+            CancellationToken.None,
+            statusChanged: true);
         await UserCacheExtensions.SetUserAsync(cache, user, cancellationToken);
         await UserCacheExtensions.RemoveUsersAsync(cache, cancellationToken);
         return result;

@@ -32,5 +32,6 @@ public sealed class SecurityAuditEvent
     public string? SourceIpAddress { get; set; }
     public string? ClientInterfaceHost { get; set; }
     public string? RedactedReason { get; set; }
+    public IReadOnlyList<SecurityAuditChange>? Changes { get; set; }
     public string IdempotencyKey { get; set; } = string.Empty;
 }

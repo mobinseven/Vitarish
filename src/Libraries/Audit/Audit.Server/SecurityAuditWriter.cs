@@ -142,6 +142,7 @@ internal sealed class SecurityAuditWriter(
                 SourceIpAddress = pending.SourceIpAddress,
                 ClientInterfaceHost = pending.ClientInterfaceHost,
                 RedactedReason = SecurityAuditRedaction.Apply(reason),
+                Changes = outcome == SecurityAuditOutcome.Succeeded ? pending.Changes : null,
                 IdempotencyKey = terminalKey
             }, cancellationToken);
             _ = await dbContext.SaveChangesAsync(cancellationToken);
@@ -162,6 +163,9 @@ internal sealed class SecurityAuditWriter(
 
     private void Normalize(SecurityAuditEvent auditEvent)
     {
+        if (auditEvent.Changes is { Count: > 0 } changes)
+            auditEvent.Changes = SecurityAuditChangeColumn.Fit(changes);
+
         auditEvent.EventCategory ??= SecurityAuditEventCatalog.Find(auditEvent.EventName, auditEvent.Operation)?.Category;
         auditEvent.ActorKind ??= auditEvent.ActorId is null ? SecurityAuditActorKind.Anonymous : SecurityAuditActorKind.User;
         auditEvent.RedactedReason = SecurityAuditRedaction.Apply(auditEvent.RedactedReason);
@@ -228,6 +232,11 @@ internal sealed class SecurityAuditWriter(
             throw new ArgumentException("Security audit resource extensions must be non-empty, bounded, and free of control, format, and separator characters.", nameof(auditEvent));
         if (auditEvent.ResourceSize is < 0)
             throw new ArgumentException("Security audit resource sizes cannot be negative.", nameof(auditEvent));
+        if (auditEvent.Changes is { } changes &&
+            (changes.Count == 0 || !SecurityAuditChangeFields.AreValid(changes) || !SecurityAuditChangeColumn.IsWithinLength(changes)))
+        {
+            throw new ArgumentException("Security audit changes must use catalogued fields with bounded values.", nameof(auditEvent));
+        }
         if (auditEvent.OccurredAt.Kind != DateTimeKind.Utc)
             throw new ArgumentException("Security audit timestamps must be UTC.", nameof(auditEvent));
     }

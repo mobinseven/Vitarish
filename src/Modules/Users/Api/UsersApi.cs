@@ -215,13 +215,7 @@ public static class UsersApi
             .Where(role => role is not null)
             .Select(role => role!)
             .ToList();
-        HashSet<string> tenantRoleNames = details.AssignedRoles
-            .Where(TenantRoleDefinitions.IsTenantRoleName)
-            .ToHashSet(StringComparer.Ordinal);
-        string[] globalRoles = details.AssignedRoles
-            .Where(role => !tenantRoleNames.Contains(role))
-            .Order(StringComparer.Ordinal)
-            .ToArray();
+        IReadOnlyList<string> globalRoles = TenantRoleDefinitions.GlobalRoles(details.AssignedRoles);
         UserSecurityIdentityResponse identity = new(
             details.User.Id,
             details.User.UserName,

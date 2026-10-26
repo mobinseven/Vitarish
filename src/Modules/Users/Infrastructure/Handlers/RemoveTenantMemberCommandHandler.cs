@@ -73,7 +73,17 @@ internal sealed class RemoveTenantMemberCommandHandler(
             _ = await dbContext.SaveChangesAsync(cancellationToken);
             if (transaction is not null)
                 await transaction.CommitAsync(cancellationToken);
-            await WriteAuditAsync(request, tenantId, operationKey, SecurityAuditOutcome.Succeeded, null, cancellationToken);
+            await WriteAuditAsync(
+                request,
+                tenantId,
+                operationKey,
+                SecurityAuditOutcome.Succeeded,
+                null,
+                cancellationToken,
+                [new SecurityAuditChange(
+                    SecurityAuditChangeFields.TenantRole,
+                    SecurityAuditReasonCatalog.TenantRoleStateUser,
+                    SecurityAuditReasonCatalog.TenantRoleStateNone)]);
             return IdentityResult.Success;
         }
         catch (DbUpdateConcurrencyException)
@@ -90,7 +100,14 @@ internal sealed class RemoveTenantMemberCommandHandler(
         }
     }
 
-    private async Task WriteAuditAsync(RemoveTenantMemberCommand request, Guid tenantId, string operationKey, string outcome, string? reason, CancellationToken cancellationToken)
+    private async Task WriteAuditAsync(
+        RemoveTenantMemberCommand request,
+        Guid tenantId,
+        string operationKey,
+        string outcome,
+        string? reason,
+        CancellationToken cancellationToken,
+        IReadOnlyList<SecurityAuditChange>? changes = null)
     {
         try
         {
@@ -108,6 +125,7 @@ internal sealed class RemoveTenantMemberCommandHandler(
                 CorrelationId = requestContext.TraceId ?? requestContext.RequestId ?? operationKey,
                 SourceBoundary = UsersSecurityAuditEvents.SourceBoundary,
                 RedactedReason = reason,
+                Changes = changes,
                 IdempotencyKey = operationKey + UsersSecurityAuditEvents.TenantMemberRemovalIdempotencySuffix
             }, cancellationToken);
         }

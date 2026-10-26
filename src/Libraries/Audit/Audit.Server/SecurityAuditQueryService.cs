@@ -21,6 +21,7 @@ internal sealed class SecurityAuditQueryService(
         return await ExecutePageAsync(
             () => ApplyFilters(dbContext.SecurityAuditEvents.AsNoTracking(), query, requestContext.TenantId, excludePlatformScope: true, tenantScopeRequired: true),
             query,
+            ToTenantReadDto,
             cancellationToken);
     }
 
@@ -35,6 +36,7 @@ internal sealed class SecurityAuditQueryService(
         return await ExecutePageAsync(
             () => ApplyFilters(dbContext.SecurityAuditEvents.AsNoTracking().IgnoreQueryFilters(), request.Query, request.TenantId, request.UncataloguedOnly),
             request.Query,
+            ToReadDto,
             cancellationToken);
     }
 
@@ -102,7 +104,7 @@ internal sealed class SecurityAuditQueryService(
             return await dbContext.SecurityAuditEvents.AsNoTracking()
                 .Where(e => e.TenantId == requestContext.TenantId && e.TenantId != SecurityAuditScopeCatalog.PlatformScopeId && e.Resource == resource)
                 .OrderByDescending(e => e.OccurredAt)
-                .Select(ToReadDto)
+                .Select(ToTenantReadDto)
                 .ToListAsync(cancellationToken);
         }
         catch (OperationCanceledException)
@@ -128,7 +130,7 @@ internal sealed class SecurityAuditQueryService(
         {
             return await dbContext.SecurityAuditEvents.AsNoTracking()
                 .Where(e => e.TenantId == requestContext.TenantId && e.TenantId != SecurityAuditScopeCatalog.PlatformScopeId && e.IdempotencyKey == idempotencyKey)
-                .Select(ToReadDto)
+                .Select(ToTenantReadDto)
                 .SingleOrDefaultAsync(cancellationToken);
         }
         catch (OperationCanceledException)
@@ -148,6 +150,7 @@ internal sealed class SecurityAuditQueryService(
     private async Task<SecurityAuditPageReadDto> ExecutePageAsync(
         Func<IQueryable<SecurityAuditEvent>> filteredFactory,
         SecurityAuditQuery query,
+        Expression<Func<SecurityAuditEvent, SecurityAuditEventReadDto>> projection,
         CancellationToken cancellationToken)
     {
         try
@@ -157,7 +160,7 @@ internal sealed class SecurityAuditQueryService(
             List<SecurityAuditEventReadDto> items = await ApplySort(filtered, query)
                 .Skip((query.Page - 1) * query.PageSize)
                 .Take(query.PageSize)
-                .Select(ToReadDto)
+                .Select(projection)
                 .ToListAsync(cancellationToken);
 
             long storageSize = storageSizeReader is null ? 0 : await storageSizeReader.GetStorageSizeBytesAsync(cancellationToken);
@@ -288,6 +291,29 @@ internal sealed class SecurityAuditQueryService(
         SourceIpKind = item.SourceIpKind,
         SourceIpAddress = item.SourceIpAddress,
         ClientInterfaceHost = item.ClientInterfaceHost,
-        RedactedReason = item.RedactedReason
+        RedactedReason = item.RedactedReason,
+        Changes = item.Changes ?? Array.Empty<SecurityAuditChange>()
+    };
+
+    internal static Expression<Func<SecurityAuditEvent, SecurityAuditEventReadDto>> ToTenantReadDto => item => new SecurityAuditEventReadDto
+    {
+        Id = item.Id,
+        EventName = item.EventName,
+        EventCategory = item.EventCategory,
+        Outcome = item.Outcome,
+        ActorKind = item.ActorKind,
+        ActorId = item.ActorId,
+        SubjectId = item.SubjectId,
+        TenantId = item.TenantId,
+        Resource = item.Resource,
+        Operation = item.Operation,
+        OccurredAt = item.OccurredAt,
+        CorrelationId = item.CorrelationId,
+        SourceBoundary = item.SourceBoundary,
+        SourceIpKind = item.SourceIpKind,
+        SourceIpAddress = item.SourceIpAddress,
+        ClientInterfaceHost = item.ClientInterfaceHost,
+        RedactedReason = item.RedactedReason,
+        Changes = null
     };
 }

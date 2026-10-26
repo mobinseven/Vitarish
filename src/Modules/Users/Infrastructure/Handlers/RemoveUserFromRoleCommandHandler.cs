@@ -99,18 +99,31 @@ internal sealed class RemoveUserFromRoleCommandHandler(
             return result;
         }
 
+        string[] previousRoles = await AssignedRoleNamesAsync(request.User.Id, cancellationToken);
         _ = dbContext.UserRoles.Remove(userRole);
         _ = await dbContext.SaveChangesAsync(cancellationToken);
 
-        await WriteAuditAsync(request, SecurityAuditOutcome.Succeeded, null, cancellationToken);
+        await WriteAuditAsync(
+            request,
+            SecurityAuditOutcome.Succeeded,
+            null,
+            cancellationToken,
+            UserAuditChanges.GlobalRoles(previousRoles, previousRoles.Where(name => name != request.RoleName)));
         return IdentityResult.Success;
     }
+
+    private Task<string[]> AssignedRoleNamesAsync(string userId, CancellationToken cancellationToken) =>
+        (from membership in dbContext.UserRoles
+         join role in dbContext.Roles on membership.RoleId equals role.Id
+         where membership.UserId == userId
+         select role.Name!).ToArrayAsync(cancellationToken);
 
     private async Task WriteAuditAsync(
         RemoveUserFromRoleCommand request,
         string outcome,
         string? reason,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        IReadOnlyList<SecurityAuditChange>? changes = null)
     {
         string operationKey = requestContext.RequestId ?? Guid.NewGuid().ToString("N");
         try
@@ -129,6 +142,7 @@ internal sealed class RemoveUserFromRoleCommandHandler(
                 CorrelationId = requestContext.TraceId ?? requestContext.RequestId ?? operationKey,
                 SourceBoundary = UsersSecurityAuditEvents.SourceBoundary,
                 RedactedReason = reason,
+                Changes = changes,
                 IdempotencyKey = operationKey + UsersSecurityAuditEvents.GlobalRoleRevocationIdempotencySuffix
             }, cancellationToken);
         }

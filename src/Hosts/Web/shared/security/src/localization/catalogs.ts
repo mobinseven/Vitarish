@@ -169,6 +169,9 @@ const platformAuditMessages = {
   sourceIpKind: "Source IP kind",
   sourceIpAddress: "Source IP address",
   redactedReason: "Redacted reason",
+  changes: "Changes",
+  changeValue: "{field}: from {previous} to {next}",
+  changeNoValue: "none",
 } as const;
 
 const platformAuditMessagesFa = {
@@ -254,6 +257,9 @@ const platformAuditMessagesFa = {
   sourceIpKind: "نوع IP مبدأ",
   sourceIpAddress: "نشانی IP مبدأ",
   redactedReason: "دلیل پالایش‌شده",
+  changes: "تغییرات",
+  changeValue: "{field}: از {previous} به {next}",
+  changeNoValue: "بدون مقدار",
 } as const;
 
 const platformAuditIdentifierLabels = {
@@ -317,6 +323,23 @@ const platformAuditIdentifierLabels = {
       "authentication.tenant-handoff.issued": "Sign-in link to a new clinic issued",
       "authentication.tenant-handoff.redeemed": "Sign-in link to a new clinic used",
     },
+    changeFields: {
+      email: "Email",
+      phoneNumber: "Phone number",
+      firstName: "First name",
+      lastName: "Last name",
+      accountStatus: "Account status",
+      globalRole: "Global role",
+      tenantRole: "Clinic role",
+    },
+    changeValues: {
+      enabled: "Enabled",
+      disabled: "Disabled",
+      none: "No role",
+      tenant_owner: "Clinic owner",
+      tenant_user: "Clinic user",
+      multiple: "Several roles",
+    },
   },
   fa: {
     categories: {
@@ -378,10 +401,27 @@ const platformAuditIdentifierLabels = {
       "authentication.tenant-handoff.issued": "صدور پیوند ورود به مطب تازه",
       "authentication.tenant-handoff.redeemed": "استفاده از پیوند ورود به مطب تازه",
     },
+    changeFields: {
+      email: "ایمیل",
+      phoneNumber: "شماره تلفن",
+      firstName: "نام",
+      lastName: "نام خانوادگی",
+      accountStatus: "وضعیت حساب",
+      globalRole: "نقش سراسری",
+      tenantRole: "نقش در مطب",
+    },
+    changeValues: {
+      enabled: "فعال",
+      disabled: "غیرفعال",
+      none: "بدون نقش",
+      tenant_owner: "مالک مطب",
+      tenant_user: "کاربر مطب",
+      multiple: "چند نقش",
+    },
   },
 } as const;
 
-type PlatformAuditIdentifierKind = "categories" | "events";
+type PlatformAuditIdentifierKind = "categories" | "events" | "changeFields" | "changeValues";
 
 function localizePlatformAuditIdentifier(
   locale: SupportedLocale,
@@ -399,6 +439,14 @@ export function localizePlatformAuditCategory(locale: SupportedLocale, value: st
 
 export function localizePlatformAuditEvent(locale: SupportedLocale, value: string | null | undefined, fallback: string): string {
   return localizePlatformAuditIdentifier(locale, "events", value, fallback);
+}
+
+export function localizePlatformAuditChangeField(locale: SupportedLocale, value: string | null | undefined, fallback: string): string {
+  return localizePlatformAuditIdentifier(locale, "changeFields", value, fallback);
+}
+
+export function localizePlatformAuditChangeValue(locale: SupportedLocale, value: string | null | undefined, fallback: string): string {
+  return localizePlatformAuditIdentifier(locale, "changeValues", value, fallback);
 }
 
 export function localizeSecurityAuditOutcome(locale: SupportedLocale, value: string | null | undefined, fallback: string): string {

@@ -17,6 +17,13 @@ public static class TenantRoleDefinitions
             IdentityDefinitions.PlatformAdmin
         };
 
+    public static IReadOnlyList<string> GlobalRoles(IEnumerable<string> roleNames) =>
+        roleNames
+            .Where(roleName => !IsTenantRoleName(roleName))
+            .Distinct(StringComparer.Ordinal)
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+
     public static bool IsPermittedRoleSuffix(string? roleSuffix) =>
         roleSuffix is not null && PermittedRoleSuffixes.Contains(roleSuffix);
 
