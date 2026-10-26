@@ -163,8 +163,8 @@ async function login(page: Page, username: string, origin = "", clientIp = "198.
   expect(response.status()).toBe(200);
 }
 
-async function platformAuditQuery(page: Page, event: AuditEventExpectation): Promise<AuditPage> {
-  const result = await page.evaluate(async ({ origin, expected }) => {
+async function platformAuditResponse(page: Page, event: AuditEventExpectation): Promise<{ status: number; body: unknown }> {
+  return page.evaluate(async ({ origin, expected }) => {
     const url = new URL("/api/audit/platform/security-events", origin || window.location.origin);
     url.search = new URLSearchParams({
       page: "1",
@@ -180,7 +180,10 @@ async function platformAuditQuery(page: Page, event: AuditEventExpectation): Pro
     const response = await fetch(url, { credentials: "include" });
     return { status: response.status, body: await response.json() };
   }, { origin: browserApiOrigin, expected: event });
+}
 
+async function platformAuditQuery(page: Page, event: AuditEventExpectation): Promise<AuditPage> {
+  const result = await platformAuditResponse(page, event);
   expect(result.status).toBe(200);
   return result.body as AuditPage;
 }
@@ -675,8 +678,8 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     // While every audit-store save fails, a sign-in attempt still gets its normal answer. Once the
     // store accepts writes again, one security-failure record summarizes the outage.
     const outageSummaryPattern = /^audit_storage_outage:start=[^;]+;end=[^;]+;failed_writes=(\d+)$/;
-    // The refused password login records its started and completed events; the summary itself is not refused.
-    const refusedAuditWrites = 2;
+    // Starting the injected outage refuses its boundary event, then the login refuses its started and completed events.
+    const refusedAuditWrites = 3;
     expect((await postJson(administratorPage, storeOutageStartPath)).status).toBe(204);
     let statusDuringOutage = 0;
     try {
@@ -686,11 +689,10 @@ test("real actions create visible platform security-audit evidence", async ({ pa
         ignoreHTTPSErrors: true,
       });
       statusDuringOutage = response.status();
-    } finally {
       const outageEvent = { ...auditEvents.securityFunctionFailure, outcome: "failed" };
-      const summariesDuringOutage = (await platformAuditQuery(administratorPage, outageEvent)).items
-        .filter((item) => outageSummaryPattern.test(item.redactedReason ?? ""));
-      expect(summariesDuringOutage, "no summary may be written while the store is still down").toHaveLength(0);
+      const unavailableReview = await platformAuditResponse(administratorPage, outageEvent);
+      expect(unavailableReview.status, "audit review reports unavailable while its store is down").toBe(503);
+    } finally {
       expect((await postJson(administratorPage, storeOutageEndPath)).status).toBe(204);
     }
     expect(statusDuringOutage).toBe(401);
