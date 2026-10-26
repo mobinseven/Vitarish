@@ -234,6 +234,7 @@ export const faMessages = {
       failedAttempts: "تلاش‌های ناموفق از زمان موفقیت قبلی",
       currentFailedAttempts: "تلاش‌های ناموفق فعلی",
       notRecorded: "ثبت نشده است",
+      ipAddressPrefix: "نشانی IP: ",
       noHistory: "هنوز تاریخچه‌ای از ورود موفق ثبت نشده است.",
       unavailable: "بارگذاری تاریخچه امنیت انجام نشد.",
       notices: "اعلان‌های نشست",

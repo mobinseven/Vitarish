@@ -38,9 +38,15 @@ public sealed class AspNetIdentitySignInService(
         if (user is null)
             return AuthenticationSessionSignInResult.Failed(new(AuthenticationFailureReason.InvalidCredentials, "Cannot sign in an unknown user."));
         if (!user.IsEnabled)
+        {
+            await sessionRegistry.RecordFailedAttemptAsync(user.Id, cancellationToken);
             return AuthenticationSessionSignInResult.Failed(new(AuthenticationFailureReason.AccountDisabled, "The account is disabled."));
+        }
         if (!await MayStartSessionAsync(user, cancellationToken))
+        {
+            await sessionRegistry.RecordFailedAttemptAsync(user.Id, cancellationToken);
             return AuthenticationSessionSignInResult.Failed(new(AuthenticationFailureReason.NoAccess, "The account has no access level."));
+        }
 
         IAuthenticationSessionPreparation? preparation = null;
         preparation = await sessionRegistry.PrepareAsync(userId, cancellationToken);
@@ -87,6 +93,7 @@ public sealed class AspNetIdentitySignInService(
         {
             await sessionRegistry.RevokeAsync(established.SessionId!, AuthenticationSessionTerminationReason.SecurityAttributeChanged, CancellationToken.None);
             await httpContextAccessor.HttpContext!.SignOutAsync(IdentityConstants.ApplicationScheme);
+            await sessionRegistry.RecordFailedAttemptAsync(user.Id, CancellationToken.None);
             return AuthenticationSessionSignInResult.Failed(new(AuthenticationFailureReason.AccountDisabled, "The account is disabled."));
         }
 
@@ -97,6 +104,7 @@ public sealed class AspNetIdentitySignInService(
         {
             await sessionRegistry.RevokeAsync(established.SessionId!, AuthenticationSessionTerminationReason.SecurityAttributeChanged, CancellationToken.None);
             await httpContextAccessor.HttpContext!.SignOutAsync(IdentityConstants.ApplicationScheme);
+            await sessionRegistry.RecordFailedAttemptAsync(user.Id, CancellationToken.None);
             return AuthenticationSessionSignInResult.Failed(new(AuthenticationFailureReason.NoAccess, "The account has no access level."));
         }
 
@@ -172,11 +180,17 @@ public sealed class AspNetIdentitySignInService(
         if (result.Succeeded || result.RequiresTwoFactor)
         {
             if (!user.IsEnabled)
+            {
+                await sessionRegistry.RecordFailedAttemptAsync(user.Id, cancellationToken);
                 return new PasswordSignInResult(PasswordSignInStatus.AccountDisabled, user.Id, RequiresProfileCompletion(user));
+            }
             // Like a disabled account, refuse right after the password verifies, before
             // any second-factor code is sent.
             if (!await MayStartSessionAsync(user, cancellationToken))
+            {
+                await sessionRegistry.RecordFailedAttemptAsync(user.Id, cancellationToken);
                 return new PasswordSignInResult(PasswordSignInStatus.NoAccess, user.Id, RequiresProfileCompletion(user));
+            }
             await ResetAsync(identifierKeys, cancellationToken);
             await ResetAsync(subjectKeys, cancellationToken);
             PasswordSignInResult successful = new(

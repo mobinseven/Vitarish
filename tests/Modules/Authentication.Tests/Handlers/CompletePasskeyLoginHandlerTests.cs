@@ -40,7 +40,8 @@ public sealed class CompletePasskeyLoginHandlerTests
             policy.Object,
             tracker.Object,
             keys,
-            CreateAttemptAuditor());
+            CreateAttemptAuditor(),
+            Mock.Of<IAuthenticationSessionRegistry>());
 
         AuthenticationResult<LoginResult> result = await handler.Handle(
             new CompletePasskeyLoginCommand("challenge-1", "credential", "/home"),
@@ -77,7 +78,8 @@ public sealed class CompletePasskeyLoginHandlerTests
             policy.Object,
             tracker.Object,
             keys,
-            CreateAttemptAuditor());
+            CreateAttemptAuditor(),
+            Mock.Of<IAuthenticationSessionRegistry>());
 
         AuthenticationResult<LoginResult> result = await handler.Handle(
             new CompletePasskeyLoginCommand("challenge-1", "credential", "/home"),
@@ -85,6 +87,44 @@ public sealed class CompletePasskeyLoginHandlerTests
 
         result.Should().BeOfType<AuthenticationResult<LoginResult>.Failure>();
         tracker.Verify(item => item.RegisterFailureAsync(attemptKey, 5, TimeSpan.FromMinutes(15), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task A_failed_passkey_assertion_records_the_unsuccessful_attempt()
+    {
+        IAuthenticationAttemptKeyFactory keys = CreateKeys();
+        string attemptKey = keys.Identifier(AuthenticationMethod.Passkey, "user@example.test");
+        Mock<IWebAuthnAuthenticationService> webAuthn = new();
+        webAuthn.Setup(item => item.GetSubjectIdAsync("challenge-1", "credential", It.IsAny<CancellationToken>()))
+            .ReturnsAsync("user-42");
+        webAuthn.Setup(item => item.GetAttemptKeyAsync("challenge-1", "credential", It.IsAny<CancellationToken>())).ReturnsAsync(attemptKey);
+        webAuthn.Setup(item => item.CompleteAsync("challenge-1", "credential", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new WebAuthnCompleteResult(false, null, new(AuthenticationFailureReason.InvalidCredential, "failed")));
+        Mock<IAuthenticationAttemptTracker> tracker = new();
+        tracker.Setup(item => item.IsDeniedAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync(false);
+        tracker.Setup(item => item.RegisterFailureAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        Mock<IAuthenticationSecurityPolicyProvider> policy = new();
+        policy.Setup(item => item.GetAsync(It.IsAny<CancellationToken>())).ReturnsAsync(SecurityAccessPolicy.Default);
+        Mock<IAuthenticationSessionRegistry> registry = new();
+
+        CompletePasskeyLoginHandler handler = new(
+            webAuthn.Object,
+            Mock.Of<IAuthenticationSignInService>(),
+            Mock.Of<IAuthenticationRedirectResolver>(),
+            policy.Object,
+            tracker.Object,
+            keys,
+            CreateAttemptAuditor(),
+            registry.Object);
+
+        AuthenticationResult<LoginResult> result = await handler.Handle(
+            new CompletePasskeyLoginCommand("challenge-1", "credential", "/home"),
+            CancellationToken.None);
+
+        result.Should().BeOfType<AuthenticationResult<LoginResult>.Failure>();
+        registry.Verify(
+            item => item.RecordFailedAttemptAsync("user-42", It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]
@@ -111,7 +151,8 @@ public sealed class CompletePasskeyLoginHandlerTests
             policy.Object,
             tracker.Object,
             keys,
-            CreateAttemptAuditor());
+            CreateAttemptAuditor(),
+            Mock.Of<IAuthenticationSessionRegistry>());
 
         _ = await handler.Handle(new CompletePasskeyLoginCommand("challenge-1", "credential", "/home"), CancellationToken.None);
 
@@ -147,7 +188,8 @@ public sealed class CompletePasskeyLoginHandlerTests
             policyProvider.Object,
             tracker,
             keys,
-            CreateAttemptAuditor());
+            CreateAttemptAuditor(),
+            Mock.Of<IAuthenticationSessionRegistry>());
 
         AuthenticationResult<LoginResult> first = await handler.Handle(
             new CompletePasskeyLoginCommand("challenge-1", "credential", "/home"),
@@ -195,7 +237,8 @@ public sealed class CompletePasskeyLoginHandlerTests
             policy.Object,
             tracker.Object,
             keys,
-            new AuthenticationAttemptAuditor(writer.Object, requestContext.Object, new TestAuthenticationUtcClock()));
+            new AuthenticationAttemptAuditor(writer.Object, requestContext.Object, new TestAuthenticationUtcClock()),
+            Mock.Of<IAuthenticationSessionRegistry>());
 
         AuthenticationResult<LoginResult> result = await handler.Handle(
             new CompletePasskeyLoginCommand("challenge-1", "credential", "/home"),
@@ -241,7 +284,8 @@ public sealed class CompletePasskeyLoginHandlerTests
             policy.Object,
             tracker.Object,
             keys,
-            new AuthenticationAttemptAuditor(writer.Object, requestContext.Object, new TestAuthenticationUtcClock()));
+            new AuthenticationAttemptAuditor(writer.Object, requestContext.Object, new TestAuthenticationUtcClock()),
+            Mock.Of<IAuthenticationSessionRegistry>());
 
         AuthenticationResult<LoginResult> result = await handler.Handle(
             new CompletePasskeyLoginCommand("challenge-1", "credential", "/home"),

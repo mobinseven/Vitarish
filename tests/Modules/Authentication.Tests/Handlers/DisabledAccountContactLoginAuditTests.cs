@@ -109,7 +109,8 @@ public sealed class DisabledAccountContactLoginAuditTests
         CreateKeys(),
         CreateAuditor(events),
         Mock.Of<IInitialPlatformAdministratorGrant>(),
-        Mock.Of<IUserAccountUpdater>());
+        Mock.Of<IUserAccountUpdater>(),
+        Mock.Of<IAuthenticationSessionRegistry>());
 
     private static CompleteEmailLoginHandler CreateEmailHandler(
         AuthenticationChallenge challenge,
@@ -125,7 +126,8 @@ public sealed class DisabledAccountContactLoginAuditTests
         CreateKeys(),
         CreateAuditor(events),
         Mock.Of<IInitialPlatformAdministratorGrant>(),
-        Mock.Of<IUserAccountUpdater>());
+        Mock.Of<IUserAccountUpdater>(),
+        Mock.Of<IAuthenticationSessionRegistry>());
 
     private static IAuthenticationChallengeStore CreateStore(AuthenticationChallenge challenge) => CreateStoreMock(challenge).Object;
 

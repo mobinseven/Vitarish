@@ -18,6 +18,7 @@ const apiOrigin = process.env[twoHostE2eApiOriginEnvironmentKey] ?? "https://loc
 const browserApiOrigin = "";
 const platformOrigin = process.env.PLAYWRIGHT_PLATFORM_ADMIN_ORIGIN ?? "http://localhost:3006";
 const ownerUsername = process.env.VITARISH_E2E_USERNAME ?? "e2e-owner";
+const ownerClientIp = "198.51.100.61";
 const ownerOrigin = "";
 const platformAdminUsername = process.env.VITARISH_E2E_PLATFORM_ADMIN_USERNAME ?? "e2e-platform-admin";
 const ownerTenantId = "9c8b6b3a-7d6e-4f75-a88d-7d3f5b1b0f92";
@@ -72,6 +73,10 @@ const integrityTamperPath = (fileId: string) => `${e2eAuditEvidenceBase}/files/$
 
 type AuditEventExpectation = (typeof auditEvents)[keyof typeof auditEvents] & { outcome: string };
 type AuditPage = { items: Array<{ id?: string; eventName?: string; eventCategory?: string; operation?: string; outcome?: string; actorId?: string; actorKind?: string; tenantId?: string; subjectId?: string; resource?: string; resourceNameHash?: string; resourceExtension?: string; resourceSize?: number; redactedReason?: string }>; totalCount: number };
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
 
 async function login(page: Page, username: string, origin = "", clientIp = "198.51.100.60"): Promise<void> {
   await page.context().addCookies([
@@ -337,7 +342,7 @@ test("real actions create visible platform security-audit evidence", async ({ pa
   let restoreSessionPolicy: (() => Promise<void>) | undefined;
 
   try {
-    await login(page, ownerUsername, ownerOrigin, "198.51.100.61");
+    await login(page, ownerUsername, ownerOrigin, ownerClientIp);
 
     await anonymousPage.goto(ClinicRoutes.Login.Password, { waitUntil: "domcontentloaded" });
     await anonymousPage.locator('input[name="username"]').fill(ownerUsername);
@@ -423,6 +428,12 @@ test("real actions create visible platform security-audit evidence", async ({ pa
       return { status: response.status, body: await response.json().catch(() => null) };
     }, browserApiOrigin);
     expect(accessHistory.status).toBe(200);
+    // The access history keeps the address of the owner's sign-in (the forwarded test client IP).
+    expect((accessHistory.body as { lastSuccessfulIpAddress?: string } | null)?.lastSuccessfulIpAddress).toBe(ownerClientIp);
+    await page.goto(ClinicRoutes.Account.Security, { waitUntil: "domcontentloaded" });
+    await expect(page.getByText(new RegExp(escapeRegExp(ownerClientIp))).first()).toBeVisible({ timeout: 30_000 });
+    mkdirSync(evidenceDirectory, { recursive: true });
+    await page.screenshot({ path: join(evidenceDirectory, "account-security-access-history.png"), fullPage: true });
     expect((await postJson(page, "/api/modules/authentication/access-history/acknowledge")).status).toBe(200);
 
     // OTP establishes a second session and may invalidate the owner session under
