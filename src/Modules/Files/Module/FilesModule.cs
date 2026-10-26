@@ -11,7 +11,9 @@ using Vitarish.Files.Application.Access;
 using Vitarish.Files.Domain.Options;
 using Vitarish.Files.Api;
 using Vitarish.Files.Infrastructure.Data;
+using Microsoft.Extensions.Hosting;
 using Vitarish.Files.Infrastructure.DependencyInjection;
+using Vitarish.Files.Infrastructure.Options;
 using Vitarish.Files.Infrastructure.Services;
 using Vitarish.Entities.Server.Extensions;
 using Vitarish.Modules.Base.Core;
@@ -63,6 +65,14 @@ public class FilesModule : Modules.Base.Core.Module, IFilesModule
         _ = services.AddSingleton<IObjectStorageService, AwsS3ObjectStorageService>();
         _ = services.AddScoped<IFilesService, FilesService>();
         _ = services.AddScoped<IFileIntegrityService, FileIntegrityService>();
+        _ = services.AddOptions<FileTransferAuditKeyOptions>()
+            .BindConfiguration(FileTransferAuditKeyOptions.SectionName)
+            .ValidateOnStart();
+        _ = services.AddSingleton<IValidateOptions<FileTransferAuditKeyOptions>>(provider =>
+            new FileTransferAuditKeyOptionsValidator(provider.GetService<IHostEnvironment>()));
+        _ = services.AddSingleton(provider => new FileTransferAuditNameDigest(
+            provider.GetRequiredService<IOptions<FileTransferAuditKeyOptions>>(),
+            provider.GetService<IHostEnvironment>()));
         _ = services.AddScoped<IFileTransferAudit, FileTransferAudit>();
         _ = services.AddScoped<IFileInformationService, FileInformationService>();
         _ = services.AddScoped<IFileMetadataAccess, FileMetadataAccess>();

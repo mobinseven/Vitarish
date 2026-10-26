@@ -13,6 +13,7 @@ using Vitarish.Authentication.Domain.Security;
 using Vitarish.Authentication.Infrastructure;
 using Vitarish.Authentication.Infrastructure.Options;
 using Vitarish.Requests.Application.Abstractions;
+using Vitarish.Authentication.Tests.Security;
 
 namespace Vitarish.Authentication.Tests.Handlers;
 
@@ -107,6 +108,46 @@ public sealed class NoAccessContactLoginAuditTests
     }
 
     [Fact]
+    public async Task A_wrong_phone_code_records_the_unsuccessful_attempt()
+    {
+        AuthenticationChallenge challenge = AuthenticationChallengePolicy.Default.CreatePhoneLoginChallenge(
+            "user-42", "+989121234567", DateTimeOffset.UtcNow);
+        Mock<IAuthenticationSessionRegistry> registry = new();
+        CompletePhoneLoginHandler handler = CreatePhoneHandler(
+            challenge, NoAccessSignIn(), [], sessionRegistry: registry.Object);
+
+        AuthenticationResult<LoginResult> result = await handler.Handle(
+            new CompletePhoneLoginCommand(challenge.Id.Value, "000000", "/home"),
+            CancellationToken.None);
+
+        result.Should().BeOfType<AuthenticationResult<LoginResult>.Failure>()
+            .Which.Error.Reason.Should().Be(AuthenticationFailureReason.InvalidVerificationCode);
+        registry.Verify(
+            item => item.RecordFailedAttemptAsync("user-42", It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task A_wrong_email_code_records_the_unsuccessful_attempt()
+    {
+        AuthenticationChallenge challenge = AuthenticationChallengePolicy.Default.CreateEmailLoginChallenge(
+            "user-42", "user-42@example.test", DateTimeOffset.UtcNow);
+        Mock<IAuthenticationSessionRegistry> registry = new();
+        CompleteEmailLoginHandler handler = CreateEmailHandler(
+            challenge, NoAccessSignIn(), [], sessionRegistry: registry.Object);
+
+        AuthenticationResult<LoginResult> result = await handler.Handle(
+            new CompleteEmailLoginCommand(challenge.Id.Value, "000000", "/home"),
+            CancellationToken.None);
+
+        result.Should().BeOfType<AuthenticationResult<LoginResult>.Failure>()
+            .Which.Error.Reason.Should().Be(AuthenticationFailureReason.InvalidVerificationCode);
+        registry.Verify(
+            item => item.RecordFailedAttemptAsync("user-42", It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
     public async Task A_verified_email_code_confirms_the_contact_and_offers_the_initial_administrator_grant_before_the_session_starts()
     {
         AuthenticationChallenge challenge = AuthenticationChallengePolicy.Default.CreateEmailLoginChallenge(
@@ -165,7 +206,8 @@ public sealed class NoAccessContactLoginAuditTests
         Mock<IAuthenticationSignInService> signIn,
         List<SecurityAuditEvent> events,
         IInitialPlatformAdministratorGrant? grant = null,
-        IUserAccountUpdater? contactConfirmer = null) => new(
+        IUserAccountUpdater? contactConfirmer = null,
+        IAuthenticationSessionRegistry? sessionRegistry = null) => new(
         CreateStore(challenge),
         CreateVerifier(challenge),
         signIn.Object,
@@ -173,16 +215,19 @@ public sealed class NoAccessContactLoginAuditTests
         new InMemoryAuthenticationAttemptTracker(),
         CreatePolicyProvider(),
         CreateKeys(),
+        TestSourceAttemptGuards.WithoutClientAddress(),
         CreateAuditor(events),
         grant ?? Mock.Of<IInitialPlatformAdministratorGrant>(),
-        contactConfirmer ?? Mock.Of<IUserAccountUpdater>());
+        contactConfirmer ?? Mock.Of<IUserAccountUpdater>(),
+        sessionRegistry ?? Mock.Of<IAuthenticationSessionRegistry>());
 
     private static CompleteEmailLoginHandler CreateEmailHandler(
         AuthenticationChallenge challenge,
         Mock<IAuthenticationSignInService> signIn,
         List<SecurityAuditEvent> events,
         IInitialPlatformAdministratorGrant? grant = null,
-        IUserAccountUpdater? contactConfirmer = null) => new(
+        IUserAccountUpdater? contactConfirmer = null,
+        IAuthenticationSessionRegistry? sessionRegistry = null) => new(
         CreateStore(challenge),
         CreateVerifier(challenge),
         signIn.Object,
@@ -190,9 +235,11 @@ public sealed class NoAccessContactLoginAuditTests
         new InMemoryAuthenticationAttemptTracker(),
         CreatePolicyProvider(),
         CreateKeys(),
+        TestSourceAttemptGuards.WithoutClientAddress(),
         CreateAuditor(events),
         grant ?? Mock.Of<IInitialPlatformAdministratorGrant>(),
-        contactConfirmer ?? Mock.Of<IUserAccountUpdater>());
+        contactConfirmer ?? Mock.Of<IUserAccountUpdater>(),
+        sessionRegistry ?? Mock.Of<IAuthenticationSessionRegistry>());
 
     private static IAuthenticationChallengeStore CreateStore(AuthenticationChallenge challenge)
     {

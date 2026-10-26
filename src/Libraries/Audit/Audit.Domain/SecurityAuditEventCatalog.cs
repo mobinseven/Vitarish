@@ -26,6 +26,7 @@ public static class SecurityAuditEventCatalog
     public const string CompletedKeySuffix = ":completed";
     public const string WriteFailureCode = "security_audit_write_unavailable";
     public const string TerminalIdempotencyPrefix = "security-audit-terminal:";
+    public const string ChangeValueNone = "(none)";
     public const string FunctionCategory = "function";
     public const string ReviewCategory = "audit-review";
     public const string ConfigurationCategory = "audit-configuration";
@@ -46,6 +47,7 @@ public static class SecurityAuditEventCatalog
     public const string AuditStorageThresholdEvent = "security.audit.storage-threshold";
     public const string AuditStorageThresholdOperation = "audit.storage.threshold";
     public const string AuditStorageThresholdSourceBoundary = "main.audit-storage-threshold";
+    public const string AuditStorageOutageSourceBoundary = "main.audit-storage-outage";
     public const string AuthenticationPasswordChangeEvent = "authentication.account.password.change";
     public const string AuthenticationPasswordLoginEvent = "authentication.password.login";
     public const string AuthenticationPasswordLoginOtpEvent = "authentication.password.login.otp";
@@ -76,6 +78,8 @@ public static class SecurityAuditEventCatalog
     public const string IdentityAuthenticatorMfaOperation = "identity.mfa.authenticator";
     public const string IdentityRecoveryCodeMfaOperation = "identity.mfa.recovery-code";
     public const string IdentityProviderMfaOperation = "identity.mfa.provider";
+    public const string AuthenticationSourceBlockedEvent = "authentication.source.blocked";
+    public const string AuthenticationSourceBlockOperation = "authentication.source.block";
     public const string AuthenticationSecurityAccessPolicyEvent = "authentication.security-access-policy";
     public const string SecurityAccessPolicyOperation = "Authentication_SecurityAccessPolicy_Change";
     public const string SecurityAttributesChangedEvent = "authentication.security-attributes.changed";
@@ -134,6 +138,10 @@ public static class SecurityAuditEventCatalog
     [
         new(FunctionCategory, EndpointMutationEvent, OperationWildcard, Controls: [SecurityAuditControl.SecurityFunctionLifecycle]),
         new(ReviewCategory, AuditReviewEvent, AuditReviewOperation, Controls: [SecurityAuditControl.FailedSecurityRecordRead, SecurityAuditControl.SecurityRecordRead, SecurityAuditControl.SecurityAdministration]),
+        new(ReviewCategory, AuditReviewEvent, SecurityAuditApiOperations.ListSecurityEvents, Controls: [SecurityAuditControl.FailedSecurityRecordRead, SecurityAuditControl.SecurityRecordRead, SecurityAuditControl.SecurityAdministration]),
+        new(ReviewCategory, AuditReviewEvent, SecurityAuditApiOperations.ListPlatformSecurityEvents, Controls: [SecurityAuditControl.FailedSecurityRecordRead, SecurityAuditControl.SecurityRecordRead, SecurityAuditControl.SecurityAdministration]),
+        new(ReviewCategory, AuditReviewEvent, SecurityAuditApiOperations.GetPlatformSecurityEventCatalog, Controls: [SecurityAuditControl.FailedSecurityRecordRead, SecurityAuditControl.SecurityRecordRead, SecurityAuditControl.SecurityAdministration]),
+        new(ReviewCategory, AuditReviewEvent, SecurityAuditApiOperations.ExportPlatformSecurityEvents, Controls: [SecurityAuditControl.FailedSecurityRecordRead, SecurityAuditControl.SecurityRecordRead, SecurityAuditControl.SecurityAdministration]),
         new(ConfigurationCategory, AuditConfigurationEvent, AuditConfigurationOperation, Controls: [SecurityAuditControl.SecurityConfigurationChange, SecurityAuditControl.SecurityBehaviorChange]),
         new(SecurityFailureCategory, AuditStorageThresholdEvent, AuditStorageThresholdOperation, Controls: [SecurityAuditControl.AuditStorageThresholdAction]),
         new(AuthenticationCategory, AuthenticationPasswordChangeEvent, PasswordChangeOperation, Controls: [SecurityAuditControl.AuthenticationMechanismUse, SecurityAuditControl.PasswordVerification, SecurityAuditControl.SecurityAttributeChange]),
@@ -151,6 +159,7 @@ public static class SecurityAuditEventCatalog
         new(AuthenticationCategory, AuthenticationIdentityAuthenticatorMfaEvent, IdentityAuthenticatorMfaOperation, Controls: [SecurityAuditControl.AuthenticationMechanismUse, SecurityAuditControl.AuthenticationOutcome]),
         new(AuthenticationCategory, AuthenticationIdentityRecoveryCodeMfaEvent, IdentityRecoveryCodeMfaOperation, Controls: [SecurityAuditControl.AuthenticationMechanismUse, SecurityAuditControl.AuthenticationOutcome]),
         new(AuthenticationCategory, AuthenticationIdentityProviderMfaEvent, IdentityProviderMfaOperation, Controls: [SecurityAuditControl.AuthenticationMechanismUse, SecurityAuditControl.AuthenticationOutcome]),
+        new(AuthenticationCategory, AuthenticationSourceBlockedEvent, AuthenticationSourceBlockOperation, Controls: [SecurityAuditControl.AuthenticationOutcome]),
         new(AuthenticationCategory, AuthenticationSecurityAccessPolicyEvent, SecurityAccessPolicyOperation, Controls: [SecurityAuditControl.SecurityConfigurationChange, SecurityAuditControl.SecurityBehaviorChange]),
         new(SecurityAttributeCategory, SecurityAttributesChangedEvent, SecurityAttributesChangedOperation, Controls: [SecurityAuditControl.SecurityAttributeAssignment, SecurityAuditControl.SecurityAttributeChange]),
         new(ImportExportCategory, ImportEvent, ImportOperation, Controls: [SecurityAuditControl.UserDataImport]),

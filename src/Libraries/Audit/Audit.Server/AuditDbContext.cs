@@ -108,6 +108,8 @@ public sealed class AuditDbContext : DbContext, IMultiTenantDbContext
             _ = entity.Property(e => e.SubjectId).HasMaxLength(256);
             _ = entity.Property(e => e.TenantId).HasMaxLength(64);
             _ = entity.Property(e => e.Resource).HasMaxLength(512);
+            _ = entity.Property(e => e.ResourceNameHash).HasMaxLength(SecurityAuditEvent.MaximumResourceNameHashLength);
+            _ = entity.Property(e => e.ResourceExtension).HasMaxLength(SecurityAuditEvent.MaximumResourceExtensionLength);
             _ = entity.Property(e => e.Operation).HasMaxLength(256);
             _ = entity.Property(e => e.CorrelationId).HasMaxLength(256);
             _ = entity.Property(e => e.SourceBoundary).HasMaxLength(256);
@@ -115,6 +117,9 @@ public sealed class AuditDbContext : DbContext, IMultiTenantDbContext
             _ = entity.Property(e => e.SourceIpAddress).HasMaxLength(64);
             _ = entity.Property(e => e.ClientInterfaceHost).HasMaxLength(253);
             _ = entity.Property(e => e.RedactedReason).HasMaxLength(256);
+            _ = entity.Property(e => e.Changes)
+                .HasConversion(SecurityAuditChangeColumn.Converter, SecurityAuditChangeColumn.Comparer)
+                .HasMaxLength(SecurityAuditChangeColumn.MaximumLength);
             _ = entity.Property(e => e.IdempotencyKey).HasMaxLength(256);
             _ = entity.Property(e => e.OccurredAt);
             _ = entity.IsMultiTenant();

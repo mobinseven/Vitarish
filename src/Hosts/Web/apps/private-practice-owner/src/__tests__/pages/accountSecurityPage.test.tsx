@@ -10,6 +10,9 @@ vi.mock("@vitarish/auth", () => ({
       previousSuccessfulAt: "2026-08-29T08:00:00Z",
       lastSuccessfulAt: "2026-08-30T08:00:00Z",
       lastUnsuccessfulAt: "2026-08-29T07:59:00Z",
+      previousSuccessfulIpAddress: null,
+      lastSuccessfulIpAddress: "198.51.100.7",
+      lastUnsuccessfulIpAddress: "203.0.113.9",
       failedAttemptsSincePreviousSuccessful: 2,
       currentFailedAttempts: 1,
       acknowledgedAt: null,
@@ -48,10 +51,11 @@ vi.mock("@/localization", () => ({
       "account.security.failedAttempts": "Unsuccessful attempts since the previous success",
       "account.security.currentFailedAttempts": "Current unsuccessful attempts",
       "account.security.notRecorded": "Not recorded",
+      "account.security.ipAddressPrefix": "IP address: ",
       "account.security.notices": "Session notices",
       "account.security.parallelNotice": "A new simultaneous session was established.",
       "common.states.loading": "Loading...",
-    }[key] ?? key),
+    } as Record<string, string>)[key] ?? key,
   }),
 }));
 
@@ -64,5 +68,17 @@ describe("AccountSecurityPage", () => {
     expect(screen.getByText("Unsuccessful attempts since the previous success")).toBeInTheDocument();
     expect(screen.getByText("Current unsuccessful attempts")).toBeInTheDocument();
     expect(screen.getByText("A new simultaneous session was established.")).toBeInTheDocument();
+  });
+
+  it("shows the IP address recorded for each sign-in attempt and none where it was not recorded", () => {
+    render(<AccountSecurityPage />);
+
+    const tile = (label: string) => screen.getByText(label).parentElement!;
+    expect(tile("Most recent successful sign-in")).toHaveTextContent("IP address: 198.51.100.7");
+    expect(tile("Most recent unsuccessful sign-in")).toHaveTextContent("IP address: 203.0.113.9");
+    // The address keeps left-to-right order in RTL locales without hidden characters in the copied text.
+    expect(screen.getByText("198.51.100.7")).toHaveAttribute("dir", "ltr");
+    expect(screen.getByText("203.0.113.9").textContent).toBe("203.0.113.9");
+    expect(tile("Previous successful sign-in")).not.toHaveTextContent("IP address");
   });
 });

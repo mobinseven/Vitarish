@@ -31,6 +31,8 @@ const event = {
   subjectId: "subject-a",
   tenantId: "tenant-a",
   resource: "authentication",
+  resourceExtension: "pdf",
+  resourceSize: 2_516_582,
   occurredAt: "2026-09-14T07:00:00.000Z",
   correlationId: "request-a",
   sourceBoundary: "tests",
@@ -143,6 +145,7 @@ describe("PlatformSecurityAuditReviewPage", () => {
     expect(screen.getByText("subject-a")).toBeInTheDocument();
     expect(screen.getAllByText("203.0.113.7")).toHaveLength(2);
     expect(screen.getByText("redacted")).toBeInTheDocument();
+    expect(screen.getByText("File").closest("div")).toHaveTextContent("PDF · 2.4 MB");
   });
 
   it("renders capacity warnings and service authorization errors", async () => {
@@ -210,5 +213,40 @@ describe("PlatformSecurityAuditReviewPage", () => {
     await waitFor(() => expect(screen.getByRole("heading", { name: "Event details" })).toBeInTheDocument());
     expect(screen.getByText("request-a")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /delete|edit|update/i })).not.toBeInTheDocument();
+  });
+
+  it("shows previous and new values, localizing only catalogued status codes", async () => {
+    vi.mocked(useAuditPlatformSecurityEventsList).mockReturnValue({
+      data: {
+        items: [{
+          ...event,
+          changes: [
+            { field: "accountStatus", previousValue: "enabled", newValue: "disabled" },
+            { field: "tenantRole", previousValue: "none", newValue: "tenant_user" },
+            { field: "email", previousValue: null, newValue: "enabled" },
+          ],
+        }],
+        page: 1,
+        pageSize: 25,
+        totalCount: 1,
+        capacityThresholdReached: false,
+      },
+      isPending: false,
+      isError: false,
+      isFetching: false,
+      error: null,
+    } as never);
+    renderPage();
+
+    const eventCells = screen.getAllByText("Password login");
+    fireEvent.click(eventCells[eventCells.length - 1]);
+    await waitFor(() => expect(screen.getByRole("heading", { name: "Event details" })).toBeInTheDocument());
+
+    const changeLines = screen.getAllByRole("listitem").map((item) => item.textContent?.replace(/[⁨⁩]/g, ""));
+    expect(changeLines).toEqual(expect.arrayContaining([
+      "Account status: from Enabled to Disabled",
+      "Clinic role: from No role to Clinic user",
+      "Email: from none to enabled",
+    ]));
   });
 });

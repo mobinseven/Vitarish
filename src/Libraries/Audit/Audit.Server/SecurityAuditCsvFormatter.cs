@@ -1,11 +1,14 @@
 using System.Globalization;
 using System.Text;
+using System.Text.Json;
 using Vitarish.Audit.Domain;
 
 namespace Vitarish.Audit.Server;
 
 internal static class SecurityAuditCsvFormatter
 {
+    private static readonly JsonSerializerOptions ChangeSerializerOptions = new(JsonSerializerDefaults.Web);
+
     private static readonly string[] Headers =
     [
         "id",
@@ -24,7 +27,11 @@ internal static class SecurityAuditCsvFormatter
         "sourceIpKind",
         "sourceIpAddress",
         "clientInterfaceHost",
-        "redactedReason"
+        "redactedReason",
+        "resourceNameHash",
+        "resourceExtension",
+        "resourceSize",
+        "changes"
     ];
 
     public static byte[] Format(IReadOnlyList<SecurityAuditEventReadDto> rows)
@@ -51,12 +58,26 @@ internal static class SecurityAuditCsvFormatter
                 row.SourceIpKind,
                 row.SourceIpAddress,
                 row.ClientInterfaceHost,
-                row.RedactedReason
+                row.RedactedReason,
+                row.ResourceNameHash,
+                row.ResourceExtension,
+                row.ResourceSize?.ToString(CultureInfo.InvariantCulture),
+                FormatChanges(row.Changes ?? [])
             ]);
         }
 
         return new UTF8Encoding(encoderShouldEmitUTF8Identifier: true).GetBytes(csv.ToString());
     }
+
+    internal static string FormatChanges(IReadOnlyList<SecurityAuditChange> changes) =>
+        JsonSerializer.Serialize(
+            changes.Select(change => new
+            {
+                field = change.Field,
+                previousValue = change.PreviousValue ?? SecurityAuditEventCatalog.ChangeValueNone,
+                newValue = change.NewValue ?? SecurityAuditEventCatalog.ChangeValueNone
+            }),
+            ChangeSerializerOptions);
 
     private static void AppendRow(StringBuilder csv, IReadOnlyList<string?> values)
     {

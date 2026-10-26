@@ -14,6 +14,7 @@ using Vitarish.Authentication.Domain.Security;
 using Vitarish.Authentication.Infrastructure;
 using Vitarish.Authentication.Infrastructure.Options;
 using Xunit;
+using Vitarish.Authentication.Tests.Security;
 
 namespace Vitarish.Authentication.Tests.Handlers;
 
@@ -563,7 +564,7 @@ public sealed class PasswordRecoveryHandlerTests
                 PermittedPreAuthenticationActions = new HashSet<PreAuthenticationAction> { PreAuthenticationAction.PasswordLogin }
             });
         CompletePasswordRecoveryHandler handler = new(store.Object, verifier.Object, updater.Object,
-            new InMemoryAuthenticationAttemptTracker(), CreateKeys(), policy.Object, TimeProvider.System);
+            new InMemoryAuthenticationAttemptTracker(), CreateKeys(), policy.Object, TestSourceAttemptGuards.WithoutClientAddress(), TimeProvider.System);
 
         AuthenticationResult<bool> result = await handler.Handle(
             new("challenge-id", "code", "StrongPass1!"), CancellationToken.None);
@@ -616,7 +617,7 @@ public sealed class PasswordRecoveryHandlerTests
 
         var handler = new BeginPasswordRecoveryHandler(store.Object, userDirectory.Object, generator.Object,
             dispatcher, updater.Object, attempts.Object, CreateKeys(), recorder.Object,
-            AuthenticationChallengePolicy.Default, policy.Object, clock ?? TimeProvider.System);
+            AuthenticationChallengePolicy.Default, policy.Object, TestSourceAttemptGuards.WithoutClientAddress(), clock ?? TimeProvider.System);
         return new(handler, store, userDirectory, generator, emailSender, phoneSender, updater, attempts, recorder, policy, dispatcherMock, dispatcherProvider);
     }
 
@@ -637,7 +638,7 @@ public sealed class PasswordRecoveryHandlerTests
         Mock<IAuthenticationSecurityPolicyProvider> policy = new();
         policy.Setup(x => x.GetAsync(It.IsAny<CancellationToken>())).ReturnsAsync(SecurityAccessPolicy.ProductEvaluated);
         CompletePasswordRecoveryHandler handler = new(store, verifier.Object, updater.Object, attemptTracker,
-            CreateKeys(), policy.Object, TimeProvider.System);
+            CreateKeys(), policy.Object, TestSourceAttemptGuards.WithoutClientAddress(), TimeProvider.System);
         return new(handler, store, verifier, updater, policy, challenge);
     }
 

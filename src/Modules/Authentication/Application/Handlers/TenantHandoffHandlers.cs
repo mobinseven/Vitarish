@@ -85,6 +85,7 @@ public sealed class RedeemTenantHandoffHandler(
     IClientInterfaceHostAccessor clientInterfaceHosts,
     IAuthenticationAttemptTracker attemptTracker,
     IAuthenticationAttemptKeyFactory attemptKeyFactory,
+    AuthenticationSourceAttemptGuard sourceAttemptGuard,
     IAuthenticationUserDirectory users,
     IAuthenticationRedirectResolver redirects,
     IAuthenticationUtcClock clock,
@@ -106,7 +107,7 @@ public sealed class RedeemTenantHandoffHandler(
         if (ticket is null || host is null || !ticket.CanBeRedeemedOn(host, now))
             return await RefuseAsync(ticket?.UserId, AuthenticationFailureReason.InvalidCredential, RefusalMessage, SecurityAuditReasonCatalog.AuthenticationFailed, cancellationToken);
 
-        if (await IsDeniedAsync(policy, ticket.UserId, cancellationToken))
+        if (await sourceAttemptGuard.IsBlockedAsync(cancellationToken) || await IsDeniedAsync(policy, ticket.UserId, cancellationToken))
         {
             AuthenticationFailure denied = policy.FailedAttemptResponse is FailedAttemptResponse.Lockout
                 ? new(AuthenticationFailureReason.LockedOut, "Authentication is temporarily locked out.")

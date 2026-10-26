@@ -14,6 +14,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="..\..\Shared\DockerFactAttribute.cs" Link="DockerFactAttribute.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\..\src\Modules\Authentication\Domain\Authentication.Domain.csproj" />
     <ProjectReference Include="..\..\..\src\Modules\Authentication\Application\Authentication.Application.csproj" />
     <ProjectReference Include="..\..\..\src\Modules\Authentication\Contracts\Authentication.Contracts.csproj" />

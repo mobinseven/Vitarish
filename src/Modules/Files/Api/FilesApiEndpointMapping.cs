@@ -81,13 +81,13 @@ public static class FilesApiEndpointMapping
     {
         if (!httpRequest.HasFormContentType)
         {
-            await RecordUploadRejectionAsync(transferAudit).ConfigureAwait(false);
+            await RecordUploadRejectionAsync(transferAudit, null, null).ConfigureAwait(false);
             return Results.BadRequest(new FilesError(FilesErrorCode.Validation, "Multipart form content is required."));
         }
 
         if (httpRequest.ContentLength is > D.FileTransferPolicy.MaximumMultipartRequestBytes)
         {
-            return await RejectTooLargeAsync(transferAudit).ConfigureAwait(false);
+            return await RejectTooLargeAsync(transferAudit, null, null).ConfigureAwait(false);
         }
 
         IFormCollection form;
@@ -98,19 +98,19 @@ public static class FilesApiEndpointMapping
         catch (Exception ex) when (ex is InvalidDataException or BadHttpRequestException { StatusCode: StatusCodes.Status413PayloadTooLarge })
         {
             // A body without a declared length is stopped by the request or multipart limit while it is read.
-            return await RejectTooLargeAsync(transferAudit).ConfigureAwait(false);
+            return await RejectTooLargeAsync(transferAudit, null, null).ConfigureAwait(false);
         }
 
         IFormFile? content = form.Files.GetFile(FileUploadRequest.ContentFieldName);
         if (content is null || content.Length <= 0)
         {
-            await RecordUploadRejectionAsync(transferAudit).ConfigureAwait(false);
+            await RecordUploadRejectionAsync(transferAudit, content?.FileName, content?.Length).ConfigureAwait(false);
             return Results.BadRequest(new FilesError(FilesErrorCode.Validation, "File content is required."));
         }
 
         if (content.Length > D.FileTransferPolicy.MaximumContentBytes)
         {
-            return await RejectTooLargeAsync(transferAudit).ConfigureAwait(false);
+            return await RejectTooLargeAsync(transferAudit, content.FileName, content.Length).ConfigureAwait(false);
         }
 
         FileUploadRequest uploadRequest = ReadUploadRequest(form, content);
@@ -119,7 +119,7 @@ public static class FilesApiEndpointMapping
             !D.FileTransferPolicy.TryNormalizeContentType(uploadRequest.ContentType, out string declaredContentType) ||
             !string.Equals(actualContentType, declaredContentType, StringComparison.Ordinal))
         {
-            await RecordUploadRejectionAsync(transferAudit).ConfigureAwait(false);
+            await RecordUploadRejectionAsync(transferAudit, uploadRequest.FileName, uploadRequest.Size).ConfigureAwait(false);
             return Results.BadRequest(new FilesError(FilesErrorCode.Validation, "Checksum and matching content type are required."));
         }
 
@@ -127,7 +127,7 @@ public static class FilesApiEndpointMapping
         if (!D.FileTransferPolicy.TryResolveUploadFormat(declaredContentType, uploadRequest.FileName, out D.FileUploadFormat format) ||
             !await HasFormatSignatureAsync(content, format, cancellationToken).ConfigureAwait(false))
         {
-            await transferAudit.RecordImportAsync(null, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.ContentTypeNotAllowed, CancellationToken.None).ConfigureAwait(false);
+            await transferAudit.RecordImportAsync(null, uploadRequest.FileName, uploadRequest.Size, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.ContentTypeNotAllowed, CancellationToken.None).ConfigureAwait(false);
             return Results.Json(
                 new FilesError(FilesErrorCode.UnsupportedContentType, "This file type is not accepted.", StatusCodes.Status415UnsupportedMediaType),
                 statusCode: StatusCodes.Status415UnsupportedMediaType);
@@ -135,7 +135,7 @@ public static class FilesApiEndpointMapping
 
         if (!await transferAuthorization.CanUploadAsync(cancellationToken).ConfigureAwait(false))
         {
-            await transferAudit.RecordImportAsync(null, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.Unauthorized, CancellationToken.None).ConfigureAwait(false);
+            await transferAudit.RecordImportAsync(null, uploadRequest.FileName, uploadRequest.Size, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.Unauthorized, CancellationToken.None).ConfigureAwait(false);
             return Results.Forbid();
         }
 
@@ -209,9 +209,9 @@ public static class FilesApiEndpointMapping
         }
     }
 
-    private static async Task<IResult> RejectTooLargeAsync(IFileTransferAudit transferAudit)
+    private static async Task<IResult> RejectTooLargeAsync(IFileTransferAudit transferAudit, string? fileName, long? fileSize)
     {
-        await transferAudit.RecordImportAsync(null, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.ContentTooLarge, CancellationToken.None).ConfigureAwait(false);
+        await transferAudit.RecordImportAsync(null, fileName, fileSize, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.ContentTooLarge, CancellationToken.None).ConfigureAwait(false);
         return Results.Json(
             new FilesError(FilesErrorCode.ContentTooLarge, "File content exceeds the maximum supported size.", StatusCodes.Status413PayloadTooLarge),
             statusCode: StatusCodes.Status413PayloadTooLarge);
@@ -225,15 +225,15 @@ public static class FilesApiEndpointMapping
         return D.FileTransferPolicy.MatchesSignature(format, header.AsSpan(0, read));
     }
 
-    private static Task RecordUploadRejectionAsync(IFileTransferAudit transferAudit) =>
-        transferAudit.RecordImportAsync(null, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.MutationRejected, CancellationToken.None);
+    private static Task RecordUploadRejectionAsync(IFileTransferAudit transferAudit, string? fileName, long? fileSize) =>
+        transferAudit.RecordImportAsync(null, fileName, fileSize, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.MutationRejected, CancellationToken.None);
 
     private static async Task<IResult> DownloadFileAsync(Guid fileId, HttpContext context, IFileMetadataAccess metadataAccess, IFileIntegrityService integrityService, IFileTransferAudit transferAudit, IServiceProvider services)
     {
         D.FileInformationReadDto? fileInfo = await metadataAccess.AuthorizeDownloadAsync(fileId, context.RequestAborted).ConfigureAwait(false);
         if (fileInfo is null || string.IsNullOrWhiteSpace(fileInfo.Checksum))
         {
-            await transferAudit.RecordExportAsync(fileId, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.IntegrityValidationFailed, CancellationToken.None).ConfigureAwait(false);
+            await transferAudit.RecordExportAsync(fileId, fileInfo?.FileName, fileInfo?.Metadata.Size, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.IntegrityValidationFailed, CancellationToken.None).ConfigureAwait(false);
             return Results.NotFound(new FilesError(FilesErrorCode.NotFound, "File content was not found."));
         }
 
@@ -248,13 +248,13 @@ public static class FilesApiEndpointMapping
         }
         catch (Exception)
         {
-            await transferAudit.RecordExportAsync(fileId, SecurityAuditOutcome.Failed, SecurityAuditReasonCatalog.EndpointException, CancellationToken.None).ConfigureAwait(false);
+            await transferAudit.RecordExportAsync(fileId, fileInfo.FileName, fileInfo.Metadata.Size, SecurityAuditOutcome.Failed, SecurityAuditReasonCatalog.EndpointException, CancellationToken.None).ConfigureAwait(false);
             return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
         }
 
         if (!verification.IsVerified || string.IsNullOrWhiteSpace(verification.ObjectKey))
         {
-            await transferAudit.RecordExportAsync(fileId, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.IntegrityValidationFailed, CancellationToken.None).ConfigureAwait(false);
+            await transferAudit.RecordExportAsync(fileId, fileInfo.FileName, verification.ExpectedLength, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.IntegrityValidationFailed, CancellationToken.None).ConfigureAwait(false);
             return Results.NotFound(new FilesError(FilesErrorCode.NotFound, "File content was not found."));
         }
 
@@ -264,14 +264,14 @@ public static class FilesApiEndpointMapping
 
         if (HttpMethods.IsHead(context.Request.Method))
         {
-            await transferAudit.RecordExportAsync(fileId, SecurityAuditOutcome.Succeeded, null, context.RequestAborted).ConfigureAwait(false);
+            await transferAudit.RecordExportAsync(fileId, fileInfo.FileName, verification.ExpectedLength, SecurityAuditOutcome.Succeeded, null, context.RequestAborted).ConfigureAwait(false);
             return Results.Empty;
         }
 
         try
         {
             await storageService.StreamToAsync(verification.ObjectKey, context.Response.Body, cancellationToken: context.RequestAborted).ConfigureAwait(false);
-            await transferAudit.RecordExportAsync(fileId, SecurityAuditOutcome.Succeeded, null, context.RequestAborted).ConfigureAwait(false);
+            await transferAudit.RecordExportAsync(fileId, fileInfo.FileName, verification.ExpectedLength, SecurityAuditOutcome.Succeeded, null, context.RequestAborted).ConfigureAwait(false);
             return Results.Empty;
         }
         catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested)
@@ -280,7 +280,7 @@ public static class FilesApiEndpointMapping
         }
         catch (Exception)
         {
-            await transferAudit.RecordExportAsync(fileId, SecurityAuditOutcome.Failed, SecurityAuditReasonCatalog.EndpointException, CancellationToken.None).ConfigureAwait(false);
+            await transferAudit.RecordExportAsync(fileId, fileInfo.FileName, verification.ExpectedLength, SecurityAuditOutcome.Failed, SecurityAuditReasonCatalog.EndpointException, CancellationToken.None).ConfigureAwait(false);
             return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
         }
     }
@@ -346,7 +346,8 @@ public static class FilesApiEndpointMapping
         Checksum = dto.Checksum,
         Url = dto.Url,
         Owner = dto.Owner,
-        Tag = dto.Tag
+        Tag = dto.Tag,
+        FileName = D.FileTransferPolicy.NormalizeFileName(dto.FileName)
     };
 
     private static D.FileInformationReadDto ToDomain(FileUploadRequest request) => new()
@@ -356,6 +357,7 @@ public static class FilesApiEndpointMapping
         Thumbnail = request.Thumbnail,
         Checksum = request.Checksum,
         Tag = request.Tag,
+        FileName = request.FileName,
         Metadata = new D.FileMetadata { Size = request.Size }
     };
 

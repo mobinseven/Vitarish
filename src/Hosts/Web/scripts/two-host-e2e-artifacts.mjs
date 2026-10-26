@@ -16,3 +16,6 @@ export const twoHostE2ePlatformAdminOrigin = "http://localhost:3006";
 export const twoHostE2eSignInOrigin = "http://auth.localhost:3005";
 /** Where the E2E host writes every SMS it would have sent, one JSON line each. */
 export const twoHostE2eSmsCapturePathEnvironmentKey = "VITARISH_E2E_SMS_CAPTURE_PATH";
+
+// Maps the Files-owned FileTransferAuditKeyOptions.CurrentKey setting into the disposable host.
+export const twoHostE2eFileTransferAuditKeyEnvironmentKey = "Vitarish__Files__TransferAudit__CurrentKey";

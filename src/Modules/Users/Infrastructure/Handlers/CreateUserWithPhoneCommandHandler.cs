@@ -105,7 +105,10 @@ public class CreateUserWithPhoneCommandHandler(UserManager<User> userManager, IS
                 throw;
             }
 
-            await managementAudit.AccountCreatedAsync(user.Id, CancellationToken.None);
+            await managementAudit.AccountCreatedAsync(
+                user.Id,
+                UserAuditChanges.Between((null, null, null, null), (user.Email, user.PhoneNumber, user.FirstName, user.LastName)),
+                CancellationToken.None);
         }
 
         await UserCacheExtensions.SetUserAsync(cache, user, cancellationToken);

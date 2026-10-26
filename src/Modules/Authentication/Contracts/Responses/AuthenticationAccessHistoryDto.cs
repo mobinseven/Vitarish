@@ -6,4 +6,7 @@ public sealed record AuthenticationAccessHistoryDto(
     DateTime? LastUnsuccessfulAt,
     int FailedAttemptsSincePreviousSuccessful,
     int CurrentFailedAttempts,
-    DateTime? AcknowledgedAt);
+    DateTime? AcknowledgedAt,
+    string? PreviousSuccessfulIpAddress,
+    string? LastSuccessfulIpAddress,
+    string? LastUnsuccessfulIpAddress);

@@ -12,8 +12,17 @@ public sealed record SecurityAccessPolicy(
     int MaximumConcurrentSessions = 1,
     bool ConcurrentSessionsFunctionallyRequired = false,
     int DefaultInactivityTimeoutMinutes = SessionInactivityTimeout.DefaultMinutes,
-    IReadOnlySet<string>? AllowedSessionStartCidrs = null)
+    IReadOnlySet<string>? AllowedSessionStartCidrs = null,
+    int SourceFailedAttemptThreshold = SecurityAccessPolicy.DefaultSourceFailedAttemptThreshold)
 {
+    /// <summary>
+    /// Failed attempts from one client IP address, across all identifiers, before that address is
+    /// denied for the failed-attempt denial duration. Higher than the per-account threshold because
+    /// one office address is often shared by several staff members.
+    /// </summary>
+    public const int DefaultSourceFailedAttemptThreshold = 20;
+    public const int MaximumSourceFailedAttemptThreshold = 1000;
+
     public static SecurityAccessPolicy Default { get; } = ForProfile(AuthenticationProfilePolicy.Default);
 
     public static SecurityAccessPolicy ProductEvaluated { get; } = ForProfile(AuthenticationProfilePolicy.ProductEvaluated);
@@ -33,6 +42,8 @@ public sealed record SecurityAccessPolicy(
             throw new ArgumentOutOfRangeException(nameof(FailedAttemptThreshold), "Failed-attempt threshold must be positive.");
         if (FailedAttemptDenialDuration <= TimeSpan.Zero)
             throw new ArgumentOutOfRangeException(nameof(FailedAttemptDenialDuration), "Failed-attempt denial duration must be positive.");
+        if (SourceFailedAttemptThreshold is < 1 or > MaximumSourceFailedAttemptThreshold)
+            throw new ArgumentOutOfRangeException(nameof(SourceFailedAttemptThreshold), "The per-address failed-attempt threshold must be between 1 and 1000.");
         if (!EnabledAuthenticationMechanisms.Contains(AuthenticationMethod.Password))
             throw new ArgumentException("Username/password authentication must remain enabled.", nameof(EnabledAuthenticationMechanisms));
         if (MaximumConcurrentSessions is < 1 or > 3)
@@ -57,6 +68,7 @@ public sealed record SecurityAccessPolicy(
     public bool EquivalentTo(SecurityAccessPolicy other) =>
         PasswordPolicy == other.PasswordPolicy &&
         FailedAttemptThreshold == other.FailedAttemptThreshold &&
+        SourceFailedAttemptThreshold == other.SourceFailedAttemptThreshold &&
         FailedAttemptDenialDuration == other.FailedAttemptDenialDuration &&
         FailedAttemptResponse == other.FailedAttemptResponse &&
         MaximumConcurrentSessions == other.MaximumConcurrentSessions &&

@@ -11,4 +11,5 @@ public sealed record ChangeSecurityAuthenticationPolicyCommand(
     string FailedAttemptResponse,
     IReadOnlyList<string> EnabledAuthenticationMechanisms,
     IReadOnlyList<string> PermittedPreAuthenticationActions,
-    long ExpectedVersion);
+    long ExpectedVersion,
+    int? SourceFailedAttemptThreshold = null);

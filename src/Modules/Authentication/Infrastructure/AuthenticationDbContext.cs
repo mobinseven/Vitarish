@@ -29,6 +29,7 @@ public sealed class AuthenticationDbContext(DbContextOptions<AuthenticationDbCon
             _ = entity.Property(policy => policy.MaximumConcurrentSessions).HasDefaultValue(1);
             _ = entity.Property(policy => policy.ConcurrentSessionsFunctionallyRequired).HasDefaultValue(false);
             _ = entity.Property(policy => policy.DefaultInactivityTimeoutMinutes).HasDefaultValue(SessionInactivityTimeout.DefaultMinutes);
+            _ = entity.Property(policy => policy.SourceFailedAttemptThreshold).HasDefaultValue(SecurityAccessPolicy.DefaultSourceFailedAttemptThreshold);
             _ = entity.Property(policy => policy.Version).IsConcurrencyToken();
         });
         _ = modelBuilder.Entity<AuthenticationSession>(entity =>
@@ -62,6 +63,9 @@ public sealed class AuthenticationDbContext(DbContextOptions<AuthenticationDbCon
             _ = entity.HasKey(history => new { history.UserId, history.TenantId });
             _ = entity.Property(history => history.UserId).HasMaxLength(450);
             _ = entity.Property(history => history.TenantId).HasMaxLength(64);
+            _ = entity.Property(history => history.PreviousSuccessfulIpAddress).HasMaxLength(AuthenticationAccessHistory.IpAddressMaximumLength);
+            _ = entity.Property(history => history.LastSuccessfulIpAddress).HasMaxLength(AuthenticationAccessHistory.IpAddressMaximumLength);
+            _ = entity.Property(history => history.LastUnsuccessfulIpAddress).HasMaxLength(AuthenticationAccessHistory.IpAddressMaximumLength);
         });
         _ = modelBuilder.Entity<AuthenticationUserSessionPolicyRecord>(entity =>
         {

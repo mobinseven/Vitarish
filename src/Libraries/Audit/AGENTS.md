@@ -37,13 +37,21 @@ meaning and resource authorization remain with the initiating use case.
   structured host error and does not replace the initiating operation result.
   The review query returns dependency-unavailable when the store cannot be
   read.
+- **[MUST]** Each refused write is also counted outside the audit store, by
+  time only, never content. Once the store accepts writes again, Main records
+  one `security.failure` summary of the outage: when it started, the last
+  failure, and how many writes failed. The refused events are not spooled or
+  replayed (owner decision 2026-10-25).
 - **[MUST]** Review is a side-effect-free, paged DTO query supporting filter
   and sort by actor, UTC date/time, and event type at minimum. Enforce
   platform/tenant scope in the authorized Application boundary; never return
   persistence entities, chain key material, or sensitive payloads.
-- **[MUST]** Review queries are side-effect-free, including denied reads; never
-  append a review-attempt event from an Audit query. Platform-admin login or
-  access-attempt auditing belongs to its authentication/access boundary.
+- **[MUST]** Review queries are side-effect-free; never append a review event
+  from an Audit query, and do not record authorized reads. An unauthorized
+  review attempt is recorded once by the review API boundary as a catalogued
+  denied review event naming the attempted operation (owner decision for the
+  security evaluation). Platform-admin login or other access-attempt auditing
+  belongs to its authentication/access boundary.
   Audit state-changing management commands through a recursion-safe path.
   Reading audit data must not mutate queried events or acknowledge unrelated
   notices.

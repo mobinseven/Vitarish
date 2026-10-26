@@ -2773,6 +2773,32 @@
           }
         }
       },
+      "UserAuthenticationMethodsResponse": {
+        "required": [
+          "passwordSet",
+          "emailVerified",
+          "phoneNumberVerified",
+          "passkeys"
+        ],
+        "type": "object",
+        "properties": {
+          "passwordSet": {
+            "type": "boolean"
+          },
+          "emailVerified": {
+            "type": "boolean"
+          },
+          "phoneNumberVerified": {
+            "type": "boolean"
+          },
+          "passkeys": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserPasskeyResponse"
+            }
+          }
+        }
+      },
       "UserExistenceResponse": {
         "required": [
           "exists"
@@ -2781,6 +2807,38 @@
         "properties": {
           "exists": {
             "type": "boolean"
+          }
+        }
+      },
+      "UserPasskeyResponse": {
+        "required": [
+          "id",
+          "friendlyName",
+          "registeredAt",
+          "lastUsedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "friendlyName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "registeredAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastUsedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
           }
         }
       },
@@ -2925,7 +2983,9 @@
           "securityHistory",
           "authenticationHistory",
           "securityHistoryAvailable",
-          "authenticationHistoryAvailable"
+          "authenticationHistoryAvailable",
+          "authenticationMethods",
+          "authenticationMethodsUnavailable"
         ],
         "type": "object",
         "properties": {
@@ -2974,6 +3034,19 @@
             "type": "boolean"
           },
           "authenticationHistoryAvailable": {
+            "type": "boolean"
+          },
+          "authenticationMethods": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/UserAuthenticationMethodsResponse"
+              }
+            ]
+          },
+          "authenticationMethodsUnavailable": {
             "type": "boolean"
           }
         }

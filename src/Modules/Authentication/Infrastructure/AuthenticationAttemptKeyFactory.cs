@@ -16,6 +16,9 @@ namespace Vitarish.Authentication.Infrastructure;
 /// </summary>
 public sealed class AuthenticationAttemptKeyFactory : IAuthenticationAttemptKeyFactory
 {
+    private const string SourceKind = "source";
+    private const string SourceMethod = "any";
+
     private readonly KeyMaterial current;
     private readonly KeyMaterial? previous;
     private readonly string realm;
@@ -47,6 +50,9 @@ public sealed class AuthenticationAttemptKeyFactory : IAuthenticationAttemptKeyF
     public string Challenge(AuthenticationChallengePurpose purpose, string userId) =>
         Create(current, "subject", AuthenticationAttemptKeyMethods.MethodFor(purpose).ToString(), userId);
 
+    // Sources are not tied to one authentication method, so every method shares one key per address.
+    public string Source(string clientIpAddress) => Create(current, SourceKind, SourceMethod, clientIpAddress);
+
     public IReadOnlyList<string> IdentifierCandidates(AuthenticationMethod method, string identifier) =>
         CreateCandidates("identifier", method.ToString(), identifier);
 
@@ -58,6 +64,9 @@ public sealed class AuthenticationAttemptKeyFactory : IAuthenticationAttemptKeyF
 
     public IReadOnlyList<string> ChallengeCandidates(AuthenticationChallengePurpose purpose, string userId) =>
         CreateCandidates("subject", AuthenticationAttemptKeyMethods.MethodFor(purpose).ToString(), userId);
+
+    public IReadOnlyList<string> SourceCandidates(string clientIpAddress) =>
+        CreateCandidates(SourceKind, SourceMethod, clientIpAddress);
 
     private IReadOnlyList<string> CreateCandidates(string kind, string method, string value)
     {

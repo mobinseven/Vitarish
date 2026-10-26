@@ -12,10 +12,8 @@ public static class SecurityAuditApi
     {
         RouteGroupBuilder group = endpoints
             .MapProtectedModuleGroup(SecurityAuditApiRoutes.Base, requireTenantAccess: false)
-            .WithTags(SecurityAuditApiRoutes.DocumentTag);
-        RouteGroupBuilder platformGroup = endpoints
-            .MapProtectedModuleGroup(SecurityAuditApiRoutes.Base, requireTenantAccess: false)
-            .WithTags(SecurityAuditApiRoutes.DocumentTag);
+            .WithTags(SecurityAuditApiRoutes.DocumentTag)
+            .AddEndpointFilter<AuditReviewDenialFilter>();
 
         _ = group.MapModuleGet(
             SecurityAuditApiRoutes.SecurityEvents,
@@ -24,20 +22,20 @@ public static class SecurityAuditApi
             typeof(SecurityAuditPageReadDto))
             .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
 
-        _ = platformGroup.MapModuleGet(
+        _ = group.MapModuleGet(
             SecurityAuditApiRoutes.PlatformSecurityEvents,
             GetPlatformSecurityEventsAsync,
             SecurityAuditApiOperations.ListPlatformSecurityEvents,
             typeof(SecurityAuditPageReadDto))
             .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
 
-        _ = platformGroup.MapModuleGet(
+        _ = group.MapModuleGet(
             SecurityAuditApiRoutes.PlatformSecurityEventCatalog,
             GetPlatformSecurityEventCatalogAsync,
             SecurityAuditApiOperations.GetPlatformSecurityEventCatalog,
             typeof(SecurityAuditCatalogEntryReadDto[]));
 
-        _ = platformGroup.MapModuleGet(
+        _ = group.MapModuleGet(
             SecurityAuditApiRoutes.PlatformSecurityEventsExport,
             ExportPlatformSecurityEventsAsync,
             SecurityAuditApiOperations.ExportPlatformSecurityEvents,
@@ -72,10 +70,6 @@ public static class SecurityAuditApi
                 new SecurityAuditQuery(page, pageSize, actorId, eventName, eventCategory, fromUtc, toUtc, sortBy, descending, operation, outcome, eventId),
                 cancellationToken);
             return Results.Ok(result);
-        }
-        catch (UnauthorizedAccessException)
-        {
-            return Results.Forbid();
         }
         catch (ArgumentException)
         {
@@ -116,10 +110,6 @@ public static class SecurityAuditApi
                 cancellationToken);
             return Results.Ok(result);
         }
-        catch (UnauthorizedAccessException)
-        {
-            return Results.Forbid();
-        }
         catch (ArgumentException)
         {
             return Results.Problem(statusCode: StatusCodes.Status400BadRequest, title: "Invalid global audit review query.", detail: "The global audit review query is invalid.");
@@ -132,17 +122,8 @@ public static class SecurityAuditApi
 
     private static async Task<IResult> GetPlatformSecurityEventCatalogAsync(
         ISecurityAuditQueryService queryService,
-        CancellationToken cancellationToken)
-    {
-        try
-        {
-            return Results.Ok(await queryService.GetPlatformCatalogAsync(cancellationToken));
-        }
-        catch (UnauthorizedAccessException)
-        {
-            return Results.Forbid();
-        }
-    }
+        CancellationToken cancellationToken) =>
+        Results.Ok(await queryService.GetPlatformCatalogAsync(cancellationToken));
 
     private static async Task<IResult> ExportPlatformSecurityEventsAsync(
         string? tenantId,
@@ -183,10 +164,6 @@ public static class SecurityAuditApi
                 cancellationToken);
             httpContext.Response.Headers.CacheControl = SecurityAuditApiRoutes.NoStoreCacheControl;
             return Results.File(SecurityAuditCsvFormatter.Format(rows), SecurityAuditApiRoutes.CsvContentType);
-        }
-        catch (UnauthorizedAccessException)
-        {
-            return Results.Forbid();
         }
         catch (SecurityAuditExportLimitException)
         {

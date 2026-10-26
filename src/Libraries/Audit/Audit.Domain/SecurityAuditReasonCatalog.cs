@@ -27,6 +27,7 @@ public static class SecurityAuditReasonCatalog
     public const string NoAccess = "no_access";
     public const string AuthenticationFailed = "authentication_failed";
     public const string AuthenticationLockout = "authentication_lockout";
+    public const string SourceFailedAttemptThreshold = "source_failed_attempt_threshold";
     public const string MfaFailure = "mfa_failure";
     public const string SecondFactorRequired = "second_factor_required";
     public const string AuthenticationProviderFailure = "authentication_provider_failure";
@@ -63,10 +64,15 @@ public static class SecurityAuditReasonCatalog
     public const string AuditStorageThresholdSmsPrefix = "sms=";
     public const string AuditStorageThresholdRecipientsPrefix = "recipients=";
     public const string AuditStorageThresholdRecipientsNotConfigured = "not_configured";
+    public const string AuditStorageOutageReasonPrefix = "audit_storage_outage:";
+    public const string AuditStorageOutageStartPrefix = "start=";
+    public const string AuditStorageOutageEndPrefix = "end=";
+    public const string AuditStorageOutageFailedWritesPrefix = "failed_writes=";
     public const string NotificationChannelNotAttempted = "not_attempted";
     public const string NotificationChannelSucceeded = "succeeded";
     public const string NotificationChannelFailed = "failed";
 
+    private const string AuditStorageOutageTimeFormat = "yyyy-MM-ddTHH:mm:ssZ";
     private const string HttpStatusPrefix = "http_";
     private const string VersionPrefix = "version:";
 
@@ -95,6 +101,7 @@ public static class SecurityAuditReasonCatalog
         NoAccess,
         AuthenticationFailed,
         AuthenticationLockout,
+        SourceFailedAttemptThreshold,
         MfaFailure,
         SecondFactorRequired,
         AuthenticationProviderFailure,
@@ -168,12 +175,25 @@ public static class SecurityAuditReasonCatalog
         return $"{AuditStorageThresholdReasonPrefix}{AuditStorageThresholdMeasuredBytesPrefix}{measuredBytes};{AuditStorageThresholdLimitPrefix}{thresholdBytes};{AuditStorageThresholdRecipientsPrefix}{AuditStorageThresholdRecipientsNotConfigured}";
     }
 
+    /// <summary>One audit-store outage: when writes started failing, the last failure, and how many failed.</summary>
+    public static string AuditStorageOutage(DateTime startedAt, DateTime lastFailedAt, long failedWrites)
+    {
+        if (startedAt.Kind != DateTimeKind.Utc || lastFailedAt.Kind != DateTimeKind.Utc)
+            throw new ArgumentException("Audit storage outage times must be UTC.");
+        if (lastFailedAt < startedAt)
+            throw new ArgumentException("An audit storage outage cannot end before it starts.", nameof(lastFailedAt));
+        if (failedWrites < 1)
+            throw new ArgumentOutOfRangeException(nameof(failedWrites));
+
+        return $"{AuditStorageOutageReasonPrefix}{AuditStorageOutageStartPrefix}{FormatOutageTime(startedAt)};{AuditStorageOutageEndPrefix}{FormatOutageTime(lastFailedAt)};{AuditStorageOutageFailedWritesPrefix}{failedWrites.ToString(CultureInfo.InvariantCulture)}";
+    }
+
     public static bool IsAllowed(string reason)
     {
         if (KnownReasons.Contains(reason))
             return true;
 
-        return IsHttpStatus(reason) || IsVersion(reason) || IsUserTimeoutMinutes(reason) || IsTenantRoleReplacement(reason) || IsAuditStorageThreshold(reason);
+        return IsHttpStatus(reason) || IsVersion(reason) || IsUserTimeoutMinutes(reason) || IsTenantRoleReplacement(reason) || IsAuditStorageThreshold(reason) || IsAuditStorageOutage(reason);
     }
 
     private static bool IsHttpStatus(string reason)
@@ -240,6 +260,24 @@ public static class SecurityAuditReasonCatalog
                IsPositiveInteger(segments[1], AuditStorageThresholdLimitPrefix) &&
                string.Equals(segments[2], AuditStorageThresholdRecipientsPrefix + AuditStorageThresholdRecipientsNotConfigured, StringComparison.Ordinal);
     }
+
+    private static bool IsAuditStorageOutage(string reason)
+    {
+        if (!reason.StartsWith(AuditStorageOutageReasonPrefix, StringComparison.Ordinal))
+            return false;
+
+        string[] segments = reason[AuditStorageOutageReasonPrefix.Length..].Split(';');
+        return segments.Length == 3 &&
+               IsOutageTime(segments[0], AuditStorageOutageStartPrefix) &&
+               IsOutageTime(segments[1], AuditStorageOutageEndPrefix) &&
+               IsPositiveInteger(segments[2], AuditStorageOutageFailedWritesPrefix);
+    }
+
+    private static bool IsOutageTime(string segment, string prefix) =>
+        segment.StartsWith(prefix, StringComparison.Ordinal) &&
+        DateTime.TryParseExact(segment[prefix.Length..], AuditStorageOutageTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal, out _);
+
+    private static string FormatOutageTime(DateTime value) => value.ToString(AuditStorageOutageTimeFormat, CultureInfo.InvariantCulture);
 
     private static bool IsNotificationChannelSegment(string segment, string prefix)
     {

@@ -6,6 +6,7 @@ using System.Security.Claims;
 using Vitarish.Authentication.Domain.Sessions;
 using Vitarish.Authentication.Application.Abstractions;
 using Vitarish.Authentication.Application.Results;
+using Vitarish.Authentication.Application.Security;
 using Vitarish.Authentication.Domain.Methods;
 using Vitarish.Authentication.Domain.Security;
 using Vitarish.Users.Application.Authorization;
@@ -22,6 +23,7 @@ public sealed class AspNetIdentitySignInService(
     IAuthenticationAttemptKeyFactory attemptKeyFactory,
     IAuthenticationSessionRegistry sessionRegistry,
     IHttpContextAccessor httpContextAccessor,
+    AuthenticationSourceAttemptGuard sourceAttemptGuard,
     IEnumerable<IRoleFreeSessionPolicy>? roleFreeSessions = null) : IAuthenticationSignInService
 {
     public Task<PasswordSignInResult> PasswordSignInAsync(string login, string password, CancellationToken cancellationToken) =>
@@ -38,9 +40,15 @@ public sealed class AspNetIdentitySignInService(
         if (user is null)
             return AuthenticationSessionSignInResult.Failed(new(AuthenticationFailureReason.InvalidCredentials, "Cannot sign in an unknown user."));
         if (!user.IsEnabled)
+        {
+            await sessionRegistry.RecordFailedAttemptAsync(user.Id, cancellationToken);
             return AuthenticationSessionSignInResult.Failed(new(AuthenticationFailureReason.AccountDisabled, "The account is disabled."));
+        }
         if (!await MayStartSessionAsync(user, cancellationToken))
+        {
+            await sessionRegistry.RecordFailedAttemptAsync(user.Id, cancellationToken);
             return AuthenticationSessionSignInResult.Failed(new(AuthenticationFailureReason.NoAccess, "The account has no access level."));
+        }
 
         IAuthenticationSessionPreparation? preparation = null;
         preparation = await sessionRegistry.PrepareAsync(userId, cancellationToken);
@@ -87,6 +95,7 @@ public sealed class AspNetIdentitySignInService(
         {
             await sessionRegistry.RevokeAsync(established.SessionId!, AuthenticationSessionTerminationReason.SecurityAttributeChanged, CancellationToken.None);
             await httpContextAccessor.HttpContext!.SignOutAsync(IdentityConstants.ApplicationScheme);
+            await sessionRegistry.RecordFailedAttemptAsync(user.Id, CancellationToken.None);
             return AuthenticationSessionSignInResult.Failed(new(AuthenticationFailureReason.AccountDisabled, "The account is disabled."));
         }
 
@@ -97,6 +106,7 @@ public sealed class AspNetIdentitySignInService(
         {
             await sessionRegistry.RevokeAsync(established.SessionId!, AuthenticationSessionTerminationReason.SecurityAttributeChanged, CancellationToken.None);
             await httpContextAccessor.HttpContext!.SignOutAsync(IdentityConstants.ApplicationScheme);
+            await sessionRegistry.RecordFailedAttemptAsync(user.Id, CancellationToken.None);
             return AuthenticationSessionSignInResult.Failed(new(AuthenticationFailureReason.NoAccess, "The account has no access level."));
         }
 
@@ -140,6 +150,8 @@ public sealed class AspNetIdentitySignInService(
             return new PasswordSignInResult(PasswordSignInStatus.InvalidCredentials, null, false);
 
         SecurityAccessPolicy policy = await policyProvider.GetAsync(cancellationToken);
+        if (await sourceAttemptGuard.IsBlockedAsync(cancellationToken))
+            return DeniedResult(policy.FailedAttemptResponse);
         IReadOnlyList<string> identifierKeys = attemptKeyFactory.IdentifierCandidates(AuthenticationMethod.Password, login);
         if (await IsDeniedAsync(identifierKeys, cancellationToken))
             return DeniedResult(policy.FailedAttemptResponse);
@@ -156,7 +168,8 @@ public sealed class AspNetIdentitySignInService(
             int identifierFailures = await RegisterFailuresAsync(identifierKeys, policy, cancellationToken);
             int subjectFailures = await RegisterFailuresAsync(unknownSubjectKeys, policy, cancellationToken);
             int failures = Math.Max(identifierFailures, subjectFailures);
-            return failures >= policy.FailedAttemptThreshold
+            bool sourceBlocked = await sourceAttemptGuard.RegisterFailureAsync(policy, cancellationToken);
+            return failures >= policy.FailedAttemptThreshold || sourceBlocked
                 ? DeniedResult(policy.FailedAttemptResponse)
                 : new PasswordSignInResult(PasswordSignInStatus.InvalidCredentials, null, false);
         }
@@ -172,11 +185,17 @@ public sealed class AspNetIdentitySignInService(
         if (result.Succeeded || result.RequiresTwoFactor)
         {
             if (!user.IsEnabled)
+            {
+                await sessionRegistry.RecordFailedAttemptAsync(user.Id, cancellationToken);
                 return new PasswordSignInResult(PasswordSignInStatus.AccountDisabled, user.Id, RequiresProfileCompletion(user));
+            }
             // Like a disabled account, refuse right after the password verifies, before
             // any second-factor code is sent.
             if (!await MayStartSessionAsync(user, cancellationToken))
+            {
+                await sessionRegistry.RecordFailedAttemptAsync(user.Id, cancellationToken);
                 return new PasswordSignInResult(PasswordSignInStatus.NoAccess, user.Id, RequiresProfileCompletion(user));
+            }
             await ResetAsync(identifierKeys, cancellationToken);
             await ResetAsync(subjectKeys, cancellationToken);
             PasswordSignInResult successful = new(
@@ -205,7 +224,8 @@ public sealed class AspNetIdentitySignInService(
             int identifierFailures = await RegisterFailuresAsync(identifierKeys, policy, cancellationToken);
             int subjectFailures = await RegisterFailuresAsync(subjectKeys, policy, cancellationToken);
             int failures = Math.Max(identifierFailures, subjectFailures);
-            if (failures >= policy.FailedAttemptThreshold)
+            bool sourceBlocked = await sourceAttemptGuard.RegisterFailureAsync(policy, cancellationToken);
+            if (failures >= policy.FailedAttemptThreshold || sourceBlocked)
                 status = policy.FailedAttemptResponse == FailedAttemptResponse.Lockout
                     ? PasswordSignInStatus.LockedOut
                     : PasswordSignInStatus.TooManyAttempts;
@@ -229,8 +249,9 @@ public sealed class AspNetIdentitySignInService(
         int identifierFailures = await RegisterFailuresAsync(identifierKeys, policy, cancellationToken);
         int subjectFailures = await RegisterFailuresAsync(subjectKeys, policy, cancellationToken);
         int failures = Math.Max(identifierFailures, subjectFailures);
+        bool sourceBlocked = await sourceAttemptGuard.RegisterFailureAsync(policy, cancellationToken);
         await sessionRegistry.RecordFailedAttemptAsync(user.Id, cancellationToken);
-        return failures >= policy.FailedAttemptThreshold
+        return failures >= policy.FailedAttemptThreshold || sourceBlocked
             ? DeniedResult(policy.FailedAttemptResponse)
             : new PasswordSignInResult(PasswordSignInStatus.InvalidCredentials, null, false);
     }

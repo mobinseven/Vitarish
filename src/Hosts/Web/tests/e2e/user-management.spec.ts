@@ -354,7 +354,7 @@ test("platform administrator manages profile-constrained authentication policy t
   await login(page, platformUsername, platformOrigin);
   await page.goto(`${platformOrigin}/settings/security`, { waitUntil: "domcontentloaded" });
   await expect(page.getByRole("heading", { name: "Authentication policy", exact: true })).toBeVisible({ timeout: 30_000 });
-  await expect(page.getByRole("spinbutton", { name: "Failed authentication threshold" })).toHaveValue("5");
+  await expect(page.getByRole("spinbutton", { name: "Failed authentication threshold", exact: true })).toHaveValue("5");
   await expect(page.getByText("Required by deployment profile").first()).toBeVisible();
 
   const loadedPolicyResponse = await page.request.get(`${apiOrigin}/api/modules/authentication/security/authentication-policy`, {
@@ -363,7 +363,7 @@ test("platform administrator manages profile-constrained authentication policy t
   });
   expect(loadedPolicyResponse.status()).toBe(200);
   const originalPolicy = await loadedPolicyResponse.json() as SecurityAuthenticationPolicyDto;
-  const threshold = page.getByRole("spinbutton", { name: "Failed authentication threshold" });
+  const threshold = page.getByRole("spinbutton", { name: "Failed authentication threshold", exact: true });
   await threshold.fill("6");
   const [policyResponse] = await Promise.all([
     page.waitForResponse((response) => response.request().method() === "PUT" && response.url().endsWith("/api/modules/authentication/security/authentication-policy")),
@@ -382,7 +382,7 @@ test("platform administrator manages profile-constrained authentication policy t
   }
 
   await page.reload({ waitUntil: "domcontentloaded" });
-  const reloadedThreshold = page.getByRole("spinbutton", { name: "Failed authentication threshold" });
+  const reloadedThreshold = page.getByRole("spinbutton", { name: "Failed authentication threshold", exact: true });
   await expect(reloadedThreshold).toHaveValue("6");
   const invalidUpdateStatus = await putAuthenticationPolicy(page, {
     minimumPasswordLength: originalPolicy.minimumPasswordLength,
@@ -399,15 +399,15 @@ test("platform administrator manages profile-constrained authentication policy t
   });
   expect(invalidUpdateStatus).toBe(400);
   await page.reload({ waitUntil: "domcontentloaded" });
-  await expect(page.getByRole("spinbutton", { name: "Failed authentication threshold" })).toHaveValue("6");
+  await expect(page.getByRole("spinbutton", { name: "Failed authentication threshold", exact: true })).toHaveValue("6");
 
-  await page.getByRole("spinbutton", { name: "Failed authentication threshold" }).fill(String(originalPolicy.failedAttemptThreshold));
+  await page.getByRole("spinbutton", { name: "Failed authentication threshold", exact: true }).fill(String(originalPolicy.failedAttemptThreshold));
   const [restoreResponse] = await Promise.all([
     page.waitForResponse((response) => response.request().method() === "PUT" && response.url().endsWith("/api/modules/authentication/security/authentication-policy")),
     page.getByRole("button", { name: "Save authentication policy" }).click(),
   ]);
   expect(restoreResponse.status()).toBe(200);
-  await expect(page.getByRole("spinbutton", { name: "Failed authentication threshold" })).toHaveValue(String(originalPolicy.failedAttemptThreshold));
+  await expect(page.getByRole("spinbutton", { name: "Failed authentication threshold", exact: true })).toHaveValue(String(originalPolicy.failedAttemptThreshold));
 
   await page.goto(`${platformOrigin}${PlatformRoutes.Audit}`, { waitUntil: "domcontentloaded" });
   await expect(page.getByRole("heading", { name: "Security event stream", exact: true })).toBeVisible({ timeout: 30_000 });
@@ -580,6 +580,12 @@ test("platform administrator creates, edits, assigns access, and reviews a user'
   const securityHistory = page.locator("section").filter({ has: page.getByRole("heading", { name: "Security history", exact: true }) });
   await expect(securityHistory.getByText(/^Page 1 of [2-9]$/)).toBeVisible();
   await expect(authenticationHistory.getByRole("button", { name: "Older events" })).toHaveCount(0);
+
+  // The server reports which authentication data the account holds: the changed
+  // email is no longer verified and no passkey has been registered.
+  const authenticationMethods = page.locator("section").filter({ has: page.getByRole("heading", { name: "Authentication methods", exact: true }) });
+  await expect(authenticationMethods.getByRole("definition").nth(1)).toHaveText("Not verified");
+  await expect(authenticationMethods.getByText("No passkey is registered.", { exact: true })).toBeVisible();
 
   const proofScreenshot = process.env[twoHostE2eProofScreenshotEnvironmentKey];
   if (proofScreenshot) await captureAuthenticatedScreenshot(page, proofScreenshot);

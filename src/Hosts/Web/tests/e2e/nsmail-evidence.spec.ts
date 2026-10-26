@@ -6,6 +6,8 @@ import { dirname, resolve } from "node:path";
 import { mkdirSync } from "node:fs";
 import { twoHostE2eApiOriginEnvironmentKey, twoHostE2eSignInOrigin } from "../../scripts/two-host-e2e-artifacts.mjs";
 import { signInToClinic } from "./signInHost";
+import { authenticationLoginPassword } from "../../shared/auth/src/api/generated/authentication/authentication";
+import { generatedOperationPath } from "./generatedOperationPath";
 
 // Main itself, for API-boundary checks made without the browser.
 const apiOrigin = process.env[twoHostE2eApiOriginEnvironmentKey] ?? "https://localhost:7272";
@@ -78,8 +80,16 @@ async function captureSurface(page: Page, path: string, heading: string, filenam
 }
 
 test.describe("NSMAIL-1 evidence execution coverage", () => {
-  test("AUD-09: authorized audit review exposes filtered, attributable records", async ({ page }) => {
+  test("AUD-09: authorized audit review exposes filtered, attributable records", async ({ page, request }) => {
     test.setTimeout(300_000);
+    // Shared sign-in records password events in platform scope. Create this tenant's own event
+    // through the public API so review filtering never depends on an earlier spec's attempts.
+    const deniedLogin = await request.post(new URL(generatedOperationPath(authenticationLoginPassword), apiOrigin).href, {
+      data: { userNameOrEmail: `e2e-audit-review-${Date.now()}@example.invalid`, password: "E2E-Audit-Review-Wrong-Password", returnUrl: null },
+      headers: { "X-Forwarded-For": "203.0.113.69", [TENANT_HOST_HEADER]: "localhost" },
+      ignoreHTTPSErrors: true,
+    });
+    expect(deniedLogin.status()).toBe(401);
     await login(page);
     const initialAuditRequest = page.waitForResponse(
       (response) => response.url().includes("/api/audit/security-events") && response.request().method() === "GET",

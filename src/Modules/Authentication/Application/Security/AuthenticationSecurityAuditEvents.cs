@@ -42,6 +42,11 @@ public static class AuthenticationSecurityAuditEvents
     public const string FailurePasswordLoginDisabled = SecurityAuditReasonCatalog.PasswordLoginDisabled;
     public const string FailureDuplicateInProgress = SecurityAuditReasonCatalog.DuplicateOutcomeUnconfirmed;
     public const string FailureDuplicatePayloadMismatch = SecurityAuditReasonCatalog.IdempotencyKeyReused;
+    public const string SourceBlocked = SecurityAuditEventCatalog.AuthenticationSourceBlockedEvent;
+    public const string SourceBlockOperation = SecurityAuditEventCatalog.AuthenticationSourceBlockOperation;
+    public const string SourceBlockResource = "authentication/client-address";
+    public const string SourceBlockKeySuffix = ":authentication-source-block";
+    public const string SourceFailedAttemptThreshold = SecurityAuditReasonCatalog.SourceFailedAttemptThreshold;
     public const string SecurityAccessPolicy = SecurityAuditEventCatalog.AuthenticationSecurityAccessPolicyEvent;
     public const string SecurityAccessPolicyOperation = SecurityAuditEventCatalog.SecurityAccessPolicyOperation;
     public const string SecurityAccessPolicyResource = "authentication/security-access-policy";

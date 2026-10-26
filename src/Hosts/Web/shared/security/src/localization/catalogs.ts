@@ -7,6 +7,7 @@ const auditMessages = {
   filtersDescription: "Narrow the read-only review by actor, event, category, or UTC date range.",
   actor: "Actor",
   eventName: "Event type",
+  transferredFile: "File",
   eventCategory: "Category",
   fromDate: "From date",
   toDate: "To date",
@@ -49,6 +50,7 @@ const auditMessagesFa = {
   filtersDescription: "بررسی فقط‌خواندنی را بر اساس کاربر، رویداد، دسته یا بازه تاریخ UTC محدود کنید.",
   actor: "عامل",
   eventName: "نوع رویداد",
+  transferredFile: "فایل",
   eventCategory: "دسته",
   fromDate: "از تاریخ",
   toDate: "تا تاریخ",
@@ -159,6 +161,7 @@ const platformAuditMessages = {
   detailReadOnly: "This panel exposes review-safe metadata only. Audit events cannot be edited or deleted here.",
   subject: "Subject ID",
   resource: "Resource",
+  transferredFile: "File",
   occurredAt: "Occurred",
   correlationId: "Correlation ID",
   sourceBoundary: "Source boundary",
@@ -166,6 +169,9 @@ const platformAuditMessages = {
   sourceIpKind: "Source IP kind",
   sourceIpAddress: "Source IP address",
   redactedReason: "Redacted reason",
+  changes: "Changes",
+  changeValue: "{field}: from {previous} to {next}",
+  changeNoValue: "none",
 } as const;
 
 const platformAuditMessagesFa = {
@@ -243,6 +249,7 @@ const platformAuditMessagesFa = {
   detailReadOnly: "این پنل فقط فراداده امن برای بررسی را نمایش می‌دهد. رویدادهای ممیزی از اینجا قابل ویرایش یا حذف نیستند.",
   subject: "شناسه موضوع",
   resource: "منبع",
+  transferredFile: "فایل",
   occurredAt: "زمان وقوع",
   correlationId: "شناسه همبستگی",
   sourceBoundary: "مرز مبدأ",
@@ -250,6 +257,9 @@ const platformAuditMessagesFa = {
   sourceIpKind: "نوع IP مبدأ",
   sourceIpAddress: "نشانی IP مبدأ",
   redactedReason: "دلیل پالایش‌شده",
+  changes: "تغییرات",
+  changeValue: "{field}: از {previous} به {next}",
+  changeNoValue: "بدون مقدار",
 } as const;
 
 const platformAuditIdentifierLabels = {
@@ -285,6 +295,7 @@ const platformAuditIdentifierLabels = {
       "authentication.identity.mfa.authenticator": "Authenticator MFA",
       "authentication.identity.mfa.recovery-code": "Recovery-code MFA",
       "authentication.identity.mfa.provider": "Identity-provider MFA",
+      "authentication.source.blocked": "IP address blocked after failed attempts",
       "authentication.security-access-policy": "Security access-policy change",
       "authentication.security-attributes.changed": "Security attributes changed",
       "security.data.import": "Data import",
@@ -312,6 +323,23 @@ const platformAuditIdentifierLabels = {
       "parties.tenant.self-service-created": "Clinic created by its owner",
       "authentication.tenant-handoff.issued": "Sign-in link to a new clinic issued",
       "authentication.tenant-handoff.redeemed": "Sign-in link to a new clinic used",
+    },
+    changeFields: {
+      email: "Email",
+      phoneNumber: "Phone number",
+      firstName: "First name",
+      lastName: "Last name",
+      accountStatus: "Account status",
+      globalRole: "Global role",
+      tenantRole: "Clinic role",
+    },
+    changeValues: {
+      enabled: "Enabled",
+      disabled: "Disabled",
+      none: "No role",
+      tenant_owner: "Clinic owner",
+      tenant_user: "Clinic user",
+      multiple: "Several roles",
     },
   },
   fa: {
@@ -346,6 +374,7 @@ const platformAuditIdentifierLabels = {
       "authentication.identity.mfa.authenticator": "احراز هویت چندمرحله‌ای با اعتبارسنج",
       "authentication.identity.mfa.recovery-code": "احراز هویت چندمرحله‌ای با کد بازیابی",
       "authentication.identity.mfa.provider": "احراز هویت چندمرحله‌ای ارائه‌دهنده هویت",
+      "authentication.source.blocked": "مسدود شدن نشانی IP پس از تلاش‌های ناموفق",
       "authentication.security-access-policy": "تغییر سیاست دسترسی امنیتی",
       "authentication.security-attributes.changed": "تغییر ویژگی‌های امنیتی",
       "security.data.import": "درون‌ریزی داده",
@@ -374,10 +403,27 @@ const platformAuditIdentifierLabels = {
       "authentication.tenant-handoff.issued": "صدور پیوند ورود به مطب تازه",
       "authentication.tenant-handoff.redeemed": "استفاده از پیوند ورود به مطب تازه",
     },
+    changeFields: {
+      email: "ایمیل",
+      phoneNumber: "شماره تلفن",
+      firstName: "نام",
+      lastName: "نام خانوادگی",
+      accountStatus: "وضعیت حساب",
+      globalRole: "نقش سراسری",
+      tenantRole: "نقش در مطب",
+    },
+    changeValues: {
+      enabled: "فعال",
+      disabled: "غیرفعال",
+      none: "بدون نقش",
+      tenant_owner: "مالک مطب",
+      tenant_user: "کاربر مطب",
+      multiple: "چند نقش",
+    },
   },
 } as const;
 
-type PlatformAuditIdentifierKind = "categories" | "events";
+type PlatformAuditIdentifierKind = "categories" | "events" | "changeFields" | "changeValues";
 
 function localizePlatformAuditIdentifier(
   locale: SupportedLocale,
@@ -395,6 +441,14 @@ export function localizePlatformAuditCategory(locale: SupportedLocale, value: st
 
 export function localizePlatformAuditEvent(locale: SupportedLocale, value: string | null | undefined, fallback: string): string {
   return localizePlatformAuditIdentifier(locale, "events", value, fallback);
+}
+
+export function localizePlatformAuditChangeField(locale: SupportedLocale, value: string | null | undefined, fallback: string): string {
+  return localizePlatformAuditIdentifier(locale, "changeFields", value, fallback);
+}
+
+export function localizePlatformAuditChangeValue(locale: SupportedLocale, value: string | null | undefined, fallback: string): string {
+  return localizePlatformAuditIdentifier(locale, "changeValues", value, fallback);
 }
 
 export function localizeSecurityAuditOutcome(locale: SupportedLocale, value: string | null | undefined, fallback: string): string {

@@ -660,6 +660,42 @@
           }
         }
       },
+      "SecurityAuditChange": {
+        "required": [
+          "field",
+          "previousValue",
+          "newValue"
+        ],
+        "type": "object",
+        "properties": {
+          "field": {
+            "$ref": "#/components/schemas/SecurityAuditChangeField"
+          },
+          "previousValue": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "newValue": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "SecurityAuditChangeField": {
+        "enum": [
+          "email",
+          "phoneNumber",
+          "firstName",
+          "lastName",
+          "accountStatus",
+          "globalRole",
+          "tenantRole"
+        ]
+      },
       "SecurityAuditEventReadDto": {
         "type": "object",
         "properties": {
@@ -706,6 +742,27 @@
               "string"
             ]
           },
+          "resourceNameHash": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "resourceExtension": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "resourceSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          },
           "operation": {
             "type": "string"
           },
@@ -742,6 +799,15 @@
               "null",
               "string"
             ]
+          },
+          "changes": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/SecurityAuditChange"
+            }
           }
         }
       },

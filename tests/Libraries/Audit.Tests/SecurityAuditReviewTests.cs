@@ -56,6 +56,21 @@ public sealed class SecurityAuditReviewTests
     }
 
     [Fact]
+    public void Audit_storage_outage_reason_is_kept_only_in_its_typed_form()
+    {
+        DateTime started = new(2026, 10, 25, 9, 0, 0, DateTimeKind.Utc);
+        DateTime lastFailed = new(2026, 10, 25, 9, 42, 5, DateTimeKind.Utc);
+
+        SecurityAuditRedaction.Apply(SecurityAuditReasonCatalog.AuditStorageOutage(started, lastFailed, 37))
+            .Should().Be("audit_storage_outage:start=2026-10-25T09:00:00Z;end=2026-10-25T09:42:05Z;failed_writes=37");
+        SecurityAuditRedaction.Apply("audit_storage_outage:start=2026-10-25T09:00:00Z;end=yesterday;failed_writes=37")
+            .Should().Be(SecurityAuditRedaction.Replacement);
+        SecurityAuditRedaction.Apply("audit_storage_outage:start=2026-10-25T09:00:00Z;end=2026-10-25T09:42:05Z;failed_writes=0")
+            .Should().Be(SecurityAuditRedaction.Replacement);
+        ((Action)(() => SecurityAuditReasonCatalog.AuditStorageOutage(lastFailed, started, 1))).Should().Throw<ArgumentException>();
+    }
+
+    [Fact]
     public void Redaction_preserves_only_catalogued_reasons_and_typed_dynamic_reasons()
     {
         SecurityAuditRedaction.Apply(SecurityAuditReasonCatalog.PasswordLoginDisabled).Should().Be(SecurityAuditReasonCatalog.PasswordLoginDisabled);
@@ -610,15 +625,76 @@ public sealed class SecurityAuditReviewTests
                 CorrelationId = "request-1",
                 SourceBoundary = "tests",
                 SourceIpKind = SecurityAuditSourceKind.Unknown,
-                RedactedReason = "line one\nline two"
+                RedactedReason = "line one\nline two",
+                ResourceNameHash = new string('a', SecurityAuditEvent.MaximumResourceNameHashLength),
+                ResourceExtension = "pdf",
+                ResourceSize = 2048,
+                Changes = [new SecurityAuditChange(SecurityAuditChangeFields.Email, "old@example.test", "new@example.test")]
             }
         ]));
 
         csv.Should().Contain("\"'=unsafe\"");
         csv.Should().Contain("\"actor,one\"");
         csv.Should().Contain("\"line one\nline two\"");
+        csv.Should().StartWith("\"id\"").And.Contain("\"resourceNameHash\",\"resourceExtension\",\"resourceSize\",");
+        csv.Should().Contain($"\"{new string('a', SecurityAuditEvent.MaximumResourceNameHashLength)}\",\"pdf\",\"2048\",");
+        csv.Should().Contain("\"changes\"\r\n").And.Contain("previousValue");
         csv.Should().NotContain("idempotency");
         csv.Should().NotContain("payload");
+    }
+
+    [Fact]
+    public void Csv_changes_are_json_encoded_and_distinguish_missing_values_from_empty_values()
+    {
+        string changes = SecurityAuditCsvFormatter.FormatChanges(
+        [
+            new SecurityAuditChange(SecurityAuditChangeFields.Email, "old@example.test", "new@example.test"),
+            new SecurityAuditChange(SecurityAuditChangeFields.FirstName, null, string.Empty),
+            new SecurityAuditChange(SecurityAuditChangeFields.LastName, "old; victim -> value", "new\\path")
+        ]);
+
+        changes.Should().Contain("\"field\":\"email\"");
+        changes.Should().Contain("\"previousValue\":\"old@example.test\"");
+        changes.Should().Contain($"\"previousValue\":\"{SecurityAuditEventCatalog.ChangeValueNone}\"");
+        changes.Should().Contain("\"newValue\":\"\"");
+        changes.Should().Contain("old; victim -\\u003E value");
+        changes.Should().Contain("new\\\\path");
+        changes.Should().NotContain("email: old@example.test -> new@example.test");
+    }
+
+    [Fact]
+    public async Task Tenant_review_never_exposes_field_changes()
+    {
+        DbContextOptions<AuditDbContext> options = CreateOptions();
+        await using AuditDbContext context = CreateContext(options, "tenant-a");
+        await context.Database.EnsureCreatedAsync();
+        SecurityAuditEvent edited = CreateEvent(
+            "tenant-a",
+            "actor-a",
+            SecurityAuditEventCatalog.UserEditEvent,
+            new DateTime(2026, 9, 2, 7, 0, 0, DateTimeKind.Utc));
+        edited.EventCategory = SecurityAuditEventCatalog.ManagementCategory;
+        edited.Operation = SecurityAuditEventCatalog.UserEditOperation;
+        edited.Resource = "account/42";
+        edited.Changes = [new SecurityAuditChange(SecurityAuditChangeFields.Email, "old@example.test", "new@example.test")];
+        context.SecurityAuditEvents.Add(edited);
+        await context.SaveChangesAsync();
+
+        SecurityAuditQueryService tenantOwner = new(
+            context,
+            new TestRequestContext("tenant-a", ["tenant-a:" + IdentityDefinitions.TenantOwner]));
+        (await tenantOwner.QueryAsync(new SecurityAuditQuery(PageSize: 10), CancellationToken.None))
+            .Items.Single().Changes.Should().BeNull();
+        (await tenantOwner.GetByResourceAsync("account/42", CancellationToken.None))
+            .Single().Changes.Should().BeNull();
+
+        SecurityAuditQueryService platform = new(
+            context,
+            new TestRequestContext("tenant-a", [IdentityDefinitions.PlatformAdmin]));
+        (await platform.QueryPlatformAsync(
+            new SecurityAuditPlatformQuery(new SecurityAuditQuery(PageSize: 10)),
+            CancellationToken.None)).Items.Single().Changes
+            .Should().Equal(new SecurityAuditChange(SecurityAuditChangeFields.Email, "old@example.test", "new@example.test"));
     }
 
     [Fact]

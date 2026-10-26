@@ -21,9 +21,13 @@ internal static class E2eAuditEvidenceEndpoints
     private const string StorageThresholdCheckRoute = "/storage-threshold/check";
     private const string IntegrityVerificationRoute = "/files/{fileId:guid}/integrity-verification";
     private const string IntegrityTamperRoute = "/files/{fileId:guid}/tamper";
+    private const string StoreOutageStartRoute = "/store-outage/start";
+    private const string StoreOutageEndRoute = "/store-outage/end";
     private const string StorageThresholdCheckOperation = "E2eAuditEvidenceCheckStorageThreshold";
     private const string IntegrityVerificationOperation = "E2eAuditEvidenceVerifyFileIntegrity";
     private const string IntegrityTamperOperation = "E2eAuditEvidenceTamperStoredFile";
+    private const string StoreOutageStartOperation = "E2eAuditEvidenceStartStoreOutage";
+    private const string StoreOutageEndOperation = "E2eAuditEvidenceEndStoreOutage";
 
     public static IEndpointRouteBuilder MapE2eAuditEvidenceEndpoints(this IEndpointRouteBuilder endpoints)
     {
@@ -36,6 +40,8 @@ internal static class E2eAuditEvidenceEndpoints
         _ = group.MapModulePost(StorageThresholdCheckRoute, CheckStorageAboveThresholdAsync, StorageThresholdCheckOperation, successStatusCode: StatusCodes.Status204NoContent);
         _ = group.MapModulePost(IntegrityVerificationRoute, VerifyFileIntegrityAsync, IntegrityVerificationOperation, successStatusCode: StatusCodes.Status204NoContent);
         _ = group.MapModulePost(IntegrityTamperRoute, TamperFileObjectAsync, IntegrityTamperOperation, successStatusCode: StatusCodes.Status204NoContent);
+        _ = group.MapModulePost(StoreOutageStartRoute, StartStoreOutage, StoreOutageStartOperation, successStatusCode: StatusCodes.Status204NoContent);
+        _ = group.MapModulePost(StoreOutageEndRoute, EndStoreOutageAsync, StoreOutageEndOperation, successStatusCode: StatusCodes.Status204NoContent);
         return endpoints;
     }
 
@@ -65,6 +71,38 @@ internal static class E2eAuditEvidenceEndpoints
         }
 
         return Results.NoContent();
+    }
+
+    // Every audit-store save fails until the outage is ended, so real requests take the writer's failure path.
+    private static IResult StartStoreOutage(E2eAuditStoreOutageSimulation simulation)
+    {
+        simulation.Unavailable = true;
+        return Results.NoContent();
+    }
+
+    // Runs one reporter check while the store is still down (the read-only probe refuses the summary),
+    // then ends the simulated outage and runs the recovery check the reporter's timer would run.
+    private static async Task<IResult> EndStoreOutageAsync(
+        IServiceProvider services,
+        E2eAuditStoreOutageSimulation simulation,
+        CancellationToken cancellationToken)
+    {
+        await RunOutageReporterCheckAsync(services, cancellationToken).ConfigureAwait(false);
+        simulation.Unavailable = false;
+        await RunOutageReporterCheckAsync(services, cancellationToken).ConfigureAwait(false);
+        return Results.NoContent();
+    }
+
+    private static async Task RunOutageReporterCheckAsync(IServiceProvider services, CancellationToken cancellationToken)
+    {
+        AuditStorageOutageReporter reporter = services.GetServices<IHostedService>().OfType<AuditStorageOutageReporter>().Single();
+        Task check;
+        using (ExecutionContext.SuppressFlow())
+        {
+            check = Task.Run(() => reporter.CheckOnceAsync(cancellationToken), cancellationToken);
+        }
+
+        await check.ConfigureAwait(false);
     }
 
     private static async Task<IResult> VerifyFileIntegrityAsync(

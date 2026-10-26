@@ -1,4 +1,5 @@
 using System.Data.Common;
+using System.Globalization;
 using System.Net;
 using System.Reflection;
 using System.Security.Cryptography;
@@ -15,7 +16,8 @@ internal sealed class SecurityAuditWriter(
     AuditDbContext dbContext,
     IClientIpAddressAccessor? clientIpAddressAccessor = null,
     ILogger<SecurityAuditWriter>? logger = null,
-    IClientInterfaceHostAccessor? clientInterfaceHostAccessor = null) : ISecurityAuditWriter, ISecurityAuditOutcomeUpdater
+    IClientInterfaceHostAccessor? clientInterfaceHostAccessor = null,
+    IAuditStorageOutageCounter? outageCounter = null) : ISecurityAuditWriter, ISecurityAuditOutcomeUpdater
 {
     public async Task<string?> GetOutcomeAsync(string tenantId, string idempotencyKey, CancellationToken cancellationToken)
     {
@@ -78,18 +80,18 @@ internal sealed class SecurityAuditWriter(
             catch (Exception duplicateCheckException) when (duplicateCheckException is not OperationCanceledException)
             {
                 SecurityAuditStoreException failure = new("The mandatory security audit store could not confirm a duplicate.", duplicateCheckException);
-                LogWriteFailure(auditEvent, duplicateCheckException);
+                await ReportWriteFailureAsync(auditEvent, duplicateCheckException);
                 throw failure;
             }
 
             SecurityAuditStoreException persistenceFailure = new("The mandatory security audit event could not be persisted.", exception);
-            LogWriteFailure(auditEvent, exception);
+            await ReportWriteFailureAsync(auditEvent, exception);
             throw persistenceFailure;
         }
         catch (Exception exception) when (exception is not SecurityAuditStoreException)
         {
             SecurityAuditStoreException failure = new("The mandatory security audit event could not be persisted.", exception);
-            LogWriteFailure(auditEvent, exception);
+            await ReportWriteFailureAsync(auditEvent, exception);
             throw failure;
         }
     }
@@ -130,6 +132,9 @@ internal sealed class SecurityAuditWriter(
                 SubjectId = pending.SubjectId,
                 TenantId = pending.TenantId,
                 Resource = pending.Resource,
+                ResourceNameHash = pending.ResourceNameHash,
+                ResourceExtension = pending.ResourceExtension,
+                ResourceSize = pending.ResourceSize,
                 Operation = pending.Operation,
                 OccurredAt = DateTime.UtcNow,
                 CorrelationId = pending.CorrelationId,
@@ -138,6 +143,7 @@ internal sealed class SecurityAuditWriter(
                 SourceIpAddress = pending.SourceIpAddress,
                 ClientInterfaceHost = pending.ClientInterfaceHost,
                 RedactedReason = SecurityAuditRedaction.Apply(reason),
+                Changes = outcome == SecurityAuditOutcome.Succeeded ? pending.Changes : null,
                 IdempotencyKey = terminalKey
             }, cancellationToken);
             _ = await dbContext.SaveChangesAsync(cancellationToken);
@@ -151,13 +157,16 @@ internal sealed class SecurityAuditWriter(
         {
             SecurityAuditStoreException failure = exception as SecurityAuditStoreException
                 ?? new SecurityAuditStoreException("The mandatory security audit event could not be updated.", exception);
-            LogWriteFailure(pending, exception);
+            await ReportWriteFailureAsync(pending, exception);
             throw failure;
         }
     }
 
     private void Normalize(SecurityAuditEvent auditEvent)
     {
+        if (auditEvent.Changes is { Count: > 0 } changes)
+            auditEvent.Changes = SecurityAuditChangeColumn.Fit(changes);
+
         auditEvent.EventCategory ??= SecurityAuditEventCatalog.Find(auditEvent.EventName, auditEvent.Operation)?.Category;
         auditEvent.ActorKind ??= auditEvent.ActorId is null ? SecurityAuditActorKind.Anonymous : SecurityAuditActorKind.User;
         auditEvent.RedactedReason = SecurityAuditRedaction.Apply(auditEvent.RedactedReason);
@@ -214,15 +223,59 @@ internal sealed class SecurityAuditWriter(
             throw new ArgumentException("Client security audit events require a normalized IP address.", nameof(auditEvent));
         if (auditEvent.SourceIpKind is not SecurityAuditSourceKind.Client and not SecurityAuditSourceKind.System and not SecurityAuditSourceKind.Unknown)
             throw new ArgumentException("Security audit source kinds are invalid.", nameof(auditEvent));
+        if (auditEvent.ResourceNameHash is { } resourceNameHash &&
+            (resourceNameHash.Length != SecurityAuditEvent.MaximumResourceNameHashLength ||
+             !resourceNameHash.All(char.IsAsciiHexDigitLower)))
+            throw new ArgumentException("Security audit resource name hashes must be lowercase SHA-256 hexadecimal values.", nameof(auditEvent));
+        if (auditEvent.ResourceExtension is { } resourceExtension &&
+            (resourceExtension.Length is 0 or > SecurityAuditEvent.MaximumResourceExtensionLength ||
+             resourceExtension.Any(IsNonDisplayCharacter)))
+            throw new ArgumentException("Security audit resource extensions must be non-empty, bounded, and free of control, format, and separator characters.", nameof(auditEvent));
+        if (auditEvent.ResourceSize is < 0)
+            throw new ArgumentException("Security audit resource sizes cannot be negative.", nameof(auditEvent));
+        if (auditEvent.Changes is { } changes &&
+            (changes.Count == 0 || !SecurityAuditChangeFields.AreValid(changes) || !SecurityAuditChangeColumn.IsWithinLength(changes)))
+        {
+            throw new ArgumentException("Security audit changes must use catalogued fields with bounded values.", nameof(auditEvent));
+        }
         if (auditEvent.OccurredAt.Kind != DateTimeKind.Utc)
             throw new ArgumentException("Security audit timestamps must be UTC.", nameof(auditEvent));
     }
+
+    private static bool IsNonDisplayCharacter(char value) =>
+        char.IsControl(value) ||
+        char.GetUnicodeCategory(value) is UnicodeCategory.Format or UnicodeCategory.LineSeparator or UnicodeCategory.ParagraphSeparator;
 
     private async Task<bool> AlreadyRecordedAsync(SecurityAuditEvent auditEvent, CancellationToken cancellationToken)
     {
         dbContext.Entry(auditEvent).State = EntityState.Detached;
         return await dbContext.SecurityAuditEvents.AsNoTracking()
             .AnyAsync(existing => existing.TenantId == auditEvent.TenantId && existing.IdempotencyKey == auditEvent.IdempotencyKey, cancellationToken);
+    }
+
+    // Besides the host error, each refused write counts toward the outage summary that is recorded
+    // once the store accepts writes again. Counting is best effort: it never changes the write's result.
+    private async Task ReportWriteFailureAsync(SecurityAuditEvent? auditEvent, Exception exception)
+    {
+        LogWriteFailure(auditEvent, exception);
+        if (outageCounter is null || !SecurityAuditStoreAvailability.IsUnavailable(exception))
+            return;
+
+        // The summary of an outage must not count as one more failed write of that same outage.
+        if (auditEvent?.SourceBoundary == SecurityAuditEventCatalog.AuditStorageOutageSourceBoundary)
+            return;
+
+        try
+        {
+            await outageCounter.RecordFailedWriteAsync(DateTime.UtcNow, CancellationToken.None);
+        }
+        catch (Exception counterException)
+        {
+            logger?.LogWarning(
+                "Security audit outage counter unavailable. Code={Code} Cause={Cause}",
+                SecurityAuditEventCatalog.WriteFailureCode,
+                counterException.GetType().FullName);
+        }
     }
 
     // Exception messages can carry tenant, user or SQL values, so only the cause's

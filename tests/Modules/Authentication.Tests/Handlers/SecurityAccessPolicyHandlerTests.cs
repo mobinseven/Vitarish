@@ -353,6 +353,27 @@ public sealed class SecurityAccessPolicyHandlerTests
     }
 
     [Fact]
+    public async Task Authentication_policy_change_sets_the_per_address_threshold_only_when_supplied()
+    {
+        SecurityAccessPolicy current = SecurityAccessPolicy.Default with { SourceFailedAttemptThreshold = 30 };
+        Mock<IAuthenticationSecurityPolicyStore> store = new();
+        store.Setup(item => item.GetStateAsync(It.IsAny<CancellationToken>())).ReturnsAsync(new SecurityAccessPolicyState(current, 2));
+        store.Setup(item => item.SaveAsync(It.IsAny<SecurityAccessPolicy>(), 2, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((SecurityAccessPolicy policy, long version, CancellationToken _) => new SecurityAccessPolicyState(policy, version + 1));
+        ChangeSecurityAccessPolicyHandler CreateHandler() => new(store.Object, new RecordingAuditWriter(), new TestRequestContext([IdentityDefinitions.PlatformAdmin]), CreateSessionRegistry(store), AuthenticationProfilePolicy.Default);
+        string[] mechanisms = [.. current.EnabledAuthenticationMechanisms.Select(item => item.ToString())];
+        string[] actions = [.. current.PermittedPreAuthenticationActions.Select(item => item.ToString())];
+
+        SecurityAccessPolicyState omitted = await CreateHandler().Handle(new ChangeSecurityAuthenticationPolicyCommand(
+            8, true, true, true, true, 5, 900, "Lockout", mechanisms, actions, 2), CancellationToken.None);
+        SecurityAccessPolicyState supplied = await CreateHandler().Handle(new ChangeSecurityAuthenticationPolicyCommand(
+            8, true, true, true, true, 5, 900, "Lockout", mechanisms, actions, 2, SourceFailedAttemptThreshold: 3), CancellationToken.None);
+
+        omitted.Policy.SourceFailedAttemptThreshold.Should().Be(30, "an older client that omits the field keeps the stored value");
+        supplied.Policy.SourceFailedAttemptThreshold.Should().Be(3);
+    }
+
+    [Fact]
     public async Task Authentication_policy_change_rejects_profile_forbidden_mechanisms_and_audits_denial()
     {
         SecurityAccessPolicy current = SecurityAccessPolicy.ProductEvaluated;

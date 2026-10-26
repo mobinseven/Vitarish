@@ -61,6 +61,7 @@ public record FileInformationReadDto : EntityReadDto
     }
 
     public string? Tag { get; set; }
+    public string? FileName { get; set; }
 
     private static FileMetadata DeserializeMetadata(string metadataJson)
     {

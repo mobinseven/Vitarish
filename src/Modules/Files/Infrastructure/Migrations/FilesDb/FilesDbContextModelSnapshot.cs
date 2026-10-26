@@ -57,6 +57,10 @@ namespace Vitarish.Files.Infrastructure.Migrations.FilesDb
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("FileName")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
                     b.Property<string>("Metadata")
                         .HasColumnType("text");
 

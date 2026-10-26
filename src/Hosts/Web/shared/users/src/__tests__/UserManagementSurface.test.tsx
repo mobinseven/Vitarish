@@ -67,6 +67,13 @@ const userSecurityDetails = {
   },
   securityHistoryAvailable: true,
   authenticationHistoryAvailable: true,
+  authenticationMethods: {
+    passwordSet: true,
+    emailVerified: true,
+    phoneNumberVerified: false,
+    passkeys: [{ id: "3f2a7c1e-0000-4000-8000-000000000001", friendlyName: "Office laptop", registeredAt: "2026-09-01T08:00:00Z", lastUsedAt: null }],
+  },
+  authenticationMethodsUnavailable: false,
 };
 
 vi.mock("@vitarish/auth", () => ({
@@ -228,6 +235,58 @@ describe("UserManagementSurface", () => {
     expect(screen.getByText("Passkey login")).toBeInTheDocument();
     expect(screen.getByText("User security attributes changed")).toBeInTheDocument();
     expect(screen.getAllByText("admin.example.test")).toHaveLength(2);
+  });
+
+  it("shows which authentication data the user holds without showing any secret value", () => {
+    renderSurface("platform", { platformView: "detail", userId: "platform-user" });
+
+    const section = screen.getByRole("heading", { name: "Authentication methods" }).closest("section")!;
+    const facts = within(section).getAllByRole("definition").map((value) => value.textContent);
+    expect(facts).toEqual(["Set", "Verified", "Not verified"]);
+    const passkeys = within(section).getByRole("list", { name: "Passkeys" });
+    expect(within(passkeys).getByRole("listitem")).toHaveTextContent("Office laptop");
+    expect(within(passkeys).getByRole("listitem")).toHaveTextContent("Not used yet");
+  });
+
+  it("does not trust an unavailable-history response with a malformed authentication summary", () => {
+    securityDetailsQueryResponse = {
+      data: undefined,
+      error: { status: 503, problem: { ...userSecurityDetails, authenticationMethods: { passwordSet: "yes", passkeys: [] }, securityHistoryAvailable: false, authenticationHistoryAvailable: false } },
+      isLoading: false,
+      isError: true,
+      refetch,
+    };
+    renderSurface("platform", { platformView: "detail", userId: "platform-user" });
+
+    expect(screen.getByRole("alert")).toHaveTextContent("User security details could not be loaded.");
+    expect(screen.queryByRole("heading", { name: "Authentication methods" })).toBeNull();
+  });
+
+  it("does not trust an unavailable-history response that omits the authentication summary", () => {
+    const { authenticationMethods: _omitted, ...withoutMethods } = userSecurityDetails;
+    securityDetailsQueryResponse = {
+      data: undefined,
+      error: { status: 503, problem: { ...withoutMethods, securityHistoryAvailable: false, authenticationHistoryAvailable: false } },
+      isLoading: false,
+      isError: true,
+      refetch,
+    };
+    renderSurface("platform", { platformView: "detail", userId: "platform-user" });
+
+    expect(screen.getByRole("alert")).toHaveTextContent("User security details could not be loaded.");
+    expect(screen.queryByRole("heading", { name: "Authentication methods" })).toBeNull();
+  });
+
+  it("tells the administrator when authentication methods could not be loaded instead of hiding them", () => {
+    securityDetailsQueryResponse = {
+      ...securityDetailsQueryResponse,
+      data: { ...userSecurityDetails, authenticationMethods: null as unknown as typeof userSecurityDetails.authenticationMethods, authenticationMethodsUnavailable: true },
+    };
+    renderSurface("platform", { platformView: "detail", userId: "platform-user" });
+
+    const section = screen.getByRole("heading", { name: "Authentication methods" }).closest("section")!;
+    expect(within(section).getByRole("status")).toHaveTextContent("Authentication methods could not be loaded. Try again later.");
+    expect(within(section).queryByRole("list", { name: "Passkeys" })).toBeNull();
   });
 
   it("pages the sign-in history on its own without moving the security history", async () => {

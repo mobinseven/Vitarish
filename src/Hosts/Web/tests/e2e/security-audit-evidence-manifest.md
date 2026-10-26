@@ -17,10 +17,10 @@ to more than one control.
 | 3 Security-record read | `auditReview` and access-history acknowledgement | `audit-review.png`, `access-history.png` | Covered for audit/access-history paths |
 | 4 Security-configuration change | `sessionPolicy` security session-policy PUT | `session-policy.png` | Covered by `authentication.security-access-policy` |
 | 5 Audit-storage threshold action | The E2E host runs the real Main capacity monitor against an E2E storage-size adapter that reports the configured threshold crossed | `audit-storage-threshold.png` | Covered by the E2E-only threshold composition; pending fresh focused run |
-| 6 Audit-storage failure action | Inject audit-store failure through an E2E adapter | None | Requires named failure-injection adapter |
+| 6 Audit-storage failure action | The E2E host makes every audit-store save fail, a sign-in attempt still gets its normal answer, and once saves succeed again the real Main outage reporter records one `security.failure` summary (start, last failure, failed writes) | `audit-storage-outage.png`, `audit-storage-outage-detail.png` | Covered by the E2E-only store-outage composition |
 | 7 User-data integrity verification | Upload a valid PNG through the public upload endpoint, run the real Files verification, tamper the E2E-stored object, and verify again | `integrity-verification.png`, `integrity-verification-failed.png` | Covered by the E2E-only `/api/e2e/audit-evidence` trigger; pending fresh focused run |
 | 8 Authentication-mechanism use | Password login and real email-OTP action | `password-login-succeeded.png`, `password-login-denied.png` | Covered for password; email-OTP action is exercised but has no catalogued durable event, and passkey has no dedicated durable event |
-| 9 Authentication outcome | Successful and denied password login | `password-login-succeeded.png`, `password-login-denied.png` | Covered for implemented password path |
+| 9 Authentication outcome | Successful and denied password login, and a client address blocked after repeated failures (threshold set in `source-threshold-setting.png`) | `password-login-succeeded.png`, `password-login-denied.png`, `source-address-blocked.png`, `source-threshold-setting.png` | Covered for implemented password path |
 | 10 Password verification | Successful password login and password change | `password-login-succeeded.png`, `password-change.png` | Covered for implemented password paths |
 | 11 Security-attribute assignment | Tenant-member provisioning | `tenant-member-provisioned.png` | Covered for tenant membership |
 | 12 Security-attribute change | Password change | `password-change.png` | Covered for password; other attributes pending |
@@ -29,9 +29,9 @@ to more than one control.
 | 15 Information export | Audit CSV export | `audit-export.png` | Covered for audit export |
 | 16 Security-behavior change | `sessionPolicy` security session-policy PUT | `session-policy.png` | Covered by `authentication.security-access-policy` |
 | 17 Security administration | Audit review, access-history acknowledgement, membership administration, and role replacement | `audit-review.png`, `access-history.png`, `tenant-member-provisioned.png`, `tenant-member-removed.png`, `tenant-role-replaced.png` | Covered for implemented operations |
-| 18 Group/role/membership change | Tenant-member provisioning/removal and tenant-role replacement | `tenant-member-provisioned.png`, `tenant-member-removed.png`, `tenant-role-replaced.png` | Covered |
+| 18 Group/role/membership change | Tenant-member provisioning/removal and tenant-role replacement, with the previous and new role on the record | `tenant-member-provisioned.png`, `tenant-member-removed.png`, `tenant-role-replaced.png`, `tenant-role-change-detail.png` | Covered |
 | 19 Security-function failure | Invalid `sessionPolicy` validation path with durable security event | `security-function-failure.png` | Covered by `security.failure` |
-| 20 Security-capability unavailable | Audit/dependency unavailable path | None | No deterministic public trigger |
+| 20 Security-capability unavailable | Audit-store outage: saves fail, then one `security.failure` summary of the outage is recorded after recovery | `audit-storage-outage.png`, `audit-storage-outage-detail.png` | Covered by `security.failure` through the E2E-only store-outage composition |
 | 21 Session establishment | Password login session establishment | `session-established.png` | Covered |
 | 22 Concurrent-session limit | Establish a third administrator session after setting maximum sessions to two | `session-concurrent-limit-denied.png` | Covered |
 | 23 Idle-session termination | Advance the E2E clock past inactivity timeout | None | Requires clock-control adapter or deterministic timeout procedure |

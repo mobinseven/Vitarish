@@ -5,7 +5,6 @@ using Vitarish.Audit.Server;
 using Vitarish.Communications.Application.Abstractions;
 using Vitarish.Communications.Domain.Models;
 using Vitarish.Main.Infrastructure.Options;
-using Vitarish.Modules.Base.Core.BackgroundJobs;
 
 namespace Vitarish.Main.Infrastructure.BackgroundJobs;
 
@@ -13,6 +12,7 @@ internal sealed class AuditCapacityAlertMonitor(
     IServiceScopeFactory scopeFactory,
     IOptions<SecurityAuditOptions> auditOptions,
     IOptions<AuditCapacityAlertOptions> alertOptions,
+    PlatformBackgroundAuditRecorder auditRecorder,
     ILogger<AuditCapacityAlertMonitor> logger) : BackgroundService
 {
     private const string CapacityExceededSubject = "Audit storage capacity warning";
@@ -71,7 +71,7 @@ internal sealed class AuditCapacityAlertMonitor(
                 "The audit storage warning threshold has been reached. Review audit capacity and PostgreSQL disk availability.",
                 cancellationToken).ConfigureAwait(false);
 
-            await WriteAuditRecordAsync(
+            _ = await auditRecorder.TryRecordAsync(
                 CreateThresholdAuditEvent(storageBytes, threshold, delivery, idempotencyKey),
                 cancellationToken).ConfigureAwait(false);
         }
@@ -94,7 +94,7 @@ internal sealed class AuditCapacityAlertMonitor(
                 "Main could not check audit storage. Check PostgreSQL availability.",
                 cancellationToken).ConfigureAwait(false);
 
-            await WriteAuditRecordAsync(
+            _ = await auditRecorder.TryRecordAsync(
                 CreateCheckFailureAuditEvent(idempotencyKey),
                 cancellationToken).ConfigureAwait(false);
         }
@@ -178,35 +178,6 @@ internal sealed class AuditCapacityAlertMonitor(
         {
             logger.LogError("Audit capacity alert delivery failed for {Channel} ({FailureType}).", channel, exception.GetType().Name);
             return false;
-        }
-    }
-
-    private async Task WriteAuditRecordAsync(SecurityAuditEvent auditEvent, CancellationToken cancellationToken)
-    {
-        try
-        {
-            await using AsyncServiceScope scope = scopeFactory.CreateAsyncScope();
-            IBackgroundRequestContextWriter contextWriter = scope.ServiceProvider.GetRequiredService<IBackgroundRequestContextWriter>();
-            contextWriter.SetContext(new BackgroundRequestContext(
-                TenantBackgroundExecutor.BackgroundAuthority,
-                ClientId: null,
-                OwnerId: null,
-                TenantId: SecurityAuditScopeCatalog.PlatformScopeId,
-                ResourceId: auditEvent.Resource,
-                RequestId: auditEvent.IdempotencyKey));
-
-            ISecurityAuditWriter auditWriter = scope.ServiceProvider.GetRequiredService<ISecurityAuditWriter>();
-            using CancellationTokenSource timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            timeout.CancelAfter(AuditCapacityAlertOptions.OperationTimeout);
-            _ = await auditWriter.WriteAsync(auditEvent, timeout.Token).ConfigureAwait(false);
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            throw;
-        }
-        catch (Exception exception)
-        {
-            logger.LogError("Security audit recording failed for the audit capacity monitor ({FailureType}).", exception.GetType().Name);
         }
     }
 

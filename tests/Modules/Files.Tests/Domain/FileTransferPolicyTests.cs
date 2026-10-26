@@ -1,3 +1,4 @@
+using Vitarish.Audit.Domain;
 using Vitarish.Files.Domain.Models;
 
 namespace Files.Tests.Domain;
@@ -21,6 +22,47 @@ public sealed class FileTransferPolicyTests
     public void NormalizeContentType_rejects_invalid_input(string value)
     {
         FileTransferPolicy.TryNormalizeContentType(value, out _).Should().BeFalse();
+    }
+
+    [Theory]
+    [InlineData("scan.pdf", "scan.pdf")]
+    [InlineData("C:\\Users\\clinic\\scan.pdf", "scan.pdf")]
+    [InlineData("../../etc/scan.pdf", "scan.pdf")]
+    [InlineData("  report\tfinal.pdf  ", "reportfinal.pdf")]
+    [InlineData("invoice\u202Efdp.exe", "invoicefdp.exe")]
+    [InlineData("report\u200E.pdf", "report.pdf")]
+    [InlineData("report\u200F.pdf", "report.pdf")]
+    [InlineData("report\u061C.pdf", "report.pdf")]
+    [InlineData("report\u200B.pdf", "report.pdf")]
+    [InlineData("\uFEFFreport.pdf", "report.pdf")]
+    [InlineData("report\u2028.pdf", "report.pdf")]
+    [InlineData("report\u2029.pdf", "report.pdf")]
+    [InlineData("\u06AF\u0632\u0627\u0631\u0634\u200C\u0647\u0627.pdf", "\u06AF\u0632\u0627\u0631\u0634\u0647\u0627.pdf")]
+    public void NormalizeFileName_keeps_the_last_segment_without_control_format_or_separator_characters(string value, string expected)
+    {
+        FileTransferPolicy.NormalizeFileName(value).Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData("folder/")]
+    [InlineData("\u0007\u202E")]
+    public void NormalizeFileName_returns_null_when_no_usable_name_remains(string? value)
+    {
+        FileTransferPolicy.NormalizeFileName(value).Should().BeNull();
+    }
+
+    [Fact]
+    public void NormalizeFileName_bounds_the_length_without_splitting_a_surrogate_pair()
+    {
+        string name = new string('a', FileTransferPolicy.MaximumFileNameLength - 1) + "\U0001F4C4.pdf";
+
+        string normalized = FileTransferPolicy.NormalizeFileName(name)!;
+
+        normalized.Should().HaveLength(FileTransferPolicy.MaximumFileNameLength - 1);
+        char.IsHighSurrogate(normalized[^1]).Should().BeFalse();
     }
 
     [Fact]

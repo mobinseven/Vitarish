@@ -108,6 +108,9 @@ internal sealed class UpdateManagedUserCommandHandler(
             });
         }
 
+        IReadOnlyList<SecurityAuditChange> changes = UserAuditChanges.Between(
+            (user.Email, user.PhoneNumber, user.FirstName, user.LastName),
+            (email, phoneNumber, firstName, lastName));
         string? movedUserName = ContactUserName.MoveWithContact(user, user.Email, user.PhoneNumber, email, phoneNumber);
         if (movedUserName is not null)
             user.NormalizedUserName = userManager.NormalizeName(movedUserName);
@@ -159,6 +162,7 @@ internal sealed class UpdateManagedUserCommandHandler(
         await managementAudit.AccountEditedAsync(
             user.Id,
             contactIdentifierChanged ? UsersSecurityAuditEvents.UserContactIdentifierChangedReason : null,
+            changes,
             CancellationToken.None);
         await UserCacheExtensions.SetUserAsync(cache, user, cancellationToken);
         await UserCacheExtensions.RemoveUsersAsync(cache, cancellationToken);

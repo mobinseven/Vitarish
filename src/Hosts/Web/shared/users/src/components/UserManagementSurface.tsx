@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ComponentProps, type FormEvent } from "react";
+import { useEffect, useId, useMemo, useState, type ComponentProps, type FormEvent } from "react";
 import { Alert, Button, Chip, Modal, Pagination, Surface, Table, Tooltip } from "@heroui/react";
 import {
   useAuthSession,
@@ -24,7 +24,7 @@ import {
   useUsersSearchUsers,
   useUsersRemoveTenantMember,
 } from "@vitarish/auth";
-import type { TenantRoleMembershipResponse, UserSecurityDetailsResponse, UserSecurityEventResponse, UserSecurityHistoryResponse } from "@vitarish/auth";
+import type { TenantRoleMembershipResponse, UserAuthenticationMethodsResponse, UserPasskeyResponse, UserSecurityDetailsResponse, UserSecurityEventResponse, UserSecurityHistoryResponse } from "@vitarish/auth";
 import { tenantRoleSuffixes, UsersCommandErrorKind } from "@vitarish/auth/users";
 import type { TenantRoleSuffix } from "@vitarish/auth/users";
 import { formatDateTime, formatNumber, useLocalizedText } from "@vitarish/localization";
@@ -428,6 +428,13 @@ function PlatformUserDetail({ title, userId, memberships, t }: { title: string; 
   const historyUnavailable = !securityHistoryAvailable || !authenticationHistoryAvailable || securityQuery.isError;
   const securityHistory = securityDetails?.securityHistory ?? undefined;
   const authenticationHistory = securityDetails?.authenticationHistory ?? undefined;
+  // History page changes do not reload the methods, so keep the ones from the first details load.
+  const [authenticationMethods, setAuthenticationMethods] = useState<UserAuthenticationMethodsResponse>();
+  useEffect(() => setAuthenticationMethods(undefined), [userId]);
+  useEffect(() => {
+    if (securityDetails?.authenticationMethods) setAuthenticationMethods(securityDetails.authenticationMethods);
+  }, [securityDetails?.authenticationMethods]);
+  const authenticationMethodsUnavailable = securityDetails?.authenticationMethodsUnavailable ?? false;
 
   useEffect(() => {
     setSecurityPage(1);
@@ -627,6 +634,8 @@ function PlatformUserDetail({ title, userId, memberships, t }: { title: string; 
       </div>
     </Surface>
 
+    {(authenticationMethods || authenticationMethodsUnavailable) && <AuthenticationMethodsSection methods={authenticationMethodsUnavailable ? undefined : authenticationMethods} locale={locale} t={t} />}
+
     <Surface className="flex flex-col gap-6 rounded-3xl p-6" render={renderSection}>
       <div className="flex flex-col items-start gap-1">
         <div className="flex items-center gap-3">
@@ -760,6 +769,40 @@ function PlatformUserDetail({ title, userId, memberships, t }: { title: string; 
 
     {message && <p role="status" aria-live="polite">{message}</p>}
   </main>;
+}
+
+function AuthenticationMethodsSection({ methods, locale, t }: { methods: UserAuthenticationMethodsResponse | undefined; locale: ReturnType<typeof useLocalizedText>["locale"]; t: Translate }) {
+  const passkeysHeadingId = useId();
+  return <Surface className="flex flex-col gap-6 rounded-3xl p-6" render={renderSection}>
+    <div className="flex flex-col items-start gap-1">
+      <div className="flex items-center gap-3">
+        <HeaderIcon icon="key" />
+        <div className="min-w-0">
+          <h2 className="text-lg font-semibold text-foreground">{t("users.management.authenticationMethodsTitle")}</h2>
+          <p className="text-sm text-muted">{t("users.management.authenticationMethodsDescription")}</p>
+        </div>
+      </div>
+    </div>
+    {!methods
+      ? <Alert status="warning" role="status"><Alert.Indicator /><Alert.Content><Alert.Title>{t("users.management.authenticationMethodsUnavailable")}</Alert.Title></Alert.Content></Alert>
+      : <>
+    <dl className="grid gap-3 sm:grid-cols-3">
+      <div><dt className="text-sm text-muted">{t("users.management.password")}</dt><dd>{methods.passwordSet ? t("users.management.passwordSet") : t("users.management.passwordNotSet")}</dd></div>
+      <div><dt className="text-sm text-muted">{t("users.management.emailVerification")}</dt><dd>{methods.emailVerified ? t("users.management.verified") : t("users.management.notVerified")}</dd></div>
+      <div><dt className="text-sm text-muted">{t("users.management.phoneVerification")}</dt><dd>{methods.phoneNumberVerified ? t("users.management.verified") : t("users.management.notVerified")}</dd></div>
+    </dl>
+    <div className="space-y-2">
+      <h3 className="font-medium" id={methods.passkeys.length === 0 ? undefined : passkeysHeadingId}>{t("users.management.passkeys")}</h3>
+      {methods.passkeys.length === 0
+        ? <p className="text-muted">{t("users.management.noPasskeys")}</p>
+        : <ul aria-labelledby={passkeysHeadingId} className="space-y-2">{methods.passkeys.map((passkey) => <li className="rounded-2xl bg-surface-secondary p-3" key={passkey.id}>
+            <div className="font-medium">{passkey.friendlyName || t("users.management.unnamedPasskey")}</div>
+            <div className="text-sm text-muted">{t("users.management.passkeyRegistered", { date: formatDateTime(passkey.registeredAt, locale, { timeZone: "UTC" }) })}</div>
+            <div className="text-sm text-muted">{passkey.lastUsedAt ? t("users.management.passkeyLastUsed", { date: formatDateTime(passkey.lastUsedAt, locale, { timeZone: "UTC" }) }) : t("users.management.passkeyNeverUsed")}</div>
+          </li>)}</ul>}
+    </div>
+    </>}
+  </Surface>;
 }
 
 function EndUserSessionsDialog({ isOpen, isPending, onCancel, onConfirm, t }: {
@@ -1017,7 +1060,27 @@ function isUserSecurityDetailsResponse(value: unknown, userId: string): value is
     && isOptionalHistory(details.securityHistory)
     && isOptionalHistory(details.authenticationHistory)
     && typeof details.securityHistoryAvailable === "boolean"
-    && typeof details.authenticationHistoryAvailable === "boolean";
+    && typeof details.authenticationHistoryAvailable === "boolean"
+    && (details.authenticationMethods === null || isAuthenticationMethods(details.authenticationMethods))
+    && typeof details.authenticationMethodsUnavailable === "boolean";
+}
+
+function isAuthenticationMethods(value: unknown): value is UserAuthenticationMethodsResponse {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return false;
+  const methods = value as Record<string, unknown>;
+  return typeof methods.passwordSet === "boolean"
+    && typeof methods.emailVerified === "boolean"
+    && typeof methods.phoneNumberVerified === "boolean"
+    && Array.isArray(methods.passkeys) && methods.passkeys.every(isPasskey);
+}
+
+function isPasskey(value: unknown): value is UserPasskeyResponse {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return false;
+  const passkey = value as Record<string, unknown>;
+  return typeof passkey.id === "string"
+    && isOptionalString(passkey.friendlyName)
+    && typeof passkey.registeredAt === "string"
+    && (passkey.lastUsedAt === null || typeof passkey.lastUsedAt === "string");
 }
 
 function readHttpStatus(error: unknown): number | undefined {

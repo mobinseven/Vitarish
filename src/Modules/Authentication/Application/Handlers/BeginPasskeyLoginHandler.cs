@@ -1,18 +1,23 @@
 using Vitarish.Authentication.Application.Abstractions;
 using Vitarish.Authentication.Application.Commands;
 using Vitarish.Authentication.Application.Results;
+using Vitarish.Authentication.Application.Security;
 using Vitarish.Authentication.Domain.Methods;
 using Vitarish.Authentication.Domain.Security;
 
 namespace Vitarish.Authentication.Application.Handlers;
 
-public sealed class BeginPasskeyLoginHandler(IWebAuthnAuthenticationService webAuthn, IAuthenticationAttemptTracker attemptTracker, IAuthenticationSecurityPolicyProvider securityPolicyProvider, IAuthenticationAttemptKeyFactory attemptKeyFactory)
+public sealed class BeginPasskeyLoginHandler(IWebAuthnAuthenticationService webAuthn, IAuthenticationAttemptTracker attemptTracker, IAuthenticationSecurityPolicyProvider securityPolicyProvider, IAuthenticationAttemptKeyFactory attemptKeyFactory, AuthenticationSourceAttemptGuard sourceAttemptGuard)
 {
     public async Task<AuthenticationResult<ChallengeResult>> Handle(BeginPasskeyLoginCommand command, CancellationToken cancellationToken)
     {
         SecurityAccessPolicy securityPolicy = await securityPolicyProvider.GetAsync(cancellationToken);
         if (!securityPolicy.Allows(AuthenticationMethod.Passkey, PreAuthenticationAction.PasskeyLogin))
             return new AuthenticationResult<ChallengeResult>.Failure(new(AuthenticationFailureReason.NotAllowed, "Passkey authentication is not enabled."));
+        if (await sourceAttemptGuard.IsBlockedAsync(cancellationToken))
+            return new AuthenticationResult<ChallengeResult>.Failure(new(
+                securityPolicy.FailedAttemptResponse is FailedAttemptResponse.Lockout ? AuthenticationFailureReason.LockedOut : AuthenticationFailureReason.TooManyAttempts,
+                securityPolicy.FailedAttemptResponse is FailedAttemptResponse.Lockout ? "Authentication is temporarily locked out." : "Too many authentication attempts."));
 
         if (!string.IsNullOrWhiteSpace(command.UserNameOrEmail))
         {

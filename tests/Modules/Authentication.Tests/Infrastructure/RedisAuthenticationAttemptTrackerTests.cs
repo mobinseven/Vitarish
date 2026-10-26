@@ -6,6 +6,7 @@ using Vitarish.Authentication.Application.Abstractions;
 using Vitarish.Authentication.Domain.Methods;
 using Vitarish.Authentication.Infrastructure;
 using Vitarish.Authentication.Infrastructure.Options;
+using Vitarish.Testing;
 using Xunit;
 
 namespace Vitarish.Authentication.Tests.Infrastructure;
@@ -31,20 +32,5 @@ public sealed class RedisAuthenticationAttemptTrackerTests
         await Task.Delay(TimeSpan.FromSeconds(2.1));
 
         (await tracker.RegisterFailureAsync(key, 3, TimeSpan.FromSeconds(3), CancellationToken.None)).Should().Be(1);
-    }
-
-    private sealed class DockerFactAttribute : FactAttribute
-    {
-        public DockerFactAttribute()
-        {
-            if (!IsDockerAvailable())
-                Skip = "Redis integration coverage requires an available Docker engine.";
-        }
-
-        private static bool IsDockerAvailable() =>
-            !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("DOCKER_HOST")) ||
-            (OperatingSystem.IsWindows()
-                ? File.Exists(@"\\.\pipe\docker_engine") || File.Exists(@"\\.\pipe\dockerDesktopLinuxEngine")
-                : File.Exists("/var/run/docker.sock"));
     }
 }

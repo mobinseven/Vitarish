@@ -677,6 +677,12 @@
               "null",
               "string"
             ]
+          },
+          "fileName": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },

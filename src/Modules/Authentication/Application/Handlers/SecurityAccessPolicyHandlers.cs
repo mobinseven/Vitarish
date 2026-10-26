@@ -116,6 +116,8 @@ public sealed class ChangeSecurityAccessPolicyHandler(
                 command.RequirePasswordSpecialCharacter),
             FailedAttemptThreshold = command.FailedAttemptThreshold,
             FailedAttemptDenialDuration = TimeSpan.FromSeconds(command.FailedAttemptDenialDurationSeconds),
+            // Omitted by clients that predate the per-address threshold; they keep the stored value.
+            SourceFailedAttemptThreshold = command.SourceFailedAttemptThreshold ?? current.SourceFailedAttemptThreshold,
             FailedAttemptResponse = ParsePolicyEnum<FailedAttemptResponse>(command.FailedAttemptResponse),
             EnabledAuthenticationMechanisms = ParsePolicyEnumSet<AuthenticationMethod>(command.EnabledAuthenticationMechanisms),
             PermittedPreAuthenticationActions = ParsePolicyEnumSet<PreAuthenticationAction>(command.PermittedPreAuthenticationActions)

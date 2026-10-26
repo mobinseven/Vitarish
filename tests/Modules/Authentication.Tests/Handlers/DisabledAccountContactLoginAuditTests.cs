@@ -13,6 +13,7 @@ using Vitarish.Authentication.Domain.Security;
 using Vitarish.Authentication.Infrastructure;
 using Vitarish.Authentication.Infrastructure.Options;
 using Vitarish.Requests.Application.Abstractions;
+using Vitarish.Authentication.Tests.Security;
 
 namespace Vitarish.Authentication.Tests.Handlers;
 
@@ -107,9 +108,11 @@ public sealed class DisabledAccountContactLoginAuditTests
         new InMemoryAuthenticationAttemptTracker(),
         CreatePolicyProvider(),
         CreateKeys(),
+        TestSourceAttemptGuards.WithoutClientAddress(),
         CreateAuditor(events),
         Mock.Of<IInitialPlatformAdministratorGrant>(),
-        Mock.Of<IUserAccountUpdater>());
+        Mock.Of<IUserAccountUpdater>(),
+        Mock.Of<IAuthenticationSessionRegistry>());
 
     private static CompleteEmailLoginHandler CreateEmailHandler(
         AuthenticationChallenge challenge,
@@ -123,9 +126,11 @@ public sealed class DisabledAccountContactLoginAuditTests
         new InMemoryAuthenticationAttemptTracker(),
         CreatePolicyProvider(),
         CreateKeys(),
+        TestSourceAttemptGuards.WithoutClientAddress(),
         CreateAuditor(events),
         Mock.Of<IInitialPlatformAdministratorGrant>(),
-        Mock.Of<IUserAccountUpdater>());
+        Mock.Of<IUserAccountUpdater>(),
+        Mock.Of<IAuthenticationSessionRegistry>());
 
     private static IAuthenticationChallengeStore CreateStore(AuthenticationChallenge challenge) => CreateStoreMock(challenge).Object;
 

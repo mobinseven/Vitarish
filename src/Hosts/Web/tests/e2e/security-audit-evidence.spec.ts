@@ -1,15 +1,18 @@
-import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
+import { expect, request as playwrightRequest, test, type APIRequestContext, type Page } from "@playwright/test";
+import { createHmac } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { twoHostE2eApiOriginEnvironmentKey, twoHostE2eAuditEvidenceDirectoryEnvironmentKey, twoHostE2eLocaleEnvironmentKey, twoHostE2eSignInOrigin } from "../../scripts/two-host-e2e-artifacts.mjs";
+import { twoHostE2eApiOriginEnvironmentKey, twoHostE2eAuditEvidenceDirectoryEnvironmentKey, twoHostE2eFileTransferAuditKeyEnvironmentKey, twoHostE2eLocaleEnvironmentKey, twoHostE2eSignInOrigin } from "../../scripts/two-host-e2e-artifacts.mjs";
 import { TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
 import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
 import { Routes as PlatformRoutes } from "../../apps/platform-admin/src/app/routes";
 import { defaultClinicOrigin, signInToClinic } from "./signInHost";
 import {
   localizePlatformAuditCategory,
+  localizePlatformAuditChangeField,
   localizePlatformAuditEvent,
   localizeSecurityAuditOutcome,
+  securityMessageCatalogs,
 } from "../../shared/security/src/localization";
 
 // Main itself, for API-boundary checks made without the browser.
@@ -18,6 +21,7 @@ const apiOrigin = process.env[twoHostE2eApiOriginEnvironmentKey] ?? "https://loc
 const browserApiOrigin = "";
 const platformOrigin = process.env.PLAYWRIGHT_PLATFORM_ADMIN_ORIGIN ?? "http://localhost:3006";
 const ownerUsername = process.env.VITARISH_E2E_USERNAME ?? "e2e-owner";
+const ownerClientIp = "198.51.100.61";
 const ownerOrigin = "";
 const platformAdminUsername = process.env.VITARISH_E2E_PLATFORM_ADMIN_USERNAME ?? "e2e-platform-admin";
 const ownerTenantId = "9c8b6b3a-7d6e-4f75-a88d-7d3f5b1b0f92";
@@ -42,6 +46,8 @@ const uiText = {
   outcome: locale === "fa" ? "نتیجه" : "Outcome",
   export: locale === "fa" ? "خروجی CSV" : "Export CSV",
   next: locale === "fa" ? "بعدی" : "Next",
+  sourceThreshold: locale === "fa" ? "آستانه تلاش ناموفق احراز هویت برای هر نشانی IP" : "Failed authentication threshold per IP address",
+  eventDetails: locale === "fa" ? "جزئیات رویداد" : "Event details",
 } as const;
 
 const auditEvents = {
@@ -61,17 +67,79 @@ const auditEvents = {
   integrityVerification: { controls: [7], category: "import-export", name: "security.data.integrity-verification", operation: "data.integrity.verify" },
   tenantRoleReplacement: { controls: [11, 17, 18], category: "management", name: "users.tenant-role-replacement", operation: "Users_ReplaceTenantRole" },
   dataImport: { controls: [14], category: "import-export", name: "security.data.import", operation: "data.import" },
+  sourceBlocked: { controls: [9], category: "authentication", name: "authentication.source.blocked", operation: "authentication.source.block" },
 } as const;
 
 // E2E-host-only triggers mapped by src/Hosts/E2e; they run the real Files
 // verification service and corrupt the E2E in-memory stored object.
 const e2eAuditEvidenceBase = "/api/e2e/audit-evidence";
 const storageThresholdCheckPath = `${e2eAuditEvidenceBase}/storage-threshold/check`;
+const storeOutageStartPath = `${e2eAuditEvidenceBase}/store-outage/start`;
+const storeOutageEndPath = `${e2eAuditEvidenceBase}/store-outage/end`;
 const integrityVerificationPath = (fileId: string) => `${e2eAuditEvidenceBase}/files/${fileId}/integrity-verification`;
 const integrityTamperPath = (fileId: string) => `${e2eAuditEvidenceBase}/files/${fileId}/tamper`;
 
 type AuditEventExpectation = (typeof auditEvents)[keyof typeof auditEvents] & { outcome: string };
-type AuditPage = { items: Array<{ id?: string; eventName?: string; eventCategory?: string; operation?: string; outcome?: string; actorId?: string; actorKind?: string; tenantId?: string; subjectId?: string; resource?: string; redactedReason?: string }>; totalCount: number };
+type AuditPage = { items: Array<{ id?: string; eventName?: string; eventCategory?: string; operation?: string; outcome?: string; actorId?: string; actorKind?: string; tenantId?: string; subjectId?: string; resource?: string; resourceNameHash?: string; resourceExtension?: string; resourceSize?: number; redactedReason?: string; sourceIpAddress?: string; changes?: Array<{ field: string; previousValue: string | null; newValue: string | null }> }>; totalCount: number };
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+const authenticationPolicyPath = "/api/modules/authentication/security/authentication-policy";
+const passwordLoginPath = "/api/modules/authentication/login/password";
+
+type AuthenticationPolicy = {
+  minimumPasswordLength: number;
+  requirePasswordLowercase: boolean;
+  requirePasswordUppercase: boolean;
+  requirePasswordNumber: boolean;
+  requirePasswordSpecialCharacter: boolean;
+  failedAttemptThreshold: number;
+  sourceFailedAttemptThreshold: number;
+  failedAttemptDenialDurationSeconds: number;
+  failedAttemptResponse: string;
+  enabledAuthenticationMechanisms: string[];
+  permittedPreAuthenticationActions: string[];
+  version: number;
+};
+
+async function readAuthenticationPolicy(page: Page): Promise<AuthenticationPolicy> {
+  const result = await page.evaluate(async ({ origin, path }) => {
+    const response = await fetch(`${origin}${path}`, { credentials: "include", headers: { "X-Vitarish-Tenant-Host": window.location.host } });
+    return { status: response.status, body: await response.json() };
+  }, { origin: browserApiOrigin, path: authenticationPolicyPath });
+  expect(result.status).toBe(200);
+  return result.body as AuthenticationPolicy;
+}
+
+async function saveSourceFailedAttemptThreshold(page: Page, threshold: number): Promise<void> {
+  const policy = await readAuthenticationPolicy(page);
+  const saved = await putJson(page, authenticationPolicyPath, {
+    minimumPasswordLength: policy.minimumPasswordLength,
+    requirePasswordLowercase: policy.requirePasswordLowercase,
+    requirePasswordUppercase: policy.requirePasswordUppercase,
+    requirePasswordNumber: policy.requirePasswordNumber,
+    requirePasswordSpecialCharacter: policy.requirePasswordSpecialCharacter,
+    failedAttemptThreshold: policy.failedAttemptThreshold,
+    failedAttemptDenialDurationSeconds: policy.failedAttemptDenialDurationSeconds,
+    failedAttemptResponse: policy.failedAttemptResponse,
+    enabledAuthenticationMechanisms: policy.enabledAuthenticationMechanisms,
+    permittedPreAuthenticationActions: policy.permittedPreAuthenticationActions,
+    expectedVersion: policy.version,
+    sourceFailedAttemptThreshold: threshold,
+  });
+  expect(saved.status).toBe(200);
+}
+
+async function passwordLoginFrom(request: APIRequestContext, clientIp: string, username: string, attemptPassword: string, attempt: string): Promise<number> {
+  const response = await request.post(`${apiOrigin}${passwordLoginPath}`, {
+    data: { userNameOrEmail: username, password: attemptPassword, returnUrl: null },
+    headers: { "X-Forwarded-For": clientIp, "X-Vitarish-Tenant-Host": "localhost", "X-Request-Id": `e2e-source-block-${attempt}-${Date.now()}` },
+    ignoreHTTPSErrors: true,
+  });
+  return response.status();
+}
+
 
 async function login(page: Page, username: string, origin = "", clientIp = "198.51.100.60"): Promise<void> {
   await page.context().addCookies([
@@ -98,8 +166,8 @@ async function login(page: Page, username: string, origin = "", clientIp = "198.
   expect(response.status()).toBe(200);
 }
 
-async function platformAuditQuery(page: Page, event: AuditEventExpectation): Promise<AuditPage> {
-  const result = await page.evaluate(async ({ origin, expected }) => {
+async function platformAuditResponse(page: Page, event: AuditEventExpectation): Promise<{ status: number; body: unknown }> {
+  return page.evaluate(async ({ origin, expected }) => {
     const url = new URL("/api/audit/platform/security-events", origin || window.location.origin);
     url.search = new URLSearchParams({
       page: "1",
@@ -115,7 +183,10 @@ async function platformAuditQuery(page: Page, event: AuditEventExpectation): Pro
     const response = await fetch(url, { credentials: "include" });
     return { status: response.status, body: await response.json() };
   }, { origin: browserApiOrigin, expected: event });
+}
 
+async function platformAuditQuery(page: Page, event: AuditEventExpectation): Promise<AuditPage> {
+  const result = await platformAuditResponse(page, event);
   expect(result.status).toBe(200);
   return result.body as AuditPage;
 }
@@ -180,17 +251,19 @@ async function deleteJson(page: Page, path: string, body: unknown = null): Promi
 // A 1x1 transparent PNG. The Files upload boundary accepts only supported
 // media types and validates the content signature, not just the declared type.
 const evidenceFilePngBase64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
+const evidenceFileName = "audit-evidence.png";
+const evidenceFileSize = Buffer.from(evidenceFilePngBase64, "base64").length;
 
 async function uploadEvidenceFile(page: Page): Promise<{ status: number; body: unknown }> {
-  return page.evaluate(async ({ origin, base64 }) => {
+  return page.evaluate(async ({ origin, base64, fileName }) => {
     const antiforgeryResponse = await fetch(`${origin}/api/modules/authentication/antiforgery`, { credentials: "include" });
     const antiforgery = await antiforgeryResponse.json() as { headerName: string; requestToken: string };
     const content = Uint8Array.from(atob(base64), (character) => character.charCodeAt(0));
     const digest = await crypto.subtle.digest("SHA-256", content);
     const checksum = Array.from(new Uint8Array(digest), value => value.toString(16).padStart(2, "0")).join("");
     const form = new FormData();
-    form.append("content", new Blob([content], { type: "image/png" }), "audit-evidence.png");
-    form.append("fileName", "audit-evidence.png");
+    form.append("content", new Blob([content], { type: "image/png" }), fileName);
+    form.append("fileName", fileName);
     form.append("contentType", "image/png");
     form.append("size", String(content.byteLength));
     form.append("checksum", checksum);
@@ -205,7 +278,7 @@ async function uploadEvidenceFile(page: Page): Promise<{ status: number; body: u
       body: form,
     });
     return { status: response.status, body: await response.json().catch(() => null) };
-  }, { origin: browserApiOrigin, base64: evidenceFilePngBase64 });
+  }, { origin: browserApiOrigin, base64: evidenceFilePngBase64, fileName: evidenceFileName });
 }
 
 async function downloadEvidenceFile(page: Page, fileId: string): Promise<number> {
@@ -323,8 +396,11 @@ async function captureAllAuthenticationCatalogEvidence(page: Page): Promise<void
   });
 }
 
-test("real actions create visible platform security-audit evidence", async ({ page, browser, request }) => {
+test("real actions create visible platform security-audit evidence", async ({ page, browser, request }, testInfo) => {
   test.setTimeout(300_000);
+  const fileTransferAuditKey = process.env[twoHostE2eFileTransferAuditKeyEnvironmentKey];
+  if (!fileTransferAuditKey) throw new Error("The disposable file transfer audit key must be supplied by the two-host runner.");
+  const evidenceFileNameHash = createHmac("sha256", fileTransferAuditKey).update(evidenceFileName, "utf8").digest("hex");
   const anonymousContext = await browser.newContext();
   const anonymousPage = await anonymousContext.newPage();
   const administratorContext = await browser.newContext();
@@ -334,9 +410,11 @@ test("real actions create visible platform security-audit evidence", async ({ pa
   // in place would refuse later specs' sign-ins with 429, so the test puts it back last:
   // restoring the one-session limit ends this administrator's session.
   let restoreSessionPolicy: (() => Promise<void>) | undefined;
+  // The per-address threshold is lowered so three failures block one address; it is put back in finally.
+  let restoreSourceThreshold: (() => Promise<void>) | undefined;
 
   try {
-    await login(page, ownerUsername, ownerOrigin, "198.51.100.61");
+    await login(page, ownerUsername, ownerOrigin, ownerClientIp);
 
     await anonymousPage.goto(`${twoHostE2eSignInOrigin}${ClinicRoutes.Login.Password}`, { waitUntil: "domcontentloaded" });
     await anonymousPage.locator('input[name="username"]').fill(ownerUsername);
@@ -403,11 +481,31 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     expect(uploadedFileId).toBeTruthy();
     expect(await downloadEvidenceFile(page, uploadedFileId!)).toBe(200);
 
+    // An unauthorized read is recorded once, naming the attempted operation; the
+    // clinic owner may review only its own tenant, not the platform audit.
+    const deniedReview = { ...auditEvents.auditReview, operation: "Audit_PlatformSecurityEvents_List", outcome: "denied" };
+    const deniedBefore = await platformAuditQuery(administratorPage, deniedReview);
+    const forbiddenStatus = await page.evaluate(async (origin) => {
+      const url = new URL("/api/audit/platform/security-events", origin || window.location.origin);
+      url.search = new URLSearchParams({ page: "1", pageSize: "1", sortBy: "1", descending: "true", uncataloguedOnly: "false" }).toString();
+      return (await fetch(url, { credentials: "include" })).status;
+    }, browserApiOrigin);
+    expect(forbiddenStatus).toBe(403);
+    const deniedAfter = await platformAuditQuery(administratorPage, deniedReview);
+    expect(deniedAfter.totalCount).toBe(deniedBefore.totalCount + 1);
+    expect(deniedAfter.items[0]?.resource).toBe("endpoint/Audit_PlatformSecurityEvents_List");
+
     const accessHistory = await page.evaluate(async (origin) => {
       const response = await fetch(`${origin}/api/modules/authentication/access-history`, { credentials: "include" });
       return { status: response.status, body: await response.json().catch(() => null) };
     }, browserApiOrigin);
     expect(accessHistory.status).toBe(200);
+    // The access history keeps the address of the owner's sign-in (the forwarded test client IP).
+    expect((accessHistory.body as { lastSuccessfulIpAddress?: string } | null)?.lastSuccessfulIpAddress).toBe(ownerClientIp);
+    await page.goto(ClinicRoutes.Account.Security, { waitUntil: "domcontentloaded" });
+    await expect(page.getByText(new RegExp(escapeRegExp(ownerClientIp))).first()).toBeVisible({ timeout: 30_000 });
+    mkdirSync(evidenceDirectory, { recursive: true });
+    await page.screenshot({ path: join(evidenceDirectory, "account-security-access-history.png"), fullPage: true });
     expect((await postJson(page, "/api/modules/authentication/access-history/acknowledge")).status).toBe(200);
 
     // OTP establishes a second session and may invalidate the owner session under
@@ -484,12 +582,67 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     await captureAuditEvidence(administratorPage, { ...auditEvents.identityPasswordCheck, outcome: "denied" }, "identity-password-check-denied.png");
     await captureAuditEvidence(administratorPage, { ...auditEvents.sessionEstablished, outcome: "succeeded" }, "session-established.png");
     await captureAuditEvidence(administratorPage, { ...auditEvents.passwordChange, outcome: "succeeded" }, "password-change.png");
+    // Repeated failures from one address, each against a different unknown name, block that
+    // address: even the correct password is then refused there, with the account-lockout response.
+    const originalSourceThreshold = (await readAuthenticationPolicy(administratorPage)).sourceFailedAttemptThreshold;
+    restoreSourceThreshold = () => saveSourceFailedAttemptThreshold(administratorPage, originalSourceThreshold);
+    await saveSourceFailedAttemptThreshold(administratorPage, 3);
+    await administratorPage.goto(`${platformOrigin}${PlatformRoutes.Settings.Security}`, { waitUntil: "domcontentloaded" });
+    const sourceThresholdField = administratorPage.getByRole("spinbutton", { name: uiText.sourceThreshold });
+    await expect(sourceThresholdField).toHaveValue("3", { timeout: 30_000 });
+    await sourceThresholdField.scrollIntoViewIfNeeded();
+    mkdirSync(evidenceDirectory, { recursive: true });
+    await hideDevelopmentIndicator(administratorPage);
+    await administratorPage.screenshot({ path: join(evidenceDirectory, "source-threshold-setting.png") });
+    // Each attempt uses its own address: a blocked address remains denied for the denial duration.
+    const blockedClientIp = `203.0.113.${66 + testInfo.retry * 2}`;
+    // A fresh context carries no session cookie, like an anonymous client guessing credentials.
+    const anonymousRequest = await playwrightRequest.newContext({ ignoreHTTPSErrors: true });
+    try {
+      const sourceStatuses: number[] = [];
+      for (let attempt = 0; attempt < 3; attempt += 1)
+        sourceStatuses.push(await passwordLoginFrom(anonymousRequest, blockedClientIp, `e2e-unknown-source-${attempt}-${Date.now()}@example.invalid`, "E2E-Source-Wrong-Password", String(attempt)));
+      expect(sourceStatuses).toEqual([401, 401, 423]);
+      expect(await passwordLoginFrom(anonymousRequest, blockedClientIp, ownerUsername, password!, "correct")).toBe(423);
+    } finally {
+      await anonymousRequest.dispose();
+    }
+    const sourceBlockedRecords = await platformAuditQuery(administratorPage, { ...auditEvents.sourceBlocked, outcome: "denied" });
+    expect(sourceBlockedRecords.items.some((item) =>
+      item.sourceIpAddress === blockedClientIp && item.redactedReason === "source_failed_attempt_threshold" && !item.actorId,
+    )).toBe(true);
+    await captureAuditEvidence(administratorPage, { ...auditEvents.sourceBlocked, outcome: "denied" }, "source-address-blocked.png");
+    await restoreSourceThreshold();
+    restoreSourceThreshold = undefined;
+
     const passwordPolicyRecords = await platformAuditQuery(administratorPage, { ...auditEvents.passwordPolicyRejected, outcome: "denied" });
     expect(passwordPolicyRecords.items.every((item) => item.redactedReason === "password_policy_rejected")).toBe(true);
     await captureAuditEvidence(administratorPage, { ...auditEvents.passwordPolicyRejected, outcome: "denied" }, "password-policy-rejected.png");
     await captureAuditEvidence(administratorPage, { ...auditEvents.tenantMemberProvisioning, outcome: "succeeded" }, "tenant-member-provisioned.png");
     await captureAuditEvidence(administratorPage, { ...auditEvents.tenantMemberRemoval, outcome: "succeeded" }, "tenant-member-removed.png");
     await captureAuditEvidence(administratorPage, { ...auditEvents.tenantRoleReplacement, outcome: "succeeded" }, "tenant-role-replaced.png");
+    const importRecords = await platformAuditQuery(administratorPage, { ...auditEvents.dataImport, outcome: "succeeded" });
+    expect(importRecords.items.some((item) => item.resourceNameHash === evidenceFileNameHash && item.resourceExtension === "png" && item.resourceSize === evidenceFileSize), "an upload records the uploaded file's name hash, extension, and size").toBe(true);
+    const exportRecords = await platformAuditQuery(administratorPage, { ...auditEvents.auditExport, outcome: "succeeded" });
+    const downloadRecord = exportRecords.items.find((item) => item.resource === `files/${uploadedFileId!.replaceAll("-", "")}`);
+    expect(downloadRecord?.resourceNameHash, "a download records the stored file's name hash").toBe(evidenceFileNameHash);
+    expect(downloadRecord?.resourceExtension, "a download records the stored file's extension").toBe("png");
+    expect(downloadRecord?.resourceSize, "a download records the stored file's size").toBe(evidenceFileSize);
+    // Role changes keep the previous and new role on the record, shown in its detail sheet.
+    const roleChangeRecords = await platformAuditQuery(administratorPage, { ...auditEvents.tenantRoleReplacement, outcome: "succeeded" });
+    expect(roleChangeRecords.items.some((item) =>
+      item.subjectId === memberId && item.changes?.some((change) => change.field === "tenantRole" && change.previousValue !== change.newValue),
+    ), "the member's role replacement must carry its previous and new role").toBe(true);
+    const roleEventCell = administratorPage.locator("tbody tr").first()
+      .getByText(localizePlatformAuditEvent(locale, auditEvents.tenantRoleReplacement.name, auditEvents.tenantRoleReplacement.name), { exact: true }).first();
+    await roleEventCell.click();
+    await expect(administratorPage.getByRole("heading", { name: securityMessageCatalogs[locale].security.platformAudit.detailTitle })).toBeVisible();
+    const roleChangeLine = administratorPage.getByRole("listitem").filter({ hasText: localizePlatformAuditChangeField(locale, "tenantRole", "tenantRole") });
+    await expect(roleChangeLine).toBeVisible();
+    // The sheet scrolls on its own, so a full-page capture would leave the change line below its fold.
+    await roleChangeLine.scrollIntoViewIfNeeded();
+    await hideDevelopmentIndicator(administratorPage);
+    await administratorPage.screenshot({ path: join(evidenceDirectory, "tenant-role-change-detail.png") });
     await captureAuditEvidence(administratorPage, { ...auditEvents.dataImport, outcome: "succeeded" }, "data-import.png");
     const reviewEvent = { ...auditEvents.auditReview, outcome: "succeeded" };
     const reviewEventsBefore = await platformAuditQuery(administratorPage, reviewEvent);
@@ -525,6 +678,45 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     ).toBeGreaterThan(0);
     await captureAuditEvidence(administratorPage, thresholdEvent, "audit-storage-threshold.png");
 
+    // While every audit-store save fails, a sign-in attempt still gets its normal answer. Once the
+    // store accepts writes again, one security-failure record summarizes the outage.
+    const outageSummaryPattern = /^audit_storage_outage:start=[^;]+;end=[^;]+;failed_writes=(\d+)$/;
+    // The outage start outcome and recovery trigger start each fail, as do the login started/completed events.
+    const refusedAuditWrites = 4;
+    expect((await postJson(administratorPage, storeOutageStartPath)).status).toBe(204);
+    let statusDuringOutage = 0;
+    try {
+      const response = await request.post(`${apiOrigin}/api/modules/authentication/login/password`, {
+        data: { userNameOrEmail: `e2e-outage-${Date.now()}@example.invalid`, password: "E2E-Outage-Wrong-Password", returnUrl: null },
+        headers: { "X-Forwarded-For": "203.0.113.67", "X-Vitarish-Tenant-Host": "localhost", "X-Request-Id": `e2e-audit-outage-${Date.now()}` },
+        ignoreHTTPSErrors: true,
+      });
+      statusDuringOutage = response.status();
+      const outageEvent = { ...auditEvents.securityFunctionFailure, outcome: "failed" };
+      const unavailableReview = await platformAuditResponse(administratorPage, outageEvent);
+      expect(unavailableReview.status, "audit review reports unavailable while its store is down").toBe(503);
+    } finally {
+      expect((await postJson(administratorPage, storeOutageEndPath)).status).toBe(204);
+    }
+    expect(statusDuringOutage).toBe(401);
+    const outageEvent = { ...auditEvents.securityFunctionFailure, outcome: "failed" };
+    const outageRecords = await platformAuditQuery(administratorPage, outageEvent);
+    const outageSummaries = outageRecords.items.filter((item) => outageSummaryPattern.test(item.redactedReason ?? ""));
+    expect(outageSummaries, "the recovered audit store must hold one summary of the outage").toHaveLength(1);
+    const failedWrites = outageSummaryPattern.exec(outageSummaries[0].redactedReason ?? "");
+    expect(Number(failedWrites?.[1]), "the summary counts only the writes the outage refused").toBe(refusedAuditWrites);
+    await captureAuditEvidence(administratorPage, outageEvent, "audit-storage-outage.png");
+    // The newest record is the summary; its detail sheet shows the outage window and the failed-write count.
+    await administratorPage.locator("tbody tr").first()
+      .getByText(localizePlatformAuditEvent(locale, outageEvent.name, outageEvent.name), { exact: true }).first().click();
+    await expect(administratorPage.getByRole("heading", { name: uiText.eventDetails })).toBeVisible();
+    const outageReason = administratorPage.getByText(/^audit_storage_outage:/);
+    await expect(outageReason).toBeVisible();
+    await outageReason.scrollIntoViewIfNeeded();
+    await hideDevelopmentIndicator(administratorPage);
+    await administratorPage.screenshot({ path: join(evidenceDirectory, "audit-storage-outage-detail.png") });
+    await administratorPage.keyboard.press("Escape");
+
     const verifiedIntegrityEvent = { ...auditEvents.integrityVerification, outcome: "succeeded" };
     expect((await postJson(administratorPage, integrityVerificationPath(uploadedFileId!))).status).toBe(204);
     await expect.poll(
@@ -545,6 +737,7 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     await captureAuditEvidence(administratorPage, failedIntegrityEvent, "integrity-verification-failed.png");
   } finally {
     try {
+      await restoreSourceThreshold?.();
       await restoreSessionPolicy?.();
     } finally {
       await administratorPage.close();

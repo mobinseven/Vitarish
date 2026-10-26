@@ -15,7 +15,9 @@ public sealed class CompletePasskeyLoginHandler(
     IAuthenticationSecurityPolicyProvider securityPolicyProvider,
     IAuthenticationAttemptTracker attemptTracker,
     IAuthenticationAttemptKeyFactory attemptKeyFactory,
-    AuthenticationAttemptAuditor attemptAuditor)
+    AuthenticationSourceAttemptGuard sourceAttemptGuard,
+    AuthenticationAttemptAuditor attemptAuditor,
+    IAuthenticationSessionRegistry sessionRegistry)
 {
     public async Task<AuthenticationResult<LoginResult>> Handle(CompletePasskeyLoginCommand command, CancellationToken cancellationToken)
     {
@@ -24,15 +26,25 @@ public sealed class CompletePasskeyLoginHandler(
         try
         {
             knownUserId = await webAuthn.GetSubjectIdAsync(command.ChallengeId, command.CredentialJson, cancellationToken);
-            result = await HandleCoreAsync(command, cancellationToken);
+            result = await HandleCoreAsync(command, knownUserId, cancellationToken);
         }
         catch (OperationCanceledException)
         {
             throw;
         }
-        catch
+        catch (Exception failure)
         {
             await attemptAuditor.RecordAsync(AuthenticationMethod.Passkey, knownUserId, succeeded: false, cancellationToken: CancellationToken.None);
+            try
+            {
+                await sessionRegistry.RecordFailedAttemptAsync(knownUserId, CancellationToken.None);
+            }
+            catch (Exception historyFailure)
+            {
+                // Keep the original failure visible alongside the access-history write that also failed.
+                throw new AggregateException(failure, historyFailure);
+            }
+
             throw;
         }
 
@@ -55,11 +67,13 @@ public sealed class CompletePasskeyLoginHandler(
         return result;
     }
 
-    private async Task<AuthenticationResult<LoginResult>> HandleCoreAsync(CompletePasskeyLoginCommand command, CancellationToken cancellationToken)
+    private async Task<AuthenticationResult<LoginResult>> HandleCoreAsync(CompletePasskeyLoginCommand command, string? knownUserId, CancellationToken cancellationToken)
     {
         SecurityAccessPolicy securityPolicy = await securityPolicyProvider.GetAsync(cancellationToken);
         if (!securityPolicy.Allows(AuthenticationMethod.Passkey, PreAuthenticationAction.PasskeyLogin))
             return new AuthenticationResult<LoginResult>.Failure(new(AuthenticationFailureReason.NotAllowed, "Passkey authentication is not enabled."));
+        if (await sourceAttemptGuard.IsBlockedAsync(cancellationToken))
+            return new AuthenticationResult<LoginResult>.Failure(CreateAttemptFailure(securityPolicy));
 
         List<string> attemptKeys = [.. attemptKeyFactory.ChallengeCandidates(AuthenticationMethod.Passkey, command.ChallengeId)];
         string? attemptKey = await webAuthn.GetAttemptKeyAsync(command.ChallengeId, command.CredentialJson, cancellationToken);
@@ -81,7 +95,9 @@ public sealed class CompletePasskeyLoginHandler(
                     securityPolicy.FailedAttemptDenialDuration,
                     cancellationToken));
             }
-            if (failures >= securityPolicy.FailedAttemptThreshold)
+            await sessionRegistry.RecordFailedAttemptAsync(result.UserId ?? knownUserId, cancellationToken);
+            bool sourceBlocked = await sourceAttemptGuard.RegisterFailureAsync(securityPolicy, cancellationToken);
+            if (failures >= securityPolicy.FailedAttemptThreshold || sourceBlocked)
                 return new AuthenticationResult<LoginResult>.Failure(CreateAttemptFailure(securityPolicy));
 
             return new AuthenticationResult<LoginResult>.Failure(result.Failure ?? new AuthenticationFailure(AuthenticationFailureReason.InvalidCredentials, "Passkey authentication failed."));

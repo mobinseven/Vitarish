@@ -13,6 +13,7 @@ import {
   twoHostE2eArtifactDirectoryEnvironmentKey,
   twoHostE2eClinicOrigin,
   twoHostE2eGrepEnvironmentKey,
+  twoHostE2eFileTransferAuditKeyEnvironmentKey,
   twoHostE2eNextDistDirectoryEnvironmentKey,
   twoHostE2ePlatformAdminOrigin,
   twoHostE2eProofScreenshotEnvironmentKey,
@@ -291,6 +292,7 @@ async function run() {
 
   const password = `${crypto.randomBytes(24).toString("base64url")}!Aa1`;
   const agentSharedSecret = crypto.randomBytes(32).toString("base64url");
+  const fileTransferAuditKey = crypto.randomBytes(32).toString("base64url");
   await startSmtpCapture();
   const mainEnvironment = createEnvironment({
     ASPNETCORE_ENVIRONMENT: "E2E",
@@ -301,6 +303,7 @@ async function run() {
     VITARISH_E2E_WEB_ORIGIN: webOrigin,
     VITARISH_E2E_PLATFORM_ADMIN_ORIGIN: platformAdminOrigin,
     VITARISH_E2E_PASSWORD: password,
+    [twoHostE2eFileTransferAuditKeyEnvironmentKey]: fileTransferAuditKey,
     Vitarish__Intelligence__AgentRuntime__SharedSecret: agentSharedSecret,
     Vitarish__Communications__Providers__Smtp__Host: "127.0.0.1",
     Vitarish__Communications__Providers__Smtp__Port: String(smtpPort),
@@ -326,6 +329,7 @@ async function run() {
     VITARISH_E2E_USERNAME: "e2e-owner",
     VITARISH_E2E_EMAIL_CHANGE_USERNAME: "e2e-email-change-user",
     VITARISH_E2E_PASSWORD: password,
+    [twoHostE2eFileTransferAuditKeyEnvironmentKey]: fileTransferAuditKey,
     VITARISH_E2E_AGENT_SHARED_SECRET: agentSharedSecret,
     VITARISH_E2E_SMTP_CAPTURE_PATH: smtpCapturePath,
     [twoHostE2eSmsCapturePathEnvironmentKey]: smsCapturePath,
