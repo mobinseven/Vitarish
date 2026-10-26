@@ -610,13 +610,18 @@ public sealed class SecurityAuditReviewTests
                 CorrelationId = "request-1",
                 SourceBoundary = "tests",
                 SourceIpKind = SecurityAuditSourceKind.Unknown,
-                RedactedReason = "line one\nline two"
+                RedactedReason = "line one\nline two",
+                ResourceNameHash = new string('a', SecurityAuditEvent.MaximumResourceNameHashLength),
+                ResourceExtension = "pdf",
+                ResourceSize = 2048
             }
         ]));
 
         csv.Should().Contain("\"'=unsafe\"");
         csv.Should().Contain("\"actor,one\"");
         csv.Should().Contain("\"line one\nline two\"");
+        csv.Should().StartWith("\"id\"").And.Contain("\"resourceNameHash\",\"resourceExtension\",\"resourceSize\"\r\n");
+        csv.Should().Contain($"\"{new string('a', SecurityAuditEvent.MaximumResourceNameHashLength)}\",\"pdf\",\"2048\"\r\n");
         csv.Should().NotContain("idempotency");
         csv.Should().NotContain("payload");
     }

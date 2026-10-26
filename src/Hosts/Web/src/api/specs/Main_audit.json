@@ -706,6 +706,27 @@
               "string"
             ]
           },
+          "resourceNameHash": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "resourceExtension": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "resourceSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          },
           "operation": {
             "type": "string"
           },

@@ -29,4 +29,8 @@ public record FileInformationWriteDto : EntityWriteDto
     [JsonPropertyName("tag")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Tag { get; set; }
+
+    [JsonPropertyName("fileName")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? FileName { get; set; }
 }

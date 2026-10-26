@@ -6,6 +6,7 @@ import { ApiError } from "@vitarish/api-client";
 import { formatDateTime, formatNumber, localizeApiError, parseIsoDateValue, useLocalizedText, type SupportedLocale } from "@vitarish/localization";
 import { FaIcon, LoadingSpinner  } from "@vitarish/ui";
 import { useMemo, useState, type FormEvent, type ReactNode } from "react";
+import { describeTransferredFile } from "./transferredFile";
 import { localizePlatformAuditCategory, localizePlatformAuditEvent, localizeSecurityAuditOutcome } from "../localization";
 import { AuditDateFilter } from "./AuditDateFilter";
 import { auditOutcomeColor } from "./auditOutcomeColor";
@@ -789,6 +790,7 @@ function PlatformAuditDetailSheet({
                     <DetailField label={t("security.platformAudit.subject")} value={displayValue(event.subjectId, t("security.platformAudit.notAvailable"))} />
                     <DetailField label={t("security.platformAudit.scope")} value={displayValue(event.tenantId, t("security.platformAudit.notAvailable"))} />
                     <DetailField label={t("security.platformAudit.resource")} value={displayValue(event.resource, t("security.platformAudit.notAvailable"))} />
+                    <DetailField label={t("security.platformAudit.transferredFile")} value={<bdi>{describeTransferredFile(event, locale) ?? t("security.platformAudit.notAvailable")}</bdi>} />
                     <DetailField label={t("security.platformAudit.occurredAt")} value={event.occurredAt ? formatDateTime(event.occurredAt, locale) : t("security.platformAudit.notAvailable")} />
                     <DetailField label={t("security.platformAudit.correlationId")} value={displayValue(event.correlationId, t("security.platformAudit.notAvailable"))} />
                     <DetailField label={t("security.platformAudit.sourceBoundary")} value={displayValue(event.sourceBoundary, t("security.platformAudit.notAvailable"))} />

@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 
 namespace Vitarish.Files.Domain.Models;
@@ -9,6 +10,9 @@ public static class FileTransferPolicy
 {
     public const long MaximumContentBytes = 512L * 1024L * 1024L;
     public const long MaximumMultipartRequestBytes = MaximumContentBytes + 128L * 1024L;
+
+    /// <summary>The longest file name kept with a file.</summary>
+    public const int MaximumFileNameLength = 255;
 
     /// <summary>The number of leading content bytes <see cref="MatchesSignature"/> needs.</summary>
     public const int SignatureProbeBytes = 16;
@@ -89,6 +93,28 @@ public static class FileTransferPolicy
             _ => false
         };
     }
+
+    /// <summary>
+    /// The name to keep for a client-supplied file name: its last path segment without control, format, or
+    /// line/paragraph separators, bounded to <see cref="MaximumFileNameLength"/>, or <see langword="null"/> when
+    /// nothing usable remains.
+    /// </summary>
+    public static string? NormalizeFileName(string? fileName)
+    {
+        if (string.IsNullOrWhiteSpace(fileName))
+            return null;
+
+        string lastSegment = fileName[(fileName.LastIndexOfAny(['/', '\\']) + 1)..];
+        string cleaned = new string(lastSegment.Where(value => !IsNonDisplayCharacter(value)).ToArray()).Trim();
+        if (cleaned.Length > MaximumFileNameLength)
+            cleaned = cleaned[..(char.IsHighSurrogate(cleaned[MaximumFileNameLength - 1]) ? MaximumFileNameLength - 1 : MaximumFileNameLength)];
+        return cleaned.Length == 0 ? null : cleaned;
+    }
+
+    // Format controls and separators can make a name display differently from how it is stored.
+    private static bool IsNonDisplayCharacter(char value) =>
+        char.IsControl(value) ||
+        char.GetUnicodeCategory(value) is UnicodeCategory.Format or UnicodeCategory.LineSeparator or UnicodeCategory.ParagraphSeparator;
 
     private static string? IsoBaseMediaBrand(ReadOnlySpan<byte> header) =>
         Ascii(header, 4, 4) == "ftyp" ? Ascii(header, 8, 4) : null;

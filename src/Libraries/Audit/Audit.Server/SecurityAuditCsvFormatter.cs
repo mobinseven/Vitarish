@@ -24,7 +24,10 @@ internal static class SecurityAuditCsvFormatter
         "sourceIpKind",
         "sourceIpAddress",
         "clientInterfaceHost",
-        "redactedReason"
+        "redactedReason",
+        "resourceNameHash",
+        "resourceExtension",
+        "resourceSize"
     ];
 
     public static byte[] Format(IReadOnlyList<SecurityAuditEventReadDto> rows)
@@ -51,7 +54,10 @@ internal static class SecurityAuditCsvFormatter
                 row.SourceIpKind,
                 row.SourceIpAddress,
                 row.ClientInterfaceHost,
-                row.RedactedReason
+                row.RedactedReason,
+                row.ResourceNameHash,
+                row.ResourceExtension,
+                row.ResourceSize?.ToString(CultureInfo.InvariantCulture)
             ]);
         }
 

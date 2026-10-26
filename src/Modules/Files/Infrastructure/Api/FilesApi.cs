@@ -32,7 +32,7 @@ public static class FilesApi
 
         if (fileInfo is null)
         {
-            await transferAudit.RecordExportAsync(id, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.Unauthorized, CancellationToken.None).ConfigureAwait(false);
+            await transferAudit.RecordExportAsync(id, null, null, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.Unauthorized, CancellationToken.None).ConfigureAwait(false);
             context.Response.StatusCode = StatusCodes.Status404NotFound;
             return;
         }
@@ -50,14 +50,14 @@ public static class FilesApi
         }
         catch (Exception)
         {
-            await transferAudit.RecordExportAsync(id, SecurityAuditOutcome.Failed, SecurityAuditReasonCatalog.EndpointException, CancellationToken.None).ConfigureAwait(false);
+            await transferAudit.RecordExportAsync(id, fileInfo.FileName, fileInfo.Metadata.Size, SecurityAuditOutcome.Failed, SecurityAuditReasonCatalog.EndpointException, CancellationToken.None).ConfigureAwait(false);
             context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
             return;
         }
 
         if (!verification.IsVerified || string.IsNullOrWhiteSpace(verification.ObjectKey))
         {
-            await transferAudit.RecordExportAsync(id, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.IntegrityValidationFailed, CancellationToken.None).ConfigureAwait(false);
+            await transferAudit.RecordExportAsync(id, fileInfo.FileName, fileInfo.Metadata.Size, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.IntegrityValidationFailed, CancellationToken.None).ConfigureAwait(false);
             context.Response.StatusCode = StatusCodes.Status404NotFound;
             return;
         }
@@ -97,7 +97,7 @@ public static class FilesApi
                 isRangeRequest ? offset : null,
                 isRangeRequest ? length : null,
                 context.RequestAborted);
-            await transferAudit.RecordExportAsync(id, SecurityAuditOutcome.Succeeded, null, context.RequestAborted).ConfigureAwait(false);
+            await transferAudit.RecordExportAsync(id, fileInfo.FileName, fileInfo.Metadata.Size, SecurityAuditOutcome.Succeeded, null, context.RequestAborted).ConfigureAwait(false);
         }
         catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested)
         {
@@ -105,7 +105,7 @@ public static class FilesApi
         }
         catch (Exception)
         {
-            await transferAudit.RecordExportAsync(id, SecurityAuditOutcome.Failed, SecurityAuditReasonCatalog.EndpointException, CancellationToken.None).ConfigureAwait(false);
+            await transferAudit.RecordExportAsync(id, fileInfo.FileName, fileInfo.Metadata.Size, SecurityAuditOutcome.Failed, SecurityAuditReasonCatalog.EndpointException, CancellationToken.None).ConfigureAwait(false);
             throw;
         }
     }

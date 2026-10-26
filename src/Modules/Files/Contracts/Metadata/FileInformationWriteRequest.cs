@@ -9,4 +9,5 @@ public sealed record FileInformationWriteRequest
     public string? Url { get; init; }
     public string? Owner { get; init; }
     public string? Tag { get; init; }
+    public string? FileName { get; init; }
 }

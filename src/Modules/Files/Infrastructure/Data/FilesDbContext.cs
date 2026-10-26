@@ -88,6 +88,10 @@ public sealed class FilesDbContext : DbContext, IMultiTenantDbContext
         _ = modelBuilder.Entity<FileInformation>()
             .HasIndex(entity => entity.Checksum);
 
+        _ = modelBuilder.Entity<FileInformation>()
+            .Property(entity => entity.FileName)
+            .HasMaxLength(FileTransferPolicy.MaximumFileNameLength);
+
         EntityTypeBuilder<FileIntegrityRecord> integrityRecord = modelBuilder.Entity<FileIntegrityRecord>();
         _ = integrityRecord.HasIndex(entity => entity.FileInformationId).IsUnique();
         _ = integrityRecord.HasOne<FileInformation>()
