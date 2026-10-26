@@ -246,9 +246,6 @@ async function deleteJson(page: Page, path: string, body: unknown = null): Promi
 // media types and validates the content signature, not just the declared type.
 const evidenceFilePngBase64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
 const evidenceFileName = "audit-evidence.png";
-const fileTransferAuditKey = process.env[twoHostE2eFileTransferAuditKeyEnvironmentKey];
-if (!fileTransferAuditKey) throw new Error("The disposable file transfer audit key must be supplied by the two-host runner.");
-const evidenceFileNameHash = createHmac("sha256", fileTransferAuditKey).update(evidenceFileName, "utf8").digest("hex");
 const evidenceFileSize = Buffer.from(evidenceFilePngBase64, "base64").length;
 
 async function uploadEvidenceFile(page: Page): Promise<{ status: number; body: unknown }> {
@@ -395,6 +392,9 @@ async function captureAllAuthenticationCatalogEvidence(page: Page): Promise<void
 
 test("real actions create visible platform security-audit evidence", async ({ page, browser, request }) => {
   test.setTimeout(300_000);
+  const fileTransferAuditKey = process.env[twoHostE2eFileTransferAuditKeyEnvironmentKey];
+  if (!fileTransferAuditKey) throw new Error("The disposable file transfer audit key must be supplied by the two-host runner.");
+  const evidenceFileNameHash = createHmac("sha256", fileTransferAuditKey).update(evidenceFileName, "utf8").digest("hex");
   const anonymousContext = await browser.newContext();
   const anonymousPage = await anonymousContext.newPage();
   const administratorContext = await browser.newContext();
