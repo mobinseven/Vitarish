@@ -276,16 +276,30 @@ internal static class SecurityBaselineCheck
                     violations.Add(DeploymentViolation(composePath, "RouteHostBindingMissing", $"Wire the {variable} input through the Compose and Caddy configurations."));
             }
             string environmentPrefix = environment.ToUpperInvariant();
+            // brand_fonts only serves the licensed font file; no other handler may precede the owner proxy.
+            string OwnerSiteBody(string environmentName) =>
+                @"\s*\{\s*import security_headers\s+import " + environmentName + @"_api\s+(?:import brand_fonts\s+)?reverse_proxy " + environmentName + @"-private-practice-owner:3000\s*\}";
             foreach (string wildcard in new[] { "WILDCARD_HOST", "CLINIC_WILDCARD_HOST" })
             {
                 string variable = $"{environmentPrefix}_{wildcard}";
                 string binding = Regex.Escape("{$" + variable + "}");
+                // In production the site-domain wildcard serves no application: its only named host,
+                // the sign-in host, has its own site, and every other host goes to the landing page.
+                bool redirectsToLanding = environment == "production" && wildcard == "WILDCARD_HOST";
+                string httpsBody = redirectsToLanding
+                    ? @"\s*\{\s*import security_headers\s+redir https://" + Regex.Escape("{$PRODUCTION_LANDING_HOST}") + @"/ 302\s*\}"
+                    : OwnerSiteBody(environment);
                 if (!ingress.Contains($"{variable}: ${{VITARISH_{variable}:?", StringComparison.Ordinal) ||
                     !Regex.IsMatch(caddy, @"(?ms)^http://" + binding + @"\s*\{\s*redir https://\{host\}\{uri\} 308\s*\}") ||
-                    // brand_fonts only serves the licensed font file; no other handler may precede the owner proxy.
-                    !Regex.IsMatch(caddy, @"(?ms)^https://" + binding + @"\s*\{\s*import security_headers\s+import " + environment + @"_api\s+(?:import brand_fonts\s+)?reverse_proxy " + environment.ToLowerInvariant() + @"-private-practice-owner:3000\s*\}"))
-                    violations.Add(DeploymentViolation(caddyPath, "WildcardRouteSecurityMissing", $"Redirect {variable} to HTTPS and route it through Main API and the owner Web service."));
+                    !Regex.IsMatch(caddy, @"(?ms)^https://" + binding + httpsBody))
+                    violations.Add(DeploymentViolation(caddyPath, "WildcardRouteSecurityMissing", redirectsToLanding
+                        ? $"Redirect {variable} to HTTPS and then to the landing host."
+                        : $"Redirect {variable} to HTTPS and route it through Main API and the owner Web service."));
             }
+            if (environment == "production" &&
+                (!ingress.Contains("PRODUCTION_SIGN_IN_HOST: ${VITARISH_PRODUCTION_SIGN_IN_SUBDOMAIN:?", StringComparison.Ordinal) ||
+                 !Regex.IsMatch(caddy, @"(?ms)^https://" + Regex.Escape("{$PRODUCTION_SIGN_IN_HOST}") + OwnerSiteBody(environment))))
+                violations.Add(DeploymentViolation(caddyPath, "SignInRouteSecurityMissing", "Route PRODUCTION_SIGN_IN_HOST through Main API and the owner Web service."));
             Dictionary<string, string[]> routeTargets = new(StringComparer.Ordinal)
             {
                 ["PUBLIC"] = [$"{environment}-private-practice-owner:3000"],
