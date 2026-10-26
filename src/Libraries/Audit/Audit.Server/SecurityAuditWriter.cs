@@ -1,4 +1,5 @@
 using System.Data.Common;
+using System.Globalization;
 using System.Net;
 using System.Reflection;
 using System.Security.Cryptography;
@@ -130,7 +131,9 @@ internal sealed class SecurityAuditWriter(
                 SubjectId = pending.SubjectId,
                 TenantId = pending.TenantId,
                 Resource = pending.Resource,
-                ResourceName = pending.ResourceName,
+                ResourceNameHash = pending.ResourceNameHash,
+                ResourceExtension = pending.ResourceExtension,
+                ResourceSize = pending.ResourceSize,
                 Operation = pending.Operation,
                 OccurredAt = DateTime.UtcNow,
                 CorrelationId = pending.CorrelationId,
@@ -215,12 +218,23 @@ internal sealed class SecurityAuditWriter(
             throw new ArgumentException("Client security audit events require a normalized IP address.", nameof(auditEvent));
         if (auditEvent.SourceIpKind is not SecurityAuditSourceKind.Client and not SecurityAuditSourceKind.System and not SecurityAuditSourceKind.Unknown)
             throw new ArgumentException("Security audit source kinds are invalid.", nameof(auditEvent));
-        if (auditEvent.ResourceName is { } resourceName &&
-            (resourceName.Length is 0 or > SecurityAuditEvent.MaximumResourceNameLength || resourceName.Any(char.IsControl)))
-            throw new ArgumentException("Security audit resource names must be non-empty, bounded, and free of control characters.", nameof(auditEvent));
+        if (auditEvent.ResourceNameHash is { } resourceNameHash &&
+            (resourceNameHash.Length != SecurityAuditEvent.MaximumResourceNameHashLength ||
+             !resourceNameHash.All(char.IsAsciiHexDigitLower)))
+            throw new ArgumentException("Security audit resource name hashes must be lowercase SHA-256 hexadecimal values.", nameof(auditEvent));
+        if (auditEvent.ResourceExtension is { } resourceExtension &&
+            (resourceExtension.Length is 0 or > SecurityAuditEvent.MaximumResourceExtensionLength ||
+             resourceExtension.Any(IsNonDisplayCharacter)))
+            throw new ArgumentException("Security audit resource extensions must be non-empty, bounded, and free of control, format, and separator characters.", nameof(auditEvent));
+        if (auditEvent.ResourceSize is < 0)
+            throw new ArgumentException("Security audit resource sizes cannot be negative.", nameof(auditEvent));
         if (auditEvent.OccurredAt.Kind != DateTimeKind.Utc)
             throw new ArgumentException("Security audit timestamps must be UTC.", nameof(auditEvent));
     }
+
+    private static bool IsNonDisplayCharacter(char value) =>
+        char.IsControl(value) ||
+        char.GetUnicodeCategory(value) is UnicodeCategory.Format or UnicodeCategory.LineSeparator or UnicodeCategory.ParagraphSeparator;
 
     private async Task<bool> AlreadyRecordedAsync(SecurityAuditEvent auditEvent, CancellationToken cancellationToken)
     {

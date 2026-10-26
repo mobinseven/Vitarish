@@ -1,4 +1,5 @@
 import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
+import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { twoHostE2eApiOriginEnvironmentKey, twoHostE2eAuditEvidenceDirectoryEnvironmentKey, twoHostE2eLocaleEnvironmentKey } from "../../scripts/two-host-e2e-artifacts.mjs";
@@ -70,7 +71,7 @@ const integrityVerificationPath = (fileId: string) => `${e2eAuditEvidenceBase}/f
 const integrityTamperPath = (fileId: string) => `${e2eAuditEvidenceBase}/files/${fileId}/tamper`;
 
 type AuditEventExpectation = (typeof auditEvents)[keyof typeof auditEvents] & { outcome: string };
-type AuditPage = { items: Array<{ id?: string; eventName?: string; eventCategory?: string; operation?: string; outcome?: string; actorId?: string; actorKind?: string; tenantId?: string; subjectId?: string; resource?: string; resourceName?: string; redactedReason?: string }>; totalCount: number };
+type AuditPage = { items: Array<{ id?: string; eventName?: string; eventCategory?: string; operation?: string; outcome?: string; actorId?: string; actorKind?: string; tenantId?: string; subjectId?: string; resource?: string; resourceNameHash?: string; resourceExtension?: string; resourceSize?: number; redactedReason?: string }>; totalCount: number };
 
 async function login(page: Page, username: string, origin = "", clientIp = "198.51.100.60"): Promise<void> {
   await page.context().addCookies([
@@ -177,17 +178,20 @@ async function deleteJson(page: Page, path: string, body: unknown = null): Promi
 // A 1x1 transparent PNG. The Files upload boundary accepts only supported
 // media types and validates the content signature, not just the declared type.
 const evidenceFilePngBase64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
+const evidenceFileName = "audit-evidence.png";
+const evidenceFileNameHash = createHash("sha256").update(evidenceFileName, "utf8").digest("hex");
+const evidenceFileSize = Buffer.from(evidenceFilePngBase64, "base64").length;
 
 async function uploadEvidenceFile(page: Page): Promise<{ status: number; body: unknown }> {
-  return page.evaluate(async ({ origin, base64 }) => {
+  return page.evaluate(async ({ origin, base64, fileName }) => {
     const antiforgeryResponse = await fetch(`${origin}/api/modules/authentication/antiforgery`, { credentials: "include" });
     const antiforgery = await antiforgeryResponse.json() as { headerName: string; requestToken: string };
     const content = Uint8Array.from(atob(base64), (character) => character.charCodeAt(0));
     const digest = await crypto.subtle.digest("SHA-256", content);
     const checksum = Array.from(new Uint8Array(digest), value => value.toString(16).padStart(2, "0")).join("");
     const form = new FormData();
-    form.append("content", new Blob([content], { type: "image/png" }), "audit-evidence.png");
-    form.append("fileName", "audit-evidence.png");
+    form.append("content", new Blob([content], { type: "image/png" }), fileName);
+    form.append("fileName", fileName);
     form.append("contentType", "image/png");
     form.append("size", String(content.byteLength));
     form.append("checksum", checksum);
@@ -202,7 +206,7 @@ async function uploadEvidenceFile(page: Page): Promise<{ status: number; body: u
       body: form,
     });
     return { status: response.status, body: await response.json().catch(() => null) };
-  }, { origin: browserApiOrigin, base64: evidenceFilePngBase64 });
+  }, { origin: browserApiOrigin, base64: evidenceFilePngBase64, fileName: evidenceFileName });
 }
 
 async function downloadEvidenceFile(page: Page, fileId: string): Promise<number> {
@@ -488,10 +492,12 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     await captureAuditEvidence(administratorPage, { ...auditEvents.tenantMemberRemoval, outcome: "succeeded" }, "tenant-member-removed.png");
     await captureAuditEvidence(administratorPage, { ...auditEvents.tenantRoleReplacement, outcome: "succeeded" }, "tenant-role-replaced.png");
     const importRecords = await platformAuditQuery(administratorPage, { ...auditEvents.dataImport, outcome: "succeeded" });
-    expect(importRecords.items.some((item) => item.resourceName === "audit-evidence.png"), "an upload records the uploaded file's name").toBe(true);
+    expect(importRecords.items.some((item) => item.resourceNameHash === evidenceFileNameHash && item.resourceExtension === "png" && item.resourceSize === evidenceFileSize), "an upload records the uploaded file's name hash, extension, and size").toBe(true);
     const exportRecords = await platformAuditQuery(administratorPage, { ...auditEvents.auditExport, outcome: "succeeded" });
     const downloadRecord = exportRecords.items.find((item) => item.resource === `files/${uploadedFileId!.replaceAll("-", "")}`);
-    expect(downloadRecord?.resourceName, "a download records the stored file's name").toEqual(expect.any(String));
+    expect(downloadRecord?.resourceNameHash, "a download records the stored file's name hash").toBe(evidenceFileNameHash);
+    expect(downloadRecord?.resourceExtension, "a download records the stored file's extension").toBe("png");
+    expect(downloadRecord?.resourceSize, "a download records the stored file's size").toBe(evidenceFileSize);
     await captureAuditEvidence(administratorPage, { ...auditEvents.dataImport, outcome: "succeeded" }, "data-import.png");
     const reviewEvent = { ...auditEvents.auditReview, outcome: "succeeded" };
     const reviewEventsBefore = await platformAuditQuery(administratorPage, reviewEvent);

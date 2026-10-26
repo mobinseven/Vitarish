@@ -108,7 +108,8 @@ public sealed class AuditDbContext : DbContext, IMultiTenantDbContext
             _ = entity.Property(e => e.SubjectId).HasMaxLength(256);
             _ = entity.Property(e => e.TenantId).HasMaxLength(64);
             _ = entity.Property(e => e.Resource).HasMaxLength(512);
-            _ = entity.Property(e => e.ResourceName).HasMaxLength(SecurityAuditEvent.MaximumResourceNameLength);
+            _ = entity.Property(e => e.ResourceNameHash).HasMaxLength(SecurityAuditEvent.MaximumResourceNameHashLength);
+            _ = entity.Property(e => e.ResourceExtension).HasMaxLength(SecurityAuditEvent.MaximumResourceExtensionLength);
             _ = entity.Property(e => e.Operation).HasMaxLength(256);
             _ = entity.Property(e => e.CorrelationId).HasMaxLength(256);
             _ = entity.Property(e => e.SourceBoundary).HasMaxLength(256);

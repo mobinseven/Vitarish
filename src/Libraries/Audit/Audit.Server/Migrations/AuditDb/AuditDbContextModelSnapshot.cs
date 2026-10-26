@@ -146,9 +146,16 @@ namespace Vitarish.Audit.Server.Migrations.AuditDb
                         .HasMaxLength(512)
                         .HasColumnType("character varying(512)");
 
-                    b.Property<string>("ResourceName")
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
+                    b.Property<string>("ResourceExtension")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("ResourceNameHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<long?>("ResourceSize")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("SourceBoundary")
                         .IsRequired()

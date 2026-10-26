@@ -12,8 +12,8 @@ using Vitarish.Audit.Server;
 namespace Vitarish.Audit.Server.Migrations.AuditDb
 {
     [DbContext(typeof(AuditDbContext))]
-    [Migration("20261025092009_SecurityAuditResourceName")]
-    partial class SecurityAuditResourceName
+    [Migration("20261026070737_SecurityAuditFileTransferMetadata")]
+    partial class SecurityAuditFileTransferMetadata
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -149,9 +149,16 @@ namespace Vitarish.Audit.Server.Migrations.AuditDb
                         .HasMaxLength(512)
                         .HasColumnType("character varying(512)");
 
-                    b.Property<string>("ResourceName")
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
+                    b.Property<string>("ResourceExtension")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("ResourceNameHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<long?>("ResourceSize")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("SourceBoundary")
                         .IsRequired()

@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using Moq;
 using Vitarish.Audit.Application;
 using Vitarish.Audit.Domain;
@@ -11,31 +13,51 @@ public sealed class FileTransferAuditTests
     private static readonly Guid FileId = Guid.Parse("11111111-2222-3333-4444-555555555555");
 
     [Fact]
-    public async Task Upload_and_download_records_carry_the_normalized_file_name()
+    public async Task Upload_and_download_records_carry_the_normalized_name_hash_extension_and_size()
     {
         List<SecurityAuditEvent> written = [];
         FileTransferAudit audit = new(Writer(written), RequestContext());
 
-        await audit.RecordImportAsync(FileId, "C:\\scans\\referral\u202E.pdf", SecurityAuditOutcome.Succeeded, null);
-        await audit.RecordExportAsync(FileId, "referral.pdf", SecurityAuditOutcome.Succeeded, null);
+        await audit.RecordImportAsync(FileId, "C:\\scans\\referral\u202E.pdf", 2048, SecurityAuditOutcome.Succeeded, null);
+        await audit.RecordExportAsync(FileId, "referral.pdf", 2048, SecurityAuditOutcome.Succeeded, null);
 
-        written.Select(item => (item.EventName, item.ResourceName)).Should().Equal(
-            (SecurityAuditEventCatalog.ImportEvent, "referral.pdf"),
-            (SecurityAuditEventCatalog.ExportEvent, "referral.pdf"));
+        string expectedHash = ExpectedHash("referral.pdf");
+        written.Select(item => (item.EventName, item.ResourceNameHash, item.ResourceExtension, item.ResourceSize)).Should().Equal(
+            (SecurityAuditEventCatalog.ImportEvent, expectedHash, "pdf", 2048L),
+            (SecurityAuditEventCatalog.ExportEvent, expectedHash, "pdf", 2048L));
     }
 
     [Fact]
-    public async Task A_transfer_without_a_usable_name_records_no_name()
+    public async Task A_transfer_without_a_usable_name_records_no_name_hash_or_extension()
     {
         List<SecurityAuditEvent> written = [];
         FileTransferAudit audit = new(Writer(written), RequestContext());
 
-        await audit.RecordImportAsync(null, null, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.ContentTooLarge);
-        await audit.RecordExportAsync(FileId, "   ", SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.Unauthorized);
+        await audit.RecordImportAsync(null, null, null, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.ContentTooLarge);
+        await audit.RecordExportAsync(FileId, "   ", 0, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.Unauthorized);
         await audit.RecordIntegrityVerificationAsync(FileId, SecurityAuditOutcome.Succeeded, null);
 
-        written.Should().HaveCount(3).And.OnlyContain(item => item.ResourceName == null);
+        written.Should().HaveCount(3).And.OnlyContain(item => item.ResourceNameHash == null && item.ResourceExtension == null);
+        written[0].ResourceSize.Should().BeNull();
+        written[1].ResourceSize.Should().Be(0);
+        written[2].ResourceSize.Should().BeNull();
     }
+
+    [Fact]
+    public async Task A_rejected_audit_metadata_does_not_replace_the_transfer_result()
+    {
+        Mock<ISecurityAuditWriter> writer = new();
+        writer.Setup(value => value.WriteAsync(It.IsAny<SecurityAuditEvent>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new ArgumentException("rejected"));
+        FileTransferAudit audit = new(writer.Object, RequestContext());
+
+        Func<Task> record = () => audit.RecordImportAsync(FileId, "referral.pdf", 2048, SecurityAuditOutcome.Succeeded, null);
+
+        await record.Should().NotThrowAsync();
+    }
+
+    private static string ExpectedHash(string fileName) =>
+        Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(fileName))).ToLowerInvariant();
 
     private static ISecurityAuditWriter Writer(List<SecurityAuditEvent> written)
     {

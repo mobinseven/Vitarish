@@ -1,3 +1,6 @@
+using System.Security.Cryptography;
+using System.Text;
+using Microsoft.Extensions.Logging;
 using Vitarish.Audit.Application;
 using Vitarish.Audit.Domain;
 using Vitarish.Files.Application.Abstractions;
@@ -8,27 +11,29 @@ namespace Vitarish.Files.Infrastructure.Services;
 
 public sealed class FileTransferAudit(
     ISecurityAuditWriter auditWriter,
-    IRequestContext requestContext) : IFileTransferAudit
+    IRequestContext requestContext,
+    ILogger<FileTransferAudit>? logger = null) : IFileTransferAudit
 {
-    public Task RecordImportAsync(Guid? fileId, string? fileName, string outcome, string? reason, CancellationToken cancellationToken = default) =>
-        RecordAsync(fileId, fileName, SecurityAuditEventCatalog.ImportEvent, SecurityAuditEventCatalog.ImportOperation,
+    public Task RecordImportAsync(Guid? fileId, string? fileName, long? fileSize, string outcome, string? reason, CancellationToken cancellationToken = default) =>
+        RecordAsync(fileId, fileName, fileSize, SecurityAuditEventCatalog.ImportEvent, SecurityAuditEventCatalog.ImportOperation,
             FileTransferAuditContract.ImportIdempotencySuffix, outcome, reason, cancellationToken);
 
-    public Task RecordExportAsync(Guid fileId, string? fileName, string outcome, string? reason, CancellationToken cancellationToken = default) =>
-        RecordAsync(fileId, fileName, SecurityAuditEventCatalog.ExportEvent, SecurityAuditEventCatalog.ExportOperation,
+    public Task RecordExportAsync(Guid fileId, string? fileName, long? fileSize, string outcome, string? reason, CancellationToken cancellationToken = default) =>
+        RecordAsync(fileId, fileName, fileSize, SecurityAuditEventCatalog.ExportEvent, SecurityAuditEventCatalog.ExportOperation,
             FileTransferAuditContract.ExportIdempotencySuffix, outcome, reason, cancellationToken);
 
     public Task RecordIntegrityVerificationAsync(Guid fileId, string outcome, string? reason, CancellationToken cancellationToken = default) =>
-        RecordAsync(fileId, null, SecurityAuditEventCatalog.IntegrityVerificationEvent, SecurityAuditEventCatalog.IntegrityVerificationOperation,
+        RecordAsync(fileId, null, null, SecurityAuditEventCatalog.IntegrityVerificationEvent, SecurityAuditEventCatalog.IntegrityVerificationOperation,
             FileTransferAuditContract.IntegrityVerificationIdempotencySuffix, outcome, reason, cancellationToken);
 
-    private async Task RecordAsync(Guid? fileId, string? fileName, string eventName, string operation, string suffix, string outcome, string? reason, CancellationToken cancellationToken)
+    private async Task RecordAsync(Guid? fileId, string? fileName, long? fileSize, string eventName, string operation, string suffix, string outcome, string? reason, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(requestContext.TenantId))
         {
             return;
         }
 
+        string? normalizedFileName = FileTransferPolicy.NormalizeFileName(fileName);
         string correlationId = requestContext.TraceId ?? requestContext.RequestId ?? Guid.NewGuid().ToString("N");
         try
         {
@@ -41,7 +46,9 @@ public sealed class FileTransferAudit(
                 SubjectId = requestContext.UserId,
                 TenantId = requestContext.TenantId,
                 Resource = fileId is { } id ? FileTransferAuditContract.ResourcePrefix + id.ToString("N") : null,
-                ResourceName = FileTransferPolicy.NormalizeFileName(fileName),
+                ResourceNameHash = normalizedFileName is null ? null : Hash(normalizedFileName),
+                ResourceExtension = normalizedFileName is null ? null : Extension(normalizedFileName),
+                ResourceSize = fileSize,
                 Operation = operation,
                 OccurredAt = DateTime.UtcNow,
                 CorrelationId = correlationId,
@@ -54,5 +61,20 @@ public sealed class FileTransferAudit(
         {
             // Preserve the initiating transfer result when the audit store is unavailable.
         }
+        catch (ArgumentException exception)
+        {
+            // A rejected metadata value must not replace the transfer result; the event type is the only safe detail.
+            logger?.LogError(
+                "File transfer audit metadata was rejected. Event={Event} Operation={Operation} Cause={Cause}",
+                eventName,
+                operation,
+                exception.GetType().FullName);
+        }
     }
+
+    private static string Hash(string fileName) =>
+        Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(fileName))).ToLowerInvariant();
+
+    private static string? Extension(string fileName) =>
+        Path.GetExtension(fileName).TrimStart('.') is { Length: > 0 } extension ? extension.ToLowerInvariant() : null;
 }

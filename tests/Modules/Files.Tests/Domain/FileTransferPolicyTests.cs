@@ -1,3 +1,4 @@
+using Vitarish.Audit.Domain;
 using Vitarish.Files.Domain.Models;
 
 namespace Files.Tests.Domain;
@@ -29,8 +30,15 @@ public sealed class FileTransferPolicyTests
     [InlineData("../../etc/scan.pdf", "scan.pdf")]
     [InlineData("  report\tfinal.pdf  ", "reportfinal.pdf")]
     [InlineData("invoice\u202Efdp.exe", "invoicefdp.exe")]
-    [InlineData("\u06AF\u0632\u0627\u0631\u0634\u200C\u0647\u0627.pdf", "\u06AF\u0632\u0627\u0631\u0634\u200C\u0647\u0627.pdf")]
-    public void NormalizeFileName_keeps_the_last_segment_without_control_or_override_characters(string value, string expected)
+    [InlineData("report\u200E.pdf", "report.pdf")]
+    [InlineData("report\u200F.pdf", "report.pdf")]
+    [InlineData("report\u061C.pdf", "report.pdf")]
+    [InlineData("report\u200B.pdf", "report.pdf")]
+    [InlineData("\uFEFFreport.pdf", "report.pdf")]
+    [InlineData("report\u2028.pdf", "report.pdf")]
+    [InlineData("report\u2029.pdf", "report.pdf")]
+    [InlineData("\u06AF\u0632\u0627\u0631\u0634\u200C\u0647\u0627.pdf", "\u06AF\u0632\u0627\u0631\u0634\u0647\u0627.pdf")]
+    public void NormalizeFileName_keeps_the_last_segment_without_control_format_or_separator_characters(string value, string expected)
     {
         FileTransferPolicy.NormalizeFileName(value).Should().Be(expected);
     }

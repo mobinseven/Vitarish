@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 
 namespace Vitarish.Files.Domain.Models;
@@ -10,7 +11,7 @@ public static class FileTransferPolicy
     public const long MaximumContentBytes = 512L * 1024L * 1024L;
     public const long MaximumMultipartRequestBytes = MaximumContentBytes + 128L * 1024L;
 
-    /// <summary>The longest file name kept with a file and reported in its transfer records.</summary>
+    /// <summary>The longest file name kept with a file.</summary>
     public const int MaximumFileNameLength = 255;
 
     /// <summary>The number of leading content bytes <see cref="MatchesSignature"/> needs.</summary>
@@ -94,8 +95,9 @@ public static class FileTransferPolicy
     }
 
     /// <summary>
-    /// The name to keep and report for a client-supplied file name: its last path segment without control or
-    /// bidirectional-override characters, bounded in length, or <see langword="null"/> when nothing usable remains.
+    /// The name to keep for a client-supplied file name: its last path segment without control, format, or
+    /// line/paragraph separators, bounded to <see cref="MaximumFileNameLength"/>, or <see langword="null"/> when
+    /// nothing usable remains.
     /// </summary>
     public static string? NormalizeFileName(string? fileName)
     {
@@ -103,14 +105,16 @@ public static class FileTransferPolicy
             return null;
 
         string lastSegment = fileName[(fileName.LastIndexOfAny(['/', '\\']) + 1)..];
-        string cleaned = new string(lastSegment.Where(value => !char.IsControl(value) && !IsBidirectionalOverride(value)).ToArray()).Trim();
+        string cleaned = new string(lastSegment.Where(value => !IsNonDisplayCharacter(value)).ToArray()).Trim();
         if (cleaned.Length > MaximumFileNameLength)
             cleaned = cleaned[..(char.IsHighSurrogate(cleaned[MaximumFileNameLength - 1]) ? MaximumFileNameLength - 1 : MaximumFileNameLength)];
         return cleaned.Length == 0 ? null : cleaned;
     }
 
-    // Embedding, override and isolate controls can make a name display differently from how it is stored.
-    private static bool IsBidirectionalOverride(char value) => value is (>= '\u202A' and <= '\u202E') or (>= '\u2066' and <= '\u2069');
+    // Format controls and separators can make a name display differently from how it is stored.
+    private static bool IsNonDisplayCharacter(char value) =>
+        char.IsControl(value) ||
+        char.GetUnicodeCategory(value) is UnicodeCategory.Format or UnicodeCategory.LineSeparator or UnicodeCategory.ParagraphSeparator;
 
     private static string? IsoBaseMediaBrand(ReadOnlySpan<byte> header) =>
         Ascii(header, 4, 4) == "ftyp" ? Ascii(header, 8, 4) : null;
