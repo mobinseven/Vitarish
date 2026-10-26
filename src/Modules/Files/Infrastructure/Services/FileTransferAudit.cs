@@ -1,5 +1,3 @@
-using System.Security.Cryptography;
-using System.Text;
 using Microsoft.Extensions.Logging;
 using Vitarish.Audit.Application;
 using Vitarish.Audit.Domain;
@@ -12,6 +10,7 @@ namespace Vitarish.Files.Infrastructure.Services;
 public sealed class FileTransferAudit(
     ISecurityAuditWriter auditWriter,
     IRequestContext requestContext,
+    FileTransferAuditNameDigest nameDigest,
     ILogger<FileTransferAudit>? logger = null) : IFileTransferAudit
 {
     public Task RecordImportAsync(Guid? fileId, string? fileName, long? fileSize, string outcome, string? reason, CancellationToken cancellationToken = default) =>
@@ -46,7 +45,7 @@ public sealed class FileTransferAudit(
                 SubjectId = requestContext.UserId,
                 TenantId = requestContext.TenantId,
                 Resource = fileId is { } id ? FileTransferAuditContract.ResourcePrefix + id.ToString("N") : null,
-                ResourceNameHash = normalizedFileName is null ? null : Hash(normalizedFileName),
+                ResourceNameHash = normalizedFileName is null ? null : nameDigest.Compute(normalizedFileName),
                 ResourceExtension = normalizedFileName is null ? null : Extension(normalizedFileName),
                 ResourceSize = fileSize,
                 Operation = operation,
@@ -71,9 +70,6 @@ public sealed class FileTransferAudit(
                 exception.GetType().FullName);
         }
     }
-
-    private static string Hash(string fileName) =>
-        Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(fileName))).ToLowerInvariant();
 
     private static string? Extension(string fileName) =>
         Path.GetExtension(fileName).TrimStart('.') is { Length: > 0 } extension ? extension.ToLowerInvariant() : null;

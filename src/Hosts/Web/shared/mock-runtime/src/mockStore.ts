@@ -19,7 +19,8 @@ export type MockAuditEvent = {
   subjectId?: string;
   tenantId?: string;
   resource: string;
-  resourceName?: string;
+  resourceExtension?: string;
+  resourceSize?: number;
   operation: string;
   occurredAt: string;
   correlationId: string;
@@ -97,7 +98,8 @@ function createMockAuditEvents(): MockAuditEvent[] {
       subjectId: actorKind === "anonymous" ? undefined : "mock-user",
       tenantId: index % 5 === 0 ? undefined : "mock-tenant",
       resource: eventCategory === "management" ? "tenant-membership" : "authentication",
-      resourceName: eventCategory === "import-export" ? "referral-letter.pdf" : undefined,
+      resourceExtension: eventCategory === "import-export" ? "pdf" : undefined,
+      resourceSize: eventCategory === "import-export" ? 248_320 : undefined,
       occurredAt: new Date(Date.UTC(2026, 8, 21, 11, 45, 0) - offset * 60_000).toISOString(),
       correlationId: `mock-correlation-${String(index + 1).padStart(3, "0")}`,
       sourceBoundary: actorKind === "anonymous" ? "main.endpoint-filter" : "authentication.application",
