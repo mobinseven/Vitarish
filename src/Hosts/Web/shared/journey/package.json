@@ -6,7 +6,8 @@
   "types": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
-    "./onboarding-host": "./src/onboardingHost.ts"
+    "./onboarding-host": "./src/onboardingHost.ts",
+    "./sign-in-host": "./src/signInHost.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",

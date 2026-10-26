@@ -1,7 +1,7 @@
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
 export const TENANT_HOST_HEADER = "X-Vitarish-Tenant-Host";
 export const ANTIFORGERY_VALIDATION_FAILED_CODE = "AntiforgeryValidationFailed";
-const REQUEST_ID_HEADER = "X-Request-Id";
+export const REQUEST_ID_HEADER = "X-Request-Id";
 
 export interface ProblemDetails {
   type?: string;

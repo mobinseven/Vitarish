@@ -1,9 +1,17 @@
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { expect, test } from "@playwright/test";
-import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
+import { twoHostE2eApiOriginEnvironmentKey, twoHostE2eClinicOrigin } from "../../scripts/two-host-e2e-artifacts.mjs";
+import { REQUEST_ID_HEADER, TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
+import { authenticationLoginEmailBegin, authenticationLoginEmailComplete, getAuthenticationSessionGetQueryKey } from "../../shared/auth/src/api/generated/authentication/authentication";
+import { generatedOperationPath } from "./generatedOperationPath";
 
-const privatePracticeOrigin = process.env.VITARISH_E2E_WEB_ORIGIN ?? "http://localhost:3005";
+const apiOrigin = process.env[twoHostE2eApiOriginEnvironmentKey];
+// The E2E clinic's own host; its sign-in pages redirect to the shared sign-in host, which admits
+// accounts without a role and sends them on to create a clinic (ADR-0018), so the clinic host's
+// refusal is proven at its API.
+const clinicHost = new URL(twoHostE2eClinicOrigin).hostname;
 const smtpCapturePath = process.env.VITARISH_E2E_SMTP_CAPTURE_PATH;
+const clientIp = "198.51.100.95";
 
 async function readDeliveredCode(previousModifiedAt: number): Promise<string> {
   await expect.poll(() => {
@@ -20,53 +28,34 @@ async function readDeliveredCode(previousModifiedAt: number): Promise<string> {
 // new user with no global role and no tenant membership and needs no other
 // spec's state. Its own client IP keeps the begin rate-limit partition shared
 // with no earlier scenario.
-test("an account with no role or tenant membership is told it has no access after the code verifies", async ({ browser }) => {
+test("an account with no role or tenant membership is refused on a clinic host after the code verifies", async ({ request }) => {
   expect(smtpCapturePath, "VITARISH_E2E_SMTP_CAPTURE_PATH must be supplied by the two-host runner").toBeTruthy();
-  const context = await browser.newContext({ extraHTTPHeaders: { "X-Forwarded-For": "198.51.100.95" } });
-  const page = await context.newPage();
-  let failure: unknown;
-  try {
-    await page.goto(`${privatePracticeOrigin}${ClinicRoutes.Login.Email}`, { waitUntil: "domcontentloaded" });
-    await expect(page.getByRole("heading", { name: "Email Sign In", exact: true })).toBeVisible({ timeout: 30_000 });
+  expect(apiOrigin, "the two-host runner supplies the real API origin").toBeTruthy();
+  const headers = { [TENANT_HOST_HEADER]: clinicHost, "X-Forwarded-For": clientIp };
 
-    const email = `e2e-no-access-${Date.now()}@example.test`;
-    await page.getByLabel("Email", { exact: true }).fill(email);
-    const previousModifiedAt = existsSync(smtpCapturePath!) ? statSync(smtpCapturePath!).mtimeMs : 0;
-    const [beginResponse] = await Promise.all([
-      page.waitForResponse((response) => response.url().endsWith("/api/modules/authentication/login/email/begin")),
-      page.getByRole("button", { name: "Send Code", exact: true }).click(),
-    ]);
-    expect(beginResponse.status()).toBe(200);
+  const email = `e2e-no-access-${Date.now()}@example.test`;
+  const previousModifiedAt = existsSync(smtpCapturePath!) ? statSync(smtpCapturePath!).mtimeMs : 0;
+  const begin = await request.post(new URL(generatedOperationPath(authenticationLoginEmailBegin), apiOrigin).href, {
+    data: { email, returnUrl: null },
+    headers: { ...headers, [REQUEST_ID_HEADER]: `e2e-no-access-begin-${Date.now()}` },
+    ignoreHTTPSErrors: true,
+  });
+  expect(begin.status()).toBe(200);
+  const { challengeId } = await begin.json() as { challengeId: string };
 
-    const code = await readDeliveredCode(previousModifiedAt);
-    await page.getByLabel("Verification Code").fill(code);
-    const [completeResponse] = await Promise.all([
-      page.waitForResponse((response) => response.url().endsWith("/api/modules/authentication/login/email/complete")),
-      page.getByRole("button", { name: "Verify Code", exact: true }).click(),
-    ]);
-    expect(completeResponse.status()).toBe(403);
-    await expect(completeResponse.json()).resolves.toMatchObject({ code: "no_access" });
-    // The code was accepted; the account itself is refused, so the code step ends
-    // with one alert and offers only another identity.
-    const noAccessMessage = page.getByText("This account has no access level. Contact a platform administrator.");
-    await expect(noAccessMessage).toHaveCount(1);
-    await expect(noAccessMessage).toBeVisible();
-    await expect(page.getByLabel("Verification Code")).toHaveCount(0);
-    await expect(page.getByRole("button", { name: "Verify Code", exact: true })).toHaveCount(0);
-    await expect(page.getByRole("button", { name: "Use a different email", exact: true })).toBeVisible();
-  } catch (error) {
-    failure = error;
-  }
+  const code = await readDeliveredCode(previousModifiedAt);
+  const complete = await request.post(new URL(generatedOperationPath(authenticationLoginEmailComplete), apiOrigin).href, {
+    data: { challengeId, code, returnUrl: null },
+    headers: { ...headers, [REQUEST_ID_HEADER]: `e2e-no-access-complete-${Date.now()}` },
+    ignoreHTTPSErrors: true,
+  });
+  // The code was accepted; the account itself is refused, and no session starts.
+  expect(complete.status()).toBe(403);
+  await expect(complete.json()).resolves.toMatchObject({ code: "no_access" });
 
-  try {
-    await context.close();
-  } catch (cleanupError) {
-    if (failure) {
-      throw new AggregateError([failure, cleanupError], "The no-access scenario and its browser-context cleanup both failed.");
-    }
-    throw cleanupError;
-  }
-  if (failure) {
-    throw failure;
-  }
+  const session = await request.get(new URL(getAuthenticationSessionGetQueryKey()[0], apiOrigin).href, {
+    headers: { [TENANT_HOST_HEADER]: clinicHost },
+    ignoreHTTPSErrors: true,
+  });
+  expect(session.status()).toBe(401);
 });

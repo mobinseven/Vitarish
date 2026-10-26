@@ -7,9 +7,13 @@ import { enMessages } from "../../apps/private-practice-owner/src/localization/m
 import { faMessages } from "../../apps/private-practice-owner/src/localization/messages/fa";
 import {
   twoHostE2eLocaleEnvironmentKey,
+  twoHostE2eApiOriginEnvironmentKey,
   twoHostE2eProofScreenshotEnvironmentKey,
+  twoHostE2eSignInOrigin as signInOrigin,
 } from "../../scripts/two-host-e2e-artifacts.mjs";
-import { TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
+import { authenticationLogoutPost, getAuthenticationSessionGetQueryKey } from "../../shared/auth/src/api/generated/authentication/authentication";
+import { generatedOperationPath } from "./generatedOperationPath";
+import { REQUEST_ID_HEADER, TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
 import { localeCookieName } from "../../shared/localization/src/localeCookie";
 import type { SupportedLocale } from "../../shared/localization/src/locales";
 
@@ -17,8 +21,6 @@ const locale: SupportedLocale = process.env[twoHostE2eLocaleEnvironmentKey] === 
 const workspaceMessages = { en: enMessages, fa: faMessages }[locale].journey.gates.workspace;
 
 const e2ePassword = process.env.VITARISH_E2E_PASSWORD;
-// The E2E host binds auth.localhost to the sign-in tenant (src/Hosts/E2e/Program.cs).
-const signInOrigin = "http://auth.localhost:3005";
 const tenantAOrigin = "http://localhost:3005";
 const tenantBHostname = "tenant-b.localhost";
 const tenantBOrigin = `http://${tenantBHostname}:3005`;
@@ -33,6 +35,7 @@ const signInClientIp = "198.51.100.91";
 const signInClinicsPath = "/api/modules/parties/sign-in/clinics";
 const signInClinicHandoffPath = (tenantId: string) => `/api/modules/parties/sign-in/clinics/${tenantId}/handoff`;
 const pageCompileTimeoutMilliseconds = 120_000;
+const sessionPath = getAuthenticationSessionGetQueryKey()[0];
 
 async function capture(page: Page, name: string) {
   const screenshot = process.env[twoHostE2eProofScreenshotEnvironmentKey]?.replace(/\.png$/i, `-${name}.png`);
@@ -52,9 +55,9 @@ async function getStatus(page: Page, path: string): Promise<number> {
   );
 }
 
-async function postStatus(page: Page, path: string): Promise<number> {
+async function postStatus(page: Page, path: string, body?: unknown): Promise<number> {
   return page.evaluate(
-    async ({ tenantHostHeader, target, requestId }) => {
+    async ({ tenantHostHeader, requestIdHeader, target, requestId, body }) => {
       const headers = { [tenantHostHeader]: window.location.host };
       const antiforgery = (await (
         await fetch("/api/modules/authentication/antiforgery", { credentials: "include", headers })
@@ -62,12 +65,13 @@ async function postStatus(page: Page, path: string): Promise<number> {
       const response = await fetch(target, {
         method: "POST",
         credentials: "include",
-        headers: { ...headers, "X-Request-Id": requestId, [antiforgery.headerName]: antiforgery.requestToken },
+        headers: { ...headers, [requestIdHeader]: requestId, "Content-Type": "application/json", [antiforgery.headerName]: antiforgery.requestToken },
+        body: body === undefined ? undefined : JSON.stringify(body),
       });
       return response.status;
     },
     // The id is made here: inside the page, `crypto` would name this file's Node import.
-    { tenantHostHeader: TENANT_HOST_HEADER, target: path, requestId: `e2e-sign-in-host-${crypto.randomUUID()}` },
+    { tenantHostHeader: TENANT_HOST_HEADER, requestIdHeader: REQUEST_ID_HEADER, target: path, requestId: `e2e-sign-in-host-${crypto.randomUUID()}`, body },
   );
 }
 
@@ -82,6 +86,10 @@ test("signing in on the shared sign-in host lists the person's clinics and lands
       [signInOrigin, tenantAOrigin, tenantBOrigin].map((url) => ({ name: localeCookieName, value: locale, url })),
     );
     const page = await context.newPage();
+
+    // Clinic-local entry pages lead to the shared sign-in host before collecting credentials.
+    await page.goto(`${tenantAOrigin}${Routes.Login.Password}`, { waitUntil: "domcontentloaded" });
+    await expect(page).toHaveURL(`${signInOrigin}${Routes.Login.Index}`, { timeout: pageCompileTimeoutMilliseconds });
 
     // 1. Sign in with a password on the sign-in host, which belongs to no clinic.
     await page.goto(`${signInOrigin}${Routes.Login.Password}`, { waitUntil: "domcontentloaded" });
@@ -130,6 +138,10 @@ test("signing in on the shared sign-in host lists the person's clinics and lands
     });
     await expect(clinicList.getByRole("listitem")).toHaveCount(2, { timeout: pageCompileTimeoutMilliseconds });
 
+    // Keep the source session's cookie to prove revocation, even if a caller replays it
+    // after the browser receives the sign-out cookie on handoff.
+    const issuingCookieHeader = (await context.cookies(signInOrigin)).map(cookie => `${cookie.name}=${cookie.value}`).join("; ");
+
     // 5. Choosing tenant B continues through a one-time handoff link and lands signed in on its host.
     const handoffUrlPromise = page
       .waitForURL(new RegExp(`${Routes.Handoff}#.+`), { waitUntil: "commit", timeout: pageCompileTimeoutMilliseconds })
@@ -141,12 +153,28 @@ test("signing in on the shared sign-in host lists the person's clinics and lands
     await expect(page).toHaveURL(new RegExp(`^${tenantBOrigin}${Routes.Home}(?:[/?#]|$)`), {
       timeout: pageCompileTimeoutMilliseconds,
     });
-    expect(await getStatus(page, "/api/modules/authentication/session")).toBe(200);
+    expect(await getStatus(page, sessionPath)).toBe(200);
+
+    const apiOrigin = process.env[twoHostE2eApiOriginEnvironmentKey];
+    expect(apiOrigin, "the two-host runner supplies the real API origin").toBeTruthy();
+    const sourceSession = await context.request.get(new URL(sessionPath, apiOrigin!).href, {
+      headers: { Cookie: issuingCookieHeader, [TENANT_HOST_HEADER]: new URL(signInOrigin).host, "X-Forwarded-For": signInClientIp },
+      ignoreHTTPSErrors: true,
+    });
+    expect(sourceSession.status()).toBe(401);
 
     // 6. The sign-in host's clinic list answers only on the sign-in host, not on a clinic host.
     expect(await getStatus(page, signInClinicsPath)).toBe(404);
     await page.waitForLoadState("networkidle");
     await capture(page, "sign-in-host-tenant-b-home");
+
+    // Signing out on the clinic leaves no authenticated source session to reopen it.
+    expect(await postStatus(page, generatedOperationPath(authenticationLogoutPost), { logoutId: null, returnUrl: null })).toBe(200);
+    expect(await getStatus(page, sessionPath)).toBe(401);
+    await page.goto(`${signInOrigin}${Routes.Login.Password}`, { waitUntil: "domcontentloaded" });
+    await expect(page.locator("form")).toHaveAttribute("method", "post", { timeout: pageCompileTimeoutMilliseconds });
+    expect(await getStatus(page, sessionPath)).toBe(401);
+    await capture(page, "sign-in-host-signed-out");
   } finally {
     await context.close();
   }

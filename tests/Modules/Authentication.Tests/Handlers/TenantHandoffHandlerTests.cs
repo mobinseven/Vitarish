@@ -103,6 +103,60 @@ public sealed class TenantHandoffHandlerTests
     }
 
     [Fact]
+    public async Task Issue_ends_the_issuing_session_only_when_asked_and_after_storing_the_ticket()
+    {
+        TestRig rig = new();
+        rig.SignIn.Setup(service => service.SignOutAsync(It.IsAny<CancellationToken>()))
+            .Callback(() => rig.Tickets.Tickets.Should().ContainSingle("the ticket is stored before the session ends"))
+            .Returns(Task.CompletedTask);
+
+        string? kept = await rig.IssueHandler.Handle(new IssueTenantHandoffCommand(UserId, TargetHost), CancellationToken.None);
+        kept.Should().NotBeNull();
+        rig.SignIn.Verify(service => service.SignOutAsync(It.IsAny<CancellationToken>()), Times.Never);
+        rig.Tickets.Tickets.Clear();
+
+        string? ended = await rig.IssueHandler.Handle(new IssueTenantHandoffCommand(UserId, TargetHost, EndsIssuingSession: true), CancellationToken.None);
+        ended.Should().NotBeNull();
+        rig.SignIn.Verify(service => service.SignOutAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Issue_keeps_the_session_when_the_ticket_is_refused()
+    {
+        TestRig rig = new() { Policy = PolicyWithoutTenantHandoff() };
+
+        string? token = await rig.IssueHandler.Handle(new IssueTenantHandoffCommand(UserId, TargetHost, EndsIssuingSession: true), CancellationToken.None);
+
+        token.Should().BeNull();
+        rig.SignIn.Verify(service => service.SignOutAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Issue_keeps_the_session_when_storing_the_ticket_fails()
+    {
+        TestRig rig = new();
+        rig.Tickets.FailAdd = true;
+
+        Func<Task> issue = () => rig.IssueHandler.Handle(new IssueTenantHandoffCommand(UserId, TargetHost, EndsIssuingSession: true), CancellationToken.None);
+
+        await issue.Should().ThrowAsync<InvalidOperationException>();
+        rig.SignIn.Verify(service => service.SignOutAsync(It.IsAny<CancellationToken>()), Times.Never);
+        rig.Tickets.Tickets.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Issue_fails_when_the_issuing_session_cannot_be_ended()
+    {
+        TestRig rig = new();
+        rig.SignIn.Setup(service => service.SignOutAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("session store unavailable"));
+
+        Func<Task> issue = () => rig.IssueHandler.Handle(new IssueTenantHandoffCommand(UserId, TargetHost, EndsIssuingSession: true), CancellationToken.None);
+
+        await issue.Should().ThrowAsync<InvalidOperationException>();
+    }
+
+    [Fact]
     public async Task Redeem_refuses_when_policy_does_not_permit_tenant_handoff()
     {
         TestRig rig = new();
@@ -327,7 +381,7 @@ public sealed class TenantHandoffHandlerTests
                 .ReturnsAsync(SecurityAuditWriteResult.Recorded);
 
             AuthenticationAttemptAuditor auditor = new(auditWriter.Object, requestContext.Object, clock.Object);
-            IssueHandler = new IssueTenantHandoffHandler(Tickets, policyProvider.Object, requestContext.Object, clock.Object, auditor);
+            IssueHandler = new IssueTenantHandoffHandler(Tickets, policyProvider.Object, requestContext.Object, clock.Object, auditor, SignIn.Object);
             RedeemHandler = new RedeemTenantHandoffHandler(
                 Tickets,
                 policyProvider.Object,
@@ -345,10 +399,13 @@ public sealed class TenantHandoffHandlerTests
     private sealed class InMemoryTicketStore : ITenantHandoffTicketStore
     {
         public List<TenantHandoffTicket> Tickets { get; } = [];
+        public bool FailAdd { get; set; }
         public bool FailMarkRedeemed { get; set; }
 
         public Task AddAsync(TenantHandoffTicket ticket, DateTime nowUtc, CancellationToken cancellationToken)
         {
+            if (FailAdd)
+                throw new InvalidOperationException("ticket store unavailable");
             Tickets.Add(ticket);
             return Task.CompletedTask;
         }

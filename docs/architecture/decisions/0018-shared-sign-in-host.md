@@ -54,6 +54,14 @@ it does not: a platform-owned tenant with no practice data can hold the session.
    rate-limited `AnonymousBinaryDownload` endpoint. The image is requested
    without a referrer, because the tenant resolver prefers the `Referer` over
    the host and would otherwise read the sign-in host's tenant.
+7. **The only sign-in.** The owner Web app's sign-in pages redirect to the
+   sign-in host on every other host (`VITARISH_SIGN_IN_URL`, from the same
+   value as `Vitarish:SignInUrl`), including clinic hosts and the onboarding
+   host. Platform administration keeps its own sign-in on its own host.
+8. **No session left on the sign-in host.** Issuing a handoff link from the
+   sign-in host signs the person out there in the same request, so signing out
+   on a clinic leaves nothing signed in behind it. Opening another clinic means
+   signing in again. If the sign-out fails, no link is returned.
 
 ## Consequences
 
@@ -70,9 +78,10 @@ it does not: a platform-owned tenant with no practice data can hold the session.
   `*.vitarish.com` record. It has its own ingress site, which sends traffic to
   the owner Web app and `/api/*` to Main; every other `*.vitarish.com` host
   redirects to the landing page. See `docs/runbooks/sign-in-host.md`.
-- Rollback: set the sign-in host's indicator to `Disabled` (see the runbook). The host then resolves to no tenant,
-  the sign-in endpoints answer 404, and people sign in on their clinic's own
-  host as before. No clinic data or migration is involved.
+- Rollback: unset the owner Web app's `VITARISH_SIGN_IN_URL` and set the sign-in
+  host's indicator to `Disabled` (see the runbook). The host then resolves to no
+  tenant, the sign-in endpoints answer 404, and people sign in on their clinic's
+  own host as before. No clinic data or migration is involved.
 
 ## Alternatives Considered
 
@@ -106,4 +115,6 @@ People keep signing in on their clinic's own address, which they must remember.
 
 ## Notes
 
-- Clinic hosts' own sign-in pages do not link to the sign-in host yet.
+- A new account without a role is admitted on the sign-in host and continues
+  to the onboarding host to create a clinic; a clinic host still refuses it
+  (`no_access`) at its API.

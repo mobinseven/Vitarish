@@ -2,6 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
 import { twoHostE2eLocaleEnvironmentKey } from "../../scripts/two-host-e2e-artifacts.mjs";
 import { TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
+import { signInToClinic } from "./signInHost";
 
 // In-page requests use the web origin's same-origin /api, as in production.
 const browserApiOrigin = "";
@@ -36,14 +37,7 @@ async function login(page: Page): Promise<void> {
     { name: "vitarish.locale", value: locale, url: "http://localhost:3005/" },
   ]);
   expect(password, "VITARISH_E2E_PASSWORD must be supplied by the disposable E2E environment").toBeTruthy();
-  await page.goto(ClinicRoutes.Login.Password, { waitUntil: "domcontentloaded" });
-  await page.locator('input[name="username"]').fill(ownerUsername);
-  await page.locator('input[name="password"]').fill(password!);
-  const [response] = await Promise.all([
-    page.waitForResponse((candidate) => candidate.url().endsWith("/api/modules/authentication/login/password")),
-    page.locator('button[type="submit"]').click(),
-  ]);
-  expect(response.status()).toBe(200);
+  await signInToClinic(page, ownerUsername, password!);
 }
 
 async function readUploadPolicy(page: Page): Promise<{ status: number; body: UploadPolicy }> {

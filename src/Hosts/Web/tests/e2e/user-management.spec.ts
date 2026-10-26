@@ -6,6 +6,7 @@ import { promisify } from "node:util";
 import { resolve } from "node:path";
 import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
 import { Routes as PlatformRoutes } from "../../apps/platform-admin/src/app/routes";
+import { signInToClinic, submitPasswordOnSignInHost } from "./signInHost";
 import { authenticationLogoutPost } from "../../shared/auth/src/api/generated/authentication/authentication";
 import type { SecurityAuthenticationPolicyDto } from "../../shared/auth/src/api/generated/authentication/model";
 import { resetAntiforgeryToken, TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
@@ -113,6 +114,11 @@ async function putAuthenticationPolicy(page: Page, request: Record<string, unkno
 
 async function login(page: Page, username: string, origin = ""): Promise<void> {
   expect(password, "VITARISH_E2E_PASSWORD must be supplied by the disposable E2E environment").toBeTruthy();
+  // Clinic hosts sign in only on the shared sign-in host; platform administration has its own sign-in.
+  if (origin !== platformOrigin) {
+    await signInToClinic(page, username, password!, origin || webOrigin);
+    return;
+  }
   await page.goto(`${origin}${ClinicRoutes.Login.Password}`, { waitUntil: "domcontentloaded" });
   await expect(page.locator("form")).toHaveAttribute("method", "post");
   await expect(page.locator('button[type="submit"]')).toBeEnabled({ timeout: 30_000 });
@@ -258,20 +264,14 @@ test("platform administrator disables and re-enables a signed-out user's account
   const userContext = await browser!.newContext({ extraHTTPHeaders: { "X-Forwarded-For": "198.51.100.233" } });
   const userPage = await userContext.newPage();
   let failure: unknown;
+  let accountReenabled = false;
   try {
-    await userPage.goto(`${webOrigin}${ClinicRoutes.Login.Password}`, { waitUntil: "domcontentloaded" });
-    await expect(userPage.locator("form")).toHaveAttribute("method", "post");
-    await expect(userPage.locator('button[type="submit"]')).toBeEnabled({ timeout: 30_000 });
-    await userPage.locator('input[name="username"]').fill(ownerUsername);
-    await userPage.locator('input[name="password"]').fill(password!);
-    const [disabledLogin] = await Promise.all([
-      userPage.waitForResponse((response) => response.url().endsWith("/api/modules/authentication/login/password")),
-      userPage.locator('button[type="submit"]').click(),
-    ]);
+    const disabledLogin = await submitPasswordOnSignInHost(userPage, ownerUsername, password!);
     expect(disabledLogin.status()).toBe(403);
     await expect(userPage.getByText("This account is disabled. Contact a platform administrator.")).toBeVisible();
 
     await setAccountStatusThroughUi(page, ownerUsername, true);
+    accountReenabled = true;
 
     await login(userPage, ownerUsername, webOrigin);
     await signOutThroughPublicApi(userPage);
@@ -280,6 +280,17 @@ test("platform administrator disables and re-enables a signed-out user's account
     await signOutThroughPublicApi(page);
   } catch (error) {
     failure = error;
+  } finally {
+    // A failed sign-in assertion must not leave the shared owner disabled for later specs.
+    if (!accountReenabled) {
+      try {
+        await setAccountStatusThroughUi(page, ownerUsername, true);
+      } catch (cleanupError) {
+        failure = failure
+          ? new AggregateError([failure, cleanupError], "The disabled-account scenario and account restoration both failed.")
+          : cleanupError;
+      }
+    }
   }
 
   try {

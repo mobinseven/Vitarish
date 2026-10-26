@@ -13,7 +13,11 @@ using Vitarish.Requests.Application.Abstractions;
 namespace Vitarish.Authentication.Application.Handlers;
 
 /// <summary>Issues a handoff ticket for the signed-in user to continue on <paramref name="TargetHost"/>.</summary>
-public sealed record IssueTenantHandoffCommand(string UserId, string TargetHost);
+/// <param name="EndsIssuingSession">
+/// When true, the session that asked for the ticket is signed out once the ticket is stored, so the
+/// issuing host keeps no session of its own (the shared sign-in host, ADR-0018).
+/// </param>
+public sealed record IssueTenantHandoffCommand(string UserId, string TargetHost, bool EndsIssuingSession = false);
 
 public sealed record RedeemTenantHandoffCommand(string Token);
 
@@ -36,7 +40,8 @@ public sealed class IssueTenantHandoffHandler(
     IAuthenticationSecurityPolicyProvider securityPolicyProvider,
     IRequestContext requestContext,
     IAuthenticationUtcClock clock,
-    AuthenticationAttemptAuditor auditor)
+    AuthenticationAttemptAuditor auditor,
+    IAuthenticationSignInService signInService)
 {
     /// <returns>The raw token, shown once, or null when the handoff is not allowed.</returns>
     public async Task<string?> Handle(IssueTenantHandoffCommand command, CancellationToken cancellationToken)
@@ -59,6 +64,9 @@ public sealed class IssueTenantHandoffHandler(
         DateTime now = clock.UtcNow;
         await tickets.AddAsync(TenantHandoffTicket.Issue(TenantHandoffTokens.Hash(token), command.UserId, command.TargetHost, now), now, cancellationToken);
         await auditor.RecordAsync(AuthenticationSecurityAuditEvents.TenantHandoffIssue, AuthenticationSecurityAuditEvents.TenantHandoffIssueOperation, command.UserId, null, cancellationToken);
+        // A failed sign-out throws, so the caller never follows a ticket that left this session open.
+        if (command.EndsIssuingSession)
+            await signInService.SignOutAsync(cancellationToken);
         return token;
     }
 }
