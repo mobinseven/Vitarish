@@ -125,7 +125,7 @@ public sealed class AuthenticationSessionRegistry(
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(userId);
         string? tenantId = requestContext.TenantId;
-        string? address = clientIp.ClientIpAddress;
+        string? address = AuthenticationAccessHistory.NormalizeIpAddress(clientIp.ClientIpAddress);
 
         if (string.IsNullOrWhiteSpace(tenantId))
             return new AuthenticationSessionPreparation(AuthenticationSessionEstablishmentResult.Failed(new(AuthenticationFailureReason.ProviderFailure, "A tenant context is required to establish a session.")));
@@ -144,6 +144,7 @@ public sealed class AuthenticationSessionRegistry(
                 await transaction.RollbackAsync(CancellationToken.None);
                 await transaction.DisposeAsync();
             }
+            await RecordFailedAttemptAsync(userId, cancellationToken);
             await WriteAuditAsync(AuthenticationSecurityAuditEvents.SessionEstablished, SecurityAuditOutcome.Denied, userId, AuthenticationSecurityAuditEvents.SessionIpDenied, AuthenticationSecurityAuditEvents.SessionEstablishedOperation, AuthenticationSecurityAuditEvents.SessionIpDenied, cancellationToken);
             return new AuthenticationSessionPreparation(AuthenticationSessionEstablishmentResult.Failed(new(AuthenticationFailureReason.NotAllowed, "Session creation is not allowed from this client address.")));
         }
@@ -263,7 +264,7 @@ public sealed class AuthenticationSessionRegistry(
         }
         history ??= new AuthenticationAccessHistory { UserId = userId, TenantId = tenantId };
         history.LastUnsuccessfulAt = timeProvider.GetUtcNow().UtcDateTime;
-        history.LastUnsuccessfulIpAddress = clientIp.ClientIpAddress;
+        history.LastUnsuccessfulIpAddress = AuthenticationAccessHistory.NormalizeIpAddress(clientIp.ClientIpAddress);
         history.CurrentFailedAttempts++;
         if (dbContext.Entry(history).State == EntityState.Detached)
             _ = dbContext.AuthenticationAccessHistories.Add(history);
@@ -664,7 +665,7 @@ public sealed class AuthenticationSessionRegistry(
         history.PreviousSuccessfulAt = history.LastSuccessfulAt;
         history.LastSuccessfulAt = now;
         history.PreviousSuccessfulIpAddress = history.LastSuccessfulIpAddress;
-        history.LastSuccessfulIpAddress = ipAddress;
+        history.LastSuccessfulIpAddress = AuthenticationAccessHistory.NormalizeIpAddress(ipAddress);
         history.FailedAttemptsSincePreviousSuccessful = history.CurrentFailedAttempts;
         history.CurrentFailedAttempts = 0;
         if (history.UserId == userId && history.TenantId == tenantId && dbContext.Entry(history).State == EntityState.Detached)

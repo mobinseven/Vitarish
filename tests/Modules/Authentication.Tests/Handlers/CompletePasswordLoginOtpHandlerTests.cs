@@ -79,7 +79,8 @@ public sealed class CompletePasswordLoginOtpHandlerTests
             new InMemoryAuthenticationAttemptTracker(),
             new TestSecurityPolicyProvider(),
             CreateKeys(),
-            new TestAuthenticationUtcClock());
+            new TestAuthenticationUtcClock(),
+            Mock.Of<IAuthenticationSessionRegistry>());
 
         CompletePasswordLoginOtpCommand command = new(challenge.Id.Value, "123456", "/home");
         AuthenticationResult<LoginResult>[] results = await Task.WhenAll(
@@ -118,7 +119,8 @@ public sealed class CompletePasswordLoginOtpHandlerTests
             new InMemoryAuthenticationAttemptTracker(),
             new TestSecurityPolicyProvider(),
             CreateKeys(),
-            new TestAuthenticationUtcClock());
+            new TestAuthenticationUtcClock(),
+            Mock.Of<IAuthenticationSessionRegistry>());
 
         CompletePasswordLoginOtpCommand command = new(challenge.Id.Value, "000000", "/home");
         AuthenticationResult<LoginResult>[] results = await Task.WhenAll(
@@ -161,7 +163,8 @@ public sealed class CompletePasswordLoginOtpHandlerTests
             new InMemoryAuthenticationAttemptTracker(),
             new TestSecurityPolicyProvider(),
             CreateKeys(),
-            new TestAuthenticationUtcClock());
+            new TestAuthenticationUtcClock(),
+            Mock.Of<IAuthenticationSessionRegistry>());
 
         AuthenticationResult<LoginResult> wrongCode = await handler.Handle(new(challenge.Id.Value, "000000", "/home"), CancellationToken.None);
         AuthenticationResult<LoginResult> correctCodeAfterwards = await handler.Handle(new(challenge.Id.Value, "123456", "/home"), CancellationToken.None);
@@ -173,6 +176,23 @@ public sealed class CompletePasswordLoginOtpHandlerTests
         (await store.GetAsync(challenge.Id, CancellationToken.None))!.Status
             .Should().Be(AuthenticationChallengeStatus.Exhausted);
         signIn.Verify(x => x.SignInAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task A_wrong_otp_code_records_the_unsuccessful_attempt()
+    {
+        TestDependencies dependencies = CreateDependencies();
+        Mock<IAuthenticationSessionRegistry> registry = new();
+        CompletePasswordLoginOtpHandler handler = dependencies.CreateHandler(new RecordingWriter([]), registry.Object);
+
+        AuthenticationResult<LoginResult> result = await handler.Handle(
+            new CompletePasswordLoginOtpCommand("challenge-42", "000000", "/home"),
+            CancellationToken.None);
+
+        result.Should().BeOfType<AuthenticationResult<LoginResult>.Failure>();
+        registry.Verify(
+            item => item.RecordFailedAttemptAsync("user-42", It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]
@@ -243,7 +263,9 @@ public sealed class CompletePasswordLoginOtpHandlerTests
         Mock<IAuthenticationSignInService> SignIn,
         Mock<IAuthenticationRedirectResolver> Redirects)
     {
-        public CompletePasswordLoginOtpHandler CreateHandler(ISecurityAuditWriter writer) => new(
+        public CompletePasswordLoginOtpHandler CreateHandler(
+            ISecurityAuditWriter writer,
+            IAuthenticationSessionRegistry? registry = null) => new(
             Store.Object,
             Verifier.Object,
             SignIn.Object,
@@ -253,7 +275,8 @@ public sealed class CompletePasswordLoginOtpHandlerTests
             new InMemoryAuthenticationAttemptTracker(),
             new TestSecurityPolicyProvider(),
             CreateKeys(),
-            new TestAuthenticationUtcClock());
+            new TestAuthenticationUtcClock(),
+            registry ?? Mock.Of<IAuthenticationSessionRegistry>());
     }
 
     private sealed class TestSecurityPolicyProvider : IAuthenticationSecurityPolicyProvider

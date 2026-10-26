@@ -41,7 +41,7 @@ vi.mock("@/localization", () => ({
   formatDateTime: (value: string) => value,
   useLocalizedText: () => ({
     locale: "en",
-    t: (key: string, values?: Record<string, string>) => (({
+    t: (key: string) => ({
       "account.security.title": "Security history",
       "account.security.description": "Review security activity.",
       "account.security.accessHistory": "Access history",
@@ -51,11 +51,11 @@ vi.mock("@/localization", () => ({
       "account.security.failedAttempts": "Unsuccessful attempts since the previous success",
       "account.security.currentFailedAttempts": "Current unsuccessful attempts",
       "account.security.notRecorded": "Not recorded",
-      "account.security.ipAddress": "IP address: {address}",
+      "account.security.ipAddressPrefix": "IP address: ",
       "account.security.notices": "Session notices",
       "account.security.parallelNotice": "A new simultaneous session was established.",
       "common.states.loading": "Loading...",
-    } as Record<string, string>)[key] ?? key).replace(/\{(\w+)\}/g, (_, name: string) => values?.[name] ?? ""),
+    } as Record<string, string>)[key] ?? key,
   }),
 }));
 
@@ -74,8 +74,11 @@ describe("AccountSecurityPage", () => {
     render(<AccountSecurityPage />);
 
     const tile = (label: string) => screen.getByText(label).parentElement!;
-    expect(tile("Most recent successful sign-in")).toHaveTextContent("IP address: \u2066198.51.100.7\u2069");
-    expect(tile("Most recent unsuccessful sign-in")).toHaveTextContent("IP address: \u2066203.0.113.9\u2069");
+    expect(tile("Most recent successful sign-in")).toHaveTextContent("IP address: 198.51.100.7");
+    expect(tile("Most recent unsuccessful sign-in")).toHaveTextContent("IP address: 203.0.113.9");
+    // The address keeps left-to-right order in RTL locales without hidden characters in the copied text.
+    expect(screen.getByText("198.51.100.7")).toHaveAttribute("dir", "ltr");
+    expect(screen.getByText("203.0.113.9").textContent).toBe("203.0.113.9");
     expect(tile("Previous successful sign-in")).not.toHaveTextContent("IP address");
   });
 });

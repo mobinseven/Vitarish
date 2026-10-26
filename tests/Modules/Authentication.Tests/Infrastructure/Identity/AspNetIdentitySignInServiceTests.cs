@@ -106,6 +106,9 @@ public sealed class AspNetIdentitySignInServiceTests
         sessionRegistry.Verify(
             registry => registry.PrepareAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
             Times.Never);
+        sessionRegistry.Verify(
+            registry => registry.RecordFailedAttemptAsync(user.Id, It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]
@@ -273,6 +276,9 @@ public sealed class AspNetIdentitySignInServiceTests
         sessionRegistry.Verify(
             registry => registry.PrepareAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
             Times.Never);
+        sessionRegistry.Verify(
+            registry => registry.RecordFailedAttemptAsync(user.Id, It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]

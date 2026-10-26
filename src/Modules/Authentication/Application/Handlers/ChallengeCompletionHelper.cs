@@ -21,6 +21,7 @@ internal static class ChallengeCompletionHelper
         IAuthenticationAttemptTracker attemptTracker,
         SecurityAccessPolicy securityPolicy,
         IAuthenticationAttemptKeyFactory attemptKeyFactory,
+        IAuthenticationSessionRegistry sessionRegistry,
         IInitialPlatformAdministratorGrant? initialAdministratorGrant = null,
         IUserAccountUpdater? contactConfirmer = null,
         Action<string>? onChallengeLoaded = null)
@@ -89,6 +90,7 @@ internal static class ChallengeCompletionHelper
                     securityPolicy.FailedAttemptDenialDuration,
                     cancellationToken));
             }
+            await sessionRegistry.RecordFailedAttemptAsync(challenge.UserId, cancellationToken);
             if (globalFailures >= securityPolicy.FailedAttemptThreshold)
                 return new AuthenticationResult<LoginResult>.Failure(new(
                     MapFailureReason(AuthenticationFailureReason.ChallengeAttemptsExhausted, securityPolicy.FailedAttemptResponse),

@@ -1,3 +1,6 @@
+using System.Net;
+using System.Net.Sockets;
+
 namespace Vitarish.Authentication.Domain.Sessions;
 
 public enum AuthenticationSessionTerminationReason
@@ -36,6 +39,8 @@ public sealed class AuthenticationSessionNotice
 
 public sealed class AuthenticationAccessHistory
 {
+    public const int IpAddressMaximumLength = 45;
+
     public string UserId { get; set; } = string.Empty;
     public string TenantId { get; set; } = string.Empty;
     public DateTime? PreviousSuccessfulAt { get; set; }
@@ -47,4 +52,14 @@ public sealed class AuthenticationAccessHistory
     public int FailedAttemptsSincePreviousSuccessful { get; set; }
     public int CurrentFailedAttempts { get; set; }
     public DateTime? AcknowledgedAt { get; set; }
+
+    public static string? NormalizeIpAddress(string? address)
+    {
+        if (string.IsNullOrWhiteSpace(address) || !IPAddress.TryParse(address, out IPAddress? parsed))
+            return null;
+        if (parsed.AddressFamily == AddressFamily.InterNetworkV6)
+            parsed.ScopeId = 0;
+        string normalized = parsed.ToString();
+        return normalized.Length <= IpAddressMaximumLength ? normalized : null;
+    }
 }

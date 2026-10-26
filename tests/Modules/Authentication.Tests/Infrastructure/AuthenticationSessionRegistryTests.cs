@@ -104,6 +104,73 @@ public sealed class AuthenticationSessionRegistryTests
     }
 
     [Fact]
+    public async Task Access_history_ip_addresses_are_normalized_before_persistence()
+    {
+        TestTimeProvider clock = new(new DateTimeOffset(2026, 8, 30, 10, 0, 0, TimeSpan.Zero));
+        (AuthenticationSessionRegistry registry, _, _) = CreateRegistry(SecurityAccessPolicy.Default, clock, "fe80::1%12345678");
+
+        await registry.RecordFailedAttemptAsync("user-1", CancellationToken.None);
+        _ = await registry.EstablishAsync("user-1", CancellationToken.None);
+        clock.UtcNow = clock.UtcNow.AddMinutes(1);
+        AuthenticationSessionEstablishmentResult second = await registry.EstablishAsync("user-1", CancellationToken.None);
+
+        second.AccessHistory!.LastUnsuccessfulIpAddress.Should().Be("fe80::1");
+        second.AccessHistory.PreviousSuccessfulIpAddress.Should().Be("fe80::1");
+        second.AccessHistory.LastSuccessfulIpAddress.Should().Be("fe80::1");
+    }
+
+    [Fact]
+    public async Task A_disallowed_session_start_ip_is_recorded_as_an_unsuccessful_attempt()
+    {
+        SecurityAccessPolicy policy = SecurityAccessPolicy.Default with
+        {
+            AllowedSessionStartCidrs = new HashSet<string>(StringComparer.Ordinal) { "10.0.0.0/24" }
+        };
+        (AuthenticationSessionRegistry registry, _, _) = CreateRegistry(policy, TimeProvider.System, "198.51.100.9");
+
+        AuthenticationSessionEstablishmentResult result = await registry.EstablishAsync("user-1", CancellationToken.None);
+
+        result.Succeeded.Should().BeFalse();
+        AuthenticationAccessHistory history = (await registry.GetAccessHistoryAsync("user-1", "tenant-1", CancellationToken.None))!;
+        history.LastUnsuccessfulIpAddress.Should().Be("198.51.100.9");
+        history.CurrentFailedAttempts.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task Failed_attempt_audit_failure_restores_every_access_history_ip_address()
+    {
+        TestTimeProvider clock = new(new DateTimeOffset(2026, 8, 30, 10, 0, 0, TimeSpan.Zero));
+        OutcomeTrackingAuditWriter audit = new() { FailDeniedUpdates = true };
+        (AuthenticationSessionRegistry registry, AuthenticationDbContext db) = CreateRegistry(SecurityAccessPolicy.Default, clock, audit);
+        DateTime acknowledgedAt = clock.UtcNow.UtcDateTime.AddDays(-1);
+        _ = db.AuthenticationAccessHistories.Add(new AuthenticationAccessHistory
+        {
+            UserId = "user-1",
+            TenantId = "tenant-1",
+            PreviousSuccessfulAt = clock.UtcNow.UtcDateTime.AddDays(-3),
+            LastSuccessfulAt = clock.UtcNow.UtcDateTime.AddDays(-2),
+            LastUnsuccessfulAt = clock.UtcNow.UtcDateTime.AddDays(-1),
+            PreviousSuccessfulIpAddress = "192.0.2.10",
+            LastSuccessfulIpAddress = "192.0.2.20",
+            LastUnsuccessfulIpAddress = "192.0.2.30",
+            FailedAttemptsSincePreviousSuccessful = 3,
+            CurrentFailedAttempts = 2,
+            AcknowledgedAt = acknowledgedAt
+        });
+        await db.SaveChangesAsync();
+
+        await FluentActions.Awaiting(() => registry.RecordFailedAttemptAsync("user-1", CancellationToken.None))
+            .Should().ThrowAsync<InvalidOperationException>();
+
+        AuthenticationAccessHistory stored = await db.AuthenticationAccessHistories.AsNoTracking().SingleAsync();
+        stored.PreviousSuccessfulIpAddress.Should().Be("192.0.2.10");
+        stored.LastSuccessfulIpAddress.Should().Be("192.0.2.20");
+        stored.LastUnsuccessfulIpAddress.Should().Be("192.0.2.30");
+        stored.CurrentFailedAttempts.Should().Be(2);
+        stored.AcknowledgedAt.Should().Be(acknowledgedAt);
+    }
+
+    [Fact]
     public async Task User_inactivity_timeout_rejects_a_stale_expected_version()
     {
         (AuthenticationSessionRegistry registry, AuthenticationDbContext db, _) = CreateRegistry(SecurityAccessPolicy.Default, TimeProvider.System);
@@ -466,6 +533,7 @@ public sealed class AuthenticationSessionRegistryTests
         private readonly Dictionary<string, string> outcomes = new(StringComparer.Ordinal);
 
         public bool FailSucceededUpdates { get; set; }
+        public bool FailDeniedUpdates { get; set; }
 
         public void Seed(string idempotencyKey, string outcome) => outcomes[idempotencyKey] = outcome;
 
@@ -490,6 +558,8 @@ public sealed class AuthenticationSessionRegistryTests
         {
             if (FailSucceededUpdates && outcome == SecurityAuditOutcome.Succeeded)
                 throw new InvalidOperationException("Simulated failure after the sessions were ended.");
+            if (FailDeniedUpdates && outcome == SecurityAuditOutcome.Denied)
+                throw new InvalidOperationException("Simulated failure after the failed attempt was persisted.");
             if (OutcomeOf(idempotencyKey) != SecurityAuditOutcome.Pending)
                 return Task.FromResult(SecurityAuditWriteResult.AlreadyRecorded);
             outcomes[idempotencyKey] = outcome;

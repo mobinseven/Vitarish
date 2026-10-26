@@ -8,8 +8,9 @@ import {
   AccountSurface,
 } from "@/components/account/AccountSurface";
 import { HeaderIcon } from "@vitarish/ui";
+import type { ReactNode } from "react";
 
-function SecurityValue({ label, value, detail }: { label: string; value: string; detail?: string }) {
+function SecurityValue({ label, value, detail }: { label: string; value: string; detail?: ReactNode }) {
   return (
     <Surface variant="secondary" className="rounded-xl p-4">
       <dt className="text-sm text-foreground-muted">{label}</dt>
@@ -28,7 +29,12 @@ export default function AccountSecurityPage() {
   const date = (value: string | null | undefined) =>
     value ? formatDateTime(value, locale) : t("account.security.notRecorded");
   const ipAddress = (value: string | null | undefined) =>
-    value ? t("account.security.ipAddress", { address: `\u2066${value}\u2069` }) : undefined;
+    value ? (
+      <>
+        {t("account.security.ipAddressPrefix")}
+        <bdi dir="ltr">{value}</bdi>
+      </>
+    ) : undefined;
 
   return (
     <AccountSurface>

@@ -234,7 +234,7 @@ export const enMessages = {
       failedAttempts: "Unsuccessful attempts since the previous success",
       currentFailedAttempts: "Current unsuccessful attempts",
       notRecorded: "Not recorded",
-      ipAddress: "IP address: {address}",
+      ipAddressPrefix: "IP address: ",
       noHistory: "No successful sign-in history is recorded yet.",
       unavailable: "Security history could not be loaded.",
       notices: "Session notices",
