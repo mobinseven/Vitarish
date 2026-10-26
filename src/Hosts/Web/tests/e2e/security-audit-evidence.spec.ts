@@ -678,8 +678,8 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     // While every audit-store save fails, a sign-in attempt still gets its normal answer. Once the
     // store accepts writes again, one security-failure record summarizes the outage.
     const outageSummaryPattern = /^audit_storage_outage:start=[^;]+;end=[^;]+;failed_writes=(\d+)$/;
-    // Starting the injected outage refuses its boundary event, then the login refuses its started and completed events.
-    const refusedAuditWrites = 3;
+    // The outage start outcome and recovery trigger start each fail, as do the login started/completed events.
+    const refusedAuditWrites = 4;
     expect((await postJson(administratorPage, storeOutageStartPath)).status).toBe(204);
     let statusDuringOutage = 0;
     try {
