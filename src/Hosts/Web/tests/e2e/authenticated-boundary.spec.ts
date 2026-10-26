@@ -14,6 +14,7 @@ import { localizePlatformAuditCategory, localizePlatformAuditEvent } from "../..
 import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
 import { twoHostE2eApiOriginEnvironmentKey, twoHostE2eProofScreenshotEnvironmentKey } from "../../scripts/two-host-e2e-artifacts.mjs";
 import { agentEnvelopeCanonical, base64UrlHmac } from "./agentCallback";
+import { signInToClinic } from "./signInHost";
 
 // Main itself, for API-boundary checks made without the browser.
 const apiOrigin = process.env[twoHostE2eApiOriginEnvironmentKey] ?? "https://localhost:7272";
@@ -235,6 +236,11 @@ async function generatedAuthenticationRequest<T>(
 async function login(page: Page, username: string, origin = "", password = e2ePassword, clientIp = "198.51.100.10") {
   expect(password).toBeTruthy();
   await page.setExtraHTTPHeaders({ "X-Forwarded-For": clientIp });
+  // Clinic hosts sign in only on the shared sign-in host; platform administration has its own sign-in.
+  if (origin !== platformAdminOrigin) {
+    await signInToClinic(page, username, password!, origin || webOrigin);
+    return;
+  }
   await page.goto(`${origin}/login/password`, { waitUntil: "domcontentloaded" });
   await expect(page.locator("form")).toHaveAttribute("method", "post", { timeout: 60_000 });
   await expect(page.locator('button[type="submit"]')).toBeEnabled({ timeout: 30_000 });
@@ -358,7 +364,8 @@ test("uses the real Web and Main hosts for an authenticated tenant-scoped reques
   expect(reminders.body).toEqual(expect.arrayContaining([expect.objectContaining({ isSent: false, subject: "E2E reminder" })]));
   expect(apiRequests.some((request) => request.url.endsWith("/api/modules/authentication/session"))).toBe(true);
   expect(apiRequests.some((request) => request.url.endsWith("/api/modules/appointments/health"))).toBe(true);
-  expect(apiRequests.filter((request) => request.method !== "OPTIONS").every((request) => request.tenantHost === new URL(page.url()).host)).toBe(true);
+  // Sign-in and clinic requests each carry their own host across the handoff.
+  expect(apiRequests.filter((request) => request.method !== "OPTIONS").every((request) => request.tenantHost === new URL(request.url).host)).toBe(true);
 
   const logout = await generatedAuthenticationRequest(
     request,
@@ -434,7 +441,7 @@ test("rejects an authenticated browser mutation without antiforgery proof", asyn
   const administratorContext = await page.context().browser()!.newContext();
   const administratorPage = await administratorContext.newPage();
   try {
-    await login(administratorPage, platformAdminUsername, '', e2ePassword, '198.51.100.12');
+    await login(administratorPage, platformAdminUsername, platformAdminOrigin, e2ePassword, '198.51.100.12');
     const rejectedAuthenticationPolicyWrite = await administratorPage.evaluate(async ({ origin }) => {
       const currentPolicyResponse = await fetch(`${origin}/api/modules/authentication/security/authentication-policy`, {
         credentials: 'include',
@@ -843,7 +850,7 @@ test("UsersSearchUsers requires the platform administrator policy", async ({ bro
   await tenantUserPage.close();
 
   const administratorPage = await browser.newPage();
-  await login(administratorPage, platformAdminUsername, "", e2ePassword, "198.51.100.26");
+  await login(administratorPage, platformAdminUsername, platformAdminOrigin, e2ePassword, "198.51.100.26");
   const allowed = await fetchJson(administratorPage, "/api/modules/users/search?query=e2e");
   expect(allowed.status).toBe(200);
   await administratorPage.close();
@@ -1078,7 +1085,7 @@ test("keeps two tenants isolated across identifiers, alternate routes, search, a
   const adminPage = await adminContext.newPage();
   let tenantBRoleRevoked = false;
   try {
-    await login(adminPage, platformAdminUsername, "", e2ePassword, "198.51.100.18");
+    await login(adminPage, platformAdminUsername, platformAdminOrigin, e2ePassword, "198.51.100.18");
     const revoke = await deleteJson(
       adminPage,
       `/api/modules/users/administration/${encodeURIComponent(tenantBOwnerUserId)}/tenant-roles/${tenantBId}/TenantOwner`,
@@ -1136,7 +1143,7 @@ test("keeps two tenants isolated across identifiers, alternate routes, search, a
 });
 
 test("enforces platform-admin authorization through the API", async ({ page }) => {
-  await login(page, platformAdminUsername, "", e2ePassword, "198.51.100.20");
+  await login(page, platformAdminUsername, platformAdminOrigin, e2ePassword, "198.51.100.20");
   const session = await fetchJson(page, "/api/modules/authentication/session");
   expect(session.status).toBe(200);
   expect(session.body).toMatchObject({
@@ -1266,7 +1273,7 @@ test("audits denied user creation and editing requests", async ({ page }) => {
 // platform-audit
 test("proves the global audit grid across a separate platform-admin origin", async ({ page }) => {
   test.setTimeout(300_000);
-  await login(page, platformAdminUsername, "", e2ePassword, "198.51.100.21");
+  await login(page, platformAdminUsername, platformAdminOrigin, e2ePassword, "198.51.100.21");
   const tenantBContext = await page.context().browser()!.newContext();
   const tenantBPage = await tenantBContext.newPage();
   const ownerContext = await page.context().browser()!.newContext();

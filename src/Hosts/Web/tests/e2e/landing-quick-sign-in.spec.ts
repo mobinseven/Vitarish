@@ -90,7 +90,8 @@ test("a new phone number signs in on the landing host without a clinic and carri
   const warmUp = await page.context().newPage();
   await warmUp.goto(`${onboardingOrigin}${tenantHandoffPath}`, { waitUntil: "domcontentloaded", timeout: 120_000 });
   await warmUp.close();
-  await page.goto(`${landingOrigin}${Routes.Login.Index}`, { waitUntil: "domcontentloaded", timeout: 120_000 });
+  // Any page on the landing host will do for its same-origin API calls; sign-in pages redirect to the sign-in host.
+  await page.goto(`${landingOrigin}${Routes.Root}`, { waitUntil: "domcontentloaded", timeout: 120_000 });
 
   // Anonymous visitors cannot ask for a handoff.
   expect((await callApi(page, "POST", handoffPath)).status).toBe(401);

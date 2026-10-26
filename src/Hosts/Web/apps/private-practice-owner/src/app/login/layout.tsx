@@ -1,36 +1,14 @@
-"use client";
-
-import { Suspense, useCallback, type ReactNode } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { AuthenticatedRedirectBoundary } from "@vitarish/auth";
+import type { ReactNode } from "react";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import { readSignInUrl, signInHostRedirectUrl } from "@vitarish/journey/sign-in-host";
 import { Routes } from "@/app/routes";
-import { BrandedPageFrame } from "@/components/branding/BrandedPageFrame";
-import { LoadingScreen } from "@/components/loading/LoadingScreen";
+import { LoginFrame } from "./LoginFrame";
 
-function LoginRouteFallback() {
-  return <LoadingScreen />;
-}
-
-export default function LoginLayout({ children }: { children: ReactNode }) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const navigate = useCallback(
-    (href: string) => router.replace(href),
-    [router],
-  );
-
-  return (
-    <BrandedPageFrame>
-      <Suspense fallback={<LoginRouteFallback />}>
-        <AuthenticatedRedirectBoundary
-          authenticatedHref={Routes.Home}
-          onNavigate={navigate}
-          loadingFallback={<LoadingScreen />}
-          returnUrlSearchParams={searchParams}
-        >
-          {children}
-        </AuthenticatedRedirectBoundary>
-      </Suspense>
-    </BrandedPageFrame>
-  );
+export default async function LoginLayout({ children }: { children: ReactNode }) {
+  // People sign in only on the shared sign-in host (ADR-0018); every other host sends them there.
+  const signInUrl = readSignInUrl(process.env);
+  const target = signInUrl && signInHostRedirectUrl(signInUrl, (await headers()).get("host"), Routes.Login.Index);
+  if (target) redirect(target);
+  return <LoginFrame>{children}</LoginFrame>;
 }

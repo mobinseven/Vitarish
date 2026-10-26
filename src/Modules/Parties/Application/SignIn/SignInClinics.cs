@@ -36,6 +36,8 @@ public sealed record SignInHandoff(string Hostname, string Token);
 /// Issues a handoff link from the sign-in host to one of the user's clinics, or to the
 /// onboarding host when <paramref name="TenantId"/> is null. The target is always a host the
 /// server chose from the user's own clinics or its configuration, never one the caller names.
+/// The sign-in host keeps no session of its own: issuing the link signs the user out there, so
+/// signing out on the target host leaves nothing signed in behind it.
 /// </summary>
 public sealed record IssueSignInHandoffCommand(Guid? TenantId) : IRequest<SignInHandoff?>;
 
@@ -59,7 +61,7 @@ public sealed class IssueSignInHandoffCommandHandler(
         if (hostname is null)
             return null;
 
-        string? token = await handoffs.IssueAsync(userId, hostname, cancellationToken);
+        string? token = await handoffs.IssueEndingSessionAsync(userId, hostname, cancellationToken);
         return token is null ? null : new SignInHandoff(hostname, token);
     }
 

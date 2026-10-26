@@ -7,6 +7,8 @@ import { clinicMessageCatalogs } from "../../shared/clinic/src/localization/cata
 import { localeCookieName } from "../../shared/localization/src/localeCookie";
 import { usersMessageCatalogs } from "../../shared/users/src/localization/catalogs";
 import { TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
+import { twoHostE2eSignInOrigin } from "../../scripts/two-host-e2e-artifacts.mjs";
+import { signInToClinic } from "./signInHost";
 
 // Captures the product screens the NSMAIL-1 self-assessment document shows, in
 // the Persian UI, one file per document slot group. It is an evidence tool, not a
@@ -64,6 +66,11 @@ async function persianContext(browser: Browser, clientIp: string) {
 
 async function signIn(page: Page, origin: string, username: string, loginPath: string): Promise<void> {
   expect(password, "VITARISH_E2E_PASSWORD must be supplied by the disposable E2E environment").toBeTruthy();
+  // Clinic hosts sign in only on the shared sign-in host; platform administration has its own sign-in.
+  if (origin !== platformOrigin) {
+    await signInToClinic(page, username, password!, origin);
+    return;
+  }
   await page.goto(`${origin}${loginPath}`, { waitUntil: "domcontentloaded" });
   await expect(page.locator('button[type="submit"]')).toBeEnabled({ timeout: 30_000 });
   await page.locator('input[name="username"]').fill(username);
@@ -180,9 +187,9 @@ test.describe("NSMAIL document evidence", () => {
     const context = await persianContext(browser, "198.51.100.242");
     const page = await context.newPage();
     try {
-      await openPage(page, `${webOrigin}${ClinicRoutes.Login.Index}`, "login-methods");
+      await openPage(page, `${twoHostE2eSignInOrigin}${ClinicRoutes.Login.Index}`, "login-methods");
 
-      await page.goto(`${webOrigin}${ClinicRoutes.Login.Password}`, { waitUntil: "domcontentloaded" });
+      await page.goto(`${twoHostE2eSignInOrigin}${ClinicRoutes.Login.Password}`, { waitUntil: "domcontentloaded" });
       await expect(page.locator('button[type="submit"]')).toBeEnabled({ timeout: 30_000 });
       await page.locator('input[name="username"]').fill("nsmail-unknown-user@example.invalid");
       await page.locator('input[name="password"]').fill("incorrect-e2e-password");
@@ -267,7 +274,7 @@ test.describe("NSMAIL document evidence", () => {
       await expect(admin.getByText(usersText.accountDisabled).first()).toBeVisible({ timeout: 30_000 });
       await capture(admin, "admin-account-disabled");
 
-      await user.goto(`${webOrigin}${ClinicRoutes.Login.Password}`, { waitUntil: "domcontentloaded" });
+      await user.goto(`${twoHostE2eSignInOrigin}${ClinicRoutes.Login.Password}`, { waitUntil: "domcontentloaded" });
       await expect(user.locator('button[type="submit"]')).toBeEnabled({ timeout: 30_000 });
       await user.locator('input[name="username"]').fill(tenantUserUsername);
       await user.locator('input[name="password"]').fill(password!);
@@ -284,12 +291,13 @@ test.describe("NSMAIL document evidence", () => {
       await userContext.close();
     }
 
-    // Email-code sign-in creates a new account with no role or membership.
+    // The admin host refuses a new account with no role or membership. On the shared
+    // sign-in host that account is admitted to finish its profile and create a clinic.
     expect(smtpCapturePath, "VITARISH_E2E_SMTP_CAPTURE_PATH must be supplied by the two-host runner").toBeTruthy();
     const newcomerContext = await persianContext(browser, "198.51.100.246");
     const newcomer = await newcomerContext.newPage();
     try {
-      await newcomer.goto(`${webOrigin}${ClinicRoutes.Login.Email}`, { waitUntil: "domcontentloaded" });
+      await newcomer.goto(`${platformOrigin}${PlatformRoutes.LoginEmail}`, { waitUntil: "domcontentloaded" });
       const email = newcomer.locator('input[type="email"]').first();
       await expect(email).toBeVisible({ timeout: 30_000 });
       await email.fill(`nsmail-no-access-${Date.now()}@example.test`);

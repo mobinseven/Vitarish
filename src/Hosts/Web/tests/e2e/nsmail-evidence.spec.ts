@@ -4,7 +4,8 @@ import { Routes } from "../../apps/private-practice-owner/src/app/routes";
 import { securityMessageCatalogs } from "../../shared/security/src/localization";
 import { dirname, resolve } from "node:path";
 import { mkdirSync } from "node:fs";
-import { twoHostE2eApiOriginEnvironmentKey } from "../../scripts/two-host-e2e-artifacts.mjs";
+import { twoHostE2eApiOriginEnvironmentKey, twoHostE2eSignInOrigin } from "../../scripts/two-host-e2e-artifacts.mjs";
+import { signInToClinic } from "./signInHost";
 
 // Main itself, for API-boundary checks made without the browser.
 const apiOrigin = process.env[twoHostE2eApiOriginEnvironmentKey] ?? "https://localhost:7272";
@@ -19,14 +20,7 @@ const screenshotDirectory = resolve(process.cwd(), "..", "artifacts", "nsmail-1-
 
 async function login(page: Page, loginUsername = username): Promise<void> {
   expect(password, "VITARISH_E2E_PASSWORD must be supplied by the disposable E2E environment").toBeTruthy();
-  await page.goto(Routes.Login.Password, { waitUntil: "domcontentloaded" });
-  await page.locator('input[name="username"]').fill(loginUsername);
-  await page.locator('input[name="password"]').fill(password!);
-  const [response] = await Promise.all([
-    page.waitForResponse((candidate) => candidate.url().endsWith("/api/modules/authentication/login/password")),
-    page.locator('button[type="submit"]').click(),
-  ]);
-  expect(response.status()).toBe(200);
+  await signInToClinic(page, loginUsername, password!);
 }
 
 async function get(page: Page, path: string): Promise<{ status: number; headers: Record<string, string>; body: unknown }> {
@@ -141,7 +135,7 @@ test.describe("NSMAIL-1 evidence execution coverage", () => {
     const anonymousContext = await page.context().browser()!.newContext();
     const anonymousPage = await anonymousContext.newPage();
     try {
-      await captureSurface(anonymousPage, Routes.Login.Password, "Sign In", "09-password-authentication-entry.png");
+      await captureSurface(anonymousPage, `${twoHostE2eSignInOrigin}${Routes.Login.Password}`, "Sign In", "09-password-authentication-entry.png");
     } finally {
       await anonymousContext.close();
     }
@@ -214,7 +208,7 @@ test.describe("NSMAIL-1 evidence execution coverage", () => {
   });
 
   test("IAM-01/IAM-02: rejected password authentication is visible without identity disclosure", async ({ page }) => {
-    await page.goto(Routes.Login.Password, { waitUntil: "domcontentloaded" });
+    await page.goto(`${twoHostE2eSignInOrigin}${Routes.Login.Password}`, { waitUntil: "domcontentloaded" });
     await page.getByLabel("Username or Email").fill("unknown-user@example.invalid");
     await page.getByLabel("Password").fill("incorrect-e2e-password");
     const response = page.waitForResponse(
@@ -227,7 +221,7 @@ test.describe("NSMAIL-1 evidence execution coverage", () => {
   });
 
   test("FIA_AFL/FIA_PMG_EXT: failed attempt history and password validation are visible in account security", async ({ page }) => {
-    await page.goto(Routes.Login.Password, { waitUntil: "domcontentloaded" });
+    await page.goto(`${twoHostE2eSignInOrigin}${Routes.Login.Password}`, { waitUntil: "domcontentloaded" });
     await page.getByLabel("Username or Email").fill(tenantUserUsername);
     await page.getByLabel("Password").fill("incorrect-e2e-password");
     const response = page.waitForResponse(

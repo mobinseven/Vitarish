@@ -9,6 +9,7 @@ import { faMessages } from "../../apps/private-practice-owner/src/localization/m
 import {
   twoHostE2eLocaleEnvironmentKey,
   twoHostE2eProofScreenshotEnvironmentKey,
+  twoHostE2eSignInOrigin,
   twoHostE2eSmsCapturePathEnvironmentKey,
 } from "../../scripts/two-host-e2e-artifacts.mjs";
 import { TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
@@ -220,8 +221,9 @@ test("a new phone number signs up, creates a clinic, lands signed in on it, and 
     { name: localeCookieName, value: locale, url: tenantBOrigin },
   ]);
 
-  // 1. Sign up on the onboarding host by phone OTP, complete the profile gate, and reach clinic setup.
-  await page.goto(`${onboardingOrigin}${Routes.Login.Phone}`, { waitUntil: "domcontentloaded" });
+  // 1. Sign up on the shared sign-in host by phone OTP, complete the profile gate, and continue,
+  // with no clinic yet, to clinic setup on the onboarding host.
+  await page.goto(`${twoHostE2eSignInOrigin}${Routes.Login.Phone}`, { waitUntil: "domcontentloaded" });
   await expect(page.getByRole("heading", { name: authMessages.otp.phoneTitle, exact: true })).toBeVisible({
     timeout: pageCompileTimeoutMilliseconds,
   });
@@ -255,7 +257,7 @@ test("a new phone number signs up, creates a clinic, lands signed in on it, and 
   await expect(saveProfileButton).toBeEnabled({ timeout: pageCompileTimeoutMilliseconds });
   await saveProfileButton.click();
 
-  await expect(page).toHaveURL(new RegExp(`${Routes.Setup}(?:[/?#]|$)`), {
+  await expect(page).toHaveURL(new RegExp(`^${onboardingOrigin}${Routes.Setup}(?:[/?#]|$)`), {
     timeout: pageCompileTimeoutMilliseconds,
   });
   await expect(page.getByRole("heading", { name: setupMessages.title })).toBeVisible({
@@ -320,7 +322,8 @@ test("a new phone number signs up, creates a clinic, lands signed in on it, and 
   try {
     // Chromium resolves *.localhost hosts; Node's request client does not, so a signed-out page reads the logo.
     const anonymousPage = await anonymousContext.newPage();
-    await anonymousPage.goto(`${clinicOrigin}${Routes.Login.Phone}`, { waitUntil: "domcontentloaded" });
+    // A public page on the clinic host; its sign-in pages redirect to the sign-in host.
+    await anonymousPage.goto(`${clinicOrigin}${Routes.Handoff}`, { waitUntil: "domcontentloaded" });
     const readPublicLogo = () =>
       anonymousPage.evaluate(async (path) => {
         const response = await fetch(path, { credentials: "omit" });
@@ -341,7 +344,7 @@ test("a new phone number signs up, creates a clinic, lands signed in on it, and 
 
     expect(await readPublicLogo()).toEqual({ status: 200, contentType: "image/png", bytes: logoPngBytes });
 
-    await anonymousPage.goto(`${onboardingOrigin}${Routes.Login.Phone}`, { waitUntil: "domcontentloaded" });
+    await anonymousPage.goto(`${twoHostE2eSignInOrigin}${Routes.Login.Phone}`, { waitUntil: "domcontentloaded" });
     const shownWidth = await anonymousPage.evaluate(
       (src) =>
         new Promise<number>((resolve) => {

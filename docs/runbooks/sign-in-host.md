@@ -27,7 +27,7 @@ One value in the server's `/opt/vitarish/deployment/.env.shared`:
 
 | Setting | Example | Used as |
 | --- | --- | --- |
-| `VITARISH_PRODUCTION_SIGN_IN_SUBDOMAIN` | `auth` | Main `Vitarish__SignInUrl` and the Caddy sign-in site, both as `https://<subdomain>.<VITARISH_PRODUCTION_SITE_DOMAIN>` |
+| `VITARISH_PRODUCTION_SIGN_IN_SUBDOMAIN` | `auth` | Main `Vitarish__SignInUrl`, the owner Web app's `VITARISH_SIGN_IN_URL` and the Caddy sign-in site, all as `https://<subdomain>.<VITARISH_PRODUCTION_SITE_DOMAIN>` |
 
 - The setting is required. Use a subdomain no platform app already uses. On
   start, Main binds that host to the platform-owned sign-in tenant.
@@ -44,6 +44,9 @@ One value in the server's `/opt/vitarish/deployment/.env.shared`:
    - With one clinic, sign-in continues to it by itself.
    - `https://<clinic host>/api/modules/parties/sign-in/clinics` answers 404:
      the list exists only on the sign-in host.
+   - `https://<clinic host>/login` redirects to the sign-in host's `/login`.
+   - After a clinic opens, the sign-in host is signed out: opening it again
+     asks for sign-in.
 
 ## Switch it off
 
@@ -53,14 +56,16 @@ One value in the server's `/opt/vitarish/deployment/.env.shared`:
    administrator sends it through `PUT /api/modules/parties/tenant-indicators/{id}`
    (`PartiesUpdateTenantIndicator`).
 
-The sign-in host then resolves to no clinic, and people sign in on their
-clinic's own host. Nothing in clinic data needs to be undone.
+The sign-in host then resolves to no clinic. Clinic sign-in pages still
+redirect there, so switching it off also needs a release that unsets the owner
+Web app's `VITARISH_SIGN_IN_URL`; people then sign in on their clinic's own
+host. Nothing in clinic data needs to be undone.
 
 ## Limits and where to look
 
 - Handoff links from the sign-in host follow the onboarding rules: single use,
   60 seconds, for one user and one host. Refusals are audited as authentication
-  attempts, and the person can sign in on the clinic directly.
+  attempts, and the person can return to the shared sign-in host to try again.
 - A logo is readable by anyone at `/api/modules/parties/public/logo` on its
   clinic's host, limited to 60 requests a minute per client IP; beyond that the
   API answers 429.
