@@ -2,7 +2,8 @@ import { expect, test, type Page } from "@playwright/test";
 import { existsSync, mkdirSync, readFileSync, rmSync, statSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
-import { twoHostE2eApiOriginEnvironmentKey } from "../../scripts/two-host-e2e-artifacts.mjs";
+import { twoHostE2eApiOriginEnvironmentKey, twoHostE2eSignInOrigin } from "../../scripts/two-host-e2e-artifacts.mjs";
+import { continueToClinic } from "./signInHost";
 
 const privatePracticeOrigin = process.env.VITARISH_E2E_WEB_ORIGIN ?? "http://localhost:3005";
 // Main itself, for API-boundary checks made without the browser.
@@ -24,9 +25,9 @@ async function readDeliveredCode(previousModifiedAt: number) {
   return code!;
 }
 
-async function signIn(page: Page, username: string) {
+async function signIn(page: Page, username: string, opensClinic = true) {
   for (let attempt = 0; attempt < 3; attempt += 1) {
-    await page.goto(`${privatePracticeOrigin}${ClinicRoutes.Login.Password}`, { waitUntil: "domcontentloaded" });
+    await page.goto(`${twoHostE2eSignInOrigin}${ClinicRoutes.Login.Password}`, { waitUntil: "domcontentloaded" });
     await page.locator('input[name="username"]').fill(username);
     await page.locator('input[name="password"]').fill(password!);
     const apiResponse = page
@@ -41,6 +42,7 @@ async function signIn(page: Page, username: string) {
     await page.locator('button[type="submit"]').click();
     const response = await apiResponse;
     if (response) {
+      if (response.status() === 200 && opensClinic) await continueToClinic(page, privatePracticeOrigin);
       return response.status();
     }
     await page.waitForLoadState("domcontentloaded");
@@ -93,10 +95,11 @@ test("changing the account email moves sign-in to the new address", async ({ pag
   await expect(page).toHaveURL(/\/login/, { timeout: 30_000 });
 
   expect(await signIn(page, oldEmail)).toBe(401);
-  expect(await signIn(page, newEmail)).toBe(200);
+  // The changed address must be confirmed on the sign-in host before any clinic handoff.
+  expect(await signIn(page, newEmail, false)).toBe(200);
   expect(await readOwnProfileEmail(page)).toBe(newEmail);
 
-  await page.goto(`${privatePracticeOrigin}${ClinicRoutes.Account.ContactConfirm}`, { waitUntil: "domcontentloaded" });
+  await expect(page).toHaveURL(`${twoHostE2eSignInOrigin}${ClinicRoutes.Account.ContactConfirm}`, { timeout: 30_000 });
   await expect(page.getByRole("heading", { name: "Confirm your contact details", exact: true })).toBeVisible({ timeout: 30_000 });
 
   const screenshotPath = resolve("artifacts/two-host-e2e/email-change-sign-in.png");

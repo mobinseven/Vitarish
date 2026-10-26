@@ -4,9 +4,9 @@ import { dirname, join, resolve } from "node:path";
 import { expect, test, type Page } from "@playwright/test";
 import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
 import { Routes as PlatformRoutes } from "../../apps/platform-admin/src/app/routes";
+import { twoHostE2eSignInOrigin } from "../../scripts/two-host-e2e-artifacts.mjs";
 import { authenticationPasswordRecoveryBegin } from "../../shared/auth/src/api/generated/authentication/authentication";
 
-const privatePracticeOrigin = process.env.VITARISH_E2E_WEB_ORIGIN ?? "http://localhost:3005";
 const platformAdminOrigin = process.env.PLAYWRIGHT_PLATFORM_ADMIN_ORIGIN ?? "http://localhost:3006";
 const smtpCapturePath = process.env.VITARISH_E2E_SMTP_CAPTURE_PATH;
 const proofDirectory = resolve("artifacts/two-host-e2e/password-recovery");
@@ -66,7 +66,8 @@ test("password recovery completes through both shared LoginForm hosts", async ({
   const hostFlows = [
     {
       name: "private-practice",
-      origin: privatePracticeOrigin,
+      // Clinic sign-in, and its password recovery, happen on the shared sign-in host.
+      origin: twoHostE2eSignInOrigin,
       loginPath: ClinicRoutes.Login.Password,
       recoveryPath: ClinicRoutes.Login.ForgotPassword,
     },
@@ -192,7 +193,7 @@ test("SMS recovery has the same public result for malformed and unknown phone nu
     context.setExtraHTTPHeaders({ "X-Forwarded-For": `198.51.100.${202 + outcomes.length}` });
     const page = await context.newPage();
     try {
-      await page.goto(`${privatePracticeOrigin}${ClinicRoutes.Login.ForgotPassword}`, { waitUntil: "domcontentloaded" });
+      await page.goto(`${twoHostE2eSignInOrigin}${ClinicRoutes.Login.ForgotPassword}`, { waitUntil: "domcontentloaded" });
       await expect(page.getByRole("heading", { name: "Reset your password" })).toBeVisible({ timeout: 30_000 });
       await page.getByRole("button", { name: "Text message", exact: true }).click();
       await page.getByLabel("Phone number").fill(contact);

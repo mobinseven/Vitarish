@@ -50,7 +50,7 @@ public sealed class SignInClinicTests
     {
         Guid mine = Guid.NewGuid();
         Mock<ITenantHandoffIssuer> issuer = new();
-        issuer.Setup(item => item.IssueAsync(UserId, "mine.clinic.example.test", It.IsAny<CancellationToken>())).ReturnsAsync("token");
+        issuer.Setup(item => item.IssueEndingSessionAsync(UserId, "mine.clinic.example.test", It.IsAny<CancellationToken>())).ReturnsAsync("token");
         IssueSignInHandoffCommandHandler handler = CreateHandler(issuer, [new SignInClinic(mine, "Mine", "mine.clinic.example.test", IdentityDefinitions.TenantOwner, HasLogo: false)]);
 
         SignInHandoff? handoff = await handler.Handle(new IssueSignInHandoffCommand(mine), CancellationToken.None);
@@ -58,14 +58,15 @@ public sealed class SignInClinicTests
 
         handoff.Should().Be(new SignInHandoff("mine.clinic.example.test", "token"));
         foreign.Should().BeNull();
-        issuer.Verify(item => item.IssueAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+        issuer.Verify(item => item.IssueEndingSessionAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+        issuer.Verify(item => item.IssueAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
     public async Task Hands_off_to_the_configured_onboarding_host_and_refuses_without_one()
     {
         Mock<ITenantHandoffIssuer> issuer = new();
-        issuer.Setup(item => item.IssueAsync(UserId, "start.clinic.example.test", It.IsAny<CancellationToken>())).ReturnsAsync("token");
+        issuer.Setup(item => item.IssueEndingSessionAsync(UserId, "start.clinic.example.test", It.IsAny<CancellationToken>())).ReturnsAsync("token");
 
         SignInHandoff? configured = await CreateHandler(issuer, [], "https://start.clinic.example.test")
             .Handle(new IssueSignInHandoffCommand(null), CancellationToken.None);

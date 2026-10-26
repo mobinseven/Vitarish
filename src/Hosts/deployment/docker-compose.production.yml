@@ -111,6 +111,8 @@ services:
       # The sign-in page links here to create a clinic while the flag is true.
       VITARISH_TENANT_ONBOARDING: ${VITARISH_PRODUCTION_TENANT_ONBOARDING:-false}
       VITARISH_ONBOARDING_URL: https://${VITARISH_PRODUCTION_ONBOARDING_SUBDOMAIN:?VITARISH_PRODUCTION_ONBOARDING_SUBDOMAIN is required}.${VITARISH_PRODUCTION_CLINIC_BASE_DOMAIN:?VITARISH_PRODUCTION_CLINIC_BASE_DOMAIN is required}
+      # Sign-in pages on every other host redirect to the shared sign-in host (ADR-0018).
+      VITARISH_SIGN_IN_URL: https://${VITARISH_PRODUCTION_SIGN_IN_SUBDOMAIN:?VITARISH_PRODUCTION_SIGN_IN_SUBDOMAIN is required}.${VITARISH_PRODUCTION_SITE_DOMAIN:?VITARISH_PRODUCTION_SITE_DOMAIN is required}
     expose: [3000]
     healthcheck: *node-healthcheck
     networks: { application: {}, proxy: { aliases: [production-private-practice-owner] } }

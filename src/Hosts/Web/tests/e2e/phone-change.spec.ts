@@ -4,6 +4,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
 import { enMessages } from "../../apps/private-practice-owner/src/localization/messages/en";
 import { twoHostE2eSmsCapturePathEnvironmentKey } from "../../scripts/two-host-e2e-artifacts.mjs";
+import { signInToClinic } from "./signInHost";
 
 const privatePracticeOrigin = process.env.VITARISH_E2E_WEB_ORIGIN ?? "http://localhost:3005";
 const smsCapturePath = process.env[twoHostE2eSmsCapturePathEnvironmentKey];
@@ -38,15 +39,7 @@ async function readDeliveredSmsCode(previousModifiedAt: number, nationalDigits: 
 }
 
 async function signIn(page: Page) {
-  await page.goto(`${privatePracticeOrigin}${ClinicRoutes.Login.Password}`, { waitUntil: "domcontentloaded" });
-  await page.locator('input[name="username"]').fill(subjectUsername);
-  await page.locator('input[name="password"]').fill(password!);
-  const [response] = await Promise.all([
-    page.waitForResponse((candidate) =>
-      candidate.url().endsWith("/api/modules/authentication/login/password") && candidate.request().method() === "POST"),
-    page.locator('button[type="submit"]').click(),
-  ]);
-  expect(response.status()).toBe(200);
+  await signInToClinic(page, subjectUsername, password!, privatePracticeOrigin);
 }
 
 // A number typed with Persian digits in local format is converted by the server

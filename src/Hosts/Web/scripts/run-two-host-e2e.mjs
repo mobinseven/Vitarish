@@ -6,14 +6,18 @@ import http from "node:http";
 import https from "node:https";
 import net from "node:net";
 import crypto from "node:crypto";
+import { signInUrlEnvironmentKey } from "../shared/journey/src/signInHost.ts";
 import { apiProxyTargetEnvironmentKey } from "./api-proxy-rewrites.mjs";
 import {
   twoHostE2eApiOriginEnvironmentKey,
   twoHostE2eArtifactDirectoryEnvironmentKey,
+  twoHostE2eClinicOrigin,
   twoHostE2eGrepEnvironmentKey,
   twoHostE2eNextDistDirectoryEnvironmentKey,
+  twoHostE2ePlatformAdminOrigin,
   twoHostE2eProofScreenshotEnvironmentKey,
   twoHostE2eProofStorageStateEnvironmentKey,
+  twoHostE2eSignInOrigin,
   twoHostE2eSmsCapturePathEnvironmentKey,
 } from "./two-host-e2e-artifacts.mjs";
 
@@ -40,8 +44,8 @@ const originalAppNextEnv = readFileSync(appNextEnvPath, "utf8");
 const originalPlatformAdminTsconfig = readFileSync(platformAdminTsconfigPath, "utf8");
 const originalPlatformAdminNextEnv = readFileSync(platformAdminNextEnvPath, "utf8");
 const mainOrigin = "https://localhost:7272";
-const webOrigin = "http://localhost:3005";
-const platformAdminOrigin = "http://localhost:3006";
+const webOrigin = twoHostE2eClinicOrigin;
+const platformAdminOrigin = twoHostE2ePlatformAdminOrigin;
 const smtpCapturePath = resolve(artifactDirectory, "e2e-smtp-capture.eml");
 const smsCapturePath = resolve(artifactDirectory, "e2e-sms-capture.jsonl");
 const smtpPort = 2525;
@@ -318,6 +322,7 @@ async function run() {
     NODE_USE_SYSTEM_CA: "1",
     NODE_OPTIONS: withSystemCa(process.env.NODE_OPTIONS),
     [twoHostE2eNextDistDirectoryEnvironmentKey]: appNextDistDirectory,
+    [signInUrlEnvironmentKey]: twoHostE2eSignInOrigin,
     VITARISH_E2E_USERNAME: "e2e-owner",
     VITARISH_E2E_EMAIL_CHANGE_USERNAME: "e2e-email-change-user",
     VITARISH_E2E_PASSWORD: password,

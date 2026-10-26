@@ -4,6 +4,7 @@ import { dirname } from "node:path";
 import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
 import { clinicMessageCatalogs } from "../../shared/clinic/src/localization/catalogs";
 import { twoHostE2eProofScreenshotEnvironmentKey } from "../../scripts/two-host-e2e-artifacts.mjs";
+import { signInToClinic } from "./signInHost";
 
 const ownerUsername = process.env.VITARISH_E2E_USERNAME ?? "e2e-owner";
 const password = process.env.VITARISH_E2E_PASSWORD;
@@ -19,16 +20,7 @@ async function login(page: Page) {
   expect(password).toBeTruthy();
   // Its own client IP keeps this spec out of the shared loopback login rate limit.
   await page.setExtraHTTPHeaders({ "X-Forwarded-For": "198.51.100.42" });
-  await page.goto("/login/password", { waitUntil: "domcontentloaded" });
-  await expect(page.locator("form")).toHaveAttribute("method", "post", { timeout: 60_000 });
-  await expect(page.locator('button[type="submit"]')).toBeEnabled({ timeout: 60_000 });
-  await page.locator('input[name="username"]').fill(ownerUsername);
-  await page.locator('input[name="password"]').fill(password!);
-  const [response] = await Promise.all([
-    page.waitForResponse((candidate) => candidate.url().endsWith("/api/modules/authentication/login/password")),
-    page.locator('button[type="submit"]').click(),
-  ]);
-  expect(response.status()).toBe(200);
+  await signInToClinic(page, ownerUsername, password!);
 }
 
 let step = 0;

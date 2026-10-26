@@ -1,10 +1,11 @@
 import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { twoHostE2eApiOriginEnvironmentKey, twoHostE2eAuditEvidenceDirectoryEnvironmentKey, twoHostE2eLocaleEnvironmentKey } from "../../scripts/two-host-e2e-artifacts.mjs";
+import { twoHostE2eApiOriginEnvironmentKey, twoHostE2eAuditEvidenceDirectoryEnvironmentKey, twoHostE2eLocaleEnvironmentKey, twoHostE2eSignInOrigin } from "../../scripts/two-host-e2e-artifacts.mjs";
 import { TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
 import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
 import { Routes as PlatformRoutes } from "../../apps/platform-admin/src/app/routes";
+import { defaultClinicOrigin, signInToClinic } from "./signInHost";
 import {
   localizePlatformAuditCategory,
   localizePlatformAuditEvent,
@@ -84,7 +85,9 @@ async function login(page: Page, username: string, origin = "", clientIp = "198.
     await expect(page.locator('input[name="username"]')).toBeVisible({ timeout: 30_000 });
     await expect(page.locator('button[type="submit"]')).toBeEnabled({ timeout: 30_000 });
   } else {
-    await page.goto(`${origin}${ClinicRoutes.Login.Password}`, { waitUntil: "domcontentloaded" });
+    // Clinic hosts sign in only on the shared sign-in host.
+    await signInToClinic(page, username, password!, origin || defaultClinicOrigin);
+    return;
   }
   await page.locator('input[name="username"]').fill(username);
   await page.locator('input[name="password"]').fill(password!);
@@ -335,7 +338,7 @@ test("real actions create visible platform security-audit evidence", async ({ pa
   try {
     await login(page, ownerUsername, ownerOrigin, "198.51.100.61");
 
-    await anonymousPage.goto(ClinicRoutes.Login.Password, { waitUntil: "domcontentloaded" });
+    await anonymousPage.goto(`${twoHostE2eSignInOrigin}${ClinicRoutes.Login.Password}`, { waitUntil: "domcontentloaded" });
     await anonymousPage.locator('input[name="username"]').fill(ownerUsername);
     await anonymousPage.locator('input[name="password"]').fill("incorrect-e2e-audit-password");
     const failedLogin = anonymousPage.waitForResponse((candidate) => candidate.url().endsWith("/api/modules/authentication/login/password"));

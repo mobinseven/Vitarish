@@ -4,6 +4,7 @@ import { dirname } from "node:path";
 import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
 import { clinicMessageCatalogs } from "../../shared/clinic/src/localization/catalogs";
 import { twoHostE2eApiOriginEnvironmentKey, twoHostE2eProofScreenshotEnvironmentKey } from "../../scripts/two-host-e2e-artifacts.mjs";
+import { signInToClinic } from "./signInHost";
 import { agentToolCallbackPath, signAgentCallback } from "./agentCallback";
 
 const ownerUsername = process.env.VITARISH_E2E_USERNAME ?? "e2e-owner";
@@ -24,16 +25,7 @@ type JsonResult = { status: number; body: unknown };
 async function login(page: Page) {
   expect(password).toBeTruthy();
   await page.setExtraHTTPHeaders({ "X-Forwarded-For": "198.51.100.41" });
-  await page.goto("/login/password", { waitUntil: "domcontentloaded" });
-  await expect(page.locator("form")).toHaveAttribute("method", "post", { timeout: 60_000 });
-  await expect(page.locator('button[type="submit"]')).toBeEnabled({ timeout: 30_000 });
-  await page.locator('input[name="username"]').fill(ownerUsername);
-  await page.locator('input[name="password"]').fill(password!);
-  const [response] = await Promise.all([
-    page.waitForResponse((candidate) => candidate.url().endsWith("/api/modules/authentication/login/password")),
-    page.locator('button[type="submit"]').click(),
-  ]);
-  expect(response.status()).toBe(200);
+  await signInToClinic(page, ownerUsername, password!);
 }
 
 async function callApi(page: Page, method: string, path: string, body?: unknown): Promise<JsonResult> {
