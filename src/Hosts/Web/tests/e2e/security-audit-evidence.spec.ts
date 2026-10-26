@@ -46,6 +46,7 @@ const uiText = {
   export: locale === "fa" ? "خروجی CSV" : "Export CSV",
   next: locale === "fa" ? "بعدی" : "Next",
   sourceThreshold: locale === "fa" ? "آستانه تلاش ناموفق احراز هویت برای هر نشانی IP" : "Failed authentication threshold per IP address",
+  eventDetails: locale === "fa" ? "جزئیات رویداد" : "Event details",
 } as const;
 
 const auditEvents = {
@@ -72,6 +73,8 @@ const auditEvents = {
 // verification service and corrupt the E2E in-memory stored object.
 const e2eAuditEvidenceBase = "/api/e2e/audit-evidence";
 const storageThresholdCheckPath = `${e2eAuditEvidenceBase}/storage-threshold/check`;
+const storeOutageStartPath = `${e2eAuditEvidenceBase}/store-outage/start`;
+const storeOutageEndPath = `${e2eAuditEvidenceBase}/store-outage/end`;
 const integrityVerificationPath = (fileId: string) => `${e2eAuditEvidenceBase}/files/${fileId}/integrity-verification`;
 const integrityTamperPath = (fileId: string) => `${e2eAuditEvidenceBase}/files/${fileId}/tamper`;
 
@@ -666,6 +669,46 @@ test("real actions create visible platform security-audit evidence", async ({ pa
       { timeout: 60_000 },
     ).toBeGreaterThan(0);
     await captureAuditEvidence(administratorPage, thresholdEvent, "audit-storage-threshold.png");
+
+    // While every audit-store save fails, a sign-in attempt still gets its normal answer. Once the
+    // store accepts writes again, one security-failure record summarizes the outage.
+    const outageSummaryPattern = /^audit_storage_outage:start=[^;]+;end=[^;]+;failed_writes=(\d+)$/;
+    // The refused password login records its started and completed events; the summary itself is not refused.
+    const refusedAuditWrites = 2;
+    expect((await postJson(administratorPage, storeOutageStartPath)).status).toBe(204);
+    let statusDuringOutage = 0;
+    try {
+      const response = await request.post(`${apiOrigin}/api/modules/authentication/login/password`, {
+        data: { userNameOrEmail: `e2e-outage-${Date.now()}@example.invalid`, password: "E2E-Outage-Wrong-Password", returnUrl: null },
+        headers: { "X-Forwarded-For": "203.0.113.67", "X-Vitarish-Tenant-Host": "localhost", "X-Request-Id": `e2e-audit-outage-${Date.now()}` },
+        ignoreHTTPSErrors: true,
+      });
+      statusDuringOutage = response.status();
+    } finally {
+      const outageEvent = { ...auditEvents.securityFunctionFailure, outcome: "failed" };
+      const summariesDuringOutage = (await platformAuditQuery(administratorPage, outageEvent)).items
+        .filter((item) => outageSummaryPattern.test(item.redactedReason ?? ""));
+      expect(summariesDuringOutage, "no summary may be written while the store is still down").toHaveLength(0);
+      expect((await postJson(administratorPage, storeOutageEndPath)).status).toBe(204);
+    }
+    expect(statusDuringOutage).toBe(401);
+    const outageEvent = { ...auditEvents.securityFunctionFailure, outcome: "failed" };
+    const outageRecords = await platformAuditQuery(administratorPage, outageEvent);
+    const outageSummaries = outageRecords.items.filter((item) => outageSummaryPattern.test(item.redactedReason ?? ""));
+    expect(outageSummaries, "the recovered audit store must hold one summary of the outage").toHaveLength(1);
+    const failedWrites = outageSummaryPattern.exec(outageSummaries[0].redactedReason ?? "");
+    expect(Number(failedWrites?.[1]), "the summary counts only the writes the outage refused").toBe(refusedAuditWrites);
+    await captureAuditEvidence(administratorPage, outageEvent, "audit-storage-outage.png");
+    // The newest record is the summary; its detail sheet shows the outage window and the failed-write count.
+    await administratorPage.locator("tbody tr").first()
+      .getByText(localizePlatformAuditEvent(locale, outageEvent.name, outageEvent.name), { exact: true }).first().click();
+    await expect(administratorPage.getByRole("heading", { name: uiText.eventDetails })).toBeVisible();
+    const outageReason = administratorPage.getByText(/^audit_storage_outage:/);
+    await expect(outageReason).toBeVisible();
+    await outageReason.scrollIntoViewIfNeeded();
+    await hideDevelopmentIndicator(administratorPage);
+    await administratorPage.screenshot({ path: join(evidenceDirectory, "audit-storage-outage-detail.png") });
+    await administratorPage.keyboard.press("Escape");
 
     const verifiedIntegrityEvent = { ...auditEvents.integrityVerification, outcome: "succeeded" };
     expect((await postJson(administratorPage, integrityVerificationPath(uploadedFileId!))).status).toBe(204);

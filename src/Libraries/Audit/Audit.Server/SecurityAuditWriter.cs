@@ -16,7 +16,8 @@ internal sealed class SecurityAuditWriter(
     AuditDbContext dbContext,
     IClientIpAddressAccessor? clientIpAddressAccessor = null,
     ILogger<SecurityAuditWriter>? logger = null,
-    IClientInterfaceHostAccessor? clientInterfaceHostAccessor = null) : ISecurityAuditWriter, ISecurityAuditOutcomeUpdater
+    IClientInterfaceHostAccessor? clientInterfaceHostAccessor = null,
+    IAuditStorageOutageCounter? outageCounter = null) : ISecurityAuditWriter, ISecurityAuditOutcomeUpdater
 {
     public async Task<string?> GetOutcomeAsync(string tenantId, string idempotencyKey, CancellationToken cancellationToken)
     {
@@ -79,18 +80,18 @@ internal sealed class SecurityAuditWriter(
             catch (Exception duplicateCheckException) when (duplicateCheckException is not OperationCanceledException)
             {
                 SecurityAuditStoreException failure = new("The mandatory security audit store could not confirm a duplicate.", duplicateCheckException);
-                LogWriteFailure(auditEvent, duplicateCheckException);
+                await ReportWriteFailureAsync(auditEvent, duplicateCheckException);
                 throw failure;
             }
 
             SecurityAuditStoreException persistenceFailure = new("The mandatory security audit event could not be persisted.", exception);
-            LogWriteFailure(auditEvent, exception);
+            await ReportWriteFailureAsync(auditEvent, exception);
             throw persistenceFailure;
         }
         catch (Exception exception) when (exception is not SecurityAuditStoreException)
         {
             SecurityAuditStoreException failure = new("The mandatory security audit event could not be persisted.", exception);
-            LogWriteFailure(auditEvent, exception);
+            await ReportWriteFailureAsync(auditEvent, exception);
             throw failure;
         }
     }
@@ -156,7 +157,7 @@ internal sealed class SecurityAuditWriter(
         {
             SecurityAuditStoreException failure = exception as SecurityAuditStoreException
                 ?? new SecurityAuditStoreException("The mandatory security audit event could not be updated.", exception);
-            LogWriteFailure(pending, exception);
+            await ReportWriteFailureAsync(pending, exception);
             throw failure;
         }
     }
@@ -250,6 +251,31 @@ internal sealed class SecurityAuditWriter(
         dbContext.Entry(auditEvent).State = EntityState.Detached;
         return await dbContext.SecurityAuditEvents.AsNoTracking()
             .AnyAsync(existing => existing.TenantId == auditEvent.TenantId && existing.IdempotencyKey == auditEvent.IdempotencyKey, cancellationToken);
+    }
+
+    // Besides the host error, each refused write counts toward the outage summary that is recorded
+    // once the store accepts writes again. Counting is best effort: it never changes the write's result.
+    private async Task ReportWriteFailureAsync(SecurityAuditEvent? auditEvent, Exception exception)
+    {
+        LogWriteFailure(auditEvent, exception);
+        if (outageCounter is null || !SecurityAuditStoreAvailability.IsUnavailable(exception))
+            return;
+
+        // The summary of an outage must not count as one more failed write of that same outage.
+        if (auditEvent?.SourceBoundary == SecurityAuditEventCatalog.AuditStorageOutageSourceBoundary)
+            return;
+
+        try
+        {
+            await outageCounter.RecordFailedWriteAsync(DateTime.UtcNow, CancellationToken.None);
+        }
+        catch (Exception counterException)
+        {
+            logger?.LogWarning(
+                "Security audit outage counter unavailable. Code={Code} Cause={Cause}",
+                SecurityAuditEventCatalog.WriteFailureCode,
+                counterException.GetType().FullName);
+        }
     }
 
     // Exception messages can carry tenant, user or SQL values, so only the cause's

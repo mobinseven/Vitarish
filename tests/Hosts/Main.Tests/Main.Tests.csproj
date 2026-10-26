@@ -6,6 +6,10 @@
     <PackageReference Include="FluentAssertions" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
     <PackageReference Include="Moq" />
+    <PackageReference Include="Testcontainers.Redis" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\Shared\DockerFactAttribute.cs" Link="DockerFactAttribute.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Libraries\Hosting\Hosting.csproj" />
