@@ -1,4 +1,7 @@
+using Fido2NetLib;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Vitarish.Hosting;
 using Vitarish.Users.Domain.Options;
 using Vitarish.Hosting.Infrastructure.Options;
 using Vitarish.Authentication.Infrastructure.Identity;
@@ -86,12 +89,24 @@ public static class HostAuthenticationExtensions
         _ = builder.Services.AddSingleton(webAuthnOptions);
 
         // Configure FIDO2 library
-        _ = builder.Services.AddFido2(options =>
+        _ = builder.Services.AddFido2(options => ApplyFido2Configuration(options, webAuthnOptions, webAuthnOptions.Origins));
+
+        // Clinic hosts are not a fixed list, so each ceremony also accepts the origin the host already
+        // trusts for this request (an active clinic's subdomain or a platform host); see ClientOriginTrust.
+        builder.Services.Replace(ServiceDescriptor.Scoped<IFido2>(services =>
         {
-            options.ServerDomain = webAuthnOptions.ServerDomain;
-            options.ServerName = webAuthnOptions.ServerName;
-            options.Origins = webAuthnOptions.Origins;
-            options.TimestampDriftTolerance = (int)webAuthnOptions.TimestampDriftTolerance;
-        });
+            string? requestOrigin = ClientOriginTrust.TrustedOriginFor(services.GetRequiredService<IHttpContextAccessor>().HttpContext);
+            HashSet<string> origins = requestOrigin is null ? webAuthnOptions.Origins : [.. webAuthnOptions.Origins, requestOrigin];
+            return new Fido2(ApplyFido2Configuration(new Fido2Configuration(), webAuthnOptions, origins), services.GetRequiredService<IMetadataService>());
+        }));
+    }
+
+    private static Fido2Configuration ApplyFido2Configuration(Fido2Configuration configuration, WebAuthnOptions webAuthnOptions, HashSet<string> origins)
+    {
+        configuration.ServerDomain = webAuthnOptions.ServerDomain;
+        configuration.ServerName = webAuthnOptions.ServerName;
+        configuration.Origins = origins;
+        configuration.TimestampDriftTolerance = (int)webAuthnOptions.TimestampDriftTolerance;
+        return configuration;
     }
 }

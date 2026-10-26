@@ -27,8 +27,9 @@ it does not: a platform-owned tenant with no practice data can hold the session.
 ## Decision
 
 1. **A sign-in host with its own tenant.** `Vitarish:SignInUrl`
-   (`https://auth.vitarish.com` in production, `http://auth.localhost:3005` in
-   E2E) names one host. Startup binds it to the platform-owned `SignInTenant`,
+   (`https://auth.vitarish.com` in production, built from
+   `VITARISH_PRODUCTION_SIGN_IN_SUBDOMAIN` and the site domain;
+   `http://auth.localhost:3005` in E2E) names one host. Startup binds it to the platform-owned `SignInTenant`,
    which holds no practice data. `auth` is a reserved subdomain, so no clinic
    can claim it.
 2. **Role-free sessions there too.** `PlatformHostRoleFreeSessionPolicy` admits
@@ -65,12 +66,11 @@ it does not: a platform-owned tenant with no practice data can hold the session.
   audited, and redemption still needs access on the target.
 - A clinic's logo is public. That is what a logo is for, but it is now readable
   without signing in, and anonymous reads are rate limited, not audited.
-- Production needs no new DNS, certificate or ingress site: `auth.vitarish.com`
-  is under the existing `*.vitarish.com` site, which already sends traffic to
-  the owner Web app and `/api/*` to Main. See `docs/runbooks/sign-in-host.md`.
-- Rollback: the binding is stored, so clearing `VITARISH_PRODUCTION_SIGN_IN_URL`
-  only stops startup from creating it again. Also set the sign-in host's
-  indicator to `Disabled` (see the runbook). The host then resolves to no tenant,
+- Production needs no new DNS: `auth.vitarish.com` is under the existing
+  `*.vitarish.com` record. It has its own ingress site, which sends traffic to
+  the owner Web app and `/api/*` to Main; every other `*.vitarish.com` host
+  redirects to the landing page. See `docs/runbooks/sign-in-host.md`.
+- Rollback: set the sign-in host's indicator to `Disabled` (see the runbook). The host then resolves to no tenant,
   the sign-in endpoints answer 404, and people sign in on their clinic's own
   host as before. No clinic data or migration is involved.
 

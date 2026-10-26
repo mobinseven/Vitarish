@@ -364,7 +364,11 @@ test("platform administrator manages profile-constrained authentication policy t
   await expect(page.getByRole("status").filter({ hasText: "Security policy saved." })).toBeVisible();
 
   const securityPolicyScreenshot = process.env[twoHostE2eSecurityPolicyScreenshotEnvironmentKey];
-  if (securityPolicyScreenshot) await captureAuthenticatedScreenshot(page, securityPolicyScreenshot);
+  if (securityPolicyScreenshot) {
+    // The page above is already authenticated and saved; capture it in place.
+    expect(existsSync(securityPolicyScreenshot), `refusing to overwrite retained evidence at ${securityPolicyScreenshot}`).toBe(false);
+    await page.screenshot({ path: securityPolicyScreenshot, fullPage: true });
+  }
 
   await page.reload({ waitUntil: "domcontentloaded" });
   const reloadedThreshold = page.getByRole("spinbutton", { name: "Failed authentication threshold", exact: true });

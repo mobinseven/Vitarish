@@ -74,8 +74,9 @@ Keep these operator-owned files on the server under
 - `.env.shared` for shared image references, hostnames, ingress credentials,
   proxy subnet/address pairs, the shared response model, and each
   environment's site domain (`VITARISH_<ENV>_SITE_DOMAIN`, the domain all its
-  hosts share), which scopes the locale cookie so a language choice holds on
-  every host.
+  hosts share). It scopes the locale cookie so a language choice holds on
+  every host, and it is the passkey (WebAuthn) domain, so a passkey works on
+  every host under it.
 - `.env.test` and `.env.production` for their environment's images and runtime
   credentials.
 - Optional `.env.production.mediatr` for protected production MediatR values.
@@ -124,9 +125,9 @@ proxy network.
 Self-service clinic onboarding uses the `*.darman.vitarish.com` host and is off
 until its settings are set; see the
 [clinic onboarding runbook](../runbooks/clinic-onboarding.md). The shared
-sign-in host, for example `auth.vitarish.com`, uses the `*.vitarish.com` host
-and is off until its setting is set; see the
-[sign-in host runbook](../runbooks/sign-in-host.md).
+sign-in host, `auth.vitarish.com`, is the only application under the
+`*.vitarish.com` host; every other host there redirects to the landing page.
+See the [sign-in host runbook](../runbooks/sign-in-host.md).
 
 The repository's examples use deliberately invalid image and credential
 values. They are for Compose rendering only; replace them in the protected

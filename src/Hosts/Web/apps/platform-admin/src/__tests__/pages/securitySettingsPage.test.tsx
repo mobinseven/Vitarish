@@ -116,6 +116,25 @@ describe("SecuritySettingsPage", () => {
     await waitFor(() => expect(within(sectionOf("Session policy")).getByRole("status")).toHaveTextContent("Security policy saved."));
   });
 
+  it("shows the password character categories as fixed and saves the server-owned requirements unchanged", async () => {
+    renderPage();
+
+    const categories = screen.getByRole("list", { name: "Required password character categories (fixed)" });
+    expect(within(categories).getAllByRole("listitem").map((item) => item.textContent)).toEqual(["Lowercase letters", "Uppercase letters", "Numbers", "Special characters"]);
+    expect(within(sectionOf("Authentication policy")).queryByRole("checkbox", { name: "Lowercase letters" })).toBeNull();
+
+    fireEvent.change(screen.getByLabelText("Minimum password length"), { target: { value: "14" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save authentication policy" }));
+    await waitFor(() => expect(state.authenticationPut).toHaveBeenCalledTimes(1));
+    expect(state.authenticationPut.mock.calls[0][0].data).toMatchObject({
+      minimumPasswordLength: 14,
+      requirePasswordLowercase: true,
+      requirePasswordUppercase: true,
+      requirePasswordNumber: true,
+      requirePasswordSpecialCharacter: true,
+    });
+  });
+
   it("renders localized authentication mechanism and pre-authentication action labels", () => {
     renderPage();
 
