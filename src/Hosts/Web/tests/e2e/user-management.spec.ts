@@ -570,6 +570,12 @@ test("platform administrator creates, edits, assigns access, and reviews a user'
   await expect(securityHistory.getByText(/^Page 1 of [2-9]$/)).toBeVisible();
   await expect(authenticationHistory.getByRole("button", { name: "Older events" })).toHaveCount(0);
 
+  // The server reports which authentication data the account holds: the changed
+  // email is no longer verified and no passkey has been registered.
+  const authenticationMethods = page.locator("section").filter({ has: page.getByRole("heading", { name: "Authentication methods", exact: true }) });
+  await expect(authenticationMethods.getByRole("definition").nth(1)).toHaveText("Not verified");
+  await expect(authenticationMethods.getByText("No passkey is registered.", { exact: true })).toBeVisible();
+
   const proofScreenshot = process.env[twoHostE2eProofScreenshotEnvironmentKey];
   if (proofScreenshot) await captureAuthenticatedScreenshot(page, proofScreenshot);
 
