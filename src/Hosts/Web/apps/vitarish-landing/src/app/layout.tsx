@@ -3,7 +3,8 @@ import { headers } from "next/headers";
 import { I18nAppLayout, resolveI18nAppLocale } from "@vitarish/localization";
 import { ContentSecurityPolicyNonceMeta, contentSecurityPolicyNonce } from "@vitarish/ui/content-security-policy";
 import { ThemePaletteClassScript, brutalismThemePaletteClasses } from "@vitarish/ui/theme-palette";
-import { SplashScreen, splashAttribute } from "../components/splash/splash-screen";
+import { SplashScreen } from "../components/splash/splash-screen";
+import { splashAttribute } from "../components/splash/splash-attributes";
 import { AppProviders } from "../components/providers/AppProviders";
 import { getMessages } from "../localization";
 import { applicationFontVariables } from "./fonts";
@@ -36,7 +37,7 @@ export default async function RootLayout({
         <link rel="stylesheet" href="/fontawesome/css/all.min.css" />
         <ContentSecurityPolicyNonceMeta nonce={nonce} />
         <noscript>
-          <style nonce={nonce}>{`[${splashAttribute}] { display: none; }`}</style>
+          <style nonce={nonce}>{`html [${splashAttribute}] { display: none; }`}</style>
         </noscript>
         <ThemePaletteClassScript classes={brutalismThemePaletteClasses} nonce={nonce} />
       </head>
