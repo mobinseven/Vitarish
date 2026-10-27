@@ -3,13 +3,12 @@
 import { useEffect, useState } from "react";
 import { useLocalizedText } from "@vitarish/localization";
 import { LoadingSpinner } from "@vitarish/ui";
+import { splashAttribute } from "./splash-attributes";
 import styles from "./splash-screen.module.css";
 
 // Long enough for the wordmark to be seen even when the page is already cached.
 const splashMinimumMilliseconds = 1600;
 const brandWordmark = "VITARISH";
-/** Lets the layout hide the splash for visitors without scripts, who could never dismiss it. */
-export const splashAttribute = "data-splash";
 
 /** The first thing the page paints: covers it until the document has loaded, then fades away. */
 export function SplashScreen() {

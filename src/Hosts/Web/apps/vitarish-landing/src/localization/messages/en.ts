@@ -3,7 +3,7 @@ export const enMessages = {
     root: {
       title: "Vitarish — The glory of purpose",
       description:
-        "Vitarish builds focused, AI-native apps that help people and businesses achieve their purpose, starting with Darman for private practices.",
+        "Vitarish. Purposeful technology for the work that matters.",
     },
   },
   appShell: {
@@ -23,16 +23,21 @@ export const enMessages = {
     },
     hero: {
       lead: "The glory of purpose.",
-      eyebrow: "A little less busywork. A lot more possibility.",
-      intro: "Focused apps for the work that matters. Starting with Darman, a calmer way to run your practice.",
-      explore: "Explore the apps",
+      eyebrow: "Technology with purpose.",
+      intro: "We believe technology should make room for what matters.",
+      explore: "Explore our work",
       pause: "Pause background animation",
       play: "Play background animation",
     },
+    purpose: {
+      eyebrow: "Why Vitarish",
+      title: "What matters to you is where we begin.",
+      description: "Your work has a purpose beyond the tasks that fill your day. We build with that purpose in mind: less friction between what you need to do and what you want to achieve.",
+    },
     apps: {
-      title: "Meet your next everyday essential.",
-      eyebrow: "The Vitarish collection",
-      intro: "One platform. Focused tools. Each built around a real part of your day.",
+      title: "Our purpose. In practice.",
+      eyebrow: "A product by Vitarish",
+      intro: "Darman brings the daily work of a private practice together. One place for your schedule, your patients and your team.",
       practice: {
         status: "Available now",
         lead: "More time for care.",
@@ -41,44 +46,17 @@ export const enMessages = {
         discoverTooltip: "Explore Darman for your practice",
         title: "Darman",
         description:
-          "Run your office in one place: online booking, shifts and services, patient records with a care timeline, notes you can dictate, and staff roles.",
+          "Manage appointments, shifts and services. Keep patient records and your team connected to the work of your practice.",
         open: "Set up my practice",
         openTooltip: "Sign up and create your practice. It's free, with no time limit.",
       },
-    },
-    practiceStory: {
-      eyebrow: "Inside Darman",
-      title: "From the first booking to the next visit.",
-      intro: "Keep the moving parts of your practice connected, so you can see what needs your attention.",
-      booking: { title: "A day that comes together.", description: "Bring online booking, appointments, shifts and services into one place.", detail: "Booking · Shifts · Services" },
-      records: { title: "The whole patient story.", description: "Follow care over time with patient records, a care timeline and notes you can dictate.", detail: "Records · Timeline · Voice notes" },
-      team: { title: "A place for your team.", description: "Coordinate the people behind your practice with staff roles and shared office workflows.", detail: "People · Roles · Coordination" },
-    },
-    horizon: {
-      eyebrow: "On the horizon",
-      title: "Different days. The same sense of purpose.",
-      intro: "We’re starting with practices. Next, we’re exploring tools for more ways to work and learn.",
-      status: "Planned",
-      salon: { title: "Beauty & wellbeing", description: "Focused tools for salons and spas." },
-      shop: { title: "Independent commerce", description: "Practical tools for running an e-shop." },
-      dictionary: { title: "Everyday discovery", description: "An AI-assisted dictionary for curious minds." },
-      note: "These apps are in our plans and are not available yet.",
     },
     questions: {
       title: "Questions.",
       what: {
         question: "What is Vitarish?",
         answer:
-          "A platform of focused, AI-native apps that help people and businesses achieve their purpose. Darman, its first app, brings the daily work of a private practice together.",
-      },
-      who: {
-        question: "Who is it for?",
-        answer:
-          "Small businesses first, starting with private-practice offices. Apps for salons and e-shops, and everyday tools such as an AI-assisted dictionary, are planned.",
-      },
-      cost: {
-        question: "What does it cost?",
-        answer: "A practice can run on Vitarish for free, with no time limit.",
+          "Vitarish builds purposeful technology to help people make room for the work that matters.",
       },
       contact: {
         question: "Can I talk to a person?",
@@ -88,16 +66,19 @@ export const enMessages = {
       },
     },
     footer: {
-      eyebrow: "Your next chapter",
-      title: "Make room for what matters.",
-      intro: "Start with your practice. See what Darman can bring to your day.",
-      explore: "Explore",
-      connect: "Let’s talk",
-      navigation: "Footer navigation",
+      businesses: "For Businesses",
+      individuals: "For Individuals",
+      ready: "Ready",
+      soon: "Soon",
+      products: {
+        gym: "Gym management",
+        salon: "Beauty salon management",
+        etymology: "Persian Etymology Agent",
+        converter: "File converter",
+      },
+      disclosure: "Products marked Soon are previews and are not available yet.",
       questions: "Your questions",
-      availability: "Darman is available now.",
-      rights: "All rights reserved.",
-      top: "Back to top",
+      rights: "Copyright © Vitarish. All rights reserved.",
     },
   },
 } as const;

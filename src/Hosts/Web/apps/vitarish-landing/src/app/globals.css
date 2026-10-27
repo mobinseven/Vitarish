@@ -69,6 +69,8 @@
 
 .brutalism-light,
 [data-theme="brutalism-light"] {
+  /* Owner-approved purple for upcoming product chips. */
+  --chroma-tertiary: oklch(48% 0.16 305);
   /* Theme Colors */
   --background: var(--white);
   --accent: var(--color-lime-300, #BBF451);
@@ -90,6 +92,7 @@
 .brutalism-dark,
 [data-theme="brutalism-dark"] {
   color-scheme: dark;
+  --chroma-tertiary: oklch(76% 0.14 305);
   /* Theme Colors */
   /* Owner choice (2026-10-24): the dark page takes the light theme's ink, the colour of its inverted footer. */
   --background: var(--eclipse);

@@ -2,9 +2,10 @@
 
 import dynamic from "next/dynamic";
 import { useState } from "react";
-import { Accordion, Button, Link, Tooltip } from "@heroui/react";
+import { Accordion, Button, Chip, Link, Tooltip } from "@heroui/react";
 import { supportedLocales, useLocalizedText, useSetLocaleCookie } from "@vitarish/localization";
 import { FaIcon, FeatureItemCard, MarketingActionLink, ViewportReveal } from "@vitarish/ui";
+import { chromaChipClassName } from "@vitarish/ui/chroma";
 import { whatsappChatUrl } from "./whatsapp";
 import styles from "./front-door.module.css";
 
@@ -23,22 +24,15 @@ const logotypes = {
 
 const GhostFibers = dynamic(() => import("./ghost-fibers"), { ssr: false });
 
-const sectionIds = { apps: "landing-apps", questions: "landing-questions" } as const;
+const sectionIds = { apps: "landing-apps", questions: "landing-questions", purpose: "brand-statement-title" } as const;
 
-const practiceFeatures = [
-  { key: "booking", icon: "calendar-days" },
-  { key: "records", icon: "notes-medical" },
-  { key: "team", icon: "users" },
-] as const;
-const plannedApps = [
-  { key: "salon", icon: "scissors" },
-  { key: "shop", icon: "bag-shopping" },
-  { key: "dictionary", icon: "book-open" },
-] as const;
+const upcomingBusinessKeys = ["gym", "salon"] as const;
+const upcomingIndividualKeys = ["etymology", "converter"] as const;
+const upcomingChipClassName = chromaChipClassName("tertiary");
 
 const darmanLandingUrl = "https://darman.vitarish.com";
 
-const questionKeys = ["what", "who", "cost"] as const;
+const questionKeys = ["what"] as const;
 
 function Logotype({
   mark,
@@ -60,7 +54,7 @@ function Logotype({
   );
 }
 
-/** The public front door: the Vitarish apps, a few questions, and the brand. */
+/** The public brand and its released product, Darman. */
 export function FrontDoorPage({ onboardingUrl, whatsappNumber }: FrontDoorPageProps) {
   const [backgroundPaused, setBackgroundPaused] = useState(false);
   const { t, locale } = useLocalizedText();
@@ -73,6 +67,7 @@ export function FrontDoorPage({ onboardingUrl, whatsappNumber }: FrontDoorPagePr
         <Link className={styles.headerBrand} href={`#${sectionIds.apps}`}>{t("landing.brand.name")}</Link>
         <nav className={styles.headerNav} aria-label={t("landing.apps.title")}>
           <Link href={`#${sectionIds.apps}`}>{t("landing.hero.explore")}</Link>
+          <Link href={`#${sectionIds.questions}`}>{t("landing.footer.questions")}</Link>
         </nav>
         {otherLocale && (
           <MarketingActionLink
@@ -92,20 +87,23 @@ export function FrontDoorPage({ onboardingUrl, whatsappNumber }: FrontDoorPagePr
       </header>
       <main className={styles.main} id="vitarish-landing-main">
         <section aria-labelledby="landing-hero" className={styles.hero}>
-          <Logotype alt={t("landing.brand.name")} className={styles.heroLogotype} mark="registered" />
           <div className={styles.heroScene}>
             <div className={styles.fibers} aria-hidden="true">
               <GhostFibers glowColor="white" lineColor="white" secondaryColor="white" threads={36} density={0.6} layers={2} dpr={1} speed={0.3} mouseInteraction={false} pulseOnClick={false} paused={backgroundPaused} />
             </div>
-            <div className={styles.heroText}>
+            <div className={styles.heroSignature}>
               <p className={styles.eyebrow}>{t("landing.hero.eyebrow")}</p>
+              <Logotype alt={t("landing.brand.name")} className={styles.heroLogotype} mark="registered" />
+            </div>
+            <div className={styles.heroText}>
               <h1 className={styles.heroTitle} id="landing-hero">
                 <span className={styles.heroLead}>{t("landing.hero.lead")}</span>
               </h1>
-              <p className={styles.heroIntro}>{t("landing.hero.intro")}</p>
-              <div className={styles.actions}>
-                <MarketingActionLink action={{ label: t("landing.apps.practice.discover"), href: darmanLandingUrl, tooltip: t("landing.apps.practice.discoverTooltip"), icon: <FaIcon aria-hidden="true" icon="user-doctor" /> }} />
-                <Link className={styles.heroExplore} href={`#${sectionIds.apps}`}>{t("landing.hero.explore")}</Link>
+              <div className={styles.heroSummary}>
+                <p className={styles.heroIntro}>{t("landing.hero.intro")}</p>
+                <div className={styles.actions}>
+                  <MarketingActionLink action={{ label: t("landing.hero.explore"), href: `#${sectionIds.apps}`, tooltip: t("landing.hero.explore"), icon: <FaIcon aria-hidden="true" icon="grid-2" /> }} />
+                </div>
               </div>
             </div>
             <Tooltip>
@@ -116,6 +114,11 @@ export function FrontDoorPage({ onboardingUrl, whatsappNumber }: FrontDoorPagePr
             </Tooltip>
           </div>
         </section>
+        <ViewportReveal as="section" className={styles.statement} aria-labelledby={sectionIds.purpose}>
+          <p className={styles.eyebrow}>{t("landing.purpose.eyebrow")}</p>
+          <h2 id={sectionIds.purpose}>{t("landing.purpose.title")}</h2>
+          <p className={styles.sectionText}>{t("landing.purpose.description")}</p>
+        </ViewportReveal>
         <ViewportReveal as="section" aria-labelledby={sectionIds.apps} className={styles.band}>
           <div className={styles.sectionIntro}>
             <p className={styles.eyebrow}>{t("landing.apps.eyebrow")}</p>
@@ -155,40 +158,6 @@ export function FrontDoorPage({ onboardingUrl, whatsappNumber }: FrontDoorPagePr
             </FeatureItemCard.Action>
             <p className={styles.productNote}>{t("landing.apps.practice.note")}</p>
           </FeatureItemCard>
-        </ViewportReveal>
-        <ViewportReveal as="section" className={styles.story} aria-labelledby="practice-story-title">
-          <div className={styles.storyHeading}>
-            <p className={styles.eyebrow}>{t("landing.practiceStory.eyebrow")}</p>
-            <h2 className={styles.display} id="practice-story-title">{t("landing.practiceStory.title")}</h2>
-            <p className={styles.sectionText}>{t("landing.practiceStory.intro")}</p>
-          </div>
-          <div className={styles.featureStories}>
-            {practiceFeatures.map(({ key, icon }, index) => (
-              <div className={styles.featureStory} key={key}>
-                <div className={styles.featureIndex} aria-hidden="true"><span>{new Intl.NumberFormat(locale, { minimumIntegerDigits: 2 }).format(index + 1)}</span><FaIcon icon={icon} /></div>
-                <h3>{t(`landing.practiceStory.${key}.title`)}</h3>
-                <p>{t(`landing.practiceStory.${key}.description`)}</p>
-                <span className={styles.featureDetail}>{t(`landing.practiceStory.${key}.detail`)}</span>
-              </div>
-            ))}
-          </div>
-        </ViewportReveal>
-        <ViewportReveal as="section" className={styles.band} aria-labelledby="horizon-title">
-          <div className={styles.sectionIntro}>
-            <p className={styles.eyebrow}>{t("landing.horizon.eyebrow")}</p>
-            <h2 className={styles.display} id="horizon-title">{t("landing.horizon.title")}</h2>
-            <p className={styles.sectionText}>{t("landing.horizon.intro")}</p>
-          </div>
-          <div className={styles.plannedApps}>
-            {plannedApps.map(({ key, icon }) => (
-              <div className={styles.plannedApp} key={key}>
-                <FaIcon aria-hidden="true" icon={icon} size="xl" />
-                <div><h3>{t(`landing.horizon.${key}.title`)}</h3><p>{t(`landing.horizon.${key}.description`)}</p></div>
-                <span className={styles.plannedStatus}>{t("landing.horizon.status")}</span>
-              </div>
-            ))}
-            <p className={styles.productNote}>{t("landing.horizon.note")}</p>
-          </div>
         </ViewportReveal>
         <ViewportReveal as="section" aria-labelledby={sectionIds.questions} className={styles.band}>
           <h2 className={styles.display} id={sectionIds.questions}>{t("landing.questions.title")}</h2>
@@ -236,39 +205,46 @@ export function FrontDoorPage({ onboardingUrl, whatsappNumber }: FrontDoorPagePr
         </ViewportReveal>
       </main>
       <footer className={styles.footer}>
-        <div className={styles.footerTop}>
-          <p className={styles.eyebrow}>{t("landing.footer.eyebrow")}</p>
-          <Tooltip>
-            <Button
-              isIconOnly
-              aria-label={t("landing.footer.top")}
-              className={styles.toTop}
-              variant="ghost"
-              onPress={() => window.scrollTo({ top: 0, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" })}
-            >
-              <FaIcon aria-hidden="true" icon="arrow-up" size="2x" />
-            </Button>
-            <Tooltip.Content>{t("landing.footer.top")}</Tooltip.Content>
-          </Tooltip>
-        </div>
-        <div className={styles.footerInvitation}>
-          <h2>{t("landing.footer.title")}</h2>
-          <p>{t("landing.footer.intro")}</p>
-          <div className={styles.actions}>
-            <MarketingActionLink action={{ label: t("landing.apps.practice.discover"), href: darmanLandingUrl, tooltip: t("landing.apps.practice.discoverTooltip"), icon: <FaIcon aria-hidden="true" icon="user-doctor" /> }} />
+        <div className={styles.footerInner}>
+          <div className={styles.footerColumns}>
+            <div>
+              <h2>{t("landing.brand.name")}</h2>
+              <p>{t("landing.hero.lead")}</p>
+            </div>
+            <div>
+              <h2>{t("landing.footer.businesses")}</h2>
+              <ul>
+                <li>
+                  <Link className={styles.footerProduct} href={darmanLandingUrl}>
+                    <span>{t("landing.apps.practice.title")}</span>
+                    <Chip color="success" size="sm" variant="soft">{t("landing.footer.ready")}</Chip>
+                  </Link>
+                </li>
+                {upcomingBusinessKeys.map((key) => (
+                  <li className={styles.footerProduct} key={key}>
+                    <span>{t(`landing.footer.products.${key}`)}</span>
+                    <Chip className={upcomingChipClassName} size="sm" variant="soft">{t("landing.footer.soon")}</Chip>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h2>{t("landing.footer.individuals")}</h2>
+              <ul>
+                {upcomingIndividualKeys.map((key) => (
+                  <li className={styles.footerProduct} key={key}>
+                    <span>{t(`landing.footer.products.${key}`)}</span>
+                    <Chip className={upcomingChipClassName} size="sm" variant="soft">{t("landing.footer.soon")}</Chip>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+          <p className={styles.footerDisclosure}>{t("landing.footer.disclosure")}</p>
+          <div className={styles.footerBottom}>
+            <p>{t("landing.footer.rights")}</p>
           </div>
         </div>
-        <nav className={styles.footerNavigation} aria-label={t("landing.footer.navigation")}>
-          <div><h3>{t("landing.footer.explore")}</h3><Link href={darmanLandingUrl}>{t("landing.apps.practice.title")}</Link><Link href={`#${sectionIds.apps}`}>{t("landing.hero.explore")}</Link><Link href={`#${sectionIds.questions}`}>{t("landing.footer.questions")}</Link></div>
-          {whatsappNumber && <div><h3>{t("landing.footer.connect")}</h3><Link href={whatsappChatUrl(whatsappNumber, t("landing.questions.contact.message"))} rel="noreferrer" target="_blank">{t("landing.questions.contact.link")}</Link><p>{t("landing.questions.contact.answer")}</p></div>}
-        </nav>
-        <div className={styles.footerBottom}>
-          <p className={styles.footerNote}>
-            {t("landing.footer.rights")}
-          </p>
-          <p className={styles.footerNote}>{t("landing.footer.availability")}</p>
-        </div>
-        <Logotype isInverted alt={t("landing.brand.name")} className={styles.footerLogotype} mark="copyright" />
       </footer>
     </div>
   );
