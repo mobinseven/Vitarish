@@ -1178,9 +1178,13 @@ test("shows a generic 403 page while recording each denied audit review once", a
     const anonymousPath = testInfo.retry === 0
       ? getAuditPlatformSecurityEventsExportQueryKey()[0]
       : getAuditPlatformSecurityEventCatalogGetQueryKey()[0];
+    // Only denied reviews are counted: the administrator's own list reads are recorded as succeeded views.
     const anonymousFilters: AuditPlatformSecurityEventsListParams = {
       page: 1,
       pageSize: 25,
+      eventName: "security.audit.review",
+      eventCategory: "audit-review",
+      outcome: "denied",
       sortBy: auditSortFields.occurredAt,
       descending: true,
       uncataloguedOnly: false,
