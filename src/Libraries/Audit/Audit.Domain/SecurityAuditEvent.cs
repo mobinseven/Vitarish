@@ -12,6 +12,9 @@ public sealed class SecurityAuditEvent
     /// <summary>The longest resource extension an event may carry.</summary>
     public const int MaximumResourceExtensionLength = 32;
 
+    /// <summary>The longest display name of a resource, such as a transferred file, an event may carry.</summary>
+    public const int MaximumResourceNameLength = 255;
+
     public Guid Id { get; set; }
     public string EventName { get; set; } = string.Empty;
     public string? EventCategory { get; set; }
@@ -21,6 +24,7 @@ public sealed class SecurityAuditEvent
     public string? SubjectId { get; set; }
     public string TenantId { get; set; } = string.Empty;
     public string? Resource { get; set; }
+    public string? ResourceName { get; set; }
     public string? ResourceNameHash { get; set; }
     public string? ResourceExtension { get; set; }
     public long? ResourceSize { get; set; }

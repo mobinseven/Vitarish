@@ -31,7 +31,8 @@ internal static class SecurityAuditCsvFormatter
         "resourceNameHash",
         "resourceExtension",
         "resourceSize",
-        "changes"
+        "changes",
+        "resourceName"
     ];
 
     public static byte[] Format(IReadOnlyList<SecurityAuditEventReadDto> rows)
@@ -62,7 +63,8 @@ internal static class SecurityAuditCsvFormatter
                 row.ResourceNameHash,
                 row.ResourceExtension,
                 row.ResourceSize?.ToString(CultureInfo.InvariantCulture),
-                FormatChanges(row.Changes ?? [])
+                FormatChanges(row.Changes ?? []),
+                row.ResourceName
             ]);
         }
 

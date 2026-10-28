@@ -281,6 +281,7 @@ internal sealed class SecurityAuditQueryService(
         SubjectId = item.SubjectId,
         TenantId = item.TenantId,
         Resource = item.Resource,
+        ResourceName = item.ResourceName,
         ResourceNameHash = item.ResourceNameHash,
         ResourceExtension = item.ResourceExtension,
         ResourceSize = item.ResourceSize,

@@ -121,6 +121,40 @@ public sealed class SecurityAuditWriterTests
 
     [Theory]
     [InlineData("")]
+    [InlineData("   ")]
+    [InlineData("scan\n.pdf")]
+    [InlineData("scan\u202E.pdf")]
+    public async Task Rejects_a_blank_or_non_display_character_resource_name_before_persisting(string resourceName)
+    {
+        DbContextOptions<AuditDbContext> options = CreateOptions("security-audit-resource-name-" + Convert.ToHexString(System.Text.Encoding.UTF8.GetBytes(resourceName)));
+        await using AuditDbContext context = CreateContext(options, "tenant-a");
+        await context.Database.EnsureCreatedAsync();
+
+        SecurityAuditEvent invalid = CreateEvent("tenant-a", "request-1");
+        invalid.ResourceName = resourceName;
+        Func<Task> write = () => new SecurityAuditWriter(context).WriteAsync(invalid, CancellationToken.None);
+
+        await write.Should().ThrowAsync<ArgumentException>();
+        (await context.SecurityAuditEvents.CountAsync()).Should().Be(0);
+    }
+
+    [Fact]
+    public async Task Rejects_a_resource_name_longer_than_the_bound_before_persisting()
+    {
+        DbContextOptions<AuditDbContext> options = CreateOptions("security-audit-resource-name-length");
+        await using AuditDbContext context = CreateContext(options, "tenant-a");
+        await context.Database.EnsureCreatedAsync();
+
+        SecurityAuditEvent invalid = CreateEvent("tenant-a", "request-1");
+        invalid.ResourceName = new string('a', SecurityAuditEvent.MaximumResourceNameLength + 1);
+        Func<Task> write = () => new SecurityAuditWriter(context).WriteAsync(invalid, CancellationToken.None);
+
+        await write.Should().ThrowAsync<ArgumentException>();
+        (await context.SecurityAuditEvents.CountAsync()).Should().Be(0);
+    }
+
+    [Theory]
+    [InlineData("")]
     [InlineData("scan\n.pdf")]
     [InlineData("pdf\u200B")]
     public async Task Rejects_an_empty_or_non_display_character_resource_extension_before_persisting(string resourceExtension)
@@ -428,6 +462,7 @@ public sealed class SecurityAuditWriterTests
 
         SecurityAuditEvent pending = CreateEvent("tenant-a", "request-pending");
         pending.Outcome = SecurityAuditOutcome.Pending;
+        pending.ResourceName = "referral.pdf";
         pending.ResourceNameHash = new string('a', SecurityAuditEvent.MaximumResourceNameHashLength);
         pending.ResourceExtension = "pdf";
         pending.ResourceSize = 2048;
@@ -449,6 +484,7 @@ public sealed class SecurityAuditWriterTests
             (await restarted.SecurityAuditEvents.CountAsync()).Should().Be(2);
             (await restarted.SecurityAuditEvents.SingleAsync(item => item.Outcome == SecurityAuditOutcome.Pending)).Outcome.Should().Be(SecurityAuditOutcome.Pending);
             SecurityAuditEvent completed = await restarted.SecurityAuditEvents.SingleAsync(item => item.Outcome == SecurityAuditOutcome.Succeeded);
+            completed.ResourceName.Should().Be("referral.pdf");
             completed.ResourceNameHash.Should().Be(new string('a', SecurityAuditEvent.MaximumResourceNameHashLength));
             completed.ResourceExtension.Should().Be("pdf");
             completed.ResourceSize.Should().Be(2048);

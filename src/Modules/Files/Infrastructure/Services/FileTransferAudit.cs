@@ -45,6 +45,7 @@ public sealed class FileTransferAudit(
                 SubjectId = requestContext.UserId,
                 TenantId = requestContext.TenantId,
                 Resource = fileId is { } id ? FileTransferAuditContract.ResourcePrefix + id.ToString("N") : null,
+                ResourceName = normalizedFileName,
                 ResourceNameHash = normalizedFileName is null ? null : nameDigest.Compute(normalizedFileName),
                 ResourceExtension = normalizedFileName is null ? null : Extension(normalizedFileName),
                 ResourceSize = fileSize,

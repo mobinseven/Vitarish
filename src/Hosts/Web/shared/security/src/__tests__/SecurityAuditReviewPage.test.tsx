@@ -54,7 +54,7 @@ describe("SecurityAuditReviewPage", () => {
     vi.mocked(useAuditSecurityEventsList).mockReturnValue({
       data: {
         items: [
-          { id: "event-1", eventName: "security.data.export", outcome: "succeeded", actorKind: "user", actorId: "user-1", resourceExtension: "pdf", resourceSize: 2_516_582, occurredAt: "2026-09-02T07:00:00.000Z" },
+          { id: "event-1", eventName: "security.data.export", outcome: "succeeded", actorKind: "user", actorId: "user-1", resourceName: "MRI-report.pdf", resourceExtension: "pdf", resourceSize: 2_516_582, occurredAt: "2026-09-02T07:00:00.000Z" },
           { id: "event-2", eventName: "authentication.password.login", outcome: "succeeded", actorKind: "user", actorId: "user-1", occurredAt: "2026-09-02T07:01:00.000Z" },
         ],
         page: 1,
@@ -75,7 +75,7 @@ describe("SecurityAuditReviewPage", () => {
     );
 
     const [, exportRow, loginRow] = screen.getAllByRole("row");
-    expect(exportRow.querySelector("td")).toHaveTextContent("security.data.exportFile: PDF · 2.4 MB");
+    expect(exportRow.querySelector("td")).toHaveTextContent("security.data.exportFile: MRI-report.pdf · PDF · 2.4 MB");
     expect(loginRow.querySelector("td")).toHaveTextContent(/^authentication\.password\.login$/);
   });
 

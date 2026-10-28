@@ -17,7 +17,7 @@ public sealed class FileTransferAuditTests
     private const string TestKey = "files-test-transfer-audit-key-0123456789";
 
     [Fact]
-    public async Task Upload_and_download_records_carry_the_normalized_name_hash_extension_and_size()
+    public async Task Upload_and_download_records_carry_the_normalized_name_its_hash_extension_and_size()
     {
         List<SecurityAuditEvent> written = [];
         FileTransferAudit audit = new(Writer(written), RequestContext(), Digest(TestKey));
@@ -26,9 +26,9 @@ public sealed class FileTransferAuditTests
         await audit.RecordExportAsync(FileId, "referral.pdf", 2048, SecurityAuditOutcome.Succeeded, null);
 
         string expectedHash = ExpectedHash("referral.pdf");
-        written.Select(item => (item.EventName, item.ResourceNameHash, item.ResourceExtension, item.ResourceSize)).Should().Equal(
-            (SecurityAuditEventCatalog.ImportEvent, expectedHash, "pdf", 2048L),
-            (SecurityAuditEventCatalog.ExportEvent, expectedHash, "pdf", 2048L));
+        written.Select(item => (item.EventName, item.ResourceName, item.ResourceNameHash, item.ResourceExtension, item.ResourceSize)).Should().Equal(
+            (SecurityAuditEventCatalog.ImportEvent, "referral.pdf", expectedHash, "pdf", 2048L),
+            (SecurityAuditEventCatalog.ExportEvent, "referral.pdf", expectedHash, "pdf", 2048L));
     }
 
     [Fact]
@@ -41,7 +41,7 @@ public sealed class FileTransferAuditTests
         await audit.RecordExportAsync(FileId, "   ", 0, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.Unauthorized);
         await audit.RecordIntegrityVerificationAsync(FileId, SecurityAuditOutcome.Succeeded, null);
 
-        written.Should().HaveCount(3).And.OnlyContain(item => item.ResourceNameHash == null && item.ResourceExtension == null);
+        written.Should().HaveCount(3).And.OnlyContain(item => item.ResourceName == null && item.ResourceNameHash == null && item.ResourceExtension == null);
         written[0].ResourceSize.Should().BeNull();
         written[1].ResourceSize.Should().Be(0);
         written[2].ResourceSize.Should().BeNull();
