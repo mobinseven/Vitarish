@@ -95,7 +95,9 @@ rollback() {
   if ((${#attempted_apps[@]})); then compose stop "${attempted_apps[@]}" >/dev/null || restore_failed=true; fi
   if [[ $attempted_caddy == true && $previous_ingress == false ]]; then ingress stop caddy >/dev/null || restore_failed=true; fi
   while IFS= read -r file; do cp -a "$backup/$file" "$deployment/$file" || restore_failed=true; done < "$backup/existed"
-  while IFS= read -r file; do rm -f -- "$deployment/$file" || restore_failed=true; done < "$backup/missing"
+  if [[ -f $backup/missing ]]; then
+    while IFS= read -r file; do rm -f -- "$deployment/$file" || restore_failed=true; done < "$backup/missing"
+  fi
   rm -f -- "$release"
   [[ -z $updated_production ]] || rm -f -- "$updated_production"
   [[ -z $updated_shared ]] || rm -f -- "$updated_shared"
@@ -150,8 +152,20 @@ else
   ingress up -d --wait --wait-timeout 600 --no-deps --no-recreate --pull never caddy
 fi
 
-compose pull "${dependencies[@]}"
-if [[ -f $backup/docker-compose.production.yml ]] && ! cmp -s "$backup/docker-compose.production.yml" "$deployment/docker-compose.production.yml"; then
+production_compose_changed=true
+if [[ -f $backup/docker-compose.production.yml ]] && cmp -s "$backup/docker-compose.production.yml" "$deployment/docker-compose.production.yml"; then
+  production_compose_changed=false
+fi
+dependencies_to_pull=()
+if [[ $production_compose_changed == true ]]; then
+  dependencies_to_pull=("${dependencies[@]}")
+else
+  for service in "${dependencies[@]}"; do
+    if ! was_running "$service"; then dependencies_to_pull+=("$service"); fi
+  done
+fi
+if ((${#dependencies_to_pull[@]})); then compose pull "${dependencies_to_pull[@]}"; fi
+if [[ $production_compose_changed == true ]]; then
   compose up -d --wait --wait-timeout 600 --no-deps --pull never "${dependencies[@]}"
 else
   compose up -d --wait --wait-timeout 600 --no-deps --no-recreate --pull never "${dependencies[@]}"
