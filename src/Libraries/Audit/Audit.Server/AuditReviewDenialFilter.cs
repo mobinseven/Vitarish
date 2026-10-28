@@ -12,15 +12,8 @@ namespace Vitarish.Audit.Server;
 /// Records an unauthorized attempt to read the security audit at the review API boundary.
 /// The review query itself stays side-effect-free, and authorized reads are not recorded.
 /// </summary>
-internal sealed class AuditReviewDenialFilter(
-    ISecurityAuditWriter writer,
-    IRequestContext requestContext,
-    IOptions<SecurityAuditOptions> options,
-    TimeProvider timeProvider,
-    ILogger<AuditReviewDenialFilter> logger) : IEndpointFilter
+internal sealed class AuditReviewDenialFilter(AuditReviewDenialRecorder recorder) : IEndpointFilter
 {
-    internal const string WriteFailureCode = "security_audit_review_denial_write_failed";
-
     public async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
     {
         try
@@ -29,13 +22,28 @@ internal sealed class AuditReviewDenialFilter(
         }
         catch (UnauthorizedAccessException)
         {
-            string? operationId = context.HttpContext.GetEndpoint()?
-                .Metadata.GetMetadata<ModuleEndpointOpenApiConvention>()?.OperationId;
-            if (!string.IsNullOrWhiteSpace(operationId))
-                await RecordAsync(operationId, context.HttpContext.RequestAborted).ConfigureAwait(false);
-
+            await recorder.RecordAsync(context.HttpContext).ConfigureAwait(false);
             return Results.Forbid();
         }
+    }
+}
+
+internal sealed class AuditReviewDenialRecorder(
+    ISecurityAuditWriter writer,
+    IRequestContext requestContext,
+    IOptions<SecurityAuditOptions> options,
+    TimeProvider timeProvider,
+    ILogger<AuditReviewDenialRecorder> logger)
+{
+    internal const string WriteFailureCode = "security_audit_review_denial_write_failed";
+
+    internal Task RecordAsync(HttpContext context)
+    {
+        string? operationId = context.GetEndpoint()?
+            .Metadata.GetMetadata<ModuleEndpointOpenApiConvention>()?.OperationId;
+        return string.IsNullOrWhiteSpace(operationId)
+            ? Task.CompletedTask
+            : RecordAsync(operationId, context.RequestAborted);
     }
 
     private async Task RecordAsync(string operationId, CancellationToken requestAborted)

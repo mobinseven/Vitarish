@@ -507,6 +507,8 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     mkdirSync(evidenceDirectory, { recursive: true });
     await page.screenshot({ path: join(evidenceDirectory, "account-security-access-history.png"), fullPage: true });
     expect((await postJson(page, "/api/modules/authentication/access-history/acknowledge")).status).toBe(200);
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await expect(page.getByText(new RegExp(escapeRegExp(ownerClientIp))).first()).toBeVisible({ timeout: 30_000 });
 
     // OTP establishes a second session and may invalidate the owner session under
     // the evaluated concurrent-session policy, so perform it after owner actions.

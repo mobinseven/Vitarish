@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 using Vitarish.Users.Application.Commands;
+using Vitarish.Users.Application.Queries;
 using Vitarish.Users.Domain.Entities;
 
 namespace Vitarish.Users.Application.Abstractions;
@@ -20,6 +21,7 @@ public interface IUsersService : IUserStore<User>, IUserSecurityStampStore<User>
     Task<IList<Claim>> GetUserClaimsAsync(string userId, CancellationToken ct = default);
     Task<IdentityResult> UpdateUserClaimsAsync(UpdateUserClaimsCommand command, CancellationToken ct = default);
     Task<bool> UserHasPasswordAsync(string userId, CancellationToken ct = default);
+    Task<UserPasswordStatus?> GetUserPasswordStatusAsync(string userId, CancellationToken ct = default);
     Task<bool> CheckUserPasswordAsync(string userId, string password, CancellationToken ct = default);
     Task<bool> CheckUserEmailInUseAsync(string email, string? excludeUserId = null, CancellationToken ct = default);
     Task<bool> CheckUserPhoneNumberInUseAsync(string phoneNumber, string? excludeUserId = null, CancellationToken ct = default);

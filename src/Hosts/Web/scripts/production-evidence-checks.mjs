@@ -10,12 +10,14 @@ const tcpConnectTimeoutMilliseconds = 3000;
 const tcpScanConcurrency = 8;
 const sshCommandTimeoutMilliseconds = 30000;
 const minimumCertificateValidityDays = 14;
+const certificateInspectionTimeoutMilliseconds = 10000;
 const expectedUnsafeMethodStatus = 405;
 const tlsLegacyProtocolCiphers = "DEFAULT@SECLEVEL=0";
 
 export const maximumClockDifferenceSeconds = 5;
 export const expectedNtpSynchronized = "yes";
 export const certificateHandshakeProtocol = "TLSv1.3";
+export const serverAuthenticationEkuOid = "1.3.6.1.5.5.7.3.1";
 export const tls12HandshakeProtocol = "TLSv1.2";
 const tlsExpectations = Object.freeze({ accepted: "accepted", rejected: "rejected" });
 const unsafeHttpMethods = Object.freeze({ trace: "TRACE", connect: "CONNECT" });
@@ -297,6 +299,28 @@ function describeCertificateKey(certificate) {
   return null;
 }
 
+function readCertificateExtension(der, extension) {
+  if (!Buffer.isBuffer(der) || der.length === 0) return { value: null, error: "certificate DER is unavailable" };
+  try {
+    const output = execFileSync("openssl", ["x509", "-inform", "DER", "-noout", "-ext", extension], {
+      input: der,
+      encoding: "utf8",
+      timeout: certificateInspectionTimeoutMilliseconds,
+      maxBuffer: 1024 * 1024,
+    }).trim();
+    if (!output || /^No extensions in certificate\.?$/i.test(output)) {
+      return { value: null, error: null };
+    }
+    return { value: output, error: null };
+  } catch (error) {
+    return { value: null, error: errorCodeOf(error) ?? "certificate inspection failed" };
+  }
+}
+
+export function readCertificateCrlDistributionPoints(der) {
+  return readCertificateExtension(der, "crlDistributionPoints");
+}
+
 export function summarizeCertificate(hostname, tls13Attempt) {
   const unavailable = (reason) => ({
     hostname,
@@ -310,6 +334,13 @@ export function summarizeCertificate(hostname, tls13Attempt) {
     expiresInDays: null,
     key: null,
     signatureAlgorithm: null,
+    extendedKeyUsage: null,
+    issuerCa: null,
+    issuerBasicConstraints: null,
+    issuerInspectionError: null,
+    ocspSources: null,
+    crlDistributionPoints: null,
+    crlInspectionError: null,
     authorized: false,
     authorizationError: null,
     hostnameMatches: false,
@@ -322,6 +353,9 @@ export function summarizeCertificate(hostname, tls13Attempt) {
   if (!certificate || Object.keys(certificate).length === 0) return unavailable("the TLS 1.3 handshake returned no peer certificate");
   const validToMilliseconds = parseCertificateDate(certificate.valid_to);
   const signature = readCertificateSignatureAlgorithm(certificate.raw);
+  const crl = readCertificateCrlDistributionPoints(certificate.raw);
+  const issuerConstraints = readCertificateExtension(certificate.issuerCertificate?.raw, "basicConstraints");
+  const ocspSources = certificate.infoAccess?.["OCSP - URI"];
   let hostnameMatches = false;
   try {
     hostnameMatches = checkServerIdentity(hostname, certificate) === undefined;
@@ -340,6 +374,13 @@ export function summarizeCertificate(hostname, tls13Attempt) {
     expiresInDays: Number.isFinite(validToMilliseconds) ? Math.floor((validToMilliseconds - Date.now()) / 86400000) : null,
     key: describeCertificateKey(certificate),
     signatureAlgorithm: signature ? (signature.name ? `${signature.name} (${signature.oid})` : signature.oid) : null,
+    extendedKeyUsage: Array.isArray(certificate.ext_key_usage) ? certificate.ext_key_usage : null,
+    issuerCa: typeof certificate.issuerCertificate?.ca === "boolean" ? certificate.issuerCertificate.ca : null,
+    issuerBasicConstraints: issuerConstraints.value,
+    issuerInspectionError: issuerConstraints.error,
+    ocspSources: Array.isArray(ocspSources) ? ocspSources : null,
+    crlDistributionPoints: crl.value,
+    crlInspectionError: crl.error,
     authorized: tls13Attempt.authorized === true,
     authorizationError: tls13Attempt.authorizationError ?? null,
     hostnameMatches,
@@ -357,6 +398,12 @@ export function evaluateCertificate(hostname, certificate) {
   }
   if (certificate.hostnameMatches !== true) {
     failures.push(`${hostname} certificate does not match the hostname ${hostname}.`);
+  }
+  if (certificate.crlInspectionError) {
+    failures.push(`${hostname} certificate CRL distribution points could not be inspected (${certificate.crlInspectionError}).`);
+  }
+  if (certificate.issuerInspectionError) {
+    failures.push(`${hostname} issuer certificate basic constraints could not be inspected (${certificate.issuerInspectionError}).`);
   }
   if (certificate.expiresInDays === null) {
     failures.push(`${hostname} certificate expiry could not be read from "${certificate.validTo ?? "an unreadable date"}".`);

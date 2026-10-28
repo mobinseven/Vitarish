@@ -10,19 +10,9 @@ import { localizeSecurityAuditOutcome } from "../localization";
 import { describeTransferredFile } from "./transferredFile";
 import { AuditDateFilter } from "./AuditDateFilter";
 import { auditOutcomeColor } from "./auditOutcomeColor";
+import { auditSortFields, type AuditSortField } from "../api/securityAuditSortFields";
 
 const pageSize = 25;
-// OpenAPI currently emits the C# SecurityAuditSortField enum as an integer.
-const auditSortFields = {
-  actor: 0,
-  occurredAt: 1,
-  eventType: 2,
-  actorKind: 3,
-  sourceIpKind: 4,
-  sourceIpAddress: 5,
-} as const;
-type AuditSortField = typeof auditSortFields[keyof typeof auditSortFields];
-
 function utcBoundary(value: string, endOfDay: boolean): string | undefined {
   if (!value) return undefined;
   return new Date(`${value}T${endOfDay ? "23:59:59.999" : "00:00:00.000"}Z`).toISOString();

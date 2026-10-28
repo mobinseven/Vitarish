@@ -8,6 +8,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
+using System.Security.Cryptography;
+using System.Text;
 using Vitarish.Audit.Application;
 using Vitarish.Audit.Domain;
 using Vitarish.Authentication.Application.Abstractions;
@@ -142,12 +144,15 @@ public sealed class UserUpdateValidationTests
     public async Task The_user_cache_holds_no_credential_or_lockout_state()
     {
         IDistributedCache cache = CreateCache();
+        DateTime passwordChangedAt = new(2026, 10, 20, 9, 30, 0, DateTimeKind.Utc);
         User user = new()
         {
             Id = UserId,
             UserName = "cached-user",
             Email = "cached@example.test",
+            PasswordChangedAt = passwordChangedAt,
             PasswordHash = "stored-password-hash",
+            PasswordHashFingerprint = SHA256.HashData(Encoding.UTF8.GetBytes("stored-password-hash")),
             SecurityStamp = "stored-security-stamp",
             LockoutEnabled = true,
             LockoutEnd = DateTimeOffset.UtcNow.AddMinutes(5),
@@ -160,13 +165,33 @@ public sealed class UserUpdateValidationTests
         User cached = (await UserCacheExtensions.GetUserAsync(cache, UserId, CancellationToken.None))!;
 
         payload.Should().NotContain("stored-password-hash").And.NotContain("stored-security-stamp");
+        payload.Should().NotContain("passwordChangedAt");
+        payload.Should().NotContain("passwordHashFingerprint");
         cached.PasswordHash.Should().BeNull();
+        cached.PasswordChangedAt.Should().BeNull();
+        cached.PasswordHashFingerprint.Should().BeNull();
         // IdentityUser's constructor gives every new instance a random stamp; the stored one never reaches the cache.
         cached.SecurityStamp.Should().NotBe("stored-security-stamp");
         cached.LockoutEnd.Should().BeNull();
         cached.AccessFailedCount.Should().Be(0);
         cached.Email.Should().Be("cached@example.test");
         cached.ConcurrencyStamp.Should().Be("concurrency-stamp");
+    }
+
+    [Fact]
+    public async Task User_cache_ignores_credential_state_from_a_legacy_payload()
+    {
+        Mock<IDistributedCache> cache = new();
+        string legacyPayload = $$"""{"id":"{{UserId}}","userName":"legacy-cached-user","passwordChangedAt":"2026-10-01T00:00:00Z","passwordHashFingerprint":"AQID"}""";
+        cache.Setup(value => value.GetAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(System.Text.Encoding.UTF8.GetBytes(legacyPayload));
+
+        User? cached = await UserCacheExtensions.GetUserAsync(cache.Object, UserId, CancellationToken.None);
+
+        cached.Should().NotBeNull();
+        cached!.PasswordChangedAt.Should().BeNull();
+        cached.PasswordHashFingerprint.Should().BeNull();
+        cached.UserName.Should().Be("legacy-cached-user");
     }
 
     [Fact]
@@ -178,6 +203,7 @@ public sealed class UserUpdateValidationTests
         {
             User stored = await seed.Users.SingleAsync(user => user.Id == UserId);
             stored.PasswordHash = "stored-password-hash";
+            stored.PasswordHashFingerprint = SHA256.HashData(Encoding.UTF8.GetBytes("stored-password-hash"));
             stored.SecurityStamp = "stored-security-stamp";
             stored.AccessFailedCount = 2;
             _ = await seed.SaveChangesAsync();
@@ -195,8 +221,45 @@ public sealed class UserUpdateValidationTests
         User persisted = await dbContext.Users.AsNoTracking().SingleAsync(user => user.Id == UserId);
         persisted.FirstName.Should().Be("Renamed");
         persisted.PasswordHash.Should().Be("stored-password-hash");
+        persisted.PasswordHashFingerprint.Should().Equal(SHA256.HashData(Encoding.UTF8.GetBytes("stored-password-hash")));
         persisted.SecurityStamp.Should().Be("stored-security-stamp");
         persisted.AccessFailedCount.Should().Be(2);
+    }
+
+    [Fact]
+    public async Task Name_update_from_a_legacy_cached_copy_keeps_the_authoritative_password_date()
+    {
+        string databaseName = Guid.NewGuid().ToString("N");
+        DateTime staleDate = new(2026, 10, 1, 8, 0, 0, DateTimeKind.Utc);
+        DateTime authoritativeDate = new(2026, 10, 20, 9, 30, 0, DateTimeKind.Utc);
+        byte[] authoritativeFingerprint = SHA256.HashData(Encoding.UTF8.GetBytes("stored-password-hash"));
+        await using UsersDbContext dbContext = await CreateDbContextWithUserAsync(
+            user =>
+            {
+                user.PasswordChangedAt = staleDate;
+                user.PasswordHash = "stored-password-hash";
+                user.PasswordHashFingerprint = authoritativeFingerprint;
+            },
+            databaseName);
+        IDistributedCache cache = CreateCache();
+        await UserCacheExtensions.SetUserAsync(cache, await dbContext.Users.AsNoTracking().SingleAsync(user => user.Id == UserId), CancellationToken.None);
+        User request = (await UserCacheExtensions.GetUserAsync(cache, UserId, CancellationToken.None))!;
+        request.PasswordChangedAt = staleDate;
+        request.FirstName = "Renamed";
+
+        await using UsersDbContext storeContext = CreateDbContext(databaseName);
+        User stored = await storeContext.Users.SingleAsync(user => user.Id == UserId);
+        stored.PasswordChangedAt = authoritativeDate;
+        _ = await storeContext.SaveChangesAsync();
+
+        IdentityResult result = await CreateUpdateHandler(dbContext, CreateUserManager(storeContext))
+            .Handle(new UpdateUserCommand(request), CancellationToken.None);
+
+        result.Succeeded.Should().BeTrue(string.Join("; ", result.Errors.Select(error => $"{error.Code}:{error.Description}")));
+        User persisted = await storeContext.Users.AsNoTracking().SingleAsync(user => user.Id == UserId);
+        persisted.FirstName.Should().Be("Renamed");
+        persisted.PasswordChangedAt.Should().Be(authoritativeDate);
+        persisted.PasswordHashFingerprint.Should().Equal(authoritativeFingerprint);
     }
 
     [Fact]

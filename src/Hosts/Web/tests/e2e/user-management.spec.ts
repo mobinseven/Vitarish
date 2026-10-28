@@ -11,6 +11,7 @@ import { authenticationLogoutPost } from "../../shared/auth/src/api/generated/au
 import type { SecurityAuthenticationPolicyDto } from "../../shared/auth/src/api/generated/authentication/model";
 import { resetAntiforgeryToken, TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
 import { UsersCommandErrorKind } from "../../shared/auth/src/users";
+import { usersMessageCatalogs } from "../../shared/users/src/localization/catalogs";
 import { localizePlatformAuditCategory, localizePlatformAuditEvent, localizeSecurityAuditOutcome } from "../../shared/security/src/localization";
 import {
   twoHostE2eApiOriginEnvironmentKey,
@@ -584,7 +585,10 @@ test("platform administrator creates, edits, assigns access, and reviews a user'
   // The server reports which authentication data the account holds: the changed
   // email is no longer verified and no passkey has been registered.
   const authenticationMethods = page.locator("section").filter({ has: page.getByRole("heading", { name: "Authentication methods", exact: true }) });
-  await expect(authenticationMethods.getByRole("definition").nth(1)).toHaveText("Not verified");
+  const userMessages = usersMessageCatalogs.en.users.management;
+  await expect(authenticationMethods.getByText(userMessages.emailVerification, { exact: true }).locator("..").getByRole("definition")).toHaveText(userMessages.notVerified);
+  await expect(authenticationMethods.getByText(userMessages.passwordChangedAt, { exact: true }).locator("..").getByRole("definition")).toHaveText(userMessages.passwordChangeUnknown);
+  await expect(authenticationMethods.getByRole("list", { name: userMessages.enabledMethods }).getByText(userMessages.password, { exact: true })).toBeVisible();
   await expect(authenticationMethods.getByText("No passkey is registered.", { exact: true })).toBeVisible();
 
   const proofScreenshot = process.env[twoHostE2eProofScreenshotEnvironmentKey];

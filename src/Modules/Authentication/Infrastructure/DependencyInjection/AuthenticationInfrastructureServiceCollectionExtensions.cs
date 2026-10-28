@@ -14,6 +14,7 @@ using Vitarish.Authentication.Infrastructure.Identity;
 using Vitarish.Authentication.Infrastructure.Time;
 using Vitarish.Entities.Server.Extensions;
 using Vitarish.Users.Domain.Entities;
+using Vitarish.Users.Application.Abstractions;
 using Vitarish.Requests.Application.Abstractions;
 
 namespace Vitarish.Authentication.Infrastructure.DependencyInjection;
@@ -26,6 +27,7 @@ public static class AuthenticationInfrastructureServiceCollectionExtensions
         _ = services.AddScoped<SecurityAccessPolicyStore>();
         _ = services.AddScoped<IAuthenticationSecurityPolicyStore>(provider => provider.GetRequiredService<SecurityAccessPolicyStore>());
         _ = services.AddScoped<IAuthenticationSecurityPolicyProvider>(provider => provider.GetRequiredService<SecurityAccessPolicyStore>());
+        _ = services.AddScoped<IEnabledAuthenticationMethods, EnabledAuthenticationMethodsReader>();
         _ = services.AddOptions<AuthenticationAttemptKeyOptions>()
             .BindConfiguration(AuthenticationAttemptKeyOptions.SectionName)
             .ValidateOnStart();

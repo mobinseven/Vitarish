@@ -27,7 +27,9 @@ public sealed record UserAuthenticationMethodsResult(
     bool PasswordSet,
     bool EmailVerified,
     bool PhoneNumberVerified,
-    IReadOnlyList<UserPasskeyEntry> Passkeys);
+    IReadOnlyList<UserPasskeyEntry> Passkeys,
+    EnabledAuthenticationMethods? EnabledMethods = null,
+    DateTime? PasswordChangedAt = null);
 
 public sealed record UserPasskeyEntry(
     Guid Id,
@@ -57,7 +59,8 @@ internal sealed class GetUserSecurityDetailsQueryHandler(
     IUsersService usersService,
     IWebAuthnService webAuthn,
     ISecurityAuditQueryService auditQuery,
-    ILogger<GetUserSecurityDetailsQueryHandler> logger) : IRequestHandler<GetUserSecurityDetailsQuery, UserSecurityDetailsQueryResult>
+    ILogger<GetUserSecurityDetailsQueryHandler> logger,
+    IEnabledAuthenticationMethods enabledMethods) : IRequestHandler<GetUserSecurityDetailsQuery, UserSecurityDetailsQueryResult>
 {
     private static readonly UserAuthenticationMethodsResult EmptyAuthenticationMethods = new(false, false, false, []);
 
@@ -169,11 +172,16 @@ internal sealed class GetUserSecurityDetailsQueryHandler(
     private async Task<UserAuthenticationMethodsResult> GetAuthenticationMethodsAsync(User user, CancellationToken cancellationToken)
     {
         IEnumerable<WebAuthnCredentialDto> credentials = await webAuthn.ListCredentialsAsync(user.Id, cancellationToken);
+        EnabledAuthenticationMethods effectiveMethods = await enabledMethods.GetAsync(cancellationToken);
+        UserPasswordStatus password = await usersService.GetUserPasswordStatusAsync(user.Id, cancellationToken)
+            ?? throw new InvalidOperationException("The user no longer exists.");
         return new(
-            !string.IsNullOrWhiteSpace(user.PasswordHash),
+            password.PasswordSet,
             !string.IsNullOrWhiteSpace(user.Email) && user.EmailConfirmed,
             !string.IsNullOrWhiteSpace(user.PhoneNumber) && user.PhoneNumberConfirmed,
-            credentials.Select(credential => new UserPasskeyEntry(credential.Id, credential.FriendlyName, credential.RegisteredAt, credential.LastUsedAt)).ToArray());
+            credentials.Select(credential => new UserPasskeyEntry(credential.Id, credential.FriendlyName, credential.RegisteredAt, credential.LastUsedAt)).ToArray(),
+            effectiveMethods,
+            password.PasswordChangedAt);
     }
 
     private static UserSecurityHistoryResult MapHistory(SecurityAuditPageReadDto history) => new(

@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { createServer as createHttpServer } from "node:http";
 import { createServer as createTcpServer } from "node:net";
 import test from "node:test";
+import { rootCertificates } from "node:tls";
+import { X509Certificate } from "node:crypto";
 
 import {
   evaluateCertificate,
@@ -19,7 +21,9 @@ import {
   probeHttpRedirect,
   probeTlsProtocol,
   readCertificateSignatureAlgorithm,
+  readCertificateCrlDistributionPoints,
   scanTcpPorts,
+  summarizeCertificate,
   summarizeTimeSync,
   tlsProtocolProbes,
   weakTls12Ciphers,
@@ -112,6 +116,41 @@ test("certificate evaluation requires trust, hostname match, and at least fourte
   assert.match(evaluateCertificate("app.example.test", { ...certificate, hostnameMatches: false }).failures[0], /does not match the hostname/);
   assert.match(evaluateCertificate("app.example.test", { ...certificate, expiresInDays: 10 }).failures[0], /expires in 10 day/);
   assert.match(evaluateCertificate("app.example.test", { available: false, reason: "TLS 1.3 handshake was not accepted" }).failures[0], /could not be read/);
+});
+
+test("certificate evidence reports public usage, issuer and revocation sources without inferring unavailable data", () => {
+  const certificate = summarizeCertificate("app.example.test", {
+    accepted: true,
+    authorized: true,
+    peerCertificate: {
+      ext_key_usage: ["1.3.6.1.5.5.7.3.1"],
+      issuerCertificate: { ca: true },
+      infoAccess: { "OCSP - URI": ["https://ocsp.example.test/"] },
+    },
+  });
+  assert.deepEqual(certificate.extendedKeyUsage, ["1.3.6.1.5.5.7.3.1"]);
+  assert.equal(certificate.issuerCa, true);
+  assert.equal(certificate.issuerBasicConstraints, null);
+  assert.equal(certificate.issuerInspectionError, "certificate DER is unavailable");
+  assert.deepEqual(certificate.ocspSources, ["https://ocsp.example.test/"]);
+  assert.equal(certificate.crlDistributionPoints, null);
+  assert.equal(certificate.crlInspectionError, "certificate DER is unavailable");
+  assert.match(evaluateCertificate("app.example.test", certificate).failures.join(" "), /CRL distribution points could not be inspected/);
+  assert.match(evaluateCertificate("app.example.test", certificate).failures.join(" "), /issuer certificate basic constraints could not be inspected/);
+
+  const missing = summarizeCertificate("app.example.test", { accepted: true, peerCertificate: { subject: {} } });
+  assert.equal(missing.extendedKeyUsage, null);
+  assert.equal(missing.issuerCa, null);
+  assert.equal(missing.ocspSources, null);
+  assert.deepEqual(readCertificateCrlDistributionPoints(undefined), { value: null, error: "certificate DER is unavailable" });
+});
+
+test("CRL extension inspection accepts a real public certificate and distinguishes malformed DER", () => {
+  const publicCertificate = new X509Certificate(rootCertificates[0]);
+  const inspected = readCertificateCrlDistributionPoints(publicCertificate.raw);
+  assert.equal(inspected.error, null);
+  assert.ok(inspected.value === null || /CRL Distribution Points/i.test(inspected.value));
+  assert.ok(readCertificateCrlDistributionPoints(Buffer.from([0])).error);
 });
 
 test("HTTP redirect evaluation requires a redirect from the same host to HTTPS", () => {

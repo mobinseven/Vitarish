@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Moq;
+using System.Text.Json;
 using Vitarish.Modules.Base.Core.Identity;
 using Vitarish.Users.Api;
 using Vitarish.Users.Application.Queries;
@@ -75,6 +76,33 @@ public sealed class UserSecurityDetailsResponseMappingTests
         JsonHttpResult<UserSecurityDetailsResponse> response = result.Should().BeAssignableTo<JsonHttpResult<UserSecurityDetailsResponse>>().Subject;
         response.StatusCode.Should().Be(StatusCodes.Status503ServiceUnavailable);
         response.Value!.AuthenticationMethods!.Passkeys.Should().ContainSingle().Which.Id.Should().Be(credentialId);
+    }
+
+    [Fact]
+    public async Task Credential_hash_and_fingerprint_never_appear_in_general_or_security_detail_json()
+    {
+        UserSecurityDetailsQueryResult details = Details(authenticationMethods: null, authenticationMethodsUnavailable: false) with
+        {
+            User = new User
+            {
+                Id = UserId,
+                UserName = "user@example.test",
+                Email = "user@example.test",
+                PasswordHash = "synthetic-credential-hash",
+                PasswordHashFingerprint = [1, 2, 3]
+            }
+        };
+        Mock<ISender> sender = Sender(details);
+
+        IResult result = await UsersApi.GetUserSecurityDetailsAsync(UserId, 1, 25, null, sender.Object, CancellationToken.None);
+
+        Ok<UserSecurityDetailsResponse> response = result.Should().BeAssignableTo<Ok<UserSecurityDetailsResponse>>().Subject;
+        JsonSerializerOptions jsonOptions = new(JsonSerializerDefaults.Web);
+        string responseJson = JsonSerializer.Serialize(response.Value, jsonOptions);
+        string entityJson = JsonSerializer.Serialize(details.User, jsonOptions);
+        responseJson.Should().NotContain("passwordHash").And.NotContain("synthetic-credential-hash");
+        responseJson.Should().NotContain("passwordHashFingerprint");
+        entityJson.Should().NotContain("passwordHashFingerprint");
     }
 
     private static UserSecurityDetailsQueryResult Details(

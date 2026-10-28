@@ -23,6 +23,8 @@ internal static class UserCacheExtensions
     internal static readonly IReadOnlyList<string> CredentialProperties =
     [
         nameof(User.PasswordHash),
+        nameof(User.PasswordChangedAt),
+        nameof(User.PasswordHashFingerprint),
         nameof(User.SecurityStamp),
         nameof(User.LockoutEnd),
         nameof(User.LockoutEnabled),

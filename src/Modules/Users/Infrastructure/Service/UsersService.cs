@@ -60,6 +60,9 @@ public sealed class UsersService(ISender sender) : IUsersService
     public Task<bool> UserHasPasswordAsync(string userId, CancellationToken ct = default) =>
         sender.Send(new UserHasPasswordQuery(userId), ct);
 
+    public Task<UserPasswordStatus?> GetUserPasswordStatusAsync(string userId, CancellationToken ct = default) =>
+        sender.Send(new GetUserPasswordStatusQuery(userId), ct);
+
     public Task<IEnumerable<User>> GetUsersByIdentificationCodeAsync(string identificationCode, CancellationToken ct = default) =>
         sender.Send(new GetUsersByIdentificationCodeQuery(identificationCode), ct);
 

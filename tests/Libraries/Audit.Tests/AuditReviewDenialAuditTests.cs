@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using FluentAssertions;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -90,7 +91,75 @@ public sealed class AuditReviewDenialFilterTests
 
         context.Response.StatusCode.Should().Be(StatusCodes.Status403Forbidden);
         if (failure != "store")
-            logs.Should().ContainSingle(message => message.Contains(AuditReviewDenialFilter.WriteFailureCode));
+            logs.Should().ContainSingle(message => message.Contains(AuditReviewDenialRecorder.WriteFailureCode));
+    }
+
+    [Theory]
+    [MemberData(nameof(ReviewOperationData))]
+    public async Task Authorization_middleware_records_anonymous_challenge_for_each_review_endpoint(string operationId)
+    {
+        RecordingWriter writer = new();
+        using WebApplication app = CreateApp(writer, new AllowingQueryService(), new TestTimeProvider(DateTimeOffset.UtcNow), anonymous: true);
+
+        HttpContext context = await InvokeAuthorizationAsync(app, FindEndpoint(app, operationId));
+
+        context.Response.StatusCode.Should().Be(StatusCodes.Status401Unauthorized);
+        SecurityAuditEvent denial = writer.Written.Should().ContainSingle().Subject;
+        denial.ActorId.Should().BeNull();
+        denial.SubjectId.Should().BeNull();
+        denial.TenantId.Should().Be(SecurityAuditScopeCatalog.PlatformScopeId);
+        denial.Operation.Should().Be(operationId);
+        denial.Outcome.Should().Be(SecurityAuditOutcome.Denied);
+        SecurityAuditEventCatalog.IsCatalogued(denial).Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Authorization_middleware_leaves_other_endpoint_challenges_unaudited()
+    {
+        const string unrelatedPath = "/unrelated";
+        RecordingWriter writer = new();
+        using WebApplication app = CreateApp(writer, new AllowingQueryService(), new TestTimeProvider(DateTimeOffset.UtcNow), anonymous: true);
+        _ = app.MapGet(unrelatedPath, () => Results.Ok()).RequireAuthorization();
+        RouteEndpoint endpoint = ((IEndpointRouteBuilder)app).DataSources.SelectMany(source => source.Endpoints)
+            .OfType<RouteEndpoint>().Single(item => item.RoutePattern.RawText == unrelatedPath);
+
+        HttpContext context = await InvokeAuthorizationAsync(app, endpoint);
+
+        context.Response.StatusCode.Should().Be(StatusCodes.Status401Unauthorized);
+        writer.Written.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Authorization_middleware_preserves_challenge_when_audit_store_fails()
+    {
+        ISecurityAuditWriter writer = new ThrowingWriter(new SecurityAuditStoreException("Audit unavailable.", new InvalidOperationException()));
+        using WebApplication app = CreateApp(writer, new AllowingQueryService(), new TestTimeProvider(DateTimeOffset.UtcNow), anonymous: true);
+
+        HttpContext context = await InvokeAuthorizationAsync(app, FindEndpoint(app, SecurityAuditApiOperations.ListSecurityEvents));
+
+        context.Response.StatusCode.Should().Be(StatusCodes.Status401Unauthorized);
+    }
+
+    [Fact]
+    public async Task Anonymous_challenges_are_persisted_once_within_the_dedupe_window()
+    {
+        DbContextOptions<AuditDbContext> options = new DbContextOptionsBuilder<AuditDbContext>()
+            .UseInMemoryDatabase("anonymous-denial-dedupe-" + Guid.NewGuid())
+            .Options;
+        await using AuditDbContext dbContext = new(options, new TestRequestContext(null, null));
+        await dbContext.Database.EnsureCreatedAsync();
+        TestTimeProvider timeProvider = new(new DateTimeOffset(2026, 10, 26, 12, 0, 0, TimeSpan.Zero));
+        using WebApplication app = CreateApp(new SecurityAuditWriter(dbContext), new AllowingQueryService(), timeProvider, anonymous: true);
+        RouteEndpoint endpoint = FindEndpoint(app, SecurityAuditApiOperations.ListPlatformSecurityEvents);
+
+        _ = await InvokeAuthorizationAsync(app, endpoint);
+        _ = await InvokeAuthorizationAsync(app, endpoint);
+
+        SecurityAuditEvent denial = await dbContext.SecurityAuditEvents.SingleAsync();
+        denial.ActorKind.Should().Be(SecurityAuditActorKind.Anonymous);
+        denial.ActorId.Should().BeNull();
+        denial.TenantId.Should().Be(SecurityAuditScopeCatalog.PlatformScopeId);
+        denial.Operation.Should().Be(SecurityAuditApiOperations.ListPlatformSecurityEvents);
     }
 
     [Fact]
@@ -133,7 +202,8 @@ public sealed class AuditReviewDenialFilterTests
         ISecurityAuditQueryService queryService,
         TimeProvider timeProvider,
         SecurityAuditOptions? options = null,
-        List<string>? logs = null)
+        List<string>? logs = null,
+        bool anonymous = false)
     {
         WebApplicationBuilder builder = WebApplication.CreateBuilder();
         builder.Logging.ClearProviders();
@@ -141,9 +211,12 @@ public sealed class AuditReviewDenialFilterTests
             builder.Logging.AddProvider(new ListLoggerProvider(logs));
         builder.Services.AddSingleton(writer);
         builder.Services.AddSingleton(queryService);
-        builder.Services.AddSingleton<IRequestContext>(new TestRequestContext("tenant-a", "user-7"));
+        builder.Services.AddSingleton<IRequestContext>(new TestRequestContext(anonymous ? null : "tenant-a", anonymous ? null : "user-7"));
         builder.Services.AddSingleton(Options.Create(options ?? new SecurityAuditOptions()));
         builder.Services.AddSingleton(timeProvider);
+        builder.Services.AddAuthorization();
+        builder.Services.AddSingleton<IAuthorizationMiddlewareResultHandler, AuditReviewAuthorizationResultHandler>();
+        builder.Services.AddTransient<AuditReviewDenialRecorder>();
         builder.Services.AddSingleton<IAuthenticationService, StatusCodeAuthenticationService>();
 
         WebApplication app = builder.Build();
@@ -167,6 +240,17 @@ public sealed class AuditReviewDenialFilterTests
         context.SetEndpoint(endpoint);
 
         await endpoint.RequestDelegate!(context);
+        return context;
+    }
+
+    private static async Task<HttpContext> InvokeAuthorizationAsync(WebApplication app, RouteEndpoint endpoint)
+    {
+        DefaultHttpContext context = new() { RequestServices = app.Services };
+        context.SetEndpoint(endpoint);
+        IApplicationBuilder pipeline = new ApplicationBuilder(app.Services);
+        pipeline.UseAuthorization();
+        pipeline.Run(_ => throw new InvalidOperationException("Authorization unexpectedly allowed the request."));
+        await pipeline.Build()(context);
         return context;
     }
 
@@ -270,7 +354,7 @@ public sealed class AuditReviewDenialFilterTests
         public override DateTimeOffset GetUtcNow() => UtcNow;
     }
 
-    private sealed class TestRequestContext(string? tenantId, string userId) : IRequestContext
+    private sealed class TestRequestContext(string? tenantId, string? userId) : IRequestContext
     {
         public string Authority => "test";
         public string? ClientId => null;

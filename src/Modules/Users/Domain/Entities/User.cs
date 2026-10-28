@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 namespace Vitarish.Users.Domain.Entities;
 
 public class User : IdentityUser
@@ -34,6 +35,13 @@ public class User : IdentityUser
     /// keeps its failed-attempt lockout state independent of this flag.
     /// </summary>
     public bool IsEnabled { get; set; } = true;
+
+    /// <summary>UTC time of the last known successful password assignment.</summary>
+    public DateTime? PasswordChangedAt { get; set; }
+
+    /// <summary>Credential-derived verifier for the stored password hash; never serialize it.</summary>
+    [JsonIgnore]
+    public byte[]? PasswordHashFingerprint { get; set; }
 
     [NotMapped]
     public Dictionary<string, string> ProfilePreferences

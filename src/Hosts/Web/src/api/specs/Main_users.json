@@ -2532,6 +2532,29 @@
           }
         }
       },
+      "EnabledAuthenticationMethodsResponse": {
+        "required": [
+          "password",
+          "phone",
+          "email",
+          "passkey"
+        ],
+        "type": "object",
+        "properties": {
+          "password": {
+            "type": "boolean"
+          },
+          "phone": {
+            "type": "boolean"
+          },
+          "email": {
+            "type": "boolean"
+          },
+          "passkey": {
+            "type": "boolean"
+          }
+        }
+      },
       "PatCreateResponse": {
         "required": [
           "token"
@@ -2796,6 +2819,23 @@
             "items": {
               "$ref": "#/components/schemas/UserPasskeyResponse"
             }
+          },
+          "enabledMethods": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/EnabledAuthenticationMethodsResponse"
+              }
+            ]
+          },
+          "passwordChangedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
           }
         }
       },
