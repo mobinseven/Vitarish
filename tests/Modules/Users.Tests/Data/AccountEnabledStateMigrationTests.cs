@@ -20,7 +20,7 @@ public sealed class AccountEnabledStateMigrationTests
         await container.StartAsync();
         string connectionString = await PostgresTestSupport.CreateDatabaseAsync(container);
 
-        await using UsersDbContext context = PostgresTestSupport.CreateContext(connectionString);
+        await using UsersDbContext context = PostgresTestSupport.CreateContextWithoutPasswordTracking(connectionString);
         IMigrator migrator = context.GetService<IMigrator>();
         string[] migrations = context.Database.GetMigrations().ToArray();
         int index = Array.FindIndex(migrations, migration => migration.EndsWith(MigrationId, StringComparison.Ordinal));
@@ -47,7 +47,7 @@ public sealed class AccountEnabledStateMigrationTests
 
         await migrator.MigrateAsync(migrations[index]);
 
-        await using UsersDbContext verification = PostgresTestSupport.CreateContext(connectionString);
+        await using UsersDbContext verification = PostgresTestSupport.CreateContextWithoutPasswordTracking(connectionString);
         User legacy = await verification.Users.AsNoTracking().SingleAsync(user => user.Id == "legacy-user");
         legacy.IsEnabled.Should().BeTrue();
 
@@ -56,7 +56,7 @@ public sealed class AccountEnabledStateMigrationTests
         context.Entry(legacy).State = EntityState.Modified;
         await context.SaveChangesAsync();
 
-        await using UsersDbContext disabledVerification = PostgresTestSupport.CreateContext(connectionString);
+        await using UsersDbContext disabledVerification = PostgresTestSupport.CreateContextWithoutPasswordTracking(connectionString);
         (await disabledVerification.Users.AsNoTracking().SingleAsync(user => user.Id == "legacy-user")).IsEnabled.Should().BeFalse();
     }
 }

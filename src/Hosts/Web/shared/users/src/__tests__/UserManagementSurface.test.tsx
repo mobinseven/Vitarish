@@ -293,7 +293,8 @@ describe("UserManagementSurface", () => {
     );
 
     expect(membershipUserIds).toHaveBeenLastCalledWith(secondUserId);
-    expect(screen.getByText("Second Platform User")).toBeInTheDocument();
+    expect(within(screen.getByRole("banner")).getByText("Second Platform User")).toBeInTheDocument();
+    expect(screen.getByText("Name").parentElement).toHaveTextContent("Second Platform User");
     expect(screen.getByText(/Tenant: tenant-b/)).toBeInTheDocument();
     expect(screen.queryByText(/Tenant: tenant-a/)).not.toBeInTheDocument();
     const section = screen.getByRole("heading", { name: "Authentication methods" }).closest("section")!;
