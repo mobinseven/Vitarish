@@ -103,6 +103,7 @@ jobs:
             web_all:
               - 'src/Hosts/Web/shared/**'
               - '!src/Hosts/Web/shared/auth/**'
+              - 'src/Hosts/Web/tests/**'
               - 'src/Hosts/Web/scripts/**'
               - 'src/Hosts/Web/package.json'
               - 'src/Hosts/Web/package-lock.json'
@@ -147,6 +148,7 @@ jobs:
               - '!src/Hosts/scripts/**'
               - '!src/Hosts/Web/apps/**'
               - '!src/Hosts/Web/shared/**'
+              - '!src/Hosts/Web/tests/**'
               - '!src/Hosts/Web/scripts/**'
               - '!src/Hosts/Web/package.json'
               - '!src/Hosts/Web/package-lock.json'
