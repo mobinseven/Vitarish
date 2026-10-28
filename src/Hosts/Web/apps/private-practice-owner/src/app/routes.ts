@@ -9,6 +9,9 @@ export const Routes = {
   /** Root path — session-aware redirect to /home or /login */
   Root: "/",
 
+  /** Public overview of Darman */
+  PracticeOverview: "/about-darman",
+
   /** Authenticated home dashboard */
   Home: "/home",
 

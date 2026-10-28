@@ -114,6 +114,13 @@
   gap: 0.75rem;
 }
 
+.overviewLink {
+  color: var(--anchor-foreground);
+  font-size: 0.875rem;
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+}
+
 .features {
   display: flex;
   flex-direction: column;

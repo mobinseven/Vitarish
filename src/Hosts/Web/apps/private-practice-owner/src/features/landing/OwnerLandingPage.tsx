@@ -96,6 +96,7 @@ export function OwnerLandingPage({ onboardingUrl }: OwnerLandingPageProps) {
             <MarketingActionLink action={leadAction} />
             {createClinicAction && <MarketingActionLink action={createClinicAction} />}
           </div>
+          <Link className={styles.overviewLink} href={Routes.PracticeOverview}>{t("practiceLanding.editorial.readMore")}</Link>
         </section>
       </div>
       <div className={styles.main}>

@@ -4,8 +4,9 @@ import dynamic from "next/dynamic";
 import { useState } from "react";
 import { Accordion, Button, Chip, Link, Tooltip } from "@heroui/react";
 import { supportedLocales, useLocalizedText, useSetLocaleCookie } from "@vitarish/localization";
-import { FaIcon, FeatureItemCard, MarketingActionLink, ViewportReveal } from "@vitarish/ui";
+import { FaIcon, FeatureItemCard, MarketingActionLink, RevealHeader, ViewportReveal } from "@vitarish/ui";
 import { chromaChipClassName } from "@vitarish/ui/chroma";
+import { LandingRoutes } from "../../app/routes";
 import { whatsappChatUrl } from "./whatsapp";
 import styles from "./front-door.module.css";
 
@@ -30,8 +31,6 @@ const upcomingBusinessKeys = ["gym", "salon"] as const;
 const upcomingIndividualKeys = ["etymology", "converter"] as const;
 const upcomingChipClassName = chromaChipClassName("tertiary");
 
-const darmanLandingUrl = "https://darman.vitarish.com";
-
 const questionKeys = ["what"] as const;
 
 function Logotype({
@@ -54,37 +53,67 @@ function Logotype({
   );
 }
 
+function LocaleControl({
+  label,
+  tooltip,
+  onPress,
+}: {
+  label: string;
+  tooltip: string;
+  onPress: () => void;
+}) {
+  return (
+    <Tooltip>
+      <Button isIconOnly aria-label={label} className={styles.localeControl} variant="ghost" onPress={onPress}>
+        <FaIcon aria-hidden="true" icon="language" size="1x" />
+      </Button>
+      <Tooltip.Content>{tooltip}</Tooltip.Content>
+    </Tooltip>
+  );
+}
+
 /** The public brand and its released product, Darman. */
 export function FrontDoorPage({ onboardingUrl, whatsappNumber }: FrontDoorPageProps) {
   const [backgroundPaused, setBackgroundPaused] = useState(false);
   const { t, locale } = useLocalizedText();
   const setLocaleCookie = useSetLocaleCookie();
   const otherLocale = supportedLocales.find((candidate) => candidate !== locale);
+  const changeLocale = () => {
+    if (!otherLocale) return;
+    setLocaleCookie(otherLocale);
+    window.location.reload();
+  };
 
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-        <Link className={styles.headerBrand} href={`#${sectionIds.apps}`}>{t("landing.brand.name")}</Link>
-        <nav className={styles.headerNav} aria-label={t("landing.apps.title")}>
-          <Link href={`#${sectionIds.apps}`}>{t("landing.hero.explore")}</Link>
-          <Link href={`#${sectionIds.questions}`}>{t("landing.footer.questions")}</Link>
-        </nav>
         {otherLocale && (
-          <MarketingActionLink
-            action={{
-              label: t("landing.header.language"),
-              tone: "outline",
-              tooltip: t("landing.header.languageTooltip"),
-              icon: <FaIcon aria-hidden="true" icon="language" size="1x" />,
-              onPress: () => {
-                setLocaleCookie(otherLocale);
-                window.location.reload();
-              },
-            }}
-            className={styles.headerAction}
+          <LocaleControl
+            label={t("landing.header.language")}
+            tooltip={t("landing.header.languageTooltip")}
+            onPress={changeLocale}
           />
         )}
       </header>
+      <RevealHeader
+        compactContent={(
+          <header className={styles.topBar}>
+            <Link className={styles.topBarBrand} href={`#${sectionIds.apps}`}>{t("landing.brand.name")}</Link>
+            <nav className={styles.topBarNav} aria-label={t("landing.apps.title")}>
+              <Link href={`#${sectionIds.apps}`}>{t("landing.hero.explore")}</Link>
+              <Link href={`#${sectionIds.questions}`}>{t("landing.footer.questions")}</Link>
+            </nav>
+            {otherLocale && (
+              <LocaleControl
+                label={t("landing.header.language")}
+                tooltip={t("landing.header.languageTooltip")}
+                onPress={changeLocale}
+              />
+            )}
+          </header>
+        )}
+        classNames={{ base: styles.revealHeader }}
+      />
       <main className={styles.main} id="vitarish-landing-main">
         <section aria-labelledby="landing-hero" className={styles.hero}>
           <div className={styles.heroScene}>
@@ -92,19 +121,12 @@ export function FrontDoorPage({ onboardingUrl, whatsappNumber }: FrontDoorPagePr
               <GhostFibers glowColor="white" lineColor="white" secondaryColor="white" threads={36} density={0.6} layers={2} dpr={1} speed={0.3} mouseInteraction={false} pulseOnClick={false} paused={backgroundPaused} />
             </div>
             <div className={styles.heroSignature}>
-              <p className={styles.eyebrow}>{t("landing.hero.eyebrow")}</p>
               <Logotype alt={t("landing.brand.name")} className={styles.heroLogotype} mark="registered" />
             </div>
             <div className={styles.heroText}>
               <h1 className={styles.heroTitle} id="landing-hero">
                 <span className={styles.heroLead}>{t("landing.hero.lead")}</span>
               </h1>
-              <div className={styles.heroSummary}>
-                <p className={styles.heroIntro}>{t("landing.hero.intro")}</p>
-                <div className={styles.actions}>
-                  <MarketingActionLink action={{ label: t("landing.hero.explore"), href: `#${sectionIds.apps}`, tooltip: t("landing.hero.explore"), icon: <FaIcon aria-hidden="true" icon="grid-2" /> }} />
-                </div>
-              </div>
             </div>
             <Tooltip>
               <Button isIconOnly aria-label={t(backgroundPaused ? "landing.hero.play" : "landing.hero.pause")} className={styles.motionControl} variant="ghost" onPress={() => setBackgroundPaused((value) => !value)}>
@@ -114,10 +136,12 @@ export function FrontDoorPage({ onboardingUrl, whatsappNumber }: FrontDoorPagePr
             </Tooltip>
           </div>
         </section>
+        <RevealHeader.Boundary />
         <ViewportReveal as="section" className={styles.statement} aria-labelledby={sectionIds.purpose}>
           <p className={styles.eyebrow}>{t("landing.purpose.eyebrow")}</p>
           <h2 id={sectionIds.purpose}>{t("landing.purpose.title")}</h2>
           <p className={styles.sectionText}>{t("landing.purpose.description")}</p>
+          <Link className={styles.storyLink} href={LandingRoutes.Purpose}>{t("landing.purpose.readMore")}</Link>
         </ViewportReveal>
         <ViewportReveal as="section" aria-labelledby={sectionIds.apps} className={styles.band}>
           <div className={styles.sectionIntro}>
@@ -139,7 +163,7 @@ export function FrontDoorPage({ onboardingUrl, whatsappNumber }: FrontDoorPagePr
               <MarketingActionLink
                 action={{
                   label: t("landing.apps.practice.discover"),
-                  href: darmanLandingUrl,
+                  href: LandingRoutes.Darman,
                   tone: "outline",
                   tooltip: t("landing.apps.practice.discoverTooltip"),
                   icon: <FaIcon aria-hidden="true" icon="book-open" size="1x" />,
@@ -215,7 +239,7 @@ export function FrontDoorPage({ onboardingUrl, whatsappNumber }: FrontDoorPagePr
               <h2>{t("landing.footer.businesses")}</h2>
               <ul>
                 <li>
-                  <Link className={styles.footerProduct} href={darmanLandingUrl}>
+                  <Link className={styles.footerProduct} href={LandingRoutes.Darman}>
                     <span>{t("landing.apps.practice.title")}</span>
                     <Chip color="success" size="sm" variant="soft">{t("landing.footer.ready")}</Chip>
                   </Link>
@@ -241,9 +265,7 @@ export function FrontDoorPage({ onboardingUrl, whatsappNumber }: FrontDoorPagePr
             </div>
           </div>
           <p className={styles.footerDisclosure}>{t("landing.footer.disclosure")}</p>
-          <div className={styles.footerBottom}>
-            <p>{t("landing.footer.rights")}</p>
-          </div>
+          <Logotype alt={t("landing.brand.name")} className={styles.footerLogotype} mark="copyright" />
         </div>
       </footer>
     </div>

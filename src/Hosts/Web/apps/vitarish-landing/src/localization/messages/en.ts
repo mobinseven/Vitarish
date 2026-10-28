@@ -23,8 +23,6 @@ export const enMessages = {
     },
     hero: {
       lead: "The glory of purpose.",
-      eyebrow: "Technology with purpose.",
-      intro: "We believe technology should make room for what matters.",
       explore: "Explore our work",
       pause: "Pause background animation",
       play: "Play background animation",
@@ -33,6 +31,15 @@ export const enMessages = {
       eyebrow: "Why Vitarish",
       title: "What matters to you is where we begin.",
       description: "Your work has a purpose beyond the tasks that fill your day. We build with that purpose in mind: less friction between what you need to do and what you want to achieve.",
+      readMore: "Read about our purpose",
+    },
+    editorial: {
+      home: "Vitarish home",
+      navigation: "Explore",
+      navigationTooltip: "Explore Vitarish",
+      category: "Category",
+      categoryValue: "Our purpose",
+      by: "By",
     },
     apps: {
       title: "Our purpose. In practice.",
@@ -78,7 +85,6 @@ export const enMessages = {
       },
       disclosure: "Products marked Soon are previews and are not available yet.",
       questions: "Your questions",
-      rights: "Copyright © Vitarish. All rights reserved.",
     },
   },
 } as const;

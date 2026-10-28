@@ -1,0 +1,8 @@
+.page {
+  --editorial-header-background: var(--anchor);
+  --editorial-header-foreground: var(--anchor-foreground);
+  --editorial-footer-background: var(--anchor);
+  --editorial-footer-foreground: var(--anchor-foreground);
+}
+
+.headerAction { color: var(--anchor-foreground); }

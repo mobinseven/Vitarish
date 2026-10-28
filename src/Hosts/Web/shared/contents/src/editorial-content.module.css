@@ -1,0 +1,78 @@
+.page {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.page > header {
+  position: sticky;
+  z-index: 10;
+  top: 0;
+  background: var(--editorial-header-background, var(--background));
+  color: var(--editorial-header-foreground, var(--foreground));
+}
+
+.header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 1rem;
+  min-height: 5rem;
+  padding-inline: var(--vitarish-layout-gutter-inline);
+}
+
+.navigation, .headerAction { min-width: 0; }
+.headerAction { display: flex; justify-content: flex-end; }
+.desktopNavigation { display: flex; align-items: center; gap: 0.5rem; }
+.mobileNavigation { display: none; }
+.navigationLink, .menuButton { color: inherit; font-size: 0.875rem; }
+.navigationLink { padding: 0.75rem; text-decoration: none; }
+.navigationLink:hover { text-decoration: underline; text-underline-offset: 0.2em; }
+.brand, .footerBrand { color: inherit; font-family: var(--font-heading, var(--font-sans)); font-weight: 600; text-decoration: none; }
+.brand { text-align: center; }
+
+.article { max-width: 80rem; margin-inline: auto; padding: clamp(4rem, 9vw, 8rem) var(--vitarish-layout-gutter-inline) clamp(6rem, 12vw, 11rem); }
+.articleHeader { max-width: 56rem; margin-inline: auto; text-align: center; }
+.articleHeader h1 { font-family: var(--font-heading, var(--font-sans)); font-size: clamp(2rem, 4.3vw, 4rem); font-weight: 600; line-height: 1.2; text-wrap: balance; }
+.readingLayout { display: grid; grid-template-columns: minmax(0, 46rem) minmax(12rem, 16rem); justify-content: center; align-items: start; gap: clamp(3rem, 8vw, 9rem); margin-block-start: clamp(4rem, 8vw, 7rem); }
+.readingLayoutWithoutMetadata { grid-template-columns: minmax(0, 46rem); }
+.body { min-width: 0; font-size: clamp(1rem, 1.2vw, 1.15rem); line-height: 1.85; overflow-wrap: anywhere; }
+.body > * + * { margin-block-start: 1.5rem; }
+.body h2, .body h3 { font-family: var(--font-heading, var(--font-sans)); font-weight: 600; line-height: 1.35; text-wrap: balance; }
+.body h2 { margin-block-start: 3rem; font-size: clamp(1.4rem, 2vw, 2rem); }
+.body h3 { margin-block-start: 2rem; font-size: 1.25rem; }
+.body a { text-decoration: underline; text-underline-offset: 0.2em; }
+.body ul, .body ol { padding-inline-start: 1.5rem; }
+.body ul { list-style: disc; }
+.body ol { list-style: decimal; }
+.body img, .body video { max-width: 100%; height: auto; }
+.metadata { font-size: 0.875rem; line-height: 1.6; }
+.metadataRow { display: flex; justify-content: space-between; gap: 1.5rem; padding-block: 0.75rem; border-top: 1px solid var(--separator); }
+.metadata dt { color: var(--muted); }
+.metadata dd { text-align: end; }
+
+.footer { display: grid; grid-template-columns: minmax(8rem, 1fr) minmax(16rem, 2fr) minmax(12rem, 1fr); align-items: start; gap: clamp(2rem, 5vw, 4rem); padding: clamp(3rem, 6vw, 6rem) max(var(--vitarish-layout-gutter-inline), calc((100vw - 80rem) / 2)); background: var(--editorial-footer-background, var(--surface-secondary)); color: var(--editorial-footer-foreground, var(--foreground)); }
+.footerBrand { justify-self: start; }
+.footerNavigation { min-width: 0; }
+.footerItem { border-block-start: 1px solid color-mix(in srgb, currentColor 20%, transparent); }
+.footerTrigger { padding-inline: 0; color: inherit; font-size: 0.875rem; text-align: start; }
+.footerIndicator { margin-inline-start: auto; margin-inline-end: 0; color: inherit; }
+.footerGroup { padding-inline: 0; padding-block-start: 0.25rem; color: inherit; }
+.footerGroup ul { display: flex; flex-direction: column; align-items: flex-start; gap: 0.75rem; list-style: none; padding: 0; }
+.footerGroup a { color: inherit; font-size: 0.875rem; }
+.footerDescription { max-width: 24rem; font-size: 0.875rem; line-height: 1.8; }
+
+@media (max-width: 72rem) {
+  .desktopNavigation { display: none; }
+  .mobileNavigation { display: block; }
+}
+
+@media (max-width: 48rem) {
+  .header { grid-template-columns: auto minmax(0, 1fr) auto; gap: 0.25rem; min-height: 4.5rem; }
+  .menuButton { padding-inline: 0.5rem; font-size: 0.75rem; }
+  .brand { justify-self: center; font-size: 0.75rem; }
+  .headerAction > * { padding-inline: 0.5rem; font-size: 0.75rem; }
+  .article { padding-block: 4rem 6rem; }
+  .readingLayout { grid-template-columns: minmax(0, 1fr); gap: 2.5rem; margin-block-start: 3.5rem; }
+  .metadata { grid-row: 1; }
+  .footer { grid-template-columns: 1fr; gap: 2rem; }
+}

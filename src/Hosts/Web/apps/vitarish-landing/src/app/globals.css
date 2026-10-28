@@ -6,6 +6,7 @@
 @import "@vitarish/ui/typography.css";
 
 @source "../../../../shared/ui/src/**/*.{ts,tsx}";
+@source "../../../../shared/contents/src/**/*.{ts,tsx}";
 
 /*
  * HeroUI Pro Theme: "Vitarish Green" saved design system (Brutalism base).
