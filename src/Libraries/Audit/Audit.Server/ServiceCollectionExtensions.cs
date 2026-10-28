@@ -26,7 +26,7 @@ public static class ServiceCollectionExtensions
         _ = services.AddTransient<IAuditQueryService, AuditQueryService>();
         _ = services.AddTransient<ISecurityAuditWriter, SecurityAuditWriter>();
         _ = services.AddTransient<ISecurityAuditQueryService, SecurityAuditQueryService>();
-        _ = services.AddTransient<AuditReviewDenialRecorder>();
+        _ = services.AddTransient<AuditReviewRecorder>();
         services.Replace(ServiceDescriptor.Singleton<IAuthorizationMiddlewareResultHandler, AuditReviewAuthorizationResultHandler>());
         _ = services.AddTransient<IAuditStorageSizeReader, PostgresAuditStorageSizeReader>();
 

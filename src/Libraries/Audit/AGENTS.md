@@ -47,11 +47,12 @@ meaning and resource authorization remain with the initiating use case.
   platform/tenant scope in the authorized Application boundary; never return
   persistence entities, chain key material, or sensitive payloads.
 - **[MUST]** Review queries are side-effect-free; never append a review event
-  from an Audit query, and do not record authorized reads. An unauthorized
-  review attempt is recorded once by the review API boundary as a catalogued
-  denied review event naming the attempted operation (owner decision for the
-  security evaluation). Platform-admin login or other access-attempt auditing
-  belongs to its authentication/access boundary.
+  from an Audit query. The review API boundary records each unauthorized review
+  attempt, and each successful view of an event list, as a catalogued review
+  event naming the operation, once per actor, operation, and outcome within the
+  dedupe window (owner decision for the security evaluation, 2026-10-28).
+  Platform-admin login or other access-attempt auditing belongs to its
+  authentication/access boundary.
   Audit state-changing management commands through a recursion-safe path.
   Reading audit data must not mutate queried events or acknowledge unrelated
   notices.

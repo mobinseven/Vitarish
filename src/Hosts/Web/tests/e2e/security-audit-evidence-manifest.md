@@ -14,7 +14,7 @@ share an event because the catalog assigns that event to more than one control.
 | --- | --- | --- | --- |
 | 1 Security-function lifecycle | `passwordLogin`, `passwordChange`, `tenantMemberProvisioning`, `tenantMemberRemoval` | `password-login-succeeded.png`, `password-change.png`, `tenant-member-provisioned.png`, `tenant-member-removed.png` | Covered |
 | 2 Failed security-record read | A signed-in clinic owner attempts a platform audit read; the API returns 403 and the durable denied-review count increases by one | Query assertion naming the attempted operation and resource; no dedicated denied-review screenshot | Query-covered for signed-in denial. Anonymous requests are rejected by authorization middleware before the denial filter and have no denied-review record |
-| 3 Security-record read | Authorized audit review leaves the successful-review count unchanged; access-history acknowledgement remains an explicit command | Query assertion for side-effect-free review; `access-history.png` for acknowledgement | Authorized audit reads are deliberately not recorded under the owner selection in `src/Libraries/Audit/AGENTS.md`; acknowledgement is not an audit-read event |
+| 3 Security-record read | Opening the platform audit list records one succeeded review naming the list operation; access-history acknowledgement remains an explicit command | `audit-review.png`; `access-history.png` for acknowledgement | Pending the next collective run; views are recorded once per viewer, operation, and dedupe window, and acknowledgement is not an audit-read event |
 | 4 Security-configuration change | `sessionPolicy` security session-policy PUT | `session-policy.png` | Covered by `authentication.security-access-policy` |
 | 5 Audit-storage threshold action | The E2E host runs the real Main capacity monitor against an E2E storage-size adapter that reports the configured threshold crossed | `audit-storage-threshold.png` | Covered by the E2E-only threshold composition; production operator-channel delivery is not proved |
 | 6 Audit-storage failure action | The E2E host makes every audit-store save fail, a sign-in attempt still gets its normal answer, and once saves succeed again the real Main outage reporter records one `security.failure` summary (start, last failure, failed writes) | `audit-storage-outage.png`, `audit-storage-outage-detail.png` | Covered by the E2E-only store-outage composition |
@@ -28,7 +28,7 @@ share an event because the catalog assigns that event to more than one control.
 | 14 User-data import | Multipart file upload with computed SHA-256 checksum; verify the recorded cleaned filename, keyed filename digest, extension, and size | `data-import.png` and transfer-metadata assertions | Digest, extension, and size covered; the filename assertion is pending the next collective run |
 | 15 Information export | File download with matching cleaned filename, keyed filename digest, extension, and size; audit CSV export | Transfer-metadata assertions and `audit-export.png` | Covered for file download and audit export except the filename assertion, which is pending the next collective run |
 | 16 Security-behavior change | `sessionPolicy` security session-policy PUT | `session-policy.png` | Covered by `authentication.security-access-policy` |
-| 17 Security administration | Access-history acknowledgement, membership administration, and role replacement | `access-history.png`, `tenant-member-provisioned.png`, `tenant-member-removed.png`, `tenant-role-replaced.png` | Covered for these commands; authorized audit review emits no event |
+| 17 Security administration | Access-history acknowledgement, membership administration, and role replacement | `access-history.png`, `tenant-member-provisioned.png`, `tenant-member-removed.png`, `tenant-role-replaced.png` | Covered for these commands; audit list views are evidenced under control 3 |
 | 18 Group/role/membership change | Tenant-member provisioning/removal and tenant-role replacement, with the previous and new role on the record | `tenant-member-provisioned.png`, `tenant-member-removed.png`, `tenant-role-replaced.png`, `tenant-role-change-detail.png` | Covered |
 | 19 Security-function failure | Invalid `sessionPolicy` validation path with durable security event | `security-function-failure.png` | Covered by `security.failure` |
 | 20 Security-capability unavailable | Audit-store outage: saves fail, then one `security.failure` summary of the outage is recorded after recovery | `audit-storage-outage.png`, `audit-storage-outage-detail.png` | Covered by `security.failure` through the E2E-only store-outage composition |
@@ -40,8 +40,7 @@ share an event because the catalog assigns that event to more than one control.
 Controls 6 and 20 share the recovered audit-storage-outage procedure. Controls
 13, 23, and 24 still lack dedicated evidence procedures. Control 2 has a signed-in
 denial assertion but lacks its own screenshot and anonymous-denial recording;
-control 8 lacks separate evidence for every mechanism. Control 3 records the
-explicit selection not to audit authorized reads. These limits must remain
+control 8 lacks separate evidence for every mechanism. These limits must remain
 visible when assessing completion. A new evidence run must produce every listed
 screenshot in one fresh disposable directory, and its canonical two-host result
 must be reviewed separately from this source-coverage inventory.

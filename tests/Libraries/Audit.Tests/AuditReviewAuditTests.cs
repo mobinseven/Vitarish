@@ -18,7 +18,7 @@ using Xunit;
 
 namespace Vitarish.Audit.Tests;
 
-public sealed class AuditReviewDenialFilterTests
+public sealed class AuditReviewFilterTests
 {
     private static readonly string[] ReviewOperations =
     [
@@ -51,8 +51,32 @@ public sealed class AuditReviewDenialFilterTests
     }
 
     [Theory]
-    [MemberData(nameof(ReviewOperationData))]
-    public async Task Authorized_review_reads_write_nothing(string operationId)
+    [InlineData(SecurityAuditApiOperations.ListSecurityEvents)]
+    [InlineData(SecurityAuditApiOperations.ListPlatformSecurityEvents)]
+    public async Task Each_authorized_event_list_view_records_one_succeeded_review(string operationId)
+    {
+        RecordingWriter writer = new();
+        using WebApplication app = CreateApp(writer, new AllowingQueryService(), new TestTimeProvider(DateTimeOffset.UtcNow));
+
+        HttpContext context = await InvokeAsync(app, FindEndpoint(app, operationId));
+
+        context.Response.StatusCode.Should().Be(StatusCodes.Status200OK);
+        SecurityAuditEvent view = writer.Written.Should().ContainSingle().Subject;
+        view.EventName.Should().Be(SecurityAuditEventCatalog.AuditReviewEvent);
+        view.EventCategory.Should().Be(SecurityAuditEventCatalog.ReviewCategory);
+        view.Outcome.Should().Be(SecurityAuditOutcome.Succeeded);
+        view.RedactedReason.Should().BeNull();
+        view.ActorId.Should().Be("user-7");
+        view.TenantId.Should().Be("tenant-a");
+        view.Operation.Should().Be(operationId);
+        view.Resource.Should().Be(SecurityAuditEventCatalog.EndpointResourcePrefix + operationId);
+        SecurityAuditEventCatalog.IsCatalogued(view).Should().BeTrue();
+    }
+
+    [Theory]
+    [InlineData(SecurityAuditApiOperations.GetPlatformSecurityEventCatalog)]
+    [InlineData(SecurityAuditApiOperations.ExportPlatformSecurityEvents)]
+    public async Task Authorized_catalog_and_export_reads_record_no_review(string operationId)
     {
         RecordingWriter writer = new();
         using WebApplication app = CreateApp(writer, new AllowingQueryService(), new TestTimeProvider(DateTimeOffset.UtcNow));
@@ -61,6 +85,58 @@ public sealed class AuditReviewDenialFilterTests
 
         context.Response.StatusCode.Should().Be(StatusCodes.Status200OK);
         writer.Written.Should().BeEmpty();
+    }
+
+    [Theory]
+    [InlineData("store")]
+    [InlineData("argument")]
+    [InlineData("timeout")]
+    public async Task View_record_failures_still_return_the_events(string failure)
+    {
+        List<string> logs = [];
+        ISecurityAuditWriter writer = failure switch
+        {
+            "store" => new ThrowingWriter(new SecurityAuditStoreException("Audit unavailable.", new InvalidOperationException())),
+            "argument" => new ThrowingWriter(new ArgumentException("The review event is invalid.", "auditEvent")),
+            _ => new HangingWriter()
+        };
+        SecurityAuditOptions options = new()
+        {
+            DeniedReviewWriteTimeout = failure == "timeout" ? TimeSpan.FromMilliseconds(25) : TimeSpan.FromSeconds(2)
+        };
+        using WebApplication app = CreateApp(writer, new AllowingQueryService(), new TestTimeProvider(DateTimeOffset.UtcNow), options, logs);
+
+        HttpContext context = await InvokeAsync(app, FindEndpoint(app, SecurityAuditApiOperations.ListPlatformSecurityEvents));
+
+        context.Response.StatusCode.Should().Be(StatusCodes.Status200OK);
+        if (failure != "store")
+            logs.Should().ContainSingle(message => message.Contains(AuditReviewRecorder.ViewWriteFailureCode));
+    }
+
+    [Fact]
+    public async Task Repeating_a_view_inside_the_window_writes_one_row_apart_from_a_denial()
+    {
+        DbContextOptions<AuditDbContext> options = new DbContextOptionsBuilder<AuditDbContext>()
+            .UseInMemoryDatabase("view-dedupe-" + Guid.NewGuid())
+            .Options;
+        TestRequestContext requestContext = new("tenant-a", "user-7");
+        await using AuditDbContext dbContext = new(options, requestContext);
+        await dbContext.Database.EnsureCreatedAsync();
+        TestTimeProvider timeProvider = new(new DateTimeOffset(2026, 10, 28, 12, 0, 0, TimeSpan.Zero));
+        using WebApplication allowing = CreateApp(new SecurityAuditWriter(dbContext), new AllowingQueryService(), timeProvider);
+        using WebApplication denying = CreateApp(new SecurityAuditWriter(dbContext), new DenyingQueryService(), timeProvider);
+
+        _ = await InvokeAsync(allowing, FindEndpoint(allowing, SecurityAuditApiOperations.ListPlatformSecurityEvents));
+        _ = await InvokeAsync(allowing, FindEndpoint(allowing, SecurityAuditApiOperations.ListPlatformSecurityEvents));
+        _ = await InvokeAsync(denying, FindEndpoint(denying, SecurityAuditApiOperations.ListPlatformSecurityEvents));
+
+        (await dbContext.SecurityAuditEvents.Select(item => item.Outcome).ToListAsync())
+            .Should().BeEquivalentTo([SecurityAuditOutcome.Succeeded, SecurityAuditOutcome.Denied]);
+
+        timeProvider.UtcNow = timeProvider.UtcNow.Add(SecurityAuditOptions.DefaultDeniedReviewDedupeWindow);
+        _ = await InvokeAsync(allowing, FindEndpoint(allowing, SecurityAuditApiOperations.ListPlatformSecurityEvents));
+
+        (await dbContext.SecurityAuditEvents.CountAsync(item => item.Outcome == SecurityAuditOutcome.Succeeded)).Should().Be(2);
     }
 
     [Theory]
@@ -91,7 +167,7 @@ public sealed class AuditReviewDenialFilterTests
 
         context.Response.StatusCode.Should().Be(StatusCodes.Status403Forbidden);
         if (failure != "store")
-            logs.Should().ContainSingle(message => message.Contains(AuditReviewDenialRecorder.WriteFailureCode));
+            logs.Should().ContainSingle(message => message.Contains(AuditReviewRecorder.WriteFailureCode));
     }
 
     [Theory]
@@ -216,7 +292,7 @@ public sealed class AuditReviewDenialFilterTests
         builder.Services.AddSingleton(timeProvider);
         builder.Services.AddAuthorization();
         builder.Services.AddSingleton<IAuthorizationMiddlewareResultHandler, AuditReviewAuthorizationResultHandler>();
-        builder.Services.AddTransient<AuditReviewDenialRecorder>();
+        builder.Services.AddTransient<AuditReviewRecorder>();
         builder.Services.AddSingleton<IAuthenticationService, StatusCodeAuthenticationService>();
 
         WebApplication app = builder.Build();

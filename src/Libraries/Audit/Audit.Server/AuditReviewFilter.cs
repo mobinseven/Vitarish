@@ -9,44 +9,65 @@ using Vitarish.Requests.Application.Abstractions;
 namespace Vitarish.Audit.Server;
 
 /// <summary>
-/// Records an unauthorized attempt to read the security audit at the review API boundary.
-/// The review query itself stays side-effect-free, and authorized reads are not recorded.
+/// Records reads of the security audit at the review API boundary: each unauthorized attempt, and each
+/// successful view of an event list. The review query itself stays side-effect-free.
 /// </summary>
-internal sealed class AuditReviewDenialFilter(AuditReviewDenialRecorder recorder) : IEndpointFilter
+internal sealed class AuditReviewFilter(AuditReviewRecorder recorder) : IEndpointFilter
 {
     public async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
     {
+        object? result;
         try
         {
-            return await next(context);
+            result = await next(context);
         }
         catch (UnauthorizedAccessException)
         {
-            await recorder.RecordAsync(context.HttpContext).ConfigureAwait(false);
+            await recorder.RecordDeniedAsync(context.HttpContext).ConfigureAwait(false);
             return Results.Forbid();
         }
+
+        if (result is IStatusCodeHttpResult { StatusCode: StatusCodes.Status200OK })
+            await recorder.RecordViewedAsync(context.HttpContext).ConfigureAwait(false);
+        return result;
     }
 }
 
-internal sealed class AuditReviewDenialRecorder(
+internal sealed class AuditReviewRecorder(
     ISecurityAuditWriter writer,
     IRequestContext requestContext,
     IOptions<SecurityAuditOptions> options,
     TimeProvider timeProvider,
-    ILogger<AuditReviewDenialRecorder> logger)
+    ILogger<AuditReviewRecorder> logger)
 {
     internal const string WriteFailureCode = "security_audit_review_denial_write_failed";
+    internal const string ViewWriteFailureCode = "security_audit_review_view_write_failed";
+    private const string ViewedIdempotencyPart = ":viewed";
 
-    internal Task RecordAsync(HttpContext context)
-    {
-        string? operationId = context.GetEndpoint()?
-            .Metadata.GetMetadata<ModuleEndpointOpenApiConvention>()?.OperationId;
-        return string.IsNullOrWhiteSpace(operationId)
-            ? Task.CompletedTask
-            : RecordAsync(operationId, context.RequestAborted);
-    }
+    // Only event lists show audit records; the catalog holds no records and exports are their own operation.
+    private static readonly HashSet<string> ViewedOperations =
+    [
+        SecurityAuditApiOperations.ListSecurityEvents,
+        SecurityAuditApiOperations.ListPlatformSecurityEvents
+    ];
 
-    private async Task RecordAsync(string operationId, CancellationToken requestAborted)
+    internal Task RecordDeniedAsync(HttpContext context) =>
+        OperationId(context) is { } operationId
+            ? RecordAsync(operationId, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.Unauthorized, string.Empty, WriteFailureCode, context.RequestAborted)
+            : Task.CompletedTask;
+
+    internal Task RecordViewedAsync(HttpContext context) =>
+        OperationId(context) is { } operationId && ViewedOperations.Contains(operationId)
+            ? RecordAsync(operationId, SecurityAuditOutcome.Succeeded, null, ViewedIdempotencyPart, ViewWriteFailureCode, context.RequestAborted)
+            : Task.CompletedTask;
+
+    private static string? OperationId(HttpContext context) =>
+        context.GetEndpoint()?.Metadata.GetMetadata<ModuleEndpointOpenApiConvention>()?.OperationId is { Length: > 0 } operationId
+            ? operationId
+            : null;
+
+    // One record per actor, operation and outcome within the dedupe window, so refreshes and paging do not flood the audit.
+    private async Task RecordAsync(string operationId, string outcome, string? reason, string idempotencyPart, string failureCode, CancellationToken requestAborted)
     {
         SecurityAuditOptions auditOptions = options.Value;
         TimeSpan dedupeWindow = auditOptions.DeniedReviewDedupeWindow > TimeSpan.Zero
@@ -58,7 +79,7 @@ internal sealed class AuditReviewDenialRecorder(
         DateTimeOffset now = timeProvider.GetUtcNow();
         long window = now.UtcTicks / dedupeWindow.Ticks;
         string actor = string.IsNullOrWhiteSpace(requestContext.UserId) ? SecurityAuditActorKind.Anonymous : requestContext.UserId;
-        string idempotencyKey = $"{actor}:{operationId}:{window}{SecurityAuditEventCatalog.AuditReviewIdempotencySuffix}";
+        string idempotencyKey = $"{actor}:{operationId}:{window}{idempotencyPart}{SecurityAuditEventCatalog.AuditReviewIdempotencySuffix}";
         string correlationId = requestContext.TraceId ?? requestContext.RequestId ?? idempotencyKey;
 
         using CancellationTokenSource timeoutSource = CancellationTokenSource.CreateLinkedTokenSource(requestAborted);
@@ -70,7 +91,7 @@ internal sealed class AuditReviewDenialRecorder(
             {
                 EventName = SecurityAuditEventCatalog.AuditReviewEvent,
                 EventCategory = SecurityAuditEventCatalog.ReviewCategory,
-                Outcome = SecurityAuditOutcome.Denied,
+                Outcome = outcome,
                 ActorId = string.IsNullOrWhiteSpace(requestContext.UserId) ? null : requestContext.UserId,
                 SubjectId = string.IsNullOrWhiteSpace(requestContext.UserId) ? null : requestContext.UserId,
                 TenantId = string.IsNullOrWhiteSpace(requestContext.TenantId) ? SecurityAuditScopeCatalog.PlatformScopeId : requestContext.TenantId,
@@ -79,29 +100,29 @@ internal sealed class AuditReviewDenialRecorder(
                 OccurredAt = now.UtcDateTime,
                 CorrelationId = correlationId,
                 SourceBoundary = SecurityAuditEventCatalog.AuditReviewSourceBoundary,
-                RedactedReason = SecurityAuditReasonCatalog.Unauthorized,
+                RedactedReason = reason,
                 IdempotencyKey = idempotencyKey
             }, timeoutSource.Token).ConfigureAwait(false);
         }
         catch (SecurityAuditStoreException)
         {
-            // The denial stands when the audit store is unavailable; the writer emits the redacted host error.
+            // The review result stands when the audit store is unavailable; the writer emits the redacted host error.
         }
         catch (ArgumentException exception)
         {
-            LogWriteFailure(operationId, exception);
+            LogWriteFailure(failureCode, operationId, exception);
         }
         catch (OperationCanceledException exception)
         {
-            LogWriteFailure(operationId, exception);
+            LogWriteFailure(failureCode, operationId, exception);
         }
     }
 
-    private void LogWriteFailure(string operationId, Exception exception)
+    private void LogWriteFailure(string failureCode, string operationId, Exception exception)
     {
         logger.LogError(
-            "Security audit review denial could not be recorded. Code={Code} Operation={Operation} Cause={Cause}",
-            WriteFailureCode,
+            "Security audit review could not be recorded. Code={Code} Operation={Operation} Cause={Cause}",
+            failureCode,
             operationId,
             exception.GetType().FullName);
     }

@@ -19,8 +19,8 @@ internal sealed class AuditReviewAuthorizationResultHandler : IAuthorizationMidd
         if ((authorizeResult.Challenged || authorizeResult.Forbidden) &&
             context.GetEndpoint()?.Metadata.GetMetadata<AuditReviewEndpoint>() is not null)
         {
-            await context.RequestServices.GetRequiredService<AuditReviewDenialRecorder>()
-                .RecordAsync(context).ConfigureAwait(false);
+            await context.RequestServices.GetRequiredService<AuditReviewRecorder>()
+                .RecordDeniedAsync(context).ConfigureAwait(false);
         }
 
         await defaultHandler.HandleAsync(next, context, policy, authorizeResult).ConfigureAwait(false);

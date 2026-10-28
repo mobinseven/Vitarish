@@ -15,7 +15,7 @@ public static class SecurityAuditApi
             .MapProtectedModuleGroup(SecurityAuditApiRoutes.Base, requireTenantAccess: false)
             .WithTags(SecurityAuditApiRoutes.DocumentTag)
             .WithMetadata(new AuditReviewEndpoint())
-            .AddEndpointFilter<AuditReviewDenialFilter>();
+            .AddEndpointFilter<AuditReviewFilter>();
 
         _ = group.MapModuleGet(
             SecurityAuditApiRoutes.SecurityEvents,
