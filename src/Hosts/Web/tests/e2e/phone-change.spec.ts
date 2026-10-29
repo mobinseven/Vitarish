@@ -4,7 +4,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
 import { enMessages } from "../../apps/private-practice-owner/src/localization/messages/en";
 import { twoHostE2eSmsCapturePathEnvironmentKey } from "../../scripts/two-host-e2e-artifacts.mjs";
-import { signInToClinic } from "./signInHost";
+import { forwardedForHeaderName, signInToClinic } from "./signInHost";
 
 const privatePracticeOrigin = process.env.VITARISH_E2E_WEB_ORIGIN ?? "http://localhost:3005";
 const smsCapturePath = process.env[twoHostE2eSmsCapturePathEnvironmentKey];
@@ -49,7 +49,7 @@ test("changing the phone number accepts a local number typed with Persian digits
   expect(smsCapturePath, `${twoHostE2eSmsCapturePathEnvironmentKey} must be supplied by the two-host runner`).toBeTruthy();
   expect(password, "VITARISH_E2E_PASSWORD must be supplied by the disposable E2E environment").toBeTruthy();
   // Keep this scenario on its own OtpBegin rate-limit partition.
-  await page.setExtraHTTPHeaders({ "X-Forwarded-For": "198.51.100.120" });
+  await page.setExtraHTTPHeaders({ [forwardedForHeaderName]: "198.51.100.120" });
   const nationalDigits = `912${Array.from({ length: 7 }, () => crypto.randomInt(0, 10)).join("")}`;
 
   await signIn(page);

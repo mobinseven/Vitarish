@@ -8,7 +8,7 @@ import { localeCookieName } from "../../shared/localization/src/localeCookie";
 import { usersMessageCatalogs } from "../../shared/users/src/localization/catalogs";
 import { TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
 import { twoHostE2eSignInOrigin } from "../../scripts/two-host-e2e-artifacts.mjs";
-import { signInToClinic } from "./signInHost";
+import { forwardedForHeaderName, signInToClinic } from "./signInHost";
 
 // Captures the product screens the NSMAIL-1 self-assessment document shows, in
 // the Persian UI, one file per document slot group. It is an evidence tool, not a
@@ -55,7 +55,7 @@ async function persianContext(browser: Browser, clientIp: string) {
   const context = await browser.newContext({
     locale: "fa-IR",
     viewport: { width: 1440, height: 900 },
-    extraHTTPHeaders: { "X-Forwarded-For": clientIp },
+    extraHTTPHeaders: { [forwardedForHeaderName]: clientIp },
   });
   await context.addCookies([
     { name: localeCookieName, value: "fa", url: `${webOrigin}/` },

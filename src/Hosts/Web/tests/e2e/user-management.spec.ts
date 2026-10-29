@@ -6,7 +6,7 @@ import { promisify } from "node:util";
 import { resolve } from "node:path";
 import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
 import { Routes as PlatformRoutes } from "../../apps/platform-admin/src/app/routes";
-import { signInToClinic, submitPasswordOnSignInHost } from "./signInHost";
+import { forwardedForHeaderName, signInToClinic, submitPasswordOnSignInHost } from "./signInHost";
 import { authenticationLogoutPost } from "../../shared/auth/src/api/generated/authentication/authentication";
 import type { SecurityAuthenticationPolicyDto } from "../../shared/auth/src/api/generated/authentication/model";
 import { getUsersAdministrationGetUserSecurityQueryKey } from "../../shared/auth/src/api/generated/users/users";
@@ -257,14 +257,14 @@ test("platform administrator disables and re-enables a signed-out user's account
   expect(password, "VITARISH_E2E_PASSWORD must be supplied by the disposable E2E environment").toBeTruthy();
   // Own the PasswordLogin rate-limit partition; the shared client IP is
   // exhausted by the earlier login scenarios.
-  await page.setExtraHTTPHeaders({ "X-Forwarded-For": "198.51.100.232" });
+  await page.setExtraHTTPHeaders({ [forwardedForHeaderName]: "198.51.100.232" });
   await login(page, platformUsername, platformOrigin);
   // Earlier scenarios leave the owner signed in elsewhere while the evaluated
   // concurrent-session limit is active; a disable needs a zero-session owner.
   await endAllUserSessionsThroughUi(page, ownerUsername);
   await setAccountStatusThroughUi(page, ownerUsername, false);
 
-  const userContext = await browser!.newContext({ extraHTTPHeaders: { "X-Forwarded-For": "198.51.100.233" } });
+  const userContext = await browser!.newContext({ extraHTTPHeaders: { [forwardedForHeaderName]: "198.51.100.233" } });
   const userPage = await userContext.newPage();
   let failure: unknown;
   let accountReenabled = false;

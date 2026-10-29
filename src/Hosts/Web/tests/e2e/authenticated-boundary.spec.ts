@@ -16,7 +16,7 @@ import { localizePlatformAuditCategory, localizePlatformAuditEvent } from "../..
 import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
 import { twoHostE2eApiOriginEnvironmentKey, twoHostE2eProofScreenshotEnvironmentKey } from "../../scripts/two-host-e2e-artifacts.mjs";
 import { agentEnvelopeCanonical, base64UrlHmac } from "./agentCallback";
-import { signInToClinic } from "./signInHost";
+import { forwardedForHeaderName, signInToClinic } from "./signInHost";
 
 // Main itself, for API-boundary checks made without the browser.
 const apiOrigin = process.env[twoHostE2eApiOriginEnvironmentKey] ?? "https://localhost:7272";
@@ -237,7 +237,7 @@ async function generatedAuthenticationRequest<T>(
 
 async function login(page: Page, username: string, origin = "", password = e2ePassword, clientIp = "198.51.100.10") {
   expect(password).toBeTruthy();
-  await page.setExtraHTTPHeaders({ "X-Forwarded-For": clientIp });
+  await page.setExtraHTTPHeaders({ [forwardedForHeaderName]: clientIp });
   // Clinic hosts sign in only on the shared sign-in host; platform administration has its own sign-in.
   if (origin !== platformAdminOrigin) {
     await signInToClinic(page, username, password!, origin || webOrigin);
@@ -572,7 +572,7 @@ test("normalizes unsafe authentication return URLs at the real API boundary", as
       },
       headers: {
         "X-Vitarish-Tenant-Host": "localhost",
-        "X-Forwarded-For": `198.51.100.${120 + index}`,
+        [forwardedForHeaderName]: `198.51.100.${120 + index}`,
       },
       ignoreHTTPSErrors: true,
     });
@@ -619,7 +619,7 @@ test("completes a real email OTP once and rejects its replay", async ({ request 
     data: { email: "e2e-owner@example.test", returnUrl: "/home" },
     headers: {
       "X-Vitarish-Tenant-Host": "localhost",
-      "X-Forwarded-For": "198.51.100.141",
+      [forwardedForHeaderName]: "198.51.100.141",
       "X-Request-Id": "e2e-email-otp-begin",
     },
     ignoreHTTPSErrors: true,
@@ -637,7 +637,7 @@ test("completes a real email OTP once and rejects its replay", async ({ request 
     data: { challengeId: challenge.challengeId, code, returnUrl: "/home" },
     headers: {
       "X-Vitarish-Tenant-Host": "localhost",
-      "X-Forwarded-For": "198.51.100.141",
+      [forwardedForHeaderName]: "198.51.100.141",
       "X-Request-Id": "e2e-email-otp-complete",
     },
     ignoreHTTPSErrors: true,
@@ -656,7 +656,7 @@ test("completes a real email OTP once and rejects its replay", async ({ request 
     data: { challengeId: challenge.challengeId, code, returnUrl: "/home" },
     headers: {
       "X-Vitarish-Tenant-Host": "localhost",
-      "X-Forwarded-For": "198.51.100.141",
+      [forwardedForHeaderName]: "198.51.100.141",
       "X-Request-Id": "e2e-email-otp-replay",
     },
     ignoreHTTPSErrors: true,
@@ -1126,7 +1126,7 @@ test("keeps two tenants isolated across identifiers, alternate routes, search, a
         { roleSuffix: "TenantOwner" },
       );
       expect(restore.status).toBe(200);
-      await tenantBPage.setExtraHTTPHeaders({ "X-Forwarded-For": "198.51.100.212" });
+      await tenantBPage.setExtraHTTPHeaders({ [forwardedForHeaderName]: "198.51.100.212" });
       try {
         await login(tenantBPage, tenantBOwnerUsername, tenantBOrigin, e2ePassword, "198.51.100.19");
       } finally {
@@ -1573,7 +1573,7 @@ test("accepts one valid signed callback only within its real practice scope", as
 test("honors the trusted ingress proto and retains HTTPS at the API boundary", async ({ request }) => {
   const forwardedHttp = await request.get(`${apiOrigin}/api/modules/appointments/health`, {
     headers: {
-      "X-Forwarded-For": "127.0.0.1",
+      [forwardedForHeaderName]: "127.0.0.1",
       "X-Forwarded-Host": "app.localhost",
       "X-Forwarded-Proto": "http",
     },
@@ -1623,7 +1623,7 @@ test("locks the disposable platform-admin account after repeated real password f
         returnUrl: null,
       },
       headers: {
-        "X-Forwarded-For": lockoutClientIp,
+        [forwardedForHeaderName]: lockoutClientIp,
         "X-Vitarish-Tenant-Host": "localhost",
         "X-Request-Id": `e2e-lockout-attempt-${attempt}`,
       },

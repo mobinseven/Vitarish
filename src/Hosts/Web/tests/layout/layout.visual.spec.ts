@@ -146,7 +146,7 @@ async function stabilizeVisuals(page: Page, primeDocumentImages: boolean) {
     });
   }
 
-  await page.locator("img").evaluateAll(async (images) => {
+  await page.locator("img").evaluateAll(async (images: HTMLImageElement[]) => {
     await Promise.all(
       images.map((image) =>
         image.complete

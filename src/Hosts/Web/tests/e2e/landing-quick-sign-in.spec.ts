@@ -18,6 +18,7 @@ import {
 import { partiesGetOnboardingSetupDraft } from "../../shared/journey/src/api/generated/parties/parties";
 import { onboardingHandoffUrl, tenantHandoffPath } from "../../shared/journey/src/onboardingHost";
 import { landingIssueOnboardingHandoff } from "../../shared/platform/src/api/generated/landing/landing";
+import { forwardedForHeaderName } from "./signInHost";
 
 // The E2E host binds the landing tenant to landing.localhost and the onboarding tenant to start.localhost.
 const landingOrigin = "http://landing.localhost:3005";
@@ -83,7 +84,7 @@ test("a new phone number signs in on the landing host without a clinic and carri
   const handoffPath = generatedPath(landingIssueOnboardingHandoff);
 
   await page.route(/^http:\/\/(landing|start)\.localhost:3005\//, (route) =>
-    route.continue({ headers: { ...route.request().headers(), "X-Forwarded-For": landingClientIp } }),
+    route.continue({ headers: { ...route.request().headers(), [forwardedForHeaderName]: landingClientIp } }),
   );
   // A handoff ticket lives for a minute; compile the onboarding host's handoff page first so
   // redeeming it later is not slowed by the dev server's first visit.

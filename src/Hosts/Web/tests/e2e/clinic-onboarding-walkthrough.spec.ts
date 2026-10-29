@@ -18,6 +18,7 @@ import { getDateCalendar } from "../../shared/localization/src/dateLocale";
 import { formatTimeOfDay } from "../../shared/localization/src/format";
 import { localeCookieName } from "../../shared/localization/src/localeCookie";
 import type { SupportedLocale } from "../../shared/localization/src/locales";
+import { forwardedForHeaderName } from "./signInHost";
 
 const locale: SupportedLocale = process.env[twoHostE2eLocaleEnvironmentKey] === "fa" ? "fa" : "en";
 const ownerMessageCatalogs = { en: enMessages, fa: faMessages } as const;
@@ -213,7 +214,7 @@ test("a new phone number signs up, creates a clinic, lands signed in on it, and 
   // Only the app's own requests carry the client IP: on a cross-origin request (the map tiles) a
   // custom header would force a CORS preflight the tile server refuses.
   await page.route(/^http:\/\/[^/]*localhost:3005\//, (route) =>
-    route.continue({ headers: { ...route.request().headers(), "X-Forwarded-For": walkthroughClientIp } }),
+    route.continue({ headers: { ...route.request().headers(), [forwardedForHeaderName]: walkthroughClientIp } }),
   );
   await context.addCookies([
     { name: localeCookieName, value: locale, url: onboardingOrigin },
@@ -317,7 +318,7 @@ test("a new phone number signs up, creates a clinic, lands signed in on it, and 
   // including an image on another host's page that sends no referrer, as the sign-in clinic list does.
   const publicLogoUrl = `${clinicOrigin}${publicLogoPath}`;
   const anonymousContext = await browser.newContext({
-    extraHTTPHeaders: { "X-Forwarded-For": publicLogoClientIp },
+    extraHTTPHeaders: { [forwardedForHeaderName]: publicLogoClientIp },
   });
   try {
     // Chromium resolves *.localhost hosts; Node's request client does not, so a signed-out page reads the logo.
@@ -363,7 +364,7 @@ test("a new phone number signs up, creates a clinic, lands signed in on it, and 
 
   // 5. Replaying the one-time handoff URL in a fresh browser context with no session cookies is refused.
   const replayContext = await browser.newContext({
-    extraHTTPHeaders: { "X-Forwarded-For": handoffReplayClientIp },
+    extraHTTPHeaders: { [forwardedForHeaderName]: handoffReplayClientIp },
   });
   try {
     await replayContext.addCookies([{ name: localeCookieName, value: locale, url: clinicOrigin }]);

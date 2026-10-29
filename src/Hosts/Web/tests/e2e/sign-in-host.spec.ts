@@ -16,6 +16,7 @@ import { generatedOperationPath } from "./generatedOperationPath";
 import { REQUEST_ID_HEADER, TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
 import { localeCookieName } from "../../shared/localization/src/localeCookie";
 import type { SupportedLocale } from "../../shared/localization/src/locales";
+import { forwardedForHeaderName } from "./signInHost";
 
 const locale: SupportedLocale = process.env[twoHostE2eLocaleEnvironmentKey] === "fa" ? "fa" : "en";
 const workspaceMessages = { en: enMessages, fa: faMessages }[locale].journey.gates.workspace;
@@ -80,7 +81,7 @@ test("signing in on the shared sign-in host lists the person's clinics and lands
   expect(e2ePassword, "VITARISH_E2E_PASSWORD must be supplied by the two-host runner").toBeTruthy();
 
   // Its own account and client IP keep this scenario out of other specs' sessions and sign-in limits.
-  const context = await browser.newContext({ extraHTTPHeaders: { "X-Forwarded-For": signInClientIp } });
+  const context = await browser.newContext({ extraHTTPHeaders: { [forwardedForHeaderName]: signInClientIp } });
   try {
     await context.addCookies(
       [signInOrigin, tenantAOrigin, tenantBOrigin].map((url) => ({ name: localeCookieName, value: locale, url })),
@@ -158,7 +159,7 @@ test("signing in on the shared sign-in host lists the person's clinics and lands
     const apiOrigin = process.env[twoHostE2eApiOriginEnvironmentKey];
     expect(apiOrigin, "the two-host runner supplies the real API origin").toBeTruthy();
     const sourceSession = await context.request.get(new URL(sessionPath, apiOrigin!).href, {
-      headers: { Cookie: issuingCookieHeader, [TENANT_HOST_HEADER]: new URL(signInOrigin).host, "X-Forwarded-For": signInClientIp },
+      headers: { Cookie: issuingCookieHeader, [TENANT_HOST_HEADER]: new URL(signInOrigin).host, [forwardedForHeaderName]: signInClientIp },
       ignoreHTTPSErrors: true,
     });
     expect(sourceSession.status()).toBe(401);
