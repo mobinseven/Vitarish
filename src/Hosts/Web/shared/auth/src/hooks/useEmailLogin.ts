@@ -1,9 +1,11 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   useAuthenticationLoginEmailBegin,
   useAuthenticationLoginEmailComplete,
+  getAuthenticationSessionGetQueryKey,
 } from "../api/generated/authentication/authentication";
 import type { AuthenticationChallengeDto } from "../api/generated/authentication/model";
 import { parseAuthError, getErrorMessage, type AuthError } from "../auth/errors";
@@ -15,6 +17,7 @@ export type EmailLoginStep = "email" | "code";
 export function useEmailLogin({ navigate = ignoreAuthNavigation, returnUrlSearchParams }: AuthNavigationOptions = {}) {
   const beginMutation = useAuthenticationLoginEmailBegin();
   const completeMutation = useAuthenticationLoginEmailComplete();
+  const queryClient = useQueryClient();
   const [step, setStep] = useState<EmailLoginStep>("email");
   const [challenge, setChallenge] = useState<AuthenticationChallengeDto | null>(
     null
@@ -58,6 +61,7 @@ export function useEmailLogin({ navigate = ignoreAuthNavigation, returnUrlSearch
         const result = await completeMutation.mutateAsync({
           data: { challengeId: challenge.challengeId, code, returnUrl: returnUrl ?? null },
         });
+        await queryClient.invalidateQueries({ queryKey: getAuthenticationSessionGetQueryKey() });
         navigate(result.returnUrl);
       } catch (err) {
         const authError = parseAuthError(err);
@@ -70,7 +74,7 @@ export function useEmailLogin({ navigate = ignoreAuthNavigation, returnUrlSearch
         }
       }
     },
-    [challenge, completeMutation, navigate, pendingReturnUrl, returnUrlSearchParams]
+    [challenge, completeMutation, navigate, pendingReturnUrl, queryClient, returnUrlSearchParams]
   );
 
   const resend = useCallback(async () => {
