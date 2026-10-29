@@ -13,5 +13,6 @@
     "isolatedModules": true,
     "jsx": "preserve"
   },
+  "include": ["playwright*.ts", "tests/**/*.ts", "tests/**/*.tsx"],
   "exclude": ["node_modules"]
 }

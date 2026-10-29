@@ -4,7 +4,7 @@ import { dirname } from "node:path";
 import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
 import { clinicMessageCatalogs } from "../../shared/clinic/src/localization/catalogs";
 import { twoHostE2eApiOriginEnvironmentKey, twoHostE2eProofScreenshotEnvironmentKey } from "../../scripts/two-host-e2e-artifacts.mjs";
-import { signInToClinic } from "./signInHost";
+import { forwardedForHeaderName, signInToClinic } from "./signInHost";
 import { agentToolCallbackPath, signAgentCallback } from "./agentCallback";
 
 const ownerUsername = process.env.VITARISH_E2E_USERNAME ?? "e2e-owner";
@@ -24,7 +24,7 @@ type JsonResult = { status: number; body: unknown };
 
 async function login(page: Page) {
   expect(password).toBeTruthy();
-  await page.setExtraHTTPHeaders({ "X-Forwarded-For": "198.51.100.41" });
+  await page.setExtraHTTPHeaders({ [forwardedForHeaderName]: "198.51.100.41" });
   await signInToClinic(page, ownerUsername, password!);
 }
 

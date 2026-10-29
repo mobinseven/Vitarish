@@ -3,10 +3,11 @@ import { createHmac } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { twoHostE2eApiOriginEnvironmentKey, twoHostE2eAuditEvidenceDirectoryEnvironmentKey, twoHostE2eFileTransferAuditKeyEnvironmentKey, twoHostE2eLocaleEnvironmentKey, twoHostE2eSignInOrigin } from "../../scripts/two-host-e2e-artifacts.mjs";
-import { TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
+import { REQUEST_ID_HEADER, TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
 import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
 import { Routes as PlatformRoutes } from "../../apps/platform-admin/src/app/routes";
-import { defaultClinicOrigin, signInToClinic } from "./signInHost";
+import { defaultClinicOrigin, forwardedForHeaderName, signInToClinic } from "./signInHost";
+import { getAuditPlatformSecurityEventsListQueryKey } from "../../shared/security/src/api/generated/audit/audit";
 import {
   localizePlatformAuditCategory,
   localizePlatformAuditChangeField,
@@ -30,6 +31,8 @@ const password = process.env.VITARISH_E2E_PASSWORD;
 const evidenceDirectory = process.env[twoHostE2eAuditEvidenceDirectoryEnvironmentKey]
   ?? join(process.cwd(), "artifacts", "two-host-e2e", "security-audit-evidence");
 const locale = process.env[twoHostE2eLocaleEnvironmentKey] === "fa" ? "fa" : "en";
+const platformAuditEventsPath = getAuditPlatformSecurityEventsListQueryKey()[0];
+
 const uiText = {
   clinicUsers: locale === "fa" ? "کاربران کلینیک" : "Clinic Users",
   addStaff: locale === "fa" ? "افزودن کارمند" : "Add staff member",
@@ -79,7 +82,8 @@ const storeOutageEndPath = `${e2eAuditEvidenceBase}/store-outage/end`;
 const integrityVerificationPath = (fileId: string) => `${e2eAuditEvidenceBase}/files/${fileId}/integrity-verification`;
 const integrityTamperPath = (fileId: string) => `${e2eAuditEvidenceBase}/files/${fileId}/tamper`;
 
-type AuditEventExpectation = (typeof auditEvents)[keyof typeof auditEvents] & { outcome: string };
+// An endpoint-level record names the endpoint's operation ID instead of the catalog operation.
+type AuditEventExpectation = Omit<(typeof auditEvents)[keyof typeof auditEvents], "operation"> & { operation: string; outcome: string };
 type AuditPage = { items: Array<{ id?: string; eventName?: string; eventCategory?: string; operation?: string; outcome?: string; actorId?: string; actorKind?: string; tenantId?: string; subjectId?: string; resource?: string; resourceName?: string; resourceNameHash?: string; resourceExtension?: string; resourceSize?: number; redactedReason?: string; sourceIpAddress?: string; changes?: Array<{ field: string; previousValue: string | null; newValue: string | null }> }>; totalCount: number };
 
 function escapeRegExp(value: string): string {
@@ -134,7 +138,7 @@ async function saveSourceFailedAttemptThreshold(page: Page, threshold: number): 
 async function passwordLoginFrom(request: APIRequestContext, clientIp: string, username: string, attemptPassword: string, attempt: string): Promise<number> {
   const response = await request.post(`${apiOrigin}${passwordLoginPath}`, {
     data: { userNameOrEmail: username, password: attemptPassword, returnUrl: null },
-    headers: { "X-Forwarded-For": clientIp, "X-Vitarish-Tenant-Host": "localhost", "X-Request-Id": `e2e-source-block-${attempt}-${Date.now()}` },
+    headers: { [forwardedForHeaderName]: clientIp, [TENANT_HOST_HEADER]: "localhost", [REQUEST_ID_HEADER]: `e2e-source-block-${attempt}-${Date.now()}` },
     ignoreHTTPSErrors: true,
   });
   return response.status();
@@ -147,7 +151,7 @@ async function login(page: Page, username: string, origin = "", clientIp = "198.
     { name: "vitarish.locale", value: locale, url: platformOrigin },
   ]);
   expect(password, "VITARISH_E2E_PASSWORD must be supplied by the disposable E2E environment").toBeTruthy();
-  await page.setExtraHTTPHeaders({ "X-Forwarded-For": clientIp });
+  await page.setExtraHTTPHeaders({ [forwardedForHeaderName]: clientIp });
   if (origin === platformOrigin) {
     await page.goto(`${platformOrigin}${PlatformRoutes.LoginPassword}`, { waitUntil: "networkidle" });
     await expect(page.locator('input[name="username"]')).toBeVisible({ timeout: 30_000 });
@@ -327,7 +331,7 @@ async function captureAuditEvidence(page: Page, event: AuditEventExpectation, fi
   await page.getByRole("option", { name: event.operation, exact: true }).click();
   await page.getByRole("textbox", { name: uiText.outcome, exact: true }).fill(event.outcome);
   const response = page.waitForResponse((candidate) =>
-    candidate.url().includes("/api/audit/platform/security-events") && candidate.request().method() === "GET",
+    candidate.url().includes(platformAuditEventsPath) && candidate.request().method() === "GET",
   );
   await page.getByRole("button", { name: uiText.applyFilters }).click();
   await response;
@@ -340,6 +344,30 @@ async function captureAuditEvidence(page: Page, event: AuditEventExpectation, fi
   mkdirSync(evidenceDirectory, { recursive: true });
   await hideDevelopmentIndicator(page);
   await page.screenshot({ path: join(evidenceDirectory, filename), fullPage: true });
+}
+
+// A file transfer record's detail sheet names the transferred file.
+async function captureFileTransferDetail(page: Page, event: Pick<AuditEventExpectation, "name">, recordId: string, filename: string): Promise<void> {
+  const platformAuditText = securityMessageCatalogs[locale].security.platformAudit;
+  await page.goto(`${platformOrigin}${PlatformRoutes.Audit}`, { waitUntil: "domcontentloaded" });
+  await expect(page.getByRole("heading", { name: uiText.auditTitle })).toBeVisible({ timeout: 30_000 });
+  await page.getByRole("button", { name: uiText.clearFilters }).click();
+  await page.getByRole("textbox", { name: platformAuditText.eventId, exact: true }).fill(recordId);
+  const response = page.waitForResponse((candidate) =>
+    candidate.url().includes(platformAuditEventsPath) && candidate.request().method() === "GET",
+  );
+  await page.getByRole("button", { name: uiText.applyFilters }).click();
+  await response;
+  await page.locator("tbody tr").first()
+    .getByText(localizePlatformAuditEvent(locale, event.name, event.name), { exact: true }).first().click();
+  await expect(page.getByRole("heading", { name: platformAuditText.detailTitle })).toBeVisible();
+  await expect(page.getByText(evidenceFileName)).toBeVisible();
+  // The sheet slides in; capture it once its finite animations have settled.
+  await page.evaluate(() => Promise.all(document.getAnimations()
+    .filter((animation) => animation.effect?.getComputedTiming().endTime !== Infinity)
+    .map((animation) => animation.finished)));
+  await hideDevelopmentIndicator(page);
+  await page.screenshot({ path: join(evidenceDirectory, filename) });
 }
 
 async function platformAuditCategoryQuery(page: Page, category: string, pageNumber: number): Promise<AuditPage & { page: number; pageSize: number; totalCount: number }> {
@@ -381,7 +409,7 @@ async function captureAllAuthenticationCatalogEvidence(page: Page): Promise<void
   }).click();
 
   const applyResponse = page.waitForResponse((candidate) =>
-    candidate.url().includes("/api/audit/platform/security-events") && candidate.request().method() === "GET",
+    candidate.url().includes(platformAuditEventsPath) && candidate.request().method() === "GET",
   );
   await page.getByRole("button", { name: uiText.applyFilters }).click();
   await applyResponse;
@@ -402,7 +430,8 @@ test("real actions create visible platform security-audit evidence", async ({ pa
   const fileTransferAuditKey = process.env[twoHostE2eFileTransferAuditKeyEnvironmentKey];
   if (!fileTransferAuditKey) throw new Error("The disposable file transfer audit key must be supplied by the two-host runner.");
   const evidenceFileNameHash = createHmac("sha256", fileTransferAuditKey).update(evidenceFileName, "utf8").digest("hex");
-  const anonymousContext = await browser.newContext();
+  const auditClientIp = `198.18.1.${testInfo.retry + 1}`;
+  const anonymousContext = await browser.newContext({ extraHTTPHeaders: { [forwardedForHeaderName]: auditClientIp } });
   const anonymousPage = await anonymousContext.newPage();
   const administratorContext = await browser.newContext();
   const administratorPage = await administratorContext.newPage();
@@ -554,9 +583,9 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     });
     expect(policyUpdate.status).toBe(200);
 
-    const secondAdministratorContext = await browser.newContext();
+    const secondAdministratorContext = await browser.newContext({ extraHTTPHeaders: { [forwardedForHeaderName]: auditClientIp } });
     const secondAdministratorPage = await secondAdministratorContext.newPage();
-    const thirdAdministratorContext = await browser.newContext();
+    const thirdAdministratorContext = await browser.newContext({ extraHTTPHeaders: { [forwardedForHeaderName]: auditClientIp } });
     const thirdAdministratorPage = await thirdAdministratorContext.newPage();
     try {
       await secondAdministratorPage.goto(`${platformOrigin}${PlatformRoutes.LoginPassword}`, { waitUntil: "networkidle" });
@@ -647,6 +676,9 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     await roleChangeLine.scrollIntoViewIfNeeded();
     await hideDevelopmentIndicator(administratorPage);
     await administratorPage.screenshot({ path: join(evidenceDirectory, "tenant-role-change-detail.png") });
+    const uploadRecord = importRecords.items.find((item) => item.resourceName === evidenceFileName);
+    await captureFileTransferDetail(administratorPage, auditEvents.dataImport, uploadRecord!.id!, "data-import-detail.png");
+    await captureFileTransferDetail(administratorPage, auditEvents.auditExport, downloadRecord!.id!, "data-export-detail.png");
     await captureAuditEvidence(administratorPage, { ...auditEvents.dataImport, outcome: "succeeded" }, "data-import.png");
     // Viewing the audit list is itself recorded, once per viewer and minute.
     await administratorPage.goto(`${platformOrigin}${PlatformRoutes.Audit}`, { waitUntil: "domcontentloaded" });
@@ -690,7 +722,7 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     try {
       const response = await request.post(`${apiOrigin}/api/modules/authentication/login/password`, {
         data: { userNameOrEmail: `e2e-outage-${Date.now()}@example.invalid`, password: "E2E-Outage-Wrong-Password", returnUrl: null },
-        headers: { "X-Forwarded-For": "203.0.113.67", "X-Vitarish-Tenant-Host": "localhost", "X-Request-Id": `e2e-audit-outage-${Date.now()}` },
+        headers: { [forwardedForHeaderName]: "203.0.113.67", [TENANT_HOST_HEADER]: "localhost", [REQUEST_ID_HEADER]: `e2e-audit-outage-${Date.now()}` },
         ignoreHTTPSErrors: true,
       });
       statusDuringOutage = response.status();
@@ -755,7 +787,7 @@ async function completeEmailOtp(request: APIRequestContext): Promise<void> {
   expect(smtpCapturePath, "VITARISH_E2E_SMTP_CAPTURE_PATH must be supplied for OTP evidence").toBeTruthy();
   const begin = await request.post(`${apiOrigin}/api/modules/authentication/login/email/begin`, {
     data: { email: "e2e-owner@example.test", returnUrl: "/home" },
-    headers: { "X-Vitarish-Tenant-Host": "localhost", "X-Forwarded-For": "198.51.100.63", "X-Request-Id": `e2e-audit-otp-${Date.now()}` },
+    headers: { [TENANT_HOST_HEADER]: "localhost", [forwardedForHeaderName]: "198.51.100.63", [REQUEST_ID_HEADER]: `e2e-audit-otp-${Date.now()}` },
     ignoreHTTPSErrors: true,
   });
   expect(begin.status()).toBe(200);
@@ -767,7 +799,7 @@ async function completeEmailOtp(request: APIRequestContext): Promise<void> {
   expect(code).toEqual(expect.any(String));
   const complete = await request.post(`${apiOrigin}/api/modules/authentication/login/email/complete`, {
     data: { challengeId: challenge.challengeId, code, returnUrl: "/home" },
-    headers: { "X-Vitarish-Tenant-Host": "localhost", "X-Forwarded-For": "198.51.100.63", "X-Request-Id": `e2e-audit-otp-complete-${Date.now()}` },
+    headers: { [TENANT_HOST_HEADER]: "localhost", [forwardedForHeaderName]: "198.51.100.63", [REQUEST_ID_HEADER]: `e2e-audit-otp-complete-${Date.now()}` },
     ignoreHTTPSErrors: true,
   });
   expect(complete.status()).toBe(200);

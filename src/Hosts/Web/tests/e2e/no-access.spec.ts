@@ -4,6 +4,7 @@ import { twoHostE2eApiOriginEnvironmentKey, twoHostE2eClinicOrigin } from "../..
 import { REQUEST_ID_HEADER, TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
 import { authenticationLoginEmailBegin, authenticationLoginEmailComplete, getAuthenticationSessionGetQueryKey } from "../../shared/auth/src/api/generated/authentication/authentication";
 import { generatedOperationPath } from "./generatedOperationPath";
+import { forwardedForHeaderName } from "./signInHost";
 
 const apiOrigin = process.env[twoHostE2eApiOriginEnvironmentKey];
 // The E2E clinic's own host; its sign-in pages redirect to the shared sign-in host, which admits
@@ -31,7 +32,7 @@ async function readDeliveredCode(previousModifiedAt: number): Promise<string> {
 test("an account with no role or tenant membership is refused on a clinic host after the code verifies", async ({ request }) => {
   expect(smtpCapturePath, "VITARISH_E2E_SMTP_CAPTURE_PATH must be supplied by the two-host runner").toBeTruthy();
   expect(apiOrigin, "the two-host runner supplies the real API origin").toBeTruthy();
-  const headers = { [TENANT_HOST_HEADER]: clinicHost, "X-Forwarded-For": clientIp };
+  const headers = { [TENANT_HOST_HEADER]: clinicHost, [forwardedForHeaderName]: clientIp };
 
   const email = `e2e-no-access-${Date.now()}@example.test`;
   const previousModifiedAt = existsSync(smtpCapturePath!) ? statSync(smtpCapturePath!).mtimeMs : 0;

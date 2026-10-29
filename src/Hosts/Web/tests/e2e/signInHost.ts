@@ -6,6 +6,7 @@ import { generatedOperationPath } from "./generatedOperationPath";
 
 /** The E2E clinic's own host. */
 export const defaultClinicOrigin = twoHostE2eClinicOrigin;
+export const forwardedForHeaderName = "X-Forwarded-For";
 const handoffTimeoutMilliseconds = 120_000;
 const passwordLoginPath = generatedOperationPath(authenticationLoginPassword);
 

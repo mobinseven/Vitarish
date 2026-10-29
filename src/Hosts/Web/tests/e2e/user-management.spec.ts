@@ -6,9 +6,11 @@ import { promisify } from "node:util";
 import { resolve } from "node:path";
 import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
 import { Routes as PlatformRoutes } from "../../apps/platform-admin/src/app/routes";
-import { signInToClinic, submitPasswordOnSignInHost } from "./signInHost";
+import { forwardedForHeaderName, signInToClinic, submitPasswordOnSignInHost } from "./signInHost";
 import { authenticationLogoutPost } from "../../shared/auth/src/api/generated/authentication/authentication";
 import type { SecurityAuthenticationPolicyDto } from "../../shared/auth/src/api/generated/authentication/model";
+import { getUsersAdministrationGetUserSecurityQueryKey } from "../../shared/auth/src/api/generated/users/users";
+import type { UpdateManagedUserRequest, UserSecurityDetailsResponse } from "../../shared/auth/src/api/generated/users/model";
 import { resetAntiforgeryToken, TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
 import { UsersCommandErrorKind } from "../../shared/auth/src/users";
 import { usersMessageCatalogs } from "../../shared/users/src/localization/catalogs";
@@ -255,14 +257,14 @@ test("platform administrator disables and re-enables a signed-out user's account
   expect(password, "VITARISH_E2E_PASSWORD must be supplied by the disposable E2E environment").toBeTruthy();
   // Own the PasswordLogin rate-limit partition; the shared client IP is
   // exhausted by the earlier login scenarios.
-  await page.setExtraHTTPHeaders({ "X-Forwarded-For": "198.51.100.232" });
+  await page.setExtraHTTPHeaders({ [forwardedForHeaderName]: "198.51.100.232" });
   await login(page, platformUsername, platformOrigin);
   // Earlier scenarios leave the owner signed in elsewhere while the evaluated
   // concurrent-session limit is active; a disable needs a zero-session owner.
   await endAllUserSessionsThroughUi(page, ownerUsername);
   await setAccountStatusThroughUi(page, ownerUsername, false);
 
-  const userContext = await browser!.newContext({ extraHTTPHeaders: { "X-Forwarded-For": "198.51.100.233" } });
+  const userContext = await browser!.newContext({ extraHTTPHeaders: { [forwardedForHeaderName]: "198.51.100.233" } });
   const userPage = await userContext.newPage();
   let failure: unknown;
   let accountReenabled = false;
@@ -505,14 +507,30 @@ test("platform administrator creates, edits, assigns access, and reviews a user'
   }
 
   const stalePage = await page.context().newPage();
-  await stalePage.goto(`${platformOrigin}${PlatformRoutes.Users.Detail(createdUser.id!)}`, { waitUntil: "domcontentloaded" });
+  const securityPath = getUsersAdministrationGetUserSecurityQueryKey(createdUser.id!)[0];
+  const [staleDetailsResponse] = await Promise.all([
+    stalePage.waitForResponse((response) => response.request().method() === "GET" && new URL(response.url()).pathname === securityPath),
+    stalePage.goto(`${platformOrigin}${PlatformRoutes.Users.Detail(createdUser.id!)}`, { waitUntil: "domcontentloaded" }),
+  ]);
+  expect(staleDetailsResponse.ok()).toBe(true);
+  const staleUser = (await staleDetailsResponse.json() as UserSecurityDetailsResponse).user;
+  expect(staleUser.email).toBe(originalContact);
+  expect(staleUser.revision).toEqual(expect.any(String));
   await expect(stalePage.getByText(createdUser.id!, { exact: true })).toBeVisible({ timeout: 30_000 });
+  await expect(stalePage.getByRole("textbox", { name: "Email address" })).toHaveValue(originalContact);
   await page.getByRole("textbox", { name: "Email address" }).fill(changedContact);
-  const [editResponse] = await Promise.all([
+  const [editResponse, updatedDetailsResponse] = await Promise.all([
     page.waitForResponse((response) => response.request().method() === "PUT" && response.request().postData()?.includes(changedContact) === true),
+    page.waitForResponse((response) => response.request().method() === "GET" && new URL(response.url()).pathname === securityPath),
     page.getByRole("button", { name: "Save user changes" }).click(),
   ]);
   expect(editResponse.ok()).toBe(true);
+  expect((editResponse.request().postDataJSON() as UpdateManagedUserRequest).revision).toBe(staleUser.revision);
+  expect(updatedDetailsResponse.ok()).toBe(true);
+  const updatedUser = (await updatedDetailsResponse.json() as UserSecurityDetailsResponse).user;
+  expect(updatedUser.email).toBe(changedContact);
+  expect(updatedUser.revision).toEqual(expect.any(String));
+  expect(updatedUser.revision).not.toBe(staleUser.revision);
   await expect(page.getByRole("status").filter({ hasText: "User details were updated." })).toBeVisible();
 
   const staleContact = `e2e-security-stale-${Date.now()}@example.test`;
@@ -521,6 +539,7 @@ test("platform administrator creates, edits, assigns access, and reviews a user'
     stalePage.waitForResponse((response) => response.request().method() === "PUT" && response.request().postData()?.includes(staleContact) === true),
     stalePage.getByRole("button", { name: "Save user changes" }).click(),
   ]);
+  expect((conflictResponse.request().postDataJSON() as UpdateManagedUserRequest).revision).toBe(staleUser.revision);
   expect(conflictResponse.status()).toBe(409);
   await expect(stalePage.getByRole("status").filter({ hasText: "This account changed elsewhere." })).toBeVisible();
   await expect(stalePage.getByRole("textbox", { name: "Email address" })).toHaveValue(changedContact);

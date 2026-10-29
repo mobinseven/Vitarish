@@ -25,7 +25,7 @@ export default defineConfig({
     baseURL: "http://127.0.0.1:3000",
     browserName: "chromium",
     colorScheme: "light",
-    reducedMotion: "reduce",
+    contextOptions: { reducedMotion: "reduce" },
     screenshot: "only-on-failure",
     serviceWorkers: "block",
     trace: "retain-on-failure",

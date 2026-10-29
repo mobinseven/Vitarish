@@ -6,6 +6,7 @@ import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/ap
 import { Routes as PlatformRoutes } from "../../apps/platform-admin/src/app/routes";
 import { twoHostE2eSignInOrigin } from "../../scripts/two-host-e2e-artifacts.mjs";
 import { authenticationPasswordRecoveryBegin } from "../../shared/auth/src/api/generated/authentication/authentication";
+import { forwardedForHeaderName } from "./signInHost";
 
 const platformAdminOrigin = process.env.PLAYWRIGHT_PLATFORM_ADMIN_ORIGIN ?? "http://localhost:3006";
 const smtpCapturePath = process.env.VITARISH_E2E_SMTP_CAPTURE_PATH;
@@ -190,7 +191,7 @@ test("SMS recovery has the same public result for malformed and unknown phone nu
     const context = await browser.newContext();
     // One OtpBegin rate-limit partition per contact so these anonymous
     // requests cannot exhaust the partition used by the phone-login scenario.
-    context.setExtraHTTPHeaders({ "X-Forwarded-For": `198.51.100.${202 + outcomes.length}` });
+    context.setExtraHTTPHeaders({ [forwardedForHeaderName]: `198.51.100.${202 + outcomes.length}` });
     const page = await context.newPage();
     try {
       await page.goto(`${twoHostE2eSignInOrigin}${ClinicRoutes.Login.ForgotPassword}`, { waitUntil: "domcontentloaded" });

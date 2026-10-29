@@ -7,7 +7,7 @@ import https from "node:https";
 import net from "node:net";
 import crypto from "node:crypto";
 import { signInUrlEnvironmentKey } from "../shared/journey/src/signInHost.ts";
-import { apiProxyTargetEnvironmentKey } from "./api-proxy-rewrites.mjs";
+import { apiProxyTargetEnvironmentKey, browserApiBaseEnvironmentKey } from "./api-proxy-rewrites.mjs";
 import {
   twoHostE2eApiOriginEnvironmentKey,
   twoHostE2eArtifactDirectoryEnvironmentKey,
@@ -28,6 +28,7 @@ const repositoryRoot = resolve(webRoot, "..", "..", "..");
 const appRoot = resolve(webRoot, "apps", "private-practice-owner");
 const platformAdminAppRoot = resolve(webRoot, "apps", "platform-admin");
 const e2eProject = resolve(repositoryRoot, "src", "Hosts", "E2e", "E2e.csproj");
+const nextCli = resolve(webRoot, "node_modules", "next", "dist", "bin", "next");
 const playwrightConfig = resolve(webRoot, "playwright.two-host.config.ts");
 const artifactRoot = resolve(webRoot, "artifacts", "two-host-e2e");
 const runId = `${new Date().toISOString().replaceAll(":", "-")}-${process.pid}-${crypto.randomBytes(4).toString("hex")}`;
@@ -51,8 +52,7 @@ const smtpCapturePath = resolve(artifactDirectory, "e2e-smtp-capture.eml");
 const smsCapturePath = resolve(artifactDirectory, "e2e-sms-capture.jsonl");
 const smtpPort = 2525;
 const readinessProbeTimeoutMs = 5000;
-// next dev compiles the first page while it starts, into a new build folder each run.
-const nextDevReadinessTimeoutMs = 300_000;
+const nextReadinessTimeoutMs = 300_000;
 // Spec files and flags such as --headed or --ui pass through to Playwright.
 const playwrightArguments = process.argv.slice(2);
 
@@ -211,13 +211,27 @@ async function ensurePortAvailable(label, url) {
 }
 
 function waitForExit(child) {
-  return new Promise((resolveExit) => {
+  return new Promise((resolveExit, rejectExit) => {
     if (child.exitCode !== null || child.signalCode !== null) {
       resolveExit({ code: child.exitCode, signal: child.signalCode });
       return;
     }
+    child.once("error", rejectExit);
     child.once("close", (code, signal) => resolveExit({ code, signal }));
   });
+}
+
+async function buildNextApp(label, cwd, environment) {
+  const child = startProcess(`${label}-build`, process.execPath, [nextCli, "build"], cwd, environment);
+  let result;
+  try {
+    result = await waitForExit(child);
+  } catch (error) {
+    throw new Error(`${label} build could not start: ${error instanceof Error ? error.message : error}. See ${child.logPath}.`);
+  }
+  if (result.code !== 0 || result.signal !== null) {
+    throw new Error(`${label} build failed (exit=${result.code}, signal=${result.signal}). See ${child.logPath}.`);
+  }
 }
 
 function waitForPrematureHostExit(child) {
@@ -231,7 +245,7 @@ function waitForPrematureHostExit(child) {
 }
 
 async function stopProcessTree(child) {
-  if (!child || child.exitCode !== null || child.signalCode !== null) return;
+  if (!child || !child.pid || child.exitCode !== null || child.signalCode !== null) return;
   if (process.platform === "win32") {
     await new Promise((resolveKill) => {
       const killer = spawn("taskkill", ["/PID", String(child.pid), "/T", "/F"], { windowsHide: true });
@@ -297,6 +311,9 @@ async function run() {
   const mainEnvironment = createEnvironment({
     ASPNETCORE_ENVIRONMENT: "E2E",
     ASPNETCORE_URLS: mainOrigin,
+    // `dotnet run` builds first; reused MSBuild workers would otherwise stay
+    // resident (one per core) and compete with the Web servers for memory.
+    MSBUILDDISABLENODEREUSE: "1",
     WebAuthn__Origins__0: webOrigin,
     WebAuthn__Origins__1: platformAdminOrigin,
     [twoHostE2eApiOriginEnvironmentKey]: mainOrigin,
@@ -319,7 +336,9 @@ async function run() {
   // The browser calls /api on its own web origin, as in production; Next proxies it to
   // Main. Node trusts Main's local development certificate through the system store.
   const webEnvironment = createEnvironment({
-    NEXT_PUBLIC_API_BASE_URL: "",
+    [browserApiBaseEnvironmentKey]: "",
+    NEXT_PUBLIC_VITARISH_MOCK_API: "0",
+    NEXT_PUBLIC_VITARISH_MOCK_SCENARIO: "",
     [apiProxyTargetEnvironmentKey]: mainOrigin,
     [twoHostE2eApiOriginEnvironmentKey]: mainOrigin,
     NODE_USE_SYSTEM_CA: "1",
@@ -337,12 +356,18 @@ async function run() {
     [twoHostE2eProofStorageStateEnvironmentKey]: proofStorageStatePath,
     [twoHostE2eProofScreenshotEnvironmentKey]: proofScreenshotPath,
   });
-  delete webEnvironment.NEXT_PUBLIC_VITARISH_MOCK_API;
-  delete webEnvironment.NEXT_PUBLIC_VITARISH_MOCK_SCENARIO;
+  const nextEnvironment = { ...webEnvironment, NODE_ENV: "production" };
+  const buildEnvironment = { ...nextEnvironment };
+  delete buildEnvironment.VITARISH_E2E_PASSWORD;
+  delete buildEnvironment.VITARISH_E2E_AGENT_SHARED_SECRET;
+  delete buildEnvironment[twoHostE2eFileTransferAuditKeyEnvironmentKey];
 
   await ensurePortAvailable("E2e", mainOrigin);
   await ensurePortAvailable("Private Practice Owner", webOrigin);
   await ensurePortAvailable("Platform Admin", platformAdminOrigin);
+
+  await buildNextApp("web", appRoot, buildEnvironment);
+  await buildNextApp("platform-admin", platformAdminAppRoot, buildEnvironment);
 
   const main = startProcess(
     "e2e",
@@ -354,21 +379,21 @@ async function run() {
   const web = startProcess(
     "web",
     process.execPath,
-    [resolve(webRoot, "node_modules", "next", "dist", "bin", "next"), "dev", "--port", "3005"],
+    [nextCli, "start", "--port", new URL(webOrigin).port],
     appRoot,
-    webEnvironment,
+    nextEnvironment,
   );
   const platformAdmin = startProcess(
     "platform-admin",
     process.execPath,
-    [resolve(webRoot, "node_modules", "next", "dist", "bin", "next"), "dev", "--port", "3006"],
+    [nextCli, "start", "--port", new URL(platformAdminOrigin).port],
     platformAdminAppRoot,
-    webEnvironment,
+    nextEnvironment,
   );
 
   await waitForHttp("E2e", main, `${mainOrigin}/api/modules/authentication/antiforgery`);
-  await waitForHttp("Private Practice Owner", web, `${webOrigin}/`, nextDevReadinessTimeoutMs);
-  await waitForHttp("Platform Admin", platformAdmin, `${platformAdminOrigin}/`, nextDevReadinessTimeoutMs);
+  await waitForHttp("Private Practice Owner", web, `${webOrigin}/`, nextReadinessTimeoutMs);
+  await waitForHttp("Platform Admin", platformAdmin, `${platformAdminOrigin}/`, nextReadinessTimeoutMs);
 
   webEnvironment.PLAYWRIGHT_PLATFORM_ADMIN_ORIGIN = platformAdminOrigin;
 

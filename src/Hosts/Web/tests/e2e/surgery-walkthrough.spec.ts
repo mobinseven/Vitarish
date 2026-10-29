@@ -4,7 +4,7 @@ import { dirname } from "node:path";
 import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
 import { clinicMessageCatalogs } from "../../shared/clinic/src/localization/catalogs";
 import { twoHostE2eProofScreenshotEnvironmentKey } from "../../scripts/two-host-e2e-artifacts.mjs";
-import { signInToClinic } from "./signInHost";
+import { forwardedForHeaderName, signInToClinic } from "./signInHost";
 
 const ownerUsername = process.env.VITARISH_E2E_USERNAME ?? "e2e-owner";
 const password = process.env.VITARISH_E2E_PASSWORD;
@@ -19,7 +19,7 @@ const surgeryMessages = clinicMessages.surgeries;
 async function login(page: Page) {
   expect(password).toBeTruthy();
   // Its own client IP keeps this spec out of the shared loopback login rate limit.
-  await page.setExtraHTTPHeaders({ "X-Forwarded-For": "198.51.100.42" });
+  await page.setExtraHTTPHeaders({ [forwardedForHeaderName]: "198.51.100.42" });
   await signInToClinic(page, ownerUsername, password!);
 }
 

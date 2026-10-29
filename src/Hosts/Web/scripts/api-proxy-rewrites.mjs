@@ -6,12 +6,12 @@
  * the web apps run on http://localhost and Main on https://localhost:7272, which is
  * cross-site under schemeful same-site. When this server-only setting is present, the
  * Next app proxies `/api/*` (including WebSocket upgrades) to Main so the browser keeps
- * the production same-origin shape. Production builds must not set it: rewrites are
+ * the production same-origin shape. Deployment builds must not set it: rewrites are
  * resolved at build time and the ingress owns `/api` there.
  */
 export const apiProxyTargetEnvironmentKey = "VITARISH_API_PROXY_TARGET";
 export const apiProxyPathPrefix = "/api";
-const browserApiBaseEnvironmentKey = "NEXT_PUBLIC_API_BASE_URL";
+export const browserApiBaseEnvironmentKey = "NEXT_PUBLIC_API_BASE_URL";
 
 export async function apiProxyRewrites() {
   const target = process.env[apiProxyTargetEnvironmentKey]?.trim();

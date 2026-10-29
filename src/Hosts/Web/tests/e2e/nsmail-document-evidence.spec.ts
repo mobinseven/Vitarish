@@ -8,7 +8,7 @@ import { localeCookieName } from "../../shared/localization/src/localeCookie";
 import { usersMessageCatalogs } from "../../shared/users/src/localization/catalogs";
 import { TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
 import { twoHostE2eSignInOrigin } from "../../scripts/two-host-e2e-artifacts.mjs";
-import { signInToClinic } from "./signInHost";
+import { forwardedForHeaderName, signInToClinic } from "./signInHost";
 
 // Captures the product screens the NSMAIL-1 self-assessment document shows, in
 // the Persian UI, one file per document slot group. It is an evidence tool, not a
@@ -55,7 +55,7 @@ async function persianContext(browser: Browser, clientIp: string) {
   const context = await browser.newContext({
     locale: "fa-IR",
     viewport: { width: 1440, height: 900 },
-    extraHTTPHeaders: { "X-Forwarded-For": clientIp },
+    extraHTTPHeaders: { [forwardedForHeaderName]: clientIp },
   });
   await context.addCookies([
     { name: localeCookieName, value: "fa", url: `${webOrigin}/` },
@@ -297,7 +297,9 @@ test.describe("NSMAIL document evidence", () => {
     const newcomerContext = await persianContext(browser, "198.51.100.246");
     const newcomer = await newcomerContext.newPage();
     try {
-      await newcomer.goto(`${platformOrigin}${PlatformRoutes.LoginEmail}`, { waitUntil: "domcontentloaded" });
+      // A first visit compiles the page in next dev; submitting before its scripts load
+      // falls back to a plain form GET that never begins the email sign-in.
+      await newcomer.goto(`${platformOrigin}${PlatformRoutes.LoginEmail}`, { waitUntil: "load" });
       const email = newcomer.locator('input[type="email"]').first();
       await expect(email).toBeVisible({ timeout: 30_000 });
       await email.fill(`nsmail-no-access-${Date.now()}@example.test`);

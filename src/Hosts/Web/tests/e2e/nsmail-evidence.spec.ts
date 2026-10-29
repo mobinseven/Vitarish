@@ -5,7 +5,7 @@ import { securityMessageCatalogs } from "../../shared/security/src/localization"
 import { dirname, resolve } from "node:path";
 import { mkdirSync } from "node:fs";
 import { twoHostE2eApiOriginEnvironmentKey, twoHostE2eSignInOrigin } from "../../scripts/two-host-e2e-artifacts.mjs";
-import { signInToClinic } from "./signInHost";
+import { forwardedForHeaderName, signInToClinic } from "./signInHost";
 import { authenticationLoginPassword } from "../../shared/auth/src/api/generated/authentication/authentication";
 import { generatedOperationPath } from "./generatedOperationPath";
 
@@ -80,13 +80,18 @@ async function captureSurface(page: Page, path: string, heading: string, filenam
 }
 
 test.describe("NSMAIL-1 evidence execution coverage", () => {
+  // Keep repeated sign-ins out of the shared loopback rate-limit partition.
+  test.beforeEach(async ({ context }, testInfo) => {
+    await context.setExtraHTTPHeaders({ [forwardedForHeaderName]: `198.18.0.${testInfo.retry + 1}` });
+  });
+
   test("AUD-09: authorized audit review exposes filtered, attributable records", async ({ page, request }) => {
     test.setTimeout(300_000);
     // Shared sign-in records password events in platform scope. Create this tenant's own event
     // through the public API so review filtering never depends on an earlier spec's attempts.
     const deniedLogin = await request.post(new URL(generatedOperationPath(authenticationLoginPassword), apiOrigin).href, {
       data: { userNameOrEmail: `e2e-audit-review-${Date.now()}@example.invalid`, password: "E2E-Audit-Review-Wrong-Password", returnUrl: null },
-      headers: { "X-Forwarded-For": "203.0.113.69", [TENANT_HOST_HEADER]: "localhost" },
+      headers: { [forwardedForHeaderName]: "203.0.113.69", [TENANT_HOST_HEADER]: "localhost" },
       ignoreHTTPSErrors: true,
     });
     expect(deniedLogin.status()).toBe(401);
@@ -161,7 +166,7 @@ test.describe("NSMAIL-1 evidence execution coverage", () => {
 
   test("DATA-11/TLS-01: plaintext ingress is redirected to HTTPS", async ({ request }) => {
     const response = await request.get(`${apiOrigin}/api/modules/appointments/health`, {
-      headers: { "X-Forwarded-For": "127.0.0.1", "X-Forwarded-Host": "app.localhost", "X-Forwarded-Proto": "http" },
+      headers: { [forwardedForHeaderName]: "127.0.0.1", "X-Forwarded-Host": "app.localhost", "X-Forwarded-Proto": "http" },
       maxRedirects: 0,
       ignoreHTTPSErrors: true,
     });

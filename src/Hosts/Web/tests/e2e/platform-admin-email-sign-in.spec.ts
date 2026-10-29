@@ -8,6 +8,7 @@ import {
   authenticationSessionGet,
 } from "../../shared/auth/src/api/generated/authentication/authentication";
 import { localeCookieName } from "../../shared/localization/src/localeCookie";
+import { forwardedForHeaderName } from "./signInHost";
 
 const platformOrigin = process.env.PLAYWRIGHT_PLATFORM_ADMIN_ORIGIN ?? "http://localhost:3006";
 const smtpCapturePath = process.env.VITARISH_E2E_SMTP_CAPTURE_PATH;
@@ -33,7 +34,7 @@ async function readDeliveredCode(previousModifiedAt: number): Promise<string> {
 }
 
 async function signInWithEmailCode(browser: Browser, clientIp: string): Promise<Page> {
-  const context = await browser.newContext({ extraHTTPHeaders: { "X-Forwarded-For": clientIp } });
+  const context = await browser.newContext({ extraHTTPHeaders: { [forwardedForHeaderName]: clientIp } });
   await context.addCookies([{ name: localeCookieName, value: "en", url: platformOrigin }]);
   const page = await context.newPage();
   await page.goto(`${platformOrigin}${PlatformRoutes.Audit}`, { waitUntil: "domcontentloaded" });
