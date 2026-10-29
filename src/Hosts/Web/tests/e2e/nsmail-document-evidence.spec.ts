@@ -297,7 +297,9 @@ test.describe("NSMAIL document evidence", () => {
     const newcomerContext = await persianContext(browser, "198.51.100.246");
     const newcomer = await newcomerContext.newPage();
     try {
-      await newcomer.goto(`${platformOrigin}${PlatformRoutes.LoginEmail}`, { waitUntil: "domcontentloaded" });
+      // A first visit compiles the page in next dev; submitting before its scripts load
+      // falls back to a plain form GET that never begins the email sign-in.
+      await newcomer.goto(`${platformOrigin}${PlatformRoutes.LoginEmail}`, { waitUntil: "load" });
       const email = newcomer.locator('input[type="email"]').first();
       await expect(email).toBeVisible({ timeout: 30_000 });
       await email.fill(`nsmail-no-access-${Date.now()}@example.test`);

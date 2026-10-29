@@ -9,6 +9,8 @@ import { Routes as PlatformRoutes } from "../../apps/platform-admin/src/app/rout
 import { signInToClinic, submitPasswordOnSignInHost } from "./signInHost";
 import { authenticationLogoutPost } from "../../shared/auth/src/api/generated/authentication/authentication";
 import type { SecurityAuthenticationPolicyDto } from "../../shared/auth/src/api/generated/authentication/model";
+import { getUsersAdministrationGetUserSecurityQueryKey } from "../../shared/auth/src/api/generated/users/users";
+import type { UpdateManagedUserRequest, UserSecurityDetailsResponse } from "../../shared/auth/src/api/generated/users/model";
 import { resetAntiforgeryToken, TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
 import { UsersCommandErrorKind } from "../../shared/auth/src/users";
 import { usersMessageCatalogs } from "../../shared/users/src/localization/catalogs";
@@ -505,14 +507,30 @@ test("platform administrator creates, edits, assigns access, and reviews a user'
   }
 
   const stalePage = await page.context().newPage();
-  await stalePage.goto(`${platformOrigin}${PlatformRoutes.Users.Detail(createdUser.id!)}`, { waitUntil: "domcontentloaded" });
+  const securityPath = getUsersAdministrationGetUserSecurityQueryKey(createdUser.id!)[0];
+  const [staleDetailsResponse] = await Promise.all([
+    stalePage.waitForResponse((response) => response.request().method() === "GET" && new URL(response.url()).pathname === securityPath),
+    stalePage.goto(`${platformOrigin}${PlatformRoutes.Users.Detail(createdUser.id!)}`, { waitUntil: "domcontentloaded" }),
+  ]);
+  expect(staleDetailsResponse.ok()).toBe(true);
+  const staleUser = (await staleDetailsResponse.json() as UserSecurityDetailsResponse).user;
+  expect(staleUser.email).toBe(originalContact);
+  expect(staleUser.revision).toEqual(expect.any(String));
   await expect(stalePage.getByText(createdUser.id!, { exact: true })).toBeVisible({ timeout: 30_000 });
+  await expect(stalePage.getByRole("textbox", { name: "Email address" })).toHaveValue(originalContact);
   await page.getByRole("textbox", { name: "Email address" }).fill(changedContact);
-  const [editResponse] = await Promise.all([
+  const [editResponse, updatedDetailsResponse] = await Promise.all([
     page.waitForResponse((response) => response.request().method() === "PUT" && response.request().postData()?.includes(changedContact) === true),
+    page.waitForResponse((response) => response.request().method() === "GET" && new URL(response.url()).pathname === securityPath),
     page.getByRole("button", { name: "Save user changes" }).click(),
   ]);
   expect(editResponse.ok()).toBe(true);
+  expect((editResponse.request().postDataJSON() as UpdateManagedUserRequest).revision).toBe(staleUser.revision);
+  expect(updatedDetailsResponse.ok()).toBe(true);
+  const updatedUser = (await updatedDetailsResponse.json() as UserSecurityDetailsResponse).user;
+  expect(updatedUser.email).toBe(changedContact);
+  expect(updatedUser.revision).toEqual(expect.any(String));
+  expect(updatedUser.revision).not.toBe(staleUser.revision);
   await expect(page.getByRole("status").filter({ hasText: "User details were updated." })).toBeVisible();
 
   const staleContact = `e2e-security-stale-${Date.now()}@example.test`;
@@ -521,6 +539,7 @@ test("platform administrator creates, edits, assigns access, and reviews a user'
     stalePage.waitForResponse((response) => response.request().method() === "PUT" && response.request().postData()?.includes(staleContact) === true),
     stalePage.getByRole("button", { name: "Save user changes" }).click(),
   ]);
+  expect((conflictResponse.request().postDataJSON() as UpdateManagedUserRequest).revision).toBe(staleUser.revision);
   expect(conflictResponse.status()).toBe(409);
   await expect(stalePage.getByRole("status").filter({ hasText: "This account changed elsewhere." })).toBeVisible();
   await expect(stalePage.getByRole("textbox", { name: "Email address" })).toHaveValue(changedContact);
