@@ -30,6 +30,8 @@ const signInManagerResult = spawnSync("dotnet", [
   "FullyQualifiedName~AuditingSignInManagerTests",
 ], {
   cwd: repositoryRoot,
+  // Reused MSBuild workers would stay resident through the two-host run below.
+  env: { ...process.env, MSBUILDDISABLENODEREUSE: "1" },
   stdio: "inherit",
   windowsHide: false,
 });

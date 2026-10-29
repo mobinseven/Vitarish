@@ -1,5 +1,6 @@
 node_modules/
 .next/
+.next-two-host-e2e-*/
 .env.local
 .env*.local
 out/

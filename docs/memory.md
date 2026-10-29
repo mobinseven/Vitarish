@@ -31,7 +31,7 @@ Do not duplicate AGENTS.md, architecture.md, ADRs, runbooks, or module docs.
 - Merge-level backend confidence requires `ModuleBuildProfile=All` or full solution build.
 - Run npm workspace commands from `src/Hosts/Web`.
 - `fetch failed` usually means the .NET host is not running at `VITARISH_API_PROXY_TARGET`, or Node lacks `--use-system-ca` to trust its dev certificate. Local Web must call `/api` same-origin: SameSite=Lax cookies are dropped when an http web origin calls the https API directly.
-- The two-host E2E runner starts `next dev` with a new build folder each run, so pages compile on first request during the suite. A test timing out while `web.log` shows that page still compiling is compile time, not a regression; a throttled laptop (low battery) can triple compile times. `tests/e2e/global-setup.ts` compiles the first tests' pages before the suite starts.
+- The two-host E2E runner builds both Next apps sequentially into per-run folders before starting production servers. The build must receive `VITARISH_API_PROXY_TARGET` because API rewrites are resolved at build time; `tests/e2e/global-setup.ts` probes the first pages before the suite starts.
 - OpenAPI mutation `403` usually means CSRF/antiforgery mismatch.
 - Wrong generated hooks often mean Orval points at the wrong spec.
 
