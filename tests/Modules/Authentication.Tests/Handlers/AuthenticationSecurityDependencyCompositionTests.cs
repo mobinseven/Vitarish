@@ -7,6 +7,7 @@ using Microsoft.Extensions.Options;
 using Moq;
 using Vitarish.Audit.Application;
 using Vitarish.Authentication.Domain.Security;
+using Vitarish.Authentication.Domain.Methods;
 using Vitarish.Authentication.Application.Abstractions;
 using Vitarish.Authentication.Application.Handlers;
 using Vitarish.Authentication.Infrastructure;
@@ -14,6 +15,7 @@ using Vitarish.Authentication.Infrastructure.Options;
 using Vitarish.Authentication.Module.DependencyInjection;
 using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Requests.Domain.Entities;
+using Vitarish.Users.Application.Abstractions;
 
 namespace Vitarish.Authentication.Tests.Handlers;
 
@@ -97,6 +99,26 @@ public sealed class AuthenticationSecurityDependencyCompositionTests
 
         scope.ServiceProvider.GetRequiredService<IPasswordRecoveryCodeDispatcher>()
             .Should().BeOfType<PasswordRecoveryCodeDispatcher>();
+    }
+
+    [Fact]
+    public async Task User_inventory_reads_enabled_methods_from_the_effective_policy_provider()
+    {
+        ServiceCollection services = new();
+        services.AddAuthenticationModuleServices(AuthenticationProfilePolicy.Default);
+        SecurityAccessPolicy effective = SecurityAccessPolicy.Default with
+        {
+            EnabledAuthenticationMechanisms = new HashSet<AuthenticationMethod> { AuthenticationMethod.Password, AuthenticationMethod.Email }
+        };
+        Mock<IAuthenticationSecurityPolicyProvider> policy = new();
+        policy.Setup(value => value.GetAsync(It.IsAny<CancellationToken>())).ReturnsAsync(effective);
+        services.Replace(ServiceDescriptor.Scoped(_ => policy.Object));
+
+        using ServiceProvider provider = services.BuildServiceProvider();
+        using IServiceScope scope = provider.CreateScope();
+        EnabledAuthenticationMethods methods = await scope.ServiceProvider.GetRequiredService<IEnabledAuthenticationMethods>().GetAsync(CancellationToken.None);
+
+        methods.Should().Be(new EnabledAuthenticationMethods(true, false, true, false));
     }
 
     private sealed class TestSecurityPolicyProvider : IAuthenticationSecurityPolicyProvider

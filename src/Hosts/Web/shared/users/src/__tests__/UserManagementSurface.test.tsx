@@ -1,4 +1,4 @@
-import { UsersCommandErrorKind } from "@vitarish/auth/users";
+import { tenantRoleSuffixes, UsersCommandErrorKind } from "@vitarish/auth/users";
 import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -17,7 +17,10 @@ const revokeSessions = vi.fn((_input: unknown, options?: { onSuccess?: (result: 
 const disableUser = vi.fn((_input: unknown, options?: { onSuccess?: () => void; onError?: (error: unknown) => void }) => options?.onSuccess?.());
 const enableUser = vi.fn((_input: unknown, options?: { onSuccess?: () => void; onError?: (error: unknown) => void }) => options?.onSuccess?.());
 const securityQueryParams = vi.fn();
+const membershipUserIds = vi.fn();
 let securityDetailsQueryResponse: { data?: typeof userSecurityDetails; error: unknown; isLoading: boolean; isError: boolean; refetch: typeof refetch };
+let securityDetailsByUserId: Record<string, typeof userSecurityDetails> = {};
+let membershipsByUserId: Record<string, { tenantId: string; roleSuffix: string; assigned: boolean }[]> = {};
 const userSecurityDetails = {
   user: {
     id: "platform-user",
@@ -69,8 +72,10 @@ const userSecurityDetails = {
   authenticationHistoryAvailable: true,
   authenticationMethods: {
     passwordSet: true,
+    passwordChangedAt: null,
     emailVerified: true,
     phoneNumberVerified: false,
+    enabledMethods: { password: true, phone: false, email: true, passkey: false },
     passkeys: [{ id: "3f2a7c1e-0000-4000-8000-000000000001", friendlyName: "Office laptop", registeredAt: "2026-09-01T08:00:00Z", lastUsedAt: null }],
   },
   authenticationMethodsUnavailable: false,
@@ -89,12 +94,15 @@ vi.mock("@vitarish/auth", () => ({
   useUsersSearchUsers: () => ({ isLoading: false, isError: false, refetch, data: [
     { id: "platform-user", fullName: "Platform User", email: "user@example.com", phoneNumber: null },
   ] }),
-  useUsersAdministrationListTenantRoles: () => ({ isLoading: false, isError: false, refetch, data: [
-    { tenantId: "tenant-a", roleSuffix: "TenantUser", assigned: true },
-  ] }),
-  useUsersAdministrationGetUserSecurity: (_userId: string, params: unknown) => {
+  useUsersAdministrationListTenantRoles: (requestedUserId: string) => {
+    membershipUserIds(requestedUserId);
+    return { isLoading: false, isError: false, refetch, data: membershipsByUserId[requestedUserId] ?? [
+      { tenantId: "tenant-a", roleSuffix: tenantRoleSuffixes.user, assigned: true },
+    ] };
+  },
+  useUsersAdministrationGetUserSecurity: (requestedUserId: string, params: unknown) => {
     securityQueryParams(params);
-    return securityDetailsQueryResponse;
+    return { ...securityDetailsQueryResponse, data: securityDetailsByUserId[requestedUserId] ?? securityDetailsQueryResponse.data };
   },
   useUsersAdministrationUpdateUser: () => ({ isPending: false, mutate: managedUserUpdate }),
   useUsersAddRole: () => ({ isPending: false, mutate: globalRoleGrant }),
@@ -112,6 +120,8 @@ vi.mock("@vitarish/auth", () => ({
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
+  securityDetailsByUserId = {};
+  membershipsByUserId = {};
   securityDetailsQueryResponse = { data: userSecurityDetails, error: null, isLoading: false, isError: false, refetch };
 });
 
@@ -242,10 +252,55 @@ describe("UserManagementSurface", () => {
 
     const section = screen.getByRole("heading", { name: "Authentication methods" }).closest("section")!;
     const facts = within(section).getAllByRole("definition").map((value) => value.textContent);
-    expect(facts).toEqual(["Set", "Verified", "Not verified"]);
+    expect(facts).toEqual(["Set", "Unknown", "Verified", "Not verified"]);
     const passkeys = within(section).getByRole("list", { name: "Passkeys" });
     expect(within(passkeys).getByRole("listitem")).toHaveTextContent("Office laptop");
     expect(within(passkeys).getByRole("listitem")).toHaveTextContent("Not used yet");
+    const enabled = within(section).getByRole("list", { name: "Enabled by authentication policy" });
+    expect(within(enabled).getAllByRole("listitem").map((item) => item.textContent)).toEqual(["Password", "Email address"]);
+  });
+
+  it("switches the displayed security summary and memberships when the detail route user changes", () => {
+    const secondUserId = "second-platform-user";
+    securityDetailsByUserId[secondUserId] = {
+      ...userSecurityDetails,
+      user: {
+        ...userSecurityDetails.user,
+        id: secondUserId,
+        userName: "second-user@example.com",
+        fullName: "Second Platform User",
+      },
+      tenantRoles: [{ tenantId: "tenant-b", roleSuffix: tenantRoleSuffixes.owner }],
+      authenticationMethods: {
+        ...userSecurityDetails.authenticationMethods,
+        passwordSet: false,
+        passkeys: userSecurityDetails.authenticationMethods.passkeys.map((passkey) => ({
+          ...passkey,
+          friendlyName: "Travel laptop",
+        })),
+      },
+    };
+    membershipsByUserId[secondUserId] = [{ tenantId: "tenant-b", roleSuffix: tenantRoleSuffixes.owner, assigned: true }];
+
+    const view = renderSurface("platform", { platformView: "detail", userId: "platform-user" });
+    expect(screen.getByText(/Tenant: tenant-a/)).toBeInTheDocument();
+    expect(screen.getByText("Office laptop")).toBeInTheDocument();
+
+    view.rerender(
+      <LocalizationProvider locale="en" messages={usersMessageCatalogs.en}>
+        <UserManagementSurface mode="platform" platformView="detail" userId={secondUserId} />
+      </LocalizationProvider>,
+    );
+
+    expect(membershipUserIds).toHaveBeenLastCalledWith(secondUserId);
+    expect(within(screen.getByRole("banner")).getByText("Second Platform User")).toBeInTheDocument();
+    expect(screen.getByText("Name").parentElement).toHaveTextContent("Second Platform User");
+    expect(screen.getByText(/Tenant: tenant-b/)).toBeInTheDocument();
+    expect(screen.queryByText(/Tenant: tenant-a/)).not.toBeInTheDocument();
+    const section = screen.getByRole("heading", { name: "Authentication methods" }).closest("section")!;
+    expect(within(section).getByText("Not set")).toBeInTheDocument();
+    expect(within(section).getByText("Travel laptop")).toBeInTheDocument();
+    expect(within(section).queryByText("Office laptop")).not.toBeInTheDocument();
   });
 
   it("does not trust an unavailable-history response with a malformed authentication summary", () => {

@@ -29,18 +29,10 @@ import type {
   SecurityAuditSortField,
 } from "../api/generated/audit/model";
 import { SecurityAuditChangeField } from "../api/generated/audit/model";
+import { auditSortFields } from "../api/securityAuditSortFields";
 
 const pageSize = 25;
 const securityAuditExportFileName = "security-audit-events.csv";
-const auditSortFields = {
-  actor: 0,
-  occurredAt: 1,
-  eventType: 2,
-  actorKind: 3,
-  sourceIpKind: 4,
-  sourceIpAddress: 5,
-} as const satisfies Record<string, SecurityAuditSortField>;
-
 export interface PlatformAuditTenantOption {
   id?: string;
   name?: string;

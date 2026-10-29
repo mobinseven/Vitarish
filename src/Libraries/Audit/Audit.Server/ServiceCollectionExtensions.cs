@@ -1,6 +1,8 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using Vitarish.Audit.Application;
 using Vitarish.Entities.Server.Extensions;
@@ -24,6 +26,8 @@ public static class ServiceCollectionExtensions
         _ = services.AddTransient<IAuditQueryService, AuditQueryService>();
         _ = services.AddTransient<ISecurityAuditWriter, SecurityAuditWriter>();
         _ = services.AddTransient<ISecurityAuditQueryService, SecurityAuditQueryService>();
+        _ = services.AddTransient<AuditReviewRecorder>();
+        services.Replace(ServiceDescriptor.Singleton<IAuthorizationMiddlewareResultHandler, AuditReviewAuthorizationResultHandler>());
         _ = services.AddTransient<IAuditStorageSizeReader, PostgresAuditStorageSizeReader>();
 
         return services;

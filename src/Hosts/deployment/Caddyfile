@@ -20,7 +20,7 @@
     request_header Content-Security-Policy "{$VITARISH_CONTENT_SECURITY_POLICY}"
     tls {
         protocols tls1.2 tls1.3
-        ciphers TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384 TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384 TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256 TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+        ciphers TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384 TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
         curves secp256r1 secp384r1 secp521r1
         key_type p256
         dns cloudflare {env.CLOUDFLARE_API_TOKEN}

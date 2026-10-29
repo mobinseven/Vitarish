@@ -277,8 +277,14 @@ namespace Vitarish.Users.Infrastructure.Migrations.UsersDb
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
+                    b.Property<DateTime?>("PasswordChangedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("PasswordHash")
                         .HasColumnType("text");
+
+                    b.Property<byte[]>("PasswordHashFingerprint")
+                        .HasColumnType("bytea");
 
                     b.Property<string>("PhoneNumber")
                         .HasColumnType("text");

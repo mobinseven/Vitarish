@@ -82,7 +82,8 @@ export function UserManagementSurface({
     { query: { enabled: mode === "platform" && isAuthenticated && canUseSurface } },
   );
   const [selectedUserId, setSelectedUserId] = useState(userId ?? "");
-  const platformMemberships = useUsersAdministrationListTenantRoles(selectedUserId);
+  const membershipUserId = platformView === "detail" ? userId ?? "" : selectedUserId;
+  const platformMemberships = useUsersAdministrationListTenantRoles(membershipUserId);
 
   if (sessionLoading || accessLoading) {
     return <p aria-live="polite">{t("users.management.loadingSession")}</p>;
@@ -116,6 +117,7 @@ export function UserManagementSurface({
   if (platformView === "detail") {
     return (
       <PlatformUserDetail
+        key={userId ?? ""}
         title={title ?? t("users.management.platformDetail")}
         userId={userId ?? ""}
         memberships={platformMemberships}
@@ -389,6 +391,8 @@ function PlatformCreateUser({ title, t }: { title: string; t: Translate }) {
 
 function PlatformUserDetail({ title, userId, memberships, t }: { title: string; userId: string; memberships: MembershipQuery; t: Translate }) {
   const { locale } = useLocalizedText();
+  const emailContactLabel = t("users.management.emailContact");
+  const phoneContactLabel = t("users.management.phoneContact");
   const grant = useUsersAdministrationGrantTenantRole();
   const grantGlobalRole = useUsersAddRole();
   const revoke = useUsersAdministrationRevokeTenantRole();
@@ -608,11 +612,11 @@ function PlatformUserDetail({ title, userId, memberships, t }: { title: string; 
         <div><dt className="text-sm text-muted">{t("users.management.accountStatusTitle")}</dt><dd>{securityDetails.user.isEnabled ? t("users.management.accountStatusEnabled") : t("users.management.accountStatusDisabled")}</dd></div>
       </dl>
       <form className="grid gap-3 md:grid-cols-2" onSubmit={submitProfile}>
-        <label>{t("users.management.emailContact")}
+        <label>{emailContactLabel}
           <input className={nativeFieldClassName} type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} />
         </label>
         <MobileNumberField
-          label={t("users.management.phoneContact")}
+          label={phoneContactLabel}
           hint={t("users.management.phoneContactHint")}
           value={phoneNumber}
           onChange={(value) => {
@@ -634,7 +638,7 @@ function PlatformUserDetail({ title, userId, memberships, t }: { title: string; 
       </div>
     </Surface>
 
-    {(authenticationMethods || authenticationMethodsUnavailable) && <AuthenticationMethodsSection methods={authenticationMethodsUnavailable ? undefined : authenticationMethods} locale={locale} t={t} />}
+    {(authenticationMethods || authenticationMethodsUnavailable) && <AuthenticationMethodsSection methods={authenticationMethodsUnavailable ? undefined : authenticationMethods} locale={locale} emailContactLabel={emailContactLabel} phoneContactLabel={phoneContactLabel} t={t} />}
 
     <Surface className="flex flex-col gap-6 rounded-3xl p-6" render={renderSection}>
       <div className="flex flex-col items-start gap-1">
@@ -771,8 +775,11 @@ function PlatformUserDetail({ title, userId, memberships, t }: { title: string; 
   </main>;
 }
 
-function AuthenticationMethodsSection({ methods, locale, t }: { methods: UserAuthenticationMethodsResponse | undefined; locale: ReturnType<typeof useLocalizedText>["locale"]; t: Translate }) {
+function AuthenticationMethodsSection({ methods, locale, emailContactLabel, phoneContactLabel, t }: { methods: UserAuthenticationMethodsResponse | undefined; locale: ReturnType<typeof useLocalizedText>["locale"]; emailContactLabel: string; phoneContactLabel: string; t: Translate }) {
   const passkeysHeadingId = useId();
+  const enabledMethodsLabel = t("users.management.enabledMethods");
+  const passwordLabel = t("users.management.password");
+  const passkeysLabel = t("users.management.passkeys");
   return <Surface className="flex flex-col gap-6 rounded-3xl p-6" render={renderSection}>
     <div className="flex flex-col items-start gap-1">
       <div className="flex items-center gap-3">
@@ -787,12 +794,24 @@ function AuthenticationMethodsSection({ methods, locale, t }: { methods: UserAut
       ? <Alert status="warning" role="status"><Alert.Indicator /><Alert.Content><Alert.Title>{t("users.management.authenticationMethodsUnavailable")}</Alert.Title></Alert.Content></Alert>
       : <>
     <dl className="grid gap-3 sm:grid-cols-3">
-      <div><dt className="text-sm text-muted">{t("users.management.password")}</dt><dd>{methods.passwordSet ? t("users.management.passwordSet") : t("users.management.passwordNotSet")}</dd></div>
+      <div><dt className="text-sm text-muted">{passwordLabel}</dt><dd>{methods.passwordSet ? t("users.management.passwordSet") : t("users.management.passwordNotSet")}</dd></div>
+      <div><dt className="text-sm text-muted">{t("users.management.passwordChangedAt")}</dt><dd>{methods.passwordChangedAt ? formatDateTime(methods.passwordChangedAt, locale, { timeZone: "UTC" }) : t("users.management.passwordChangeUnknown")}</dd></div>
       <div><dt className="text-sm text-muted">{t("users.management.emailVerification")}</dt><dd>{methods.emailVerified ? t("users.management.verified") : t("users.management.notVerified")}</dd></div>
       <div><dt className="text-sm text-muted">{t("users.management.phoneVerification")}</dt><dd>{methods.phoneNumberVerified ? t("users.management.verified") : t("users.management.notVerified")}</dd></div>
     </dl>
     <div className="space-y-2">
-      <h3 className="font-medium" id={methods.passkeys.length === 0 ? undefined : passkeysHeadingId}>{t("users.management.passkeys")}</h3>
+      <h3 className="font-medium">{enabledMethodsLabel}</h3>
+      {methods.enabledMethods
+        ? <ul aria-label={enabledMethodsLabel} className="flex flex-wrap gap-x-4 gap-y-1">
+            {methods.enabledMethods.password && <li>{passwordLabel}</li>}
+            {methods.enabledMethods.phone && <li>{phoneContactLabel}</li>}
+            {methods.enabledMethods.email && <li>{emailContactLabel}</li>}
+            {methods.enabledMethods.passkey && <li>{passkeysLabel}</li>}
+          </ul>
+        : <p className="text-muted">{t("users.management.enabledMethodsUnavailable")}</p>}
+    </div>
+    <div className="space-y-2">
+      <h3 className="font-medium" id={methods.passkeys.length === 0 ? undefined : passkeysHeadingId}>{passkeysLabel}</h3>
       {methods.passkeys.length === 0
         ? <p className="text-muted">{t("users.management.noPasskeys")}</p>
         : <ul aria-labelledby={passkeysHeadingId} className="space-y-2">{methods.passkeys.map((passkey) => <li className="rounded-2xl bg-surface-secondary p-3" key={passkey.id}>
@@ -1071,7 +1090,16 @@ function isAuthenticationMethods(value: unknown): value is UserAuthenticationMet
   return typeof methods.passwordSet === "boolean"
     && typeof methods.emailVerified === "boolean"
     && typeof methods.phoneNumberVerified === "boolean"
-    && Array.isArray(methods.passkeys) && methods.passkeys.every(isPasskey);
+    && isOptionalString(methods.passwordChangedAt)
+    && Array.isArray(methods.passkeys) && methods.passkeys.every(isPasskey)
+    && (methods.enabledMethods == null || isEnabledMethods(methods.enabledMethods));
+}
+
+function isEnabledMethods(value: unknown): boolean {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return false;
+  const methods = value as Record<string, unknown>;
+  return typeof methods.password === "boolean" && typeof methods.phone === "boolean"
+    && typeof methods.email === "boolean" && typeof methods.passkey === "boolean";
 }
 
 function isPasskey(value: unknown): value is UserPasskeyResponse {

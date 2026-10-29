@@ -80,7 +80,7 @@ const integrityVerificationPath = (fileId: string) => `${e2eAuditEvidenceBase}/f
 const integrityTamperPath = (fileId: string) => `${e2eAuditEvidenceBase}/files/${fileId}/tamper`;
 
 type AuditEventExpectation = (typeof auditEvents)[keyof typeof auditEvents] & { outcome: string };
-type AuditPage = { items: Array<{ id?: string; eventName?: string; eventCategory?: string; operation?: string; outcome?: string; actorId?: string; actorKind?: string; tenantId?: string; subjectId?: string; resource?: string; resourceNameHash?: string; resourceExtension?: string; resourceSize?: number; redactedReason?: string; sourceIpAddress?: string; changes?: Array<{ field: string; previousValue: string | null; newValue: string | null }> }>; totalCount: number };
+type AuditPage = { items: Array<{ id?: string; eventName?: string; eventCategory?: string; operation?: string; outcome?: string; actorId?: string; actorKind?: string; tenantId?: string; subjectId?: string; resource?: string; resourceName?: string; resourceNameHash?: string; resourceExtension?: string; resourceSize?: number; redactedReason?: string; sourceIpAddress?: string; changes?: Array<{ field: string; previousValue: string | null; newValue: string | null }> }>; totalCount: number };
 
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -252,6 +252,7 @@ async function deleteJson(page: Page, path: string, body: unknown = null): Promi
 // media types and validates the content signature, not just the declared type.
 const evidenceFilePngBase64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
 const evidenceFileName = "audit-evidence.png";
+const platformAuditListOperation = "Audit_PlatformSecurityEvents_List";
 const evidenceFileSize = Buffer.from(evidenceFilePngBase64, "base64").length;
 
 async function uploadEvidenceFile(page: Page): Promise<{ status: number; body: unknown }> {
@@ -483,7 +484,7 @@ test("real actions create visible platform security-audit evidence", async ({ pa
 
     // An unauthorized read is recorded once, naming the attempted operation; the
     // clinic owner may review only its own tenant, not the platform audit.
-    const deniedReview = { ...auditEvents.auditReview, operation: "Audit_PlatformSecurityEvents_List", outcome: "denied" };
+    const deniedReview = { ...auditEvents.auditReview, operation: platformAuditListOperation, outcome: "denied" };
     const deniedBefore = await platformAuditQuery(administratorPage, deniedReview);
     const forbiddenStatus = await page.evaluate(async (origin) => {
       const url = new URL("/api/audit/platform/security-events", origin || window.location.origin);
@@ -493,7 +494,7 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     expect(forbiddenStatus).toBe(403);
     const deniedAfter = await platformAuditQuery(administratorPage, deniedReview);
     expect(deniedAfter.totalCount).toBe(deniedBefore.totalCount + 1);
-    expect(deniedAfter.items[0]?.resource).toBe("endpoint/Audit_PlatformSecurityEvents_List");
+    expect(deniedAfter.items[0]?.resource).toBe(`endpoint/${platformAuditListOperation}`);
 
     const accessHistory = await page.evaluate(async (origin) => {
       const response = await fetch(`${origin}/api/modules/authentication/access-history`, { credentials: "include" });
@@ -507,6 +508,8 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     mkdirSync(evidenceDirectory, { recursive: true });
     await page.screenshot({ path: join(evidenceDirectory, "account-security-access-history.png"), fullPage: true });
     expect((await postJson(page, "/api/modules/authentication/access-history/acknowledge")).status).toBe(200);
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await expect(page.getByText(new RegExp(escapeRegExp(ownerClientIp))).first()).toBeVisible({ timeout: 30_000 });
 
     // OTP establishes a second session and may invalidate the owner session under
     // the evaluated concurrent-session policy, so perform it after owner actions.
@@ -622,9 +625,10 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     await captureAuditEvidence(administratorPage, { ...auditEvents.tenantMemberRemoval, outcome: "succeeded" }, "tenant-member-removed.png");
     await captureAuditEvidence(administratorPage, { ...auditEvents.tenantRoleReplacement, outcome: "succeeded" }, "tenant-role-replaced.png");
     const importRecords = await platformAuditQuery(administratorPage, { ...auditEvents.dataImport, outcome: "succeeded" });
-    expect(importRecords.items.some((item) => item.resourceNameHash === evidenceFileNameHash && item.resourceExtension === "png" && item.resourceSize === evidenceFileSize), "an upload records the uploaded file's name hash, extension, and size").toBe(true);
+    expect(importRecords.items.some((item) => item.resourceName === evidenceFileName && item.resourceNameHash === evidenceFileNameHash && item.resourceExtension === "png" && item.resourceSize === evidenceFileSize), "an upload records the uploaded file's name, name hash, extension, and size").toBe(true);
     const exportRecords = await platformAuditQuery(administratorPage, { ...auditEvents.auditExport, outcome: "succeeded" });
     const downloadRecord = exportRecords.items.find((item) => item.resource === `files/${uploadedFileId!.replaceAll("-", "")}`);
+    expect(downloadRecord?.resourceName, "a download records the stored file's name").toBe(evidenceFileName);
     expect(downloadRecord?.resourceNameHash, "a download records the stored file's name hash").toBe(evidenceFileNameHash);
     expect(downloadRecord?.resourceExtension, "a download records the stored file's extension").toBe("png");
     expect(downloadRecord?.resourceSize, "a download records the stored file's size").toBe(evidenceFileSize);
@@ -644,12 +648,10 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     await hideDevelopmentIndicator(administratorPage);
     await administratorPage.screenshot({ path: join(evidenceDirectory, "tenant-role-change-detail.png") });
     await captureAuditEvidence(administratorPage, { ...auditEvents.dataImport, outcome: "succeeded" }, "data-import.png");
-    const reviewEvent = { ...auditEvents.auditReview, outcome: "succeeded" };
-    const reviewEventsBefore = await platformAuditQuery(administratorPage, reviewEvent);
+    // Viewing the audit list is itself recorded, once per viewer and minute.
     await administratorPage.goto(`${platformOrigin}${PlatformRoutes.Audit}`, { waitUntil: "domcontentloaded" });
     await expect(administratorPage.getByRole("heading", { name: uiText.auditTitle })).toBeVisible({ timeout: 30_000 });
-    const reviewEventsAfter = await platformAuditQuery(administratorPage, reviewEvent);
-    expect(reviewEventsAfter.totalCount).toBe(reviewEventsBefore.totalCount);
+    await captureAuditEvidence(administratorPage, { ...auditEvents.auditReview, operation: platformAuditListOperation, outcome: "succeeded" }, "audit-review.png");
     await captureAuditEvidence(administratorPage, { ...auditEvents.accessHistory, outcome: "succeeded" }, "access-history.png");
     await captureAuditEvidence(administratorPage, { ...auditEvents.sessionPolicy, outcome: "succeeded" }, "session-policy.png");
     const securityFailureRecords = await platformAuditQuery(administratorPage, { ...auditEvents.securityFunctionFailure, outcome: "failed" });

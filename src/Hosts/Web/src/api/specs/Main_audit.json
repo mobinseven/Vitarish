@@ -742,6 +742,12 @@
               "string"
             ]
           },
+          "resourceName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
           "resourceNameHash": {
             "type": [
               "null",

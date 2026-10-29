@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Vitarish.Audit.Application;
@@ -13,7 +14,8 @@ public static class SecurityAuditApi
         RouteGroupBuilder group = endpoints
             .MapProtectedModuleGroup(SecurityAuditApiRoutes.Base, requireTenantAccess: false)
             .WithTags(SecurityAuditApiRoutes.DocumentTag)
-            .AddEndpointFilter<AuditReviewDenialFilter>();
+            .WithMetadata(new AuditReviewEndpoint())
+            .AddEndpointFilter<AuditReviewFilter>();
 
         _ = group.MapModuleGet(
             SecurityAuditApiRoutes.SecurityEvents,

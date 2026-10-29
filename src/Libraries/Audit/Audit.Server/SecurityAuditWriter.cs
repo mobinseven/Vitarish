@@ -132,6 +132,7 @@ internal sealed class SecurityAuditWriter(
                 SubjectId = pending.SubjectId,
                 TenantId = pending.TenantId,
                 Resource = pending.Resource,
+                ResourceName = pending.ResourceName,
                 ResourceNameHash = pending.ResourceNameHash,
                 ResourceExtension = pending.ResourceExtension,
                 ResourceSize = pending.ResourceSize,
@@ -223,6 +224,11 @@ internal sealed class SecurityAuditWriter(
             throw new ArgumentException("Client security audit events require a normalized IP address.", nameof(auditEvent));
         if (auditEvent.SourceIpKind is not SecurityAuditSourceKind.Client and not SecurityAuditSourceKind.System and not SecurityAuditSourceKind.Unknown)
             throw new ArgumentException("Security audit source kinds are invalid.", nameof(auditEvent));
+        if (auditEvent.ResourceName is { } resourceName &&
+            (string.IsNullOrWhiteSpace(resourceName) ||
+             resourceName.Length > SecurityAuditEvent.MaximumResourceNameLength ||
+             resourceName.Any(IsNonDisplayCharacter)))
+            throw new ArgumentException("Security audit resource names must be non-blank, bounded, and free of control, format, and separator characters.", nameof(auditEvent));
         if (auditEvent.ResourceNameHash is { } resourceNameHash &&
             (resourceNameHash.Length != SecurityAuditEvent.MaximumResourceNameHashLength ||
              !resourceNameHash.All(char.IsAsciiHexDigitLower)))

@@ -22,6 +22,7 @@ import {
   probeTlsProtocols,
   probeUnsafeMethods,
   scanTcpPorts,
+  serverAuthenticationEkuOid,
   summarizeCertificate,
   summarizeTimeSync,
 } from "./production-evidence-checks.mjs";
@@ -471,22 +472,24 @@ const tlsScanScreenshot = await captureEvidenceTable(
 const certificateScreenshot = await captureEvidenceTable(
   certificateScreenshotName,
   "Production TLS certificate evidence",
-  ["Host", "Subject CN", "Subject alternative names", "Issuer", "Valid from", "Valid to", "Expires in (days)", "Key", "Signature algorithm", "Chain authorized", "Hostname match", "Result"],
-  certificateResults.map((certificate) => [
-    certificate.hostname,
-    certificate.subjectCommonName ?? "not available",
-    certificate.subjectAlternativeNames ?? "not reported",
-    certificate.issuer ?? "not available",
-    certificate.validFrom ?? "unknown",
-    certificate.validTo ?? "unknown",
-    certificate.expiresInDays === null ? "unknown" : `${certificate.expiresInDays}`,
-    certificate.key ?? "unknown",
-    certificate.signatureAlgorithm ?? "unknown",
-    certificate.authorized ? "verified against the system trust store" : `not verified${certificate.authorizationError ? ` (${certificate.authorizationError})` : ""}`,
-    certificate.hostnameMatches ? "match" : "mismatch",
-    certificate.result,
-  ]),
-  1900,
+  ["Host", "Certificate property", "Observed"],
+  certificateResults.flatMap((certificate) => [
+    ["Subject CN", certificate.subjectCommonName ?? "not available"],
+    ["Subject alternative names", certificate.subjectAlternativeNames ?? "not reported"],
+    ["Issuer", certificate.issuer ?? "not available"],
+    ["Issuer basic constraints", certificate.issuerInspectionError ? `unavailable (${certificate.issuerInspectionError})` : certificate.issuerBasicConstraints ?? "not reported"],
+    ["Valid from", certificate.validFrom ?? "unknown"],
+    ["Valid to", certificate.validTo ?? "unknown"],
+    ["Expires in (days)", certificate.expiresInDays === null ? "unknown" : `${certificate.expiresInDays}`],
+    ["Key", certificate.key ?? "unknown"],
+    ["Signature algorithm", certificate.signatureAlgorithm ?? "unknown"],
+    ["Extended key usage (OIDs)", certificate.extendedKeyUsage?.map((oid) => oid === serverAuthenticationEkuOid ? `server authentication (${oid})` : oid).join(", ") || "not reported"],
+    ["OCSP sources", certificate.ocspSources?.join(", ") || "not reported"],
+    ["CRL distribution points", certificate.crlInspectionError ? `unavailable (${certificate.crlInspectionError})` : certificate.crlDistributionPoints ?? "not reported"],
+    ["Chain authorized", certificate.authorized ? "verified against the system trust store" : `not verified${certificate.authorizationError ? ` (${certificate.authorizationError})` : ""}`],
+    ["Hostname match", certificate.hostnameMatches ? "match" : "mismatch"],
+    ["Result", certificate.result],
+  ].map(([property, value]) => [certificate.hostname, property, value])),
 );
 
 const httpRedirectScreenshot = await captureEvidenceTable(

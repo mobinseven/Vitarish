@@ -16,7 +16,11 @@ public sealed record UserAuthenticationMethodsResponse(
     bool PasswordSet,
     bool EmailVerified,
     bool PhoneNumberVerified,
-    IReadOnlyList<UserPasskeyResponse> Passkeys);
+    IReadOnlyList<UserPasskeyResponse> Passkeys,
+    EnabledAuthenticationMethodsResponse? EnabledMethods = null,
+    DateTime? PasswordChangedAt = null);
+
+public sealed record EnabledAuthenticationMethodsResponse(bool Password, bool Phone, bool Email, bool Passkey);
 
 public sealed record UserPasskeyResponse(
     Guid Id,

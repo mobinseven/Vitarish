@@ -626,6 +626,7 @@ public sealed class SecurityAuditReviewTests
                 SourceBoundary = "tests",
                 SourceIpKind = SecurityAuditSourceKind.Unknown,
                 RedactedReason = "line one\nline two",
+                ResourceName = "=referral.pdf",
                 ResourceNameHash = new string('a', SecurityAuditEvent.MaximumResourceNameHashLength),
                 ResourceExtension = "pdf",
                 ResourceSize = 2048,
@@ -638,7 +639,8 @@ public sealed class SecurityAuditReviewTests
         csv.Should().Contain("\"line one\nline two\"");
         csv.Should().StartWith("\"id\"").And.Contain("\"resourceNameHash\",\"resourceExtension\",\"resourceSize\",");
         csv.Should().Contain($"\"{new string('a', SecurityAuditEvent.MaximumResourceNameHashLength)}\",\"pdf\",\"2048\",");
-        csv.Should().Contain("\"changes\"\r\n").And.Contain("previousValue");
+        csv.Should().Contain("\"changes\",\"resourceName\"\r\n").And.Contain("previousValue");
+        csv.Should().EndWith(",\"'=referral.pdf\"\r\n");
         csv.Should().NotContain("idempotency");
         csv.Should().NotContain("payload");
     }

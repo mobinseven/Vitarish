@@ -51,7 +51,8 @@ internal static class PostgresTestSupport
 
     /// <summary>
     /// A context for databases migrated only up to a migration that predates the
-    /// account status column, so seeding and verification match that schema.
+    /// account status and password tracking columns, so seeding and verification
+    /// match that schema.
     /// The context type stays <see cref="UsersDbContext"/> so its migrations resolve.
     /// </summary>
     internal static UsersDbContext CreateContextWithoutAccountStatus(string connectionString)
@@ -69,7 +70,36 @@ internal static class PostgresTestSupport
         {
             base.Customize(modelBuilder, context);
             _ = modelBuilder.Entity<User>().Ignore(user => user.IsEnabled);
+            IgnorePasswordTracking(modelBuilder);
         }
+    }
+
+    /// <summary>
+    /// A context for databases that include account status but predate password
+    /// tracking. The context type stays <see cref="UsersDbContext"/> so its migrations resolve.
+    /// </summary>
+    internal static UsersDbContext CreateContextWithoutPasswordTracking(string connectionString)
+    {
+        DbContextOptions<UsersDbContext> options = new DbContextOptionsBuilder<UsersDbContext>()
+            .UseNpgsql(connectionString)
+            .ReplaceService<IModelCustomizer, ModelCustomizerWithoutPasswordTracking>()
+            .Options;
+        return new UsersDbContext(options);
+    }
+
+    private sealed class ModelCustomizerWithoutPasswordTracking(ModelCustomizerDependencies dependencies) : ModelCustomizer(dependencies)
+    {
+        public override void Customize(ModelBuilder modelBuilder, DbContext context)
+        {
+            base.Customize(modelBuilder, context);
+            IgnorePasswordTracking(modelBuilder);
+        }
+    }
+
+    private static void IgnorePasswordTracking(ModelBuilder modelBuilder)
+    {
+        _ = modelBuilder.Entity<User>().Ignore(user => user.PasswordChangedAt);
+        _ = modelBuilder.Entity<User>().Ignore(user => user.PasswordHashFingerprint);
     }
 
     internal static async Task ApplyAllMigrationsAsync(string connectionString)

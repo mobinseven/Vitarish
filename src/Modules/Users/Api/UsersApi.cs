@@ -250,7 +250,10 @@ public static class UsersApi
         methods.PasswordSet,
         methods.EmailVerified,
         methods.PhoneNumberVerified,
-        methods.Passkeys.Select(passkey => new UserPasskeyResponse(passkey.Id, passkey.FriendlyName, passkey.RegisteredAt, passkey.LastUsedAt)).ToArray());
+        methods.Passkeys.Select(passkey => new UserPasskeyResponse(passkey.Id, passkey.FriendlyName, passkey.RegisteredAt, passkey.LastUsedAt)).ToArray(),
+        methods.EnabledMethods is null ? null : new EnabledAuthenticationMethodsResponse(
+            methods.EnabledMethods.Password, methods.EnabledMethods.Phone, methods.EnabledMethods.Email, methods.EnabledMethods.Passkey),
+        methods.PasswordChangedAt);
 
     private static UserSecurityHistoryResponse MapUserSecurityHistory(UserSecurityHistoryResult history) => new(
         history.Items.Select(item => new UserSecurityEventResponse(

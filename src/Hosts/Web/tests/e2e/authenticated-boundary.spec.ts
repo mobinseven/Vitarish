@@ -8,7 +8,9 @@ import {
   authenticationSessionGet,
   authenticationSessionNoticesGet,
 } from "../../shared/auth/src/api/generated/authentication/authentication";
-import { auditSecurityEventsList } from "../../shared/security/src/api/generated/audit/audit";
+import { auditPlatformSecurityEventsList, auditSecurityEventsList, getAuditPlatformSecurityEventCatalogGetQueryKey, getAuditPlatformSecurityEventsExportQueryKey } from "../../shared/security/src/api/generated/audit/audit";
+import type { AuditPlatformSecurityEventsListParams, SecurityAuditPageReadDto } from "../../shared/security/src/api/generated/audit/model";
+import { auditSortFields } from "../../shared/security/src/api/securityAuditSortFields";
 import { ApiError, ANTIFORGERY_VALIDATION_FAILED_CODE, TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
 import { localizePlatformAuditCategory, localizePlatformAuditEvent } from "../../shared/security/src/localization";
 import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
@@ -1160,7 +1162,7 @@ test("enforces platform-admin authorization through the API", async ({ page }) =
 
 });
 
-test("shows a generic 403 page while recording each denied audit review once", async ({ page }) => {
+test("shows a generic 403 page while recording each denied audit review once", async ({ page, request }, testInfo) => {
   test.setTimeout(120_000);
   await login(page, tenantBOwnerUsername, platformAdminOrigin, e2ePassword, "198.51.100.23");
 
@@ -1168,6 +1170,51 @@ test("shows a generic 403 page while recording each denied audit review once", a
   const administratorPage = await administratorContext.newPage();
   try {
     await login(administratorPage, platformAdminUsername, platformAdminOrigin, e2ePassword, "198.51.100.24");
+    // The configured CI retry uses another review operation to avoid sharing the
+    // previous attempt's anonymous deduplication window.
+    const expectedAnonymousOperation = testInfo.retry === 0
+      ? "Audit_PlatformSecurityEvents_Export"
+      : "Audit_PlatformSecurityEventCatalog_Get";
+    const anonymousPath = testInfo.retry === 0
+      ? getAuditPlatformSecurityEventsExportQueryKey()[0]
+      : getAuditPlatformSecurityEventCatalogGetQueryKey()[0];
+    // Only denied reviews are counted: the administrator's own list reads are recorded as succeeded views.
+    const anonymousFilters: AuditPlatformSecurityEventsListParams = {
+      page: 1,
+      pageSize: 25,
+      eventName: "security.audit.review",
+      eventCategory: "audit-review",
+      outcome: "denied",
+      sortBy: auditSortFields.occurredAt,
+      descending: true,
+      uncataloguedOnly: false,
+    };
+    const administratorCookieHeader = (await administratorContext.cookies())
+      .map(cookie => `${cookie.name}=${cookie.value}`)
+      .join("; ");
+    const platformAdminTenantHost = new URL(platformAdminOrigin).hostname;
+    const readAnonymousReviewList = () => generatedAuthenticationRequest(
+      request,
+      () => auditPlatformSecurityEventsList(anonymousFilters),
+      administratorCookieHeader,
+      platformAdminTenantHost,
+    );
+    const anonymousBefore = await readAnonymousReviewList();
+    expect(anonymousBefore.status).toBe(200);
+    const anonymousBeforePage = anonymousBefore.body as SecurityAuditPageReadDto;
+    const anonymousCountBefore = Number(anonymousBeforePage.totalCount);
+    const anonymousRead = await request.get(`${apiOrigin}${anonymousPath}`, {
+      headers: { [TENANT_HOST_HEADER]: platformAdminTenantHost },
+      ignoreHTTPSErrors: true,
+    });
+    expect(anonymousRead.status()).toBe(401);
+    const anonymousAfter = await readAnonymousReviewList();
+    expect(anonymousAfter.status).toBe(200);
+    const anonymousAfterPage = anonymousAfter.body as SecurityAuditPageReadDto;
+    expect(Number(anonymousAfterPage.totalCount)).toBe(anonymousCountBefore + 1);
+    expect(anonymousAfterPage.items).toEqual(expect.arrayContaining([
+      expect.objectContaining({ eventName: "security.audit.review", eventCategory: "audit-review", outcome: "denied", actorKind: "anonymous", actorId: null, subjectId: null, operation: expectedAnonymousOperation }),
+    ]));
     const deniedReviewPath = `/api/audit/platform/security-events?page=1&pageSize=25&eventName=security.audit.review&eventCategory=audit-review&operation=Audit_PlatformSecurityEvents_List&outcome=denied&actorId=${encodeURIComponent(tenantBOwnerUserId)}&sortBy=0&descending=true&uncataloguedOnly=false`;
     const reviewEventsBefore = await fetchJson(administratorPage, deniedReviewPath);
     expect(reviewEventsBefore.status).toBe(200);

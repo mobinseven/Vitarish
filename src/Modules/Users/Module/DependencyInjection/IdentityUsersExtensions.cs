@@ -38,6 +38,7 @@ public static class IdentityUsersExtensions
             .AddIdentity<User, IdentityRole>()
             .AddRoles<IdentityRole>()
             .AddEntityFrameworkStores<UsersDbContext>()
+            .AddUserManager<PasswordChangeUserManager>()
             .AddSignInManager<AuditingSignInManager>()
             .AddClaimsPrincipalFactory<UserInfoClaimsPrincipalFactory>()
             .AddDefaultTokenProviders();
