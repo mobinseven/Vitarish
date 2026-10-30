@@ -114,16 +114,19 @@ export const CenteredRegion = forwardRef<HTMLDivElement, CenteredRegionProps>(
 
 export interface ImmersiveRegionProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
+  /** A viewport-sized scene within a scrolling document, or the available parent space. */
+  sizing?: "parent" | "viewport";
 }
 
 export const ImmersiveRegion = forwardRef<HTMLDivElement, ImmersiveRegionProps>(
-  function ImmersiveRegion({ children, className, ...props }, ref) {
+  function ImmersiveRegion({ children, className, sizing = "parent", ...props }, ref) {
     return (
       <div
         {...props}
         ref={ref}
         className={mergeClassNames("vitarish-immersive-region", className)}
         data-vitarish-layout="immersive-region"
+        data-vitarish-region-sizing={sizing}
         data-vitarish-reveal-header-region="workspace"
         data-vitarish-scroll-owner="workspace"
       >

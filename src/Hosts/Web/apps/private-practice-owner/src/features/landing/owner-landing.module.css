@@ -1,203 +1,670 @@
-/*
- * The Vitarish Darman front door: the header and hero on an anchor band carrying the sub-brand,
- * the capabilities on the plain ground, and an anchor footer closed by the logotype.
- */
-
 .page {
-  --gutter: clamp(1rem, 4vw, 4rem);
-  --header-height: 5.5rem;
-
-  display: flex;
-  flex-direction: column;
+  --gutter: clamp(1.25rem, 4vw, 4.5rem);
   background: var(--background);
   color: var(--foreground);
 }
 
-.main {
+.headerDock {
+  position: sticky;
+  top: 1.25rem;
+  height: 0;
+  z-index: 20;
   display: flex;
-  width: 100%;
-  flex: 1;
-  flex-direction: column;
-}
-
-/* The anchor ground of the header, hero and footer, in both themes. */
-.anchorBand {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  background: var(--anchor);
-  color: var(--anchor-foreground);
-}
-
-/* Controls drawn on the anchor take its ink, not the page's. */
-.onAnchor {
-  color: var(--anchor-foreground);
+  justify-content: center;
+  padding-inline: 1rem;
 }
 
 .header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
-  height: var(--header-height);
-  padding-inline: var(--gutter);
+  gap: 3rem;
+  height: fit-content;
+  padding: 0.5rem 0.625rem 0.5rem 1.25rem;
+  border: 1px solid color-mix(in srgb, var(--anchor-foreground) 18%, transparent);
+  border-radius: 99rem;
+  background: color-mix(in srgb, var(--anchor) 92%, transparent);
+  color: var(--anchor-foreground);
+  backdrop-filter: blur(16px);
 }
 
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
+  padding-inline: 0.5rem;
   color: inherit;
 }
 
 .headerMark {
-  display: block;
-  height: 2.25rem;
   width: auto;
+  height: 1.625rem;
 }
 
 .headerSubBrand {
   font-size: 1.25rem;
-  text-transform: uppercase;
 }
 
-/* The sub-brand is the hero: a small "by VITARISH" line above a giant accent wordmark. */
-.hero {
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.onAnchor {
+  color: var(--anchor-foreground);
+}
+
+.onAnchor:hover, .onAnchor[data-hovered="true"] {
+  color: var(--foreground);
+}
+
+.dayLink {
+  margin-inline-end: 0.75rem;
+  font-size: 0.75rem;
+  color: inherit;
+}
+
+.dayLink:hover, .overviewLink:hover, .scrollLink:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.3em;
+}
+
+.heroJourney {
+  position: relative;
+  height: 190svh;
+  background: var(--anchor);
+  color: var(--anchor-foreground);
+}
+
+.heroStage {
+  position: sticky;
+  top: 0;
+  min-height: 44rem;
+  overflow: clip;
+}
+
+.heroCopy {
+  position: absolute;
+  z-index: 3;
+  inset-block: 0;
+  inset-inline: var(--gutter);
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 1.75rem;
-  padding: clamp(3rem, 10vh, 7rem) var(--gutter) clamp(4rem, 12vh, 8rem);
-}
-
-.byline {
-  display: inline-flex;
   align-items: center;
-  gap: 0.75rem;
-  font-size: 1.125rem;
-  opacity: 0.8;
+  justify-content: center;
+  gap: 1rem;
+  text-align: center;
+  color: white;
+  padding-block: 6rem;
 }
 
-.bylineLogotype {
-  display: block;
-  height: 1.5rem;
-  width: auto;
+.heroScrim {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, color-mix(in srgb, black 72%, transparent), color-mix(in srgb, black 22%, transparent));
 }
 
-/* Owner-approved (docs/hosts/web/color-roles.md): the sub-brand wordmark takes the accent. */
+.eyebrow {
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.7;
+}
+
 .heroTitle {
-  font-size: clamp(4.5rem, 16vw, 13rem);
-  line-height: 0.95;
-  text-transform: uppercase;
-  color: var(--accent);
-}
-
-/* Tracking only for Latin: spacing letters apart breaks the joins of Persian script. */
-:global(html:not([dir="rtl"])) .headerSubBrand {
-  letter-spacing: 0.04em;
-}
-
-:global(html:not([dir="rtl"])) .heroTitle {
-  letter-spacing: -0.02em;
+  font-size: clamp(3.25rem, 5.8vw, 6.5rem);
+  line-height: 1.05;
+  white-space: pre-line;
 }
 
 .heroIntro {
-  max-width: 40rem;
-  font-size: 1.1875rem;
-  line-height: 1.7;
-  opacity: 0.85;
+  max-width: 37rem;
+  font-size: 0.9375rem;
+  line-height: 1.8;
+  opacity: 0.8;
 }
 
 .heroActions {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-}
-
-.overviewLink {
-  color: var(--anchor-foreground);
-  font-size: 0.875rem;
-  text-decoration: underline;
-  text-underline-offset: 0.25em;
-}
-
-.features {
-  display: flex;
-  flex-direction: column;
-}
-
-/* One capability per section: title and sample side by side on wide screens, sides alternating. */
-.feature {
-  display: grid;
   align-items: center;
-  gap: 2.5rem;
-  padding: clamp(4rem, 10vh, 7rem) var(--gutter);
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-top: 0.25rem;
 }
 
-.feature + .feature {
-  border-top: 1px solid var(--separator);
+.scrollLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.8125rem;
+  color: inherit;
 }
 
-@media (min-width: 64rem) {
-  .feature {
-    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-    gap: 4rem;
-  }
+.streetPortal {
+  position: absolute;
+  top: 18%;
+  left: 50%;
+  width: 54%;
+  height: 78%;
+  border-radius: 48% 48% 0 0;
+  transform: translateX(-50%);
+  overflow: hidden;
+  z-index: 2;
+}
 
-  /* The sample keeps the wider column when the sides swap. */
-  .feature:nth-child(even) {
-    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
-  }
+.artFrame {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 70%;
+}
 
-  .feature:nth-child(even) .featureText {
-    order: 2;
-  }
+.artImage {
+  object-fit: cover;
+  object-position: center;
+}
+
+.archLines {
+  position: absolute;
+  top: 15%;
+  left: 50%;
+  width: 60%;
+  height: 82%;
+  transform: translateX(-50%);
+}
+
+.archLines span {
+  position: absolute;
+  inset: 0;
+  border: 1px solid color-mix(in srgb, var(--anchor-foreground) 20%, transparent);
+  border-radius: 48% 48% 0 0;
+}
+
+.archLines span:nth-child(2) {
+  inset: -2rem -3rem;
+  opacity: 0.65;
+}
+
+.archLines span:nth-child(3) {
+  inset: -4rem -6rem;
+  opacity: 0.3;
+}
+
+.sceneMargin {
+  position: absolute;
+  inset-inline-start: 3rem;
+  bottom: 3rem;
+  max-width: 10rem;
+  font-size: 0.75rem;
+  line-height: 1.8;
+  opacity: 0.75;
+}
+
+:global(html:not([dir="rtl"])) .heroTitle,
+:global(html:not([dir="rtl"])) .introTitle,
+:global(html:not([dir="rtl"])) .display,
+:global(html:not([dir="rtl"])) .closingTitle,
+:global(html:not([dir="rtl"])) .footerSubBrand {
+  letter-spacing: -0.055em;
+}
+
+:global(html:not([dir="rtl"])) .eyebrow {
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+:global(html[dir="rtl"]) .heroTitle {
+  font-size: clamp(3rem, 5vw, 5.5rem);
+  line-height: 1.4;
+}
+
+:global(html[dir="rtl"]) .introTitle,
+:global(html[dir="rtl"]) .display,
+:global(html[dir="rtl"]) .closingTitle {
+  line-height: 1.45;
+}
+
+.introduction {
+  padding-block: clamp(5rem, 10vw, 10rem) 3rem;
+  text-align: center;
+  scroll-margin-top: 7rem;
+}
+
+.introTitle {
+  max-width: 58rem;
+  margin: 1.5rem auto;
+  font-size: clamp(2.75rem, 5.4vw, 5.5rem);
+  line-height: 1.08;
+  white-space: pre-line;
+  text-wrap: balance;
+}
+
+.introDescription {
+  max-width: 35rem;
+  margin-inline: auto;
+  font-size: 1rem;
+  line-height: 1.9;
+  color: var(--muted);
+}
+
+.abilityIndex {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 1.5rem 3.5rem;
+  margin-top: 4rem;
+  padding-block: 2rem;
+  border-block: 1px solid var(--separator);
+}
+
+.abilityIndex span {
+  display: inline-flex;
+  gap: 0.625rem;
+  align-items: center;
+  font-size: 0.8125rem;
+}
+
+.feature {
+  position: relative;
+  padding: 0;
+  border-radius: 0;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.featureContent {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  align-items: center;
+  gap: clamp(3rem, 7vw, 7rem);
+  padding-block: 7rem;
+  min-height: 46rem;
 }
 
 .featureText {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  align-items: flex-start;
+  gap: 1.5rem;
+}
+
+.chapterLabel {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  font-size: 0.75rem;
+}
+
+.chapterNumber {
+  font-size: 3.5rem;
+  font-weight: 300;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.4;
 }
 
 .display {
-  font-size: clamp(2rem, 4vw, 3.25rem);
-  line-height: 1.15;
+  font-size: clamp(2.75rem, 4.4vw, 4.75rem);
+  line-height: 1.08;
+  white-space: pre-line;
   text-wrap: balance;
 }
 
 .featureLine {
-  max-width: 32rem;
-  font-size: 1.0625rem;
-  line-height: 1.7;
+  max-width: 28rem;
+  font-size: 1rem;
+  line-height: 1.85;
   color: var(--muted);
 }
 
+.tryHint {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  font-size: 0.75rem;
+  line-height: 1.8;
+  margin-top: 0.5rem;
+}
+
+.tryHint > i {
+  margin-top: 0.25rem;
+}
+
 .featurePanel {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 0;
   width: 100%;
+  min-height: 32rem;
+  padding: 3rem 0;
+}
+
+.sample {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--separator);
+  border-radius: 1.5rem;
+  color: var(--foreground);
+  box-shadow: 0 1.5rem 4rem color-mix(in srgb, var(--anchor) 10%, transparent);
+}
+
+.sampleArch {
+  position: absolute;
+  inset: 0 2rem;
+  border-radius: 48% 48% 0 0;
+  background: color-mix(in srgb, var(--anchor) 5%, var(--background));
+  border: 1px solid var(--separator);
+}
+
+.sampleArch::before {
+  content: "";
+  position: absolute;
+  inset: -1rem;
+  border-radius: inherit;
+  border: 1px solid var(--separator);
+}
+
+.feature:nth-child(2) {
+  background: var(--anchor);
+  color: var(--anchor-foreground);
+}
+
+.feature:nth-child(2) .featureLine {
+  color: inherit;
+  opacity: 0.8;
+}
+
+.feature:nth-child(2) .featureContent {
+  min-height: 50rem;
+}
+
+.feature:nth-child(2) .featurePanel {
+  padding: 4rem 0;
+}
+
+.feature:nth-child(2) .sampleArch {
+  display: none;
+}
+
+.sampleBackdrop {
+  position: absolute;
+  inset: -2rem 2rem;
+  overflow: hidden;
+  border-radius: 48% 48% 0 0;
+}
+
+.feature:last-child .featureContent {
+  grid-template-columns: 1fr;
+  text-align: center;
+  gap: 2rem;
+}
+
+.feature:last-child .featureText {
+  align-items: center;
+}
+
+.feature:last-child .featureLine {
+  max-width: 35rem;
+}
+
+.feature:last-child .featurePanel {
+  max-width: 62rem;
+  margin-inline: auto;
+  min-height: 0;
+  padding-block: 1.5rem;
+}
+
+.feature:last-child .sampleArch {
+  display: none;
+}
+
+.closingScene {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  padding: 6rem var(--gutter) 0;
+  overflow: clip;
+  background: var(--anchor);
+}
+
+.closingArtwork {
+  position: absolute;
+  inset: 0;
+}
+
+.closingScrim {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, black 28%, transparent);
+}
+
+.closing {
+  position: relative;
+  width: min(100%, 42rem);
+  border-radius: 50% 50% 0 0;
+  padding: 8rem 3.5rem 4rem;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.closingContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.75rem;
+  text-align: center;
+}
+
+.closingTitle {
+  font-size: clamp(3rem, 4.8vw, 5rem);
+  line-height: 1.08;
+  white-space: pre-line;
+  text-wrap: balance;
+}
+
+.closingDescription {
+  max-width: 25rem;
+  font-size: 0.9375rem;
+  line-height: 1.85;
+  color: var(--muted);
+}
+
+.overviewLink {
+  color: inherit;
+  font-size: 0.75rem;
+  text-decoration: underline;
+  text-underline-offset: 0.3em;
 }
 
 .footer {
-  padding-bottom: 0;
+  padding: 4rem var(--gutter) 1.5rem;
+  background: var(--anchor);
+  color: var(--anchor-foreground);
 }
 
-.footerTop {
+.footerSubBrand {
+  display: block;
+  font-size: clamp(6rem, 21vw, 22rem);
+  line-height: 1.3;
+  text-align: center;
+}
+
+.footerBottom {
   display: flex;
-  justify-content: flex-end;
-  padding: 2rem var(--gutter) 0;
+  align-items: center;
+  gap: 1.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid color-mix(in srgb, var(--anchor-foreground) 20%, transparent);
+}
+
+.byline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.6875rem;
+}
+
+.bylineLogotype {
+  display: block;
+  height: 1rem;
+  width: auto;
 }
 
 .footerNote {
-  max-width: 28rem;
-  margin-top: clamp(6rem, 24vh, 14rem);
-  padding-inline: var(--gutter);
-  font-size: 1.0625rem;
-  line-height: 1.6;
+  margin-inline-start: auto;
+  font-size: 0.6875rem;
+  opacity: 0.7;
 }
 
-.footerLogotype {
-  display: block;
-  width: 100%;
-  height: auto;
-  margin-top: 2rem;
+/* A complete reading order remains visible without scroll-linked motion. */
+
+@media (max-width: 63.99rem), (max-height: 47.99rem), (prefers-reduced-motion: reduce) {
+  .heroJourney {
+    height: auto;
+  }
+  .page .heroJourney .heroStage {
+    position: relative;
+    block-size: auto;
+    min-height: 44rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .heroCopy {
+    position: relative;
+    inset: auto;
+    padding: 9rem var(--gutter) 6rem;
+    transform: none !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
+  .streetPortal {
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    border-radius: 0 !important;
+    transform: none;
+  }
+  .heroScrim {
+    opacity: 1 !important;
+  }
+  .archLines, .sceneMargin {
+    display: none;
+  }
+  .artFrame {
+    transform: none !important;
+  }
+  .closingArtwork {
+    transform: none !important;
+  }
+}
+
+@media (max-width: 63.99rem) {
+  .headerDock {
+    top: 0.75rem;
+  }
+  .header {
+    gap: 1rem;
+    padding: 0.375rem;
+  }
+  .headerActions {
+    gap: 0;
+  }
+  .headerActions a, .headerActions button {
+    padding-inline: 0.625rem;
+    font-size: 0.75rem;
+  }
+  .headerMark {
+    height: 1.375rem;
+  }
+  .headerSubBrand {
+    font-size: 1.125rem;
+  }
+  .dayLink {
+    display: none;
+  }
+  .heroTitle {
+    font-size: clamp(3rem, 8.4vw, 5rem);
+  }
+  :global(html[dir="rtl"]) .heroTitle {
+    font-size: clamp(2.8rem, 8vw, 4.5rem);
+  }
+  .heroIntro {
+    max-width: 28rem;
+  }
+  .introduction {
+    padding-block: 5rem 1rem;
+  }
+  .introTitle {
+    font-size: clamp(2.5rem, 7vw, 4rem);
+  }
+  .abilityIndex {
+    gap: 1.5rem 2rem;
+    margin-top: 2.5rem;
+  }
+  .featureContent {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+    min-height: 0;
+    padding-block: 4rem;
+  }
+  .feature:nth-child(2) .featureContent {
+    min-height: 0;
+  }
+  .featurePanel {
+    min-height: 25rem;
+    max-width: 42rem;
+    margin-inline: auto;
+  }
+  .featureText {
+    max-width: 38rem;
+  }
+  .display {
+    font-size: clamp(2.5rem, 7vw, 4rem);
+  }
+  .chapterNumber {
+    font-size: 2.75rem;
+  }
+  .feature:last-child .featureContent {
+    text-align: start;
+  }
+  .feature:last-child .featureText {
+    align-items: flex-start;
+  }
+  .closingScene {
+    padding-top: 4rem;
+  }
+  .closing {
+    padding: 5.5rem 1.5rem 3rem;
+  }
+  .closingTitle {
+    font-size: clamp(2.75rem, 8vw, 4rem);
+  }
+  .footer {
+    padding-block: 3rem 1.5rem;
+  }
+}
+
+@media (max-width: 26rem) {
+  .heroActions {
+    gap: 1rem;
+  }
+  .heroCopy {
+    padding-top: 7rem;
+  }
+  .heroTitle {
+    font-size: 2.8rem;
+  }
+  :global(html[dir="rtl"]) .heroTitle {
+    font-size: 2.65rem;
+  }
+  .abilityIndex {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    text-align: start;
+  }
 }

@@ -1,38 +1,51 @@
 "use client";
 
+import Image from "next/image";
 import { Surface } from "@heroui/react";
-import { ViewportReveal } from "@vitarish/ui";
-import { useLocalizedText } from "@/localization";
+import { FaIcon, PageContainer, ViewportReveal } from "@vitarish/ui";
+import { formatNumber, useLocalizedText } from "@/localization";
 import { LandingFeatureMock, landingFeatureIds } from "./LandingFeatureMocks";
 import styles from "./owner-landing.module.css";
 
-const capitalize = (value: string) => value.charAt(0).toUpperCase() + value.slice(1);
+const [assistant, reports, bookings] = landingFeatureIds;
+const chapters = [
+  { id: bookings, title: "practiceLanding.featureBookings", description: "practiceLanding.featureBookingsDescription", moment: "practiceLanding.momentBookings", hint: "practiceLanding.tryBookings", icon: "calendar-check" },
+  { id: assistant, title: "practiceLanding.featureAssistant", description: "practiceLanding.featureAssistantDescription", moment: "practiceLanding.momentAssistant", hint: "practiceLanding.tryAssistant", icon: "message-bot" },
+  { id: reports, title: "practiceLanding.featureReports", description: "practiceLanding.featureReportsDescription", moment: "practiceLanding.momentReports", hint: "practiceLanding.tryReports", icon: "chart-simple" },
+] as const;
 
-/** One section per capability on the plain ground: a short title beside a working sample of it, sides alternating. */
-export function LandingFeatures() {
-  const { t } = useLocalizedText();
+/** Full-width scenes keep the existing examples interactive and in normal reading order. */
+export function LandingFeatures({ interiorArtwork }: { interiorArtwork: string }) {
+  const { t, locale } = useLocalizedText();
 
   return (
     <div className={styles.features}>
-      {landingFeatureIds.map((id) => {
-        const key = capitalize(id);
-        return (
-          <section key={id} aria-labelledby={`landing-feature-${id}`} className={styles.feature}>
+      {chapters.map(({ id, title, description, moment, hint, icon }, index) => (
+        <Surface render={(props) => <section {...props} />} key={id} aria-labelledby={`landing-feature-${id}`} className={styles.feature}>
+          <PageContainer width="content" className={styles.featureContent}>
             <ViewportReveal className={styles.featureText}>
-              <h2 className={`${styles.display} font-tone-confident`} id={`landing-feature-${id}`}>
-                {t(`practiceLanding.feature${key}`)}
-              </h2>
-              <p className={styles.featureLine}>{t(`practiceLanding.feature${key}Description`)}</p>
+              <p className={styles.chapterLabel}>
+                <span className={styles.chapterNumber}>{formatNumber(index + 1, locale, { minimumIntegerDigits: 2 })}</span>
+                <span>{t(moment)}</span>
+              </p>
+              <h2 className={`${styles.display} font-tone-confident`} id={`landing-feature-${id}`}>{t(title)}</h2>
+              <p className={styles.featureLine}>{t(description)}</p>
+              <p className={styles.tryHint}><FaIcon aria-hidden="true" icon={icon} />{t(hint)}</p>
             </ViewportReveal>
-            <ViewportReveal className={styles.featurePanel} delayMs={120}>
-              {/* The chat sits on the secondary surface so its white message bubbles stand out. */}
-              <Surface className="rounded-3xl p-5 sm:p-6" variant={id === "assistant" ? "secondary" : "default"}>
+            <ViewportReveal className={styles.featurePanel} delayMs={100}>
+              {id === assistant && (
+                <div aria-hidden="true" className={styles.sampleBackdrop}>
+                  <Image alt="" className={styles.artImage} src={interiorArtwork} fill sizes="(min-width: 1024px) 50vw, 100vw" />
+                </div>
+              )}
+              <div aria-hidden="true" className={styles.sampleArch} />
+              <Surface className={styles.sample} variant="secondary">
                 <LandingFeatureMock feature={id} />
               </Surface>
             </ViewportReveal>
-          </section>
-        );
-      })}
+          </PageContainer>
+        </Surface>
+      ))}
     </div>
   );
 }
