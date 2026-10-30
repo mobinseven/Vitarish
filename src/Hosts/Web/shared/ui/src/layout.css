@@ -106,6 +106,12 @@
   overflow: hidden;
 }
 
+.vitarish-immersive-region[data-vitarish-region-sizing="viewport"] {
+  block-size: 100vh;
+  block-size: 100svh;
+  flex: none;
+}
+
 .vitarish-standalone-document-page {
   min-block-size: 0;
   min-inline-size: 0;
