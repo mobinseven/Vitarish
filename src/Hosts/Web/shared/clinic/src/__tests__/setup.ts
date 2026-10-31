@@ -11,6 +11,17 @@ if (!window.ResizeObserver) {
   });
 }
 
+if (!window.IntersectionObserver) {
+  Object.defineProperty(window, "IntersectionObserver", {
+    writable: true,
+    value: class IntersectionObserver {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    },
+  });
+}
+
 if (!Element.prototype.getAnimations) {
   Object.defineProperty(Element.prototype, "getAnimations", {
     configurable: true,
