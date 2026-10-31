@@ -1,13 +1,12 @@
 "use client";
 
-import { Alert, Button, Checkbox, Chip, Input, Label, ListBox, Select, Spinner, Surface, TextField, Tooltip } from "@heroui/react";
-import { Sheet } from "@heroui/react";
+import { Alert, Button, Checkbox, Chip, Input, Label, ListBox, Modal, Select, Spinner, Surface, TextField, Tooltip } from "@heroui/react";
 import { DataGrid, type DataGridColumn } from "@heroui-pro/react";
 import { ApiError } from "@vitarish/api-client";
 import { formatDateTime, formatNumber, localizeApiError, parseIsoDateValue, useLocalizedText, type SupportedLocale } from "@vitarish/localization";
 import { FaIcon, LoadingSpinner  } from "@vitarish/ui";
 import { useMemo, useState, type FormEvent, type ReactNode } from "react";
-import { describeTransferredFile } from "./transferredFile";
+import { TransferredFileDescription } from "./transferredFile";
 import {
   localizePlatformAuditCategory,
   localizePlatformAuditChangeField,
@@ -771,17 +770,17 @@ export function PlatformSecurityAuditReviewPage({
         </div>
       </Surface>
 
-      <EventDetailSheet event={selectedEvent} onClose={() => setSelectedEvent(null)} />
+      <EventDetailDialog event={selectedEvent} onClose={() => setSelectedEvent(null)} />
     </div>
   );
 }
 
-function EventDetailSheet({ event, onClose }: { event: SecurityAuditEventReadDto | null; onClose: () => void }) {
+function EventDetailDialog({ event, onClose }: { event: SecurityAuditEventReadDto | null; onClose: () => void }) {
   const { t, locale } = useLocalizedText();
-  return <PlatformAuditDetailSheet event={event} onClose={onClose} locale={locale} t={t} />;
+  return <PlatformAuditDetailDialog event={event} onClose={onClose} locale={locale} t={t} />;
 }
 
-function PlatformAuditDetailSheet({
+function PlatformAuditDetailDialog({
   event,
   onClose,
   locale,
@@ -793,52 +792,50 @@ function PlatformAuditDetailSheet({
   t: ReturnType<typeof useLocalizedText>["t"];
 }) {
   return (
-    <Sheet isOpen={Boolean(event)} placement="right" onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <Sheet.Backdrop variant="blur">
-        <Sheet.Content className="w-full max-w-xl">
-          <Sheet.Dialog className="flex h-full max-h-screen flex-col">
-            <Sheet.Header>
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">{t("security.platformAudit.detailEyebrow")}</p>
-                <Sheet.Heading className="mt-2">{t("security.platformAudit.detailTitle")}</Sheet.Heading>
-              </div>
-              <Tooltip>
-                <Sheet.CloseTrigger aria-label={t("security.platformAudit.closeDetail")}>
-                  <FaIcon icon="xmark" aria-hidden="true" />
-                </Sheet.CloseTrigger>
-                <Tooltip.Content>{t("security.platformAudit.closeDetail")}</Tooltip.Content>
-              </Tooltip>
-            </Sheet.Header>
-            <Sheet.Body className="min-h-0 flex-1 overflow-y-auto">
-              {event ? (
-                <>
-                  <dl>
-                    <DetailField label={t("security.platformAudit.id")} value={displayValue(event.id, t("security.platformAudit.notAvailable"))} />
-                    <DetailField label={t("security.platformAudit.event")} value={localizePlatformAuditEvent(locale, event.eventName, t("security.platformAudit.notAvailable"))} />
-                    <DetailField label={t("security.platformAudit.category")} value={localizePlatformAuditCategory(locale, event.eventCategory, t("security.platformAudit.uncatalogued"))} />
-                    <DetailField label={t("security.platformAudit.operation")} value={displayValue(event.operation, t("security.platformAudit.notAvailable"))} />
-                    <DetailField label={t("security.platformAudit.outcome")} value={localizeSecurityAuditOutcome(locale, event.outcome, t("security.platformAudit.notAvailable"))} />
-                    <DetailField label={t("security.platformAudit.actorKind")} value={displayValue(event.actorKind, t("security.platformAudit.notAvailable"))} />
-                    <DetailField label={t("security.platformAudit.actor")} value={displayValue(event.actorId, t("security.platformAudit.unknownActor"))} />
-                    <DetailField label={t("security.platformAudit.subject")} value={displayValue(event.subjectId, t("security.platformAudit.notAvailable"))} />
-                    <DetailField label={t("security.platformAudit.scope")} value={displayValue(event.tenantId, t("security.platformAudit.notAvailable"))} />
-                    <DetailField label={t("security.platformAudit.resource")} value={displayValue(event.resource, t("security.platformAudit.notAvailable"))} />
-                    <DetailField label={t("security.platformAudit.transferredFile")} value={<bdi>{describeTransferredFile(event, locale) ?? t("security.platformAudit.notAvailable")}</bdi>} />
-                    <DetailField label={t("security.platformAudit.occurredAt")} value={event.occurredAt ? formatDateTime(event.occurredAt, locale) : t("security.platformAudit.notAvailable")} />
-                    <DetailField label={t("security.platformAudit.correlationId")} value={displayValue(event.correlationId, t("security.platformAudit.notAvailable"))} />
-                    <DetailField label={t("security.platformAudit.sourceBoundary")} value={displayValue(event.sourceBoundary, t("security.platformAudit.notAvailable"))} />
-                    <DetailField label={t("security.platformAudit.sourceIpKind")} value={displayValue(event.sourceIpKind, t("security.platformAudit.notAvailable"))} />
-                    <DetailField label={t("security.platformAudit.sourceIpAddress")} value={displayValue(event.sourceIpAddress, t("security.platformAudit.notAvailable"))} />
-                    <DetailField label={t("security.platformAudit.redactedReason")} value={displayValue(event.redactedReason, t("security.platformAudit.notAvailable"))} />
-                    <DetailField label={t("security.platformAudit.changes")} value={<AuditChangeList changes={event.changes ?? []} locale={locale} t={t} />} />
-                  </dl>
-                  <p className="mt-6 border-t border-separator pt-5 text-xs leading-5 text-muted">{t("security.platformAudit.detailReadOnly")}</p>
-                </>
-              ) : null}
-            </Sheet.Body>
-          </Sheet.Dialog>
-        </Sheet.Content>
-      </Sheet.Backdrop>
-    </Sheet>
+    <Modal.Backdrop isOpen={Boolean(event)} onOpenChange={(isOpen) => !isOpen && onClose()} variant="blur">
+      <Modal.Container placement="center" scroll="inside" size="lg">
+        <Modal.Dialog className="flex max-h-[90vh] w-full flex-col sm:max-w-xl">
+          <Modal.Header>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">{t("security.platformAudit.detailEyebrow")}</p>
+              <Modal.Heading className="mt-2">{t("security.platformAudit.detailTitle")}</Modal.Heading>
+            </div>
+            <Tooltip>
+              <Modal.CloseTrigger aria-label={t("security.platformAudit.closeDetail")}>
+                <FaIcon icon="xmark" aria-hidden="true" />
+              </Modal.CloseTrigger>
+              <Tooltip.Content>{t("security.platformAudit.closeDetail")}</Tooltip.Content>
+            </Tooltip>
+          </Modal.Header>
+          <Modal.Body className="min-h-0 flex-1 overflow-y-auto">
+            {event ? (
+              <>
+                <dl>
+                  <DetailField label={t("security.platformAudit.id")} value={displayValue(event.id, t("security.platformAudit.notAvailable"))} />
+                  <DetailField label={t("security.platformAudit.event")} value={localizePlatformAuditEvent(locale, event.eventName, t("security.platformAudit.notAvailable"))} />
+                  <DetailField label={t("security.platformAudit.category")} value={localizePlatformAuditCategory(locale, event.eventCategory, t("security.platformAudit.uncatalogued"))} />
+                  <DetailField label={t("security.platformAudit.operation")} value={displayValue(event.operation, t("security.platformAudit.notAvailable"))} />
+                  <DetailField label={t("security.platformAudit.outcome")} value={localizeSecurityAuditOutcome(locale, event.outcome, t("security.platformAudit.notAvailable"))} />
+                  <DetailField label={t("security.platformAudit.actorKind")} value={displayValue(event.actorKind, t("security.platformAudit.notAvailable"))} />
+                  <DetailField label={t("security.platformAudit.actor")} value={displayValue(event.actorId, t("security.platformAudit.unknownActor"))} />
+                  <DetailField label={t("security.platformAudit.subject")} value={displayValue(event.subjectId, t("security.platformAudit.notAvailable"))} />
+                  <DetailField label={t("security.platformAudit.scope")} value={displayValue(event.tenantId, t("security.platformAudit.notAvailable"))} />
+                  <DetailField label={t("security.platformAudit.resource")} value={displayValue(event.resource, t("security.platformAudit.notAvailable"))} />
+                  <DetailField label={t("security.platformAudit.transferredFile")} value={<TransferredFileDescription event={event} locale={locale} fallback={t("security.platformAudit.notAvailable")} />} />
+                  <DetailField label={t("security.platformAudit.occurredAt")} value={event.occurredAt ? formatDateTime(event.occurredAt, locale) : t("security.platformAudit.notAvailable")} />
+                  <DetailField label={t("security.platformAudit.correlationId")} value={displayValue(event.correlationId, t("security.platformAudit.notAvailable"))} />
+                  <DetailField label={t("security.platformAudit.sourceBoundary")} value={displayValue(event.sourceBoundary, t("security.platformAudit.notAvailable"))} />
+                  <DetailField label={t("security.platformAudit.sourceIpKind")} value={displayValue(event.sourceIpKind, t("security.platformAudit.notAvailable"))} />
+                  <DetailField label={t("security.platformAudit.sourceIpAddress")} value={displayValue(event.sourceIpAddress, t("security.platformAudit.notAvailable"))} />
+                  <DetailField label={t("security.platformAudit.redactedReason")} value={displayValue(event.redactedReason, t("security.platformAudit.notAvailable"))} />
+                  <DetailField label={t("security.platformAudit.changes")} value={<AuditChangeList changes={event.changes ?? []} locale={locale} t={t} />} />
+                </dl>
+                <p className="mt-6 border-t border-separator pt-5 text-xs leading-5 text-muted">{t("security.platformAudit.detailReadOnly")}</p>
+              </>
+            ) : null}
+          </Modal.Body>
+        </Modal.Dialog>
+      </Modal.Container>
+    </Modal.Backdrop>
   );
 }

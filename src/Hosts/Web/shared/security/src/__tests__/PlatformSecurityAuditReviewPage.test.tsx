@@ -204,7 +204,7 @@ describe("PlatformSecurityAuditReviewPage", () => {
     await waitFor(() => expect(screen.getByText("The filtered result exceeds the configured CSV export limit. Narrow the filters and try again.")).toBeInTheDocument());
   });
 
-  it("opens a read-only detail sheet from a selected event row", async () => {
+  it("opens read-only event details from a selected row", async () => {
     renderPage();
 
     const eventCells = screen.getAllByText("Password login");
@@ -213,6 +213,36 @@ describe("PlatformSecurityAuditReviewPage", () => {
     await waitFor(() => expect(screen.getByRole("heading", { name: "Event details" })).toBeInTheDocument());
     expect(screen.getByText("request-a")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /delete|edit|update/i })).not.toBeInTheDocument();
+  });
+
+  it("isolates a Persian transferred filename from extension and size in event details", async () => {
+    vi.mocked(useAuditPlatformSecurityEventsList).mockReturnValue({
+      data: {
+        items: [{ ...event, resourceName: "گزارشپزشکی.pdf" }],
+        page: 1,
+        pageSize: 25,
+        totalCount: 1,
+        capacityThresholdReached: false,
+      },
+      isPending: false,
+      isError: false,
+      isFetching: false,
+      error: null,
+    } as never);
+    renderPage();
+
+    const eventCells = screen.getAllByText("Password login");
+    fireEvent.click(eventCells[eventCells.length - 1]);
+    await waitFor(() => expect(screen.getByRole("heading", { name: "Event details" })).toBeInTheDocument());
+
+    const fileName = screen.getByText("گزارشپزشکی.pdf", { exact: true });
+    const extension = screen.getByText("PDF", { exact: true });
+    expect(fileName.tagName).toBe("BDI");
+    expect(fileName).toHaveAttribute("dir", "auto");
+    expect(extension.tagName).toBe("BDI");
+    expect(extension).toHaveAttribute("dir", "auto");
+    expect(fileName).not.toContainElement(extension);
+    expect(screen.getByText("File").closest("div")).toHaveTextContent("گزارشپزشکی.pdf · PDF · 2.4 MB");
   });
 
   it("shows previous and new values, localizing only catalogued status codes", async () => {

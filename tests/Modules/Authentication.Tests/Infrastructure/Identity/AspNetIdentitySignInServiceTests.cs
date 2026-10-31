@@ -14,6 +14,7 @@ using Vitarish.Authentication.Application.Results;
 using Vitarish.Authentication.Domain.Methods;
 using Vitarish.Authentication.Domain.Security;
 using Vitarish.Authentication.Infrastructure;
+using Vitarish.Authentication.Infrastructure.Options;
 using Vitarish.Users.Domain.Entities;
 using Vitarish.Authentication.Tests.Security;
 using Vitarish.Requests.Application.Abstractions;
@@ -147,6 +148,65 @@ public sealed class AspNetIdentitySignInServiceTests
         signInManager.Verify(
             manager => manager.CheckPasswordSignInAsync(It.IsAny<User>(), It.IsAny<string>(), It.IsAny<bool>()),
             Times.Never);
+    }
+
+    [Fact]
+    public async Task Account_attempts_are_shared_across_identifiers_and_recover_after_the_policy_duration()
+    {
+        ManualTimeProvider clock = new(new DateTimeOffset(2026, 10, 31, 9, 0, 0, TimeSpan.Zero));
+        User user = CreateUser(isEnabled: true);
+        user.UserName = "managed-user";
+        Mock<IUserStore<User>> userStore = new();
+        Mock<UserManager<User>> userManager = CreateUserManager(userStore);
+        userManager.Setup(manager => manager.FindByNameAsync(user.UserName!)).ReturnsAsync(user);
+        userManager.Setup(manager => manager.FindByEmailAsync(user.Email!)).ReturnsAsync(user);
+        userManager.Setup(manager => manager.IsLockedOutAsync(user)).ReturnsAsync(false);
+        Mock<SignInManager<User>> signInManager = CreateSignInManager(userManager.Object);
+        signInManager.Setup(manager => manager.CheckPasswordSignInAsync(user, "wrong-password", false))
+            .ReturnsAsync(SignInResult.Failed);
+        signInManager.Setup(manager => manager.CheckPasswordSignInAsync(user, "correct-password", false))
+            .ReturnsAsync(SignInResult.Success);
+
+        SecurityAccessPolicy policy = SecurityAccessPolicy.Default with
+        {
+            FailedAttemptThreshold = 3,
+            FailedAttemptDenialDuration = TimeSpan.FromMinutes(15)
+        };
+        Mock<IAuthenticationSecurityPolicyProvider> policyProvider = new();
+        policyProvider.Setup(provider => provider.GetAsync(It.IsAny<CancellationToken>())).ReturnsAsync(policy);
+        InMemoryAuthenticationAttemptTracker attemptTracker = new(clock);
+        AuthenticationAttemptKeyFactory attemptKeyFactory = new(Options.Create(new AuthenticationAttemptKeyOptions
+        {
+            Realm = "authentication-test",
+            CurrentPepper = "test-authentication-attempt-key-pepper-20260829"
+        }));
+        AspNetIdentitySignInService service = new(
+            userManager.Object,
+            signInManager.Object,
+            policyProvider.Object,
+            attemptTracker,
+            new UnknownPasswordVerifier(new PasswordHasher<User>()),
+            attemptKeyFactory,
+            new Mock<IAuthenticationSessionRegistry>().Object,
+            new HttpContextAccessor(),
+            TestSourceAttemptGuards.WithoutClientAddress());
+
+        PasswordSignInResult firstFailure = await service.CheckPasswordSignInAsync(user.UserName!, "wrong-password", CancellationToken.None);
+        PasswordSignInResult secondFailure = await service.CheckPasswordSignInAsync(user.Email!, "wrong-password", CancellationToken.None);
+        PasswordSignInResult thresholdFailure = await service.CheckPasswordSignInAsync(user.UserName!, "wrong-password", CancellationToken.None);
+        PasswordSignInResult deniedCorrectPassword = await service.CheckPasswordSignInAsync(user.Email!, "correct-password", CancellationToken.None);
+
+        firstFailure.Status.Should().Be(PasswordSignInStatus.InvalidCredentials);
+        secondFailure.Status.Should().Be(PasswordSignInStatus.InvalidCredentials);
+        thresholdFailure.Status.Should().Be(PasswordSignInStatus.LockedOut);
+        deniedCorrectPassword.Status.Should().Be(PasswordSignInStatus.LockedOut);
+        signInManager.Verify(manager => manager.CheckPasswordSignInAsync(user, "correct-password", false), Times.Never);
+
+        clock.Advance(policy.FailedAttemptDenialDuration);
+        PasswordSignInResult recovered = await service.CheckPasswordSignInAsync(user.Email!, "correct-password", CancellationToken.None);
+
+        recovered.Status.Should().Be(PasswordSignInStatus.Succeeded);
+        signInManager.Verify(manager => manager.CheckPasswordSignInAsync(user, "correct-password", false), Times.Once);
     }
 
     [Fact]
@@ -659,4 +719,13 @@ public sealed class AspNetIdentitySignInServiceTests
         NullLogger<SignInManager<User>>.Instance,
         Mock.Of<IAuthenticationSchemeProvider>(),
         Mock.Of<IUserConfirmation<User>>());
+
+    private sealed class ManualTimeProvider(DateTimeOffset initialUtcNow) : TimeProvider
+    {
+        private DateTimeOffset now = initialUtcNow;
+
+        public override DateTimeOffset GetUtcNow() => now;
+
+        public void Advance(TimeSpan duration) => now = now.Add(duration);
+    }
 }

@@ -49,6 +49,24 @@ public sealed class AuthenticationSourceAttemptGuardTests
     }
 
     [Fact]
+    public async Task An_address_recovers_after_the_configured_denial_duration()
+    {
+        ManualTimeProvider clock = new(new DateTimeOffset(2026, 10, 31, 9, 0, 0, TimeSpan.Zero));
+        Fixture fixture = new(timeProvider: clock);
+        AuthenticationSourceAttemptGuard guard = fixture.CreateGuard("198.51.100.10");
+
+        for (int attempt = 0; attempt < Policy.SourceFailedAttemptThreshold; attempt++)
+            _ = await guard.RegisterFailureAsync(Policy, CancellationToken.None);
+
+        (await guard.IsBlockedAsync(CancellationToken.None)).Should().BeTrue();
+        clock.Advance(Policy.FailedAttemptDenialDuration);
+
+        (await guard.IsBlockedAsync(CancellationToken.None)).Should().BeFalse();
+        (await guard.RegisterFailureAsync(Policy, CancellationToken.None)).Should().BeFalse();
+        (await guard.IsBlockedAsync(CancellationToken.None)).Should().BeFalse();
+    }
+
+    [Fact]
     public async Task A_request_without_a_client_address_is_never_counted_or_denied()
     {
         Fixture fixture = new();
@@ -74,9 +92,9 @@ public sealed class AuthenticationSourceAttemptGuardTests
         (await guard.IsBlockedAsync(CancellationToken.None)).Should().BeTrue();
     }
 
-    private sealed class Fixture(bool auditFails = false)
+    private sealed class Fixture(bool auditFails = false, TimeProvider? timeProvider = null)
     {
-        private readonly InMemoryAuthenticationAttemptTracker tracker = new();
+        private readonly InMemoryAuthenticationAttemptTracker tracker = new(timeProvider);
         private readonly AuthenticationAttemptKeyFactory keys = new(Options.Create(new AuthenticationAttemptKeyOptions
         {
             Realm = "tests",
@@ -101,5 +119,14 @@ public sealed class AuthenticationSourceAttemptGuardTests
                     .ReturnsAsync(SecurityAuditWriteResult.Recorded);
             return new AuthenticationSourceAttemptGuard(tracker, keys, clientIp.Object, writer.Object, requestContext.Object);
         }
+    }
+
+    private sealed class ManualTimeProvider(DateTimeOffset now) : TimeProvider
+    {
+        private DateTimeOffset now = now;
+
+        public override DateTimeOffset GetUtcNow() => now;
+
+        public void Advance(TimeSpan duration) => now = now.Add(duration);
     }
 }

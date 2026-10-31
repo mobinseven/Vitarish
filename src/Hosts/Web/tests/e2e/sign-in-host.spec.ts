@@ -44,8 +44,7 @@ async function capture(page: Page, name: string) {
   mkdirSync(dirname(screenshot), { recursive: true });
   expect(existsSync(screenshot), `refusing to overwrite retained evidence at ${screenshot}`).toBe(false);
   await page.mouse.move(0, 0);
-  await page.waitForFunction(() => document.getAnimations().every((animation) => animation.playState !== "running"));
-  await page.screenshot({ path: screenshot, fullPage: true });
+  await page.screenshot({ path: screenshot, fullPage: true, animations: "disabled" });
 }
 
 async function getStatus(page: Page, path: string): Promise<number> {

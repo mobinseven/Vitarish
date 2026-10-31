@@ -8,6 +8,10 @@ export const twoHostE2eSecurityPolicyScreenshotEnvironmentKey = "VITARISH_E2E_SE
 export const twoHostE2eProofStorageStateEnvironmentKey = "VITARISH_E2E_PROOF_STORAGE_STATE";
 export const twoHostE2eLocaleEnvironmentKey = "VITARISH_E2E_LOCALE";
 export const twoHostE2eClinicOrigin = "http://localhost:3005";
+export const twoHostE2eTenantBClinicOrigin = "http://tenant-b.localhost:3005";
+export const twoHostE2eTenantBOwnerUsernameEnvironmentKey = "VITARISH_E2E_TENANT_B_OWNER_USERNAME";
+export const twoHostE2eTenantBOwnerUsername = "e2e-tenant-b-owner";
+export const twoHostE2ePlatformAdminClientIp = "198.51.100.21";
 export const twoHostE2ePlatformAdminOrigin = "http://localhost:3006";
 /**
  * The shared sign-in host: the E2E host binds auth.localhost to the sign-in tenant

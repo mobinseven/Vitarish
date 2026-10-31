@@ -29,4 +29,16 @@ public sealed class RequestContextClientIpTests
 
         requestContext.ClientIpAddress.Should().Be("2001:db8::7");
     }
+
+    [Fact]
+    public void Request_context_uses_the_host_resolved_connection_address_instead_of_a_forwarded_header()
+    {
+        DefaultHttpContext httpContext = new();
+        httpContext.Connection.RemoteIpAddress = IPAddress.Parse("198.51.100.7");
+        httpContext.Request.Headers["X-Forwarded-For"] = "203.0.113.88";
+        httpContext.RequestServices = new ServiceCollection().BuildServiceProvider();
+        RequestContext requestContext = new(new HttpContextAccessor { HttpContext = httpContext });
+
+        requestContext.ClientIpAddress.Should().Be("198.51.100.7");
+    }
 }

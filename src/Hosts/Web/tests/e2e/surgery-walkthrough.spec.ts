@@ -45,9 +45,8 @@ async function captureStep(page: Page, name: string, focus?: Locator) {
   // Let tooltips and popovers from the last action settle out of the frame.
   await page.mouse.move(0, 0);
   if (focus) await focus.scrollIntoViewIfNeeded();
-  // Wait for dialog and popover transitions so nothing is captured mid-fade.
-  await page.waitForFunction(() => document.getAnimations().every((animation) => animation.playState !== "running"));
-  await page.screenshot({ path: screenshot, fullPage: true });
+  // Finish finite transitions and suppress repeating animations during capture.
+  await page.screenshot({ path: screenshot, fullPage: true, animations: "disabled" });
 }
 
 /** Types into React Aria date/time segments the way a keyboard user does. */
@@ -174,6 +173,8 @@ test("walks an owner through surgery types, planning, the calendar, editing, and
   await captureStep(page, "calendar-month");
 
   await page.getByRole("radio", { name: surgeryMessages.calendar.view.week }).or(page.getByRole("tab", { name: surgeryMessages.calendar.view.week })).or(page.getByRole("button", { name: surgeryMessages.calendar.view.week, exact: true })).first().click();
+  // The month step above may have moved the calendar; the week count below starts from today.
+  await page.getByRole("button", { name: surgeryMessages.calendar.navigation.today }).click();
   const today = new Date();
   const startOfWeek = new Date(today);
   startOfWeek.setDate(today.getDate() - today.getDay());

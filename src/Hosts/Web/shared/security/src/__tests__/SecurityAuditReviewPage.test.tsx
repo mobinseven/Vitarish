@@ -56,10 +56,11 @@ describe("SecurityAuditReviewPage", () => {
         items: [
           { id: "event-1", eventName: "security.data.export", outcome: "succeeded", actorKind: "user", actorId: "user-1", resourceName: "MRI-report.pdf", resourceExtension: "pdf", resourceSize: 2_516_582, occurredAt: "2026-09-02T07:00:00.000Z" },
           { id: "event-2", eventName: "authentication.password.login", outcome: "succeeded", actorKind: "user", actorId: "user-1", occurredAt: "2026-09-02T07:01:00.000Z" },
+          { id: "event-3", eventName: "security.data.export", outcome: "succeeded", actorKind: "user", actorId: "user-1", resourceName: "گزارشپزشکی.pdf", resourceExtension: "pdf", resourceSize: 2_516_582, occurredAt: "2026-09-02T07:02:00.000Z" },
         ],
         page: 1,
         pageSize: 25,
-        totalCount: 2,
+        totalCount: 3,
         capacityThresholdReached: false,
       },
       isPending: false,
@@ -74,9 +75,17 @@ describe("SecurityAuditReviewPage", () => {
       </LocalizationProvider>,
     );
 
-    const [, exportRow, loginRow] = screen.getAllByRole("row");
+    const [, exportRow, loginRow, persianExportRow] = screen.getAllByRole("row");
     expect(exportRow.querySelector("td")).toHaveTextContent("security.data.exportFile: MRI-report.pdf · PDF · 2.4 MB");
     expect(loginRow.querySelector("td")).toHaveTextContent(/^authentication\.password\.login$/);
+    const persianFileName = within(persianExportRow).getByText("گزارشپزشکی.pdf", { exact: true });
+    const extension = within(persianExportRow).getByText("PDF", { exact: true });
+    expect(persianFileName.tagName).toBe("BDI");
+    expect(persianFileName).toHaveAttribute("dir", "auto");
+    expect(extension.tagName).toBe("BDI");
+    expect(extension).toHaveAttribute("dir", "auto");
+    expect(persianFileName).not.toContainElement(extension);
+    expect(persianExportRow.querySelector("td")).toHaveTextContent("گزارشپزشکی.pdf · PDF · 2.4 MB");
   });
 
   it("sends localized filters and sort direction to the server query", async () => {

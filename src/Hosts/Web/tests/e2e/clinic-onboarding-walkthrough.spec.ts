@@ -102,8 +102,7 @@ async function captureStep(page: Page, name: string, focus?: Locator) {
   expect(existsSync(screenshot), `refusing to overwrite retained evidence at ${screenshot}`).toBe(false);
   await page.mouse.move(0, 0);
   if (focus) await focus.scrollIntoViewIfNeeded();
-  await page.waitForFunction(() => document.getAnimations().every((animation) => animation.playState !== "running"));
-  await page.screenshot({ path: screenshot, fullPage: true });
+  await page.screenshot({ path: screenshot, fullPage: true, animations: "disabled" });
 }
 
 async function readDeliveredSmsCode(previousModifiedAt: number, nationalDigits: string): Promise<string> {

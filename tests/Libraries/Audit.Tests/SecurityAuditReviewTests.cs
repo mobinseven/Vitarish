@@ -293,6 +293,34 @@ public sealed class SecurityAuditReviewTests
         actual.Should().Equal(expected);
     }
 
+    [Theory]
+    [InlineData(SecurityAuditSortField.Actor)]
+    [InlineData(SecurityAuditSortField.ActorKind)]
+    [InlineData(SecurityAuditSortField.OccurredAt)]
+    [InlineData(SecurityAuditSortField.SourceIpKind)]
+    [InlineData(SecurityAuditSortField.EventType)]
+    [InlineData(SecurityAuditSortField.SourceIpAddress)]
+    public async Task Review_uses_id_to_break_sort_and_timestamp_ties(SecurityAuditSortField sortBy)
+    {
+        DbContextOptions<AuditDbContext> options = CreateOptions();
+        await using AuditDbContext context = CreateContext(options, "tenant-a");
+        await context.Database.EnsureCreatedAsync();
+        DateTime time = new(2026, 9, 2, 7, 0, 0, DateTimeKind.Utc);
+        SecurityAuditEvent first = CreateEvent("tenant-a", "actor-a", SecurityAuditEventCatalog.AuthenticationPasswordLoginEvent, time);
+        SecurityAuditEvent second = CreateEvent("tenant-a", "actor-a", SecurityAuditEventCatalog.AuthenticationPasswordLoginEvent, time);
+        first.Id = Guid.Parse("00000000-0000-0000-0000-000000000001");
+        second.Id = Guid.Parse("00000000-0000-0000-0000-000000000002");
+        context.SecurityAuditEvents.AddRange(second, first);
+        await context.SaveChangesAsync();
+
+        SecurityAuditQueryService service = new(context, new TestRequestContext("tenant-a", ["tenant-a:" + IdentityDefinitions.TenantOwner]));
+        SecurityAuditPageReadDto ascending = await service.QueryAsync(new SecurityAuditQuery(PageSize: 10, SortBy: sortBy, Descending: false), CancellationToken.None);
+        SecurityAuditPageReadDto descending = await service.QueryAsync(new SecurityAuditQuery(PageSize: 10, SortBy: sortBy, Descending: true), CancellationToken.None);
+
+        ascending.Items.Select(item => item.Id).Should().Equal(first.Id, second.Id);
+        descending.Items.Select(item => item.Id).Should().Equal(second.Id, first.Id);
+    }
+
     [Fact]
     public async Task Review_applies_each_filter_pages_results_and_excludes_other_tenants()
     {
@@ -665,7 +693,7 @@ public sealed class SecurityAuditReviewTests
     }
 
     [Fact]
-    public async Task Tenant_review_never_exposes_field_changes()
+    public async Task Tenant_review_exposes_only_the_file_name_and_never_field_changes()
     {
         DbContextOptions<AuditDbContext> options = CreateOptions();
         await using AuditDbContext context = CreateContext(options, "tenant-a");
@@ -678,25 +706,66 @@ public sealed class SecurityAuditReviewTests
         edited.EventCategory = SecurityAuditEventCatalog.ManagementCategory;
         edited.Operation = SecurityAuditEventCatalog.UserEditOperation;
         edited.Resource = "account/42";
+        edited.ResourceName = "گزارشپزشکی.png";
+        edited.ResourceNameHash = new string('a', SecurityAuditEvent.MaximumResourceNameHashLength);
+        edited.ResourceExtension = "png";
+        edited.ResourceSize = 2048;
         edited.Changes = [new SecurityAuditChange(SecurityAuditChangeFields.Email, "old@example.test", "new@example.test")];
-        context.SecurityAuditEvents.Add(edited);
+        SecurityAuditEvent legacy = CreateEvent(
+            "tenant-a",
+            "legacy-actor",
+            SecurityAuditEventCatalog.AuthenticationPasswordLoginEvent,
+            new DateTime(2026, 9, 2, 7, 1, 0, DateTimeKind.Utc));
+        context.SecurityAuditEvents.AddRange(edited, legacy);
         await context.SaveChangesAsync();
+
+        SecurityAuditEvent foreign = CreateEvent(
+            "tenant-b",
+            "actor-b",
+            SecurityAuditEventCatalog.ImportEvent,
+            new DateTime(2026, 9, 2, 7, 2, 0, DateTimeKind.Utc));
+        foreign.ResourceName = "foreign-file.png";
+        await using (AuditDbContext otherTenant = CreateContext(options, "tenant-b"))
+        {
+            otherTenant.SecurityAuditEvents.Add(foreign);
+            await otherTenant.SaveChangesAsync();
+        }
 
         SecurityAuditQueryService tenantOwner = new(
             context,
             new TestRequestContext("tenant-a", ["tenant-a:" + IdentityDefinitions.TenantOwner]));
-        (await tenantOwner.QueryAsync(new SecurityAuditQuery(PageSize: 10), CancellationToken.None))
-            .Items.Single().Changes.Should().BeNull();
+        SecurityAuditPageReadDto tenantPage = await tenantOwner.QueryAsync(
+            new SecurityAuditQuery(PageSize: 10),
+            CancellationToken.None);
+        tenantPage.Items.Should().HaveCount(2);
+        SecurityAuditEventReadDto tenantFile = tenantPage.Items.Single(item => item.Id == edited.Id);
+        tenantFile.ResourceName.Should().Be("گزارشپزشکی.png");
+        tenantFile.ResourceNameHash.Should().BeNull();
+        tenantFile.ResourceExtension.Should().BeNull();
+        tenantFile.ResourceSize.Should().BeNull();
+        tenantFile.Changes.Should().BeNull();
+        tenantPage.Items.Single(item => item.Id == legacy.Id).ResourceName.Should().BeNull();
+
+        SecurityAuditPageReadDto foreignEvent = await tenantOwner.QueryAsync(
+            new SecurityAuditQuery(PageSize: 10, EventId: foreign.Id.ToString()),
+            CancellationToken.None);
+        foreignEvent.TotalCount.Should().Be(0);
+        foreignEvent.Items.Should().BeEmpty();
+
         (await tenantOwner.GetByResourceAsync("account/42", CancellationToken.None))
             .Single().Changes.Should().BeNull();
 
         SecurityAuditQueryService platform = new(
             context,
             new TestRequestContext("tenant-a", [IdentityDefinitions.PlatformAdmin]));
-        (await platform.QueryPlatformAsync(
-            new SecurityAuditPlatformQuery(new SecurityAuditQuery(PageSize: 10)),
-            CancellationToken.None)).Items.Single().Changes
-            .Should().Equal(new SecurityAuditChange(SecurityAuditChangeFields.Email, "old@example.test", "new@example.test"));
+        SecurityAuditEventReadDto platformFile = (await platform.QueryPlatformAsync(
+            new SecurityAuditPlatformQuery(new SecurityAuditQuery(PageSize: 10, EventId: edited.Id.ToString())),
+            CancellationToken.None)).Items.Single();
+        platformFile.ResourceName.Should().Be("گزارشپزشکی.png");
+        platformFile.ResourceNameHash.Should().Be(new string('a', SecurityAuditEvent.MaximumResourceNameHashLength));
+        platformFile.ResourceExtension.Should().Be("png");
+        platformFile.ResourceSize.Should().Be(2048);
+        platformFile.Changes.Should().Equal(new SecurityAuditChange(SecurityAuditChangeFields.Email, "old@example.test", "new@example.test"));
     }
 
     [Fact]
