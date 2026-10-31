@@ -45,9 +45,8 @@ async function captureStep(page: Page, name: string, focus?: Locator) {
   // Let tooltips and popovers from the last action settle out of the frame.
   await page.mouse.move(0, 0);
   if (focus) await focus.scrollIntoViewIfNeeded();
-  // Wait for dialog and popover transitions so nothing is captured mid-fade.
-  await page.waitForFunction(() => document.getAnimations().every((animation) => animation.playState !== "running"));
-  await page.screenshot({ path: screenshot, fullPage: true });
+  // Finish finite transitions and suppress repeating animations during capture.
+  await page.screenshot({ path: screenshot, fullPage: true, animations: "disabled" });
 }
 
 /** Types into React Aria date/time segments the way a keyboard user does. */

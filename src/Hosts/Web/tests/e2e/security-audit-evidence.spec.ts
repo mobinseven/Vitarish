@@ -1,13 +1,27 @@
-import { expect, request as playwrightRequest, test, type APIRequestContext, type Page } from "@playwright/test";
+import { expect, request as playwrightRequest, test, type APIRequestContext, type Page, type Response } from "@playwright/test";
 import { createHmac } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { twoHostE2eApiOriginEnvironmentKey, twoHostE2eAuditEvidenceDirectoryEnvironmentKey, twoHostE2eFileTransferAuditKeyEnvironmentKey, twoHostE2eLocaleEnvironmentKey, twoHostE2eSignInOrigin } from "../../scripts/two-host-e2e-artifacts.mjs";
+import { twoHostE2eApiOriginEnvironmentKey, twoHostE2eAuditEvidenceDirectoryEnvironmentKey, twoHostE2eFileTransferAuditKeyEnvironmentKey, twoHostE2eLocaleEnvironmentKey, twoHostE2ePlatformAdminClientIp, twoHostE2eSignInOrigin, twoHostE2eTenantBClinicOrigin, twoHostE2eTenantBOwnerUsername, twoHostE2eTenantBOwnerUsernameEnvironmentKey } from "../../scripts/two-host-e2e-artifacts.mjs";
 import { REQUEST_ID_HEADER, TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
+import { authenticationLogoutPost, getAuthenticationSessionGetQueryKey } from "../../shared/auth/src/api/generated/authentication/authentication";
+import type { LogoutRequest } from "../../shared/auth/src/api/generated/authentication/model/logoutRequest";
+import type { AuthenticationSessionDto } from "../../shared/auth/src/api/generated/authentication/model/authenticationSessionDto";
 import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
 import { Routes as PlatformRoutes } from "../../apps/platform-admin/src/app/routes";
 import { defaultClinicOrigin, forwardedForHeaderName, signInToClinic } from "./signInHost";
-import { getAuditPlatformSecurityEventsListQueryKey } from "../../shared/security/src/api/generated/audit/audit";
+import { generatedOperationPath } from "./generatedOperationPath";
+import {
+  getAuditSecurityEventsListQueryKey,
+  getAuditPlatformSecurityEventCatalogGetQueryKey,
+  getAuditPlatformSecurityEventsExportQueryKey,
+  getAuditPlatformSecurityEventsListQueryKey,
+} from "../../shared/security/src/api/generated/audit/audit";
+import type {
+  AuditPlatformSecurityEventsExportParams,
+  AuditSecurityEventsListParams,
+} from "../../shared/security/src/api/generated/audit/model";
+import { auditSortFields } from "../../shared/security/src/api/securityAuditSortFields";
 import {
   localizePlatformAuditCategory,
   localizePlatformAuditChangeField,
@@ -22,7 +36,10 @@ const apiOrigin = process.env[twoHostE2eApiOriginEnvironmentKey] ?? "https://loc
 const browserApiOrigin = "";
 const platformOrigin = process.env.PLAYWRIGHT_PLATFORM_ADMIN_ORIGIN ?? "http://localhost:3006";
 const ownerUsername = process.env.VITARISH_E2E_USERNAME ?? "e2e-owner";
+const tenantBOwnerUsername = process.env[twoHostE2eTenantBOwnerUsernameEnvironmentKey] ?? twoHostE2eTenantBOwnerUsername;
+const tenantBOrigin = twoHostE2eTenantBClinicOrigin;
 const ownerClientIp = "198.51.100.61";
+const tenantBOwnerClientIp = "198.51.100.63";
 const ownerOrigin = "";
 const platformAdminUsername = process.env.VITARISH_E2E_PLATFORM_ADMIN_USERNAME ?? "e2e-platform-admin";
 const ownerTenantId = "9c8b6b3a-7d6e-4f75-a88d-7d3f5b1b0f92";
@@ -32,6 +49,8 @@ const evidenceDirectory = process.env[twoHostE2eAuditEvidenceDirectoryEnvironmen
   ?? join(process.cwd(), "artifacts", "two-host-e2e", "security-audit-evidence");
 const locale = process.env[twoHostE2eLocaleEnvironmentKey] === "fa" ? "fa" : "en";
 const platformAuditEventsPath = getAuditPlatformSecurityEventsListQueryKey()[0];
+const clinicLogoutPath = generatedOperationPath(authenticationLogoutPost);
+const clinicLogoutRequest: LogoutRequest = { logoutId: null, returnUrl: null };
 
 const uiText = {
   clinicUsers: locale === "fa" ? "کاربران کلینیک" : "Clinic Users",
@@ -195,6 +214,30 @@ async function platformAuditQuery(page: Page, event: AuditEventExpectation): Pro
   return result.body as AuditPage;
 }
 
+async function tenantAuditEventQuery(page: Page, eventId: string): Promise<AuditPage> {
+  const params: AuditSecurityEventsListParams = {
+    page: 1,
+    pageSize: 25,
+    eventId,
+    sortBy: auditSortFields.occurredAt,
+    descending: true,
+  };
+  const result = await page.evaluate(async ({ origin, path, params, tenantHostHeader }) => {
+    const url = new URL(path, origin || window.location.origin);
+    const query = new URLSearchParams();
+    for (const [name, value] of Object.entries(params))
+      if (value !== undefined) query.set(name, String(value));
+    url.search = query.toString();
+    const response = await fetch(url, {
+      credentials: "include",
+      headers: { [tenantHostHeader]: window.location.host },
+    });
+    return { status: response.status, body: await response.json() };
+  }, { origin: browserApiOrigin, path: getAuditSecurityEventsListQueryKey()[0], params, tenantHostHeader: TENANT_HOST_HEADER });
+  expect(result.status).toBe(200);
+  return result.body as AuditPage;
+}
+
 async function postJson(page: Page, path: string, body: unknown = null): Promise<{ status: number; body: unknown }> {
   return page.evaluate(async ({ origin, requestPath, requestBody }) => {
     const antiforgeryResponse = await fetch(`${origin}/api/modules/authentication/antiforgery`, { credentials: "include" });
@@ -255,8 +298,13 @@ async function deleteJson(page: Page, path: string, body: unknown = null): Promi
 // A 1x1 transparent PNG. The Files upload boundary accepts only supported
 // media types and validates the content signature, not just the declared type.
 const evidenceFilePngBase64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
-const evidenceFileName = "audit-evidence.png";
+const evidenceFileName = "..\\..\\گزارش\u200Cپزشکی\u202E.png";
+const normalizedEvidenceFileName = "گزارشپزشکی.png";
 const platformAuditListOperation = "Audit_PlatformSecurityEvents_List";
+const platformAuditCatalogOperation = "Audit_PlatformSecurityEventCatalog_Get";
+const platformAuditExportOperation = "Audit_PlatformSecurityEvents_Export";
+const tenantAuditListOperation = "Audit_SecurityEvents_List";
+const platformAdminClientIp = twoHostE2ePlatformAdminClientIp;
 const evidenceFileSize = Buffer.from(evidenceFilePngBase64, "base64").length;
 
 async function uploadEvidenceFile(page: Page): Promise<{ status: number; body: unknown }> {
@@ -346,7 +394,7 @@ async function captureAuditEvidence(page: Page, event: AuditEventExpectation, fi
   await page.screenshot({ path: join(evidenceDirectory, filename), fullPage: true });
 }
 
-// A file transfer record's detail sheet names the transferred file.
+// A file transfer record's detail dialog names the transferred file.
 async function captureFileTransferDetail(page: Page, event: Pick<AuditEventExpectation, "name">, recordId: string, filename: string): Promise<void> {
   const platformAuditText = securityMessageCatalogs[locale].security.platformAudit;
   await page.goto(`${platformOrigin}${PlatformRoutes.Audit}`, { waitUntil: "domcontentloaded" });
@@ -360,14 +408,103 @@ async function captureFileTransferDetail(page: Page, event: Pick<AuditEventExpec
   await response;
   await page.locator("tbody tr").first()
     .getByText(localizePlatformAuditEvent(locale, event.name, event.name), { exact: true }).first().click();
-  await expect(page.getByRole("heading", { name: platformAuditText.detailTitle })).toBeVisible();
-  await expect(page.getByText(evidenceFileName)).toBeVisible();
-  // The sheet slides in; capture it once its finite animations have settled.
+  const detail = page.getByRole("dialog");
+  await expect(detail).toBeInViewport();
+  await expect(detail.getByRole("heading", { name: platformAuditText.detailTitle })).toBeVisible();
+  await expect(detail.getByText(normalizedEvidenceFileName)).toBeVisible();
+  // Capture the dialog once its finite animations have settled.
   await page.evaluate(() => Promise.all(document.getAnimations()
     .filter((animation) => animation.effect?.getComputedTiming().endTime !== Infinity)
     .map((animation) => animation.finished)));
   await hideDevelopmentIndicator(page);
   await page.screenshot({ path: join(evidenceDirectory, filename) });
+}
+
+async function captureAuditReviewDetail(page: Page, recordId: string, expectedValues: readonly string[], filename: string): Promise<void> {
+  const platformAuditText = securityMessageCatalogs[locale].security.platformAudit;
+  await page.goto(`${platformOrigin}${PlatformRoutes.Audit}`, { waitUntil: "domcontentloaded" });
+  await expect(page.getByRole("heading", { name: uiText.auditTitle })).toBeVisible({ timeout: 30_000 });
+  await page.getByRole("button", { name: uiText.clearFilters }).click();
+  await page.getByRole("textbox", { name: platformAuditText.eventId, exact: true }).fill(recordId);
+  const response = page.waitForResponse((candidate) =>
+    candidate.url().includes(platformAuditEventsPath) && candidate.request().method() === "GET",
+  );
+  await page.getByRole("button", { name: uiText.applyFilters }).click();
+  await response;
+  await page.locator("tbody tr").first().click();
+  const detail = page.getByRole("dialog");
+  await expect(detail).toBeInViewport();
+  await expect(detail.getByRole("heading", { name: platformAuditText.detailTitle })).toBeVisible();
+  for (const value of expectedValues)
+    await expect(detail.getByText(value, { exact: true }).first()).toBeVisible();
+  await page.evaluate(() => Promise.all(document.getAnimations()
+    .filter((animation) => animation.effect?.getComputedTiming().endTime !== Infinity)
+    .map((animation) => animation.finished)));
+  mkdirSync(evidenceDirectory, { recursive: true });
+  await hideDevelopmentIndicator(page);
+  await page.screenshot({ path: join(evidenceDirectory, filename) });
+}
+
+// The first load lists newest first, and toggling the direction reverses the returned time order.
+async function captureAuditSortOrders(page: Page): Promise<void> {
+  const platformAuditText = securityMessageCatalogs[locale].security.platformAudit;
+  const auditPage = (descending: boolean) => page.waitForResponse((candidate) =>
+    candidate.url().includes(platformAuditEventsPath)
+    && candidate.request().method() === "GET"
+    && new URL(candidate.url()).searchParams.get("descending") === String(descending),
+  );
+  const captureOrder = async (response: Response, descending: boolean, filename: string) => {
+    const body = await response.json() as { items: { occurredAt: string }[] };
+    const times = body.items.map((item) => Date.parse(item.occurredAt));
+    expect(new Set(times).size).toBeGreaterThan(1);
+    expect(times).toEqual([...times].sort((left, right) => descending ? right - left : left - right));
+    await expect(page.getByRole("button", {
+      name: descending ? platformAuditText.sortDescending : platformAuditText.sortAscending,
+      exact: true,
+    })).toBeVisible();
+    await expect(page.locator("tbody tr").first()).toBeVisible({ timeout: 30_000 });
+    mkdirSync(evidenceDirectory, { recursive: true });
+    await hideDevelopmentIndicator(page);
+    await page.screenshot({ path: join(evidenceDirectory, filename), fullPage: true });
+  };
+
+  const newestFirst = auditPage(true);
+  await page.goto(`${platformOrigin}${PlatformRoutes.Audit}`, { waitUntil: "domcontentloaded" });
+  await expect(page.getByRole("heading", { name: uiText.auditTitle })).toBeVisible({ timeout: 30_000 });
+  await captureOrder(await newestFirst, true, "audit-sort-descending.png");
+
+  const oldestFirst = auditPage(false);
+  await page.getByRole("button", { name: platformAuditText.sortDescending, exact: true }).click();
+  await captureOrder(await oldestFirst, false, "audit-sort-ascending.png");
+}
+
+async function exportPlatformAuditCsvForEvent(page: Page, eventId: string): Promise<string> {
+  const platformAuditText = securityMessageCatalogs[locale].security.platformAudit;
+  await page.getByRole("button", { name: uiText.clearFilters }).click();
+  await page.getByRole("textbox", { name: platformAuditText.eventId, exact: true }).fill(eventId);
+  const response = page.waitForResponse((candidate) =>
+    candidate.url().includes(platformAuditEventsPath) && candidate.request().method() === "GET",
+  );
+  await page.getByRole("button", { name: uiText.applyFilters }).click();
+  await response;
+  const [download] = await Promise.all([
+    page.waitForEvent("download"),
+    page.getByRole("button", { name: uiText.export }).click(),
+  ]);
+  const downloadPath = await download.path();
+  expect(downloadPath).toBeTruthy();
+  return readFileSync(downloadPath!, "utf8").replace(/^\uFEFF/, "");
+}
+
+function expectFileTransferCsvRow(csv: string, eventId: string): void {
+  const rows = csv.split(/\r?\n/);
+  expect(rows[0]).toContain('"resourceName"');
+  const fileTransferRow = rows.find((row) => row.startsWith(`"${eventId}",`));
+  expect(fileTransferRow).toBeTruthy();
+  expect(fileTransferRow).toContain(`"${normalizedEvidenceFileName}"`);
+  expect(fileTransferRow).not.toContain("..\\");
+  expect(fileTransferRow).not.toContain("\u200C");
+  expect(fileTransferRow).not.toContain("\u202E");
 }
 
 async function platformAuditCategoryQuery(page: Page, category: string, pageNumber: number): Promise<AuditPage & { page: number; pageSize: number; totalCount: number }> {
@@ -429,7 +566,7 @@ test("real actions create visible platform security-audit evidence", async ({ pa
   test.setTimeout(300_000);
   const fileTransferAuditKey = process.env[twoHostE2eFileTransferAuditKeyEnvironmentKey];
   if (!fileTransferAuditKey) throw new Error("The disposable file transfer audit key must be supplied by the two-host runner.");
-  const evidenceFileNameHash = createHmac("sha256", fileTransferAuditKey).update(evidenceFileName, "utf8").digest("hex");
+  const evidenceFileNameHash = createHmac("sha256", fileTransferAuditKey).update(normalizedEvidenceFileName, "utf8").digest("hex");
   const auditClientIp = `198.18.1.${testInfo.retry + 1}`;
   const anonymousContext = await browser.newContext({ extraHTTPHeaders: { [forwardedForHeaderName]: auditClientIp } });
   const anonymousPage = await anonymousContext.newPage();
@@ -484,7 +621,7 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     const member = page.getByRole("listitem").filter({ hasText: contact });
     await expect(member).toBeVisible();
 
-    await login(administratorPage, platformAdminUsername, platformOrigin, "198.51.100.62");
+    await login(administratorPage, platformAdminUsername, platformOrigin, platformAdminClientIp);
     const tenantMembers = await page.evaluate(async (origin) => {
       const response = await fetch(`${origin}/api/modules/users/tenant-members?maxResults=100`, {
         credentials: "include",
@@ -505,25 +642,252 @@ test("real actions create visible platform security-audit evidence", async ({ pa
 
     const uploaded = await uploadEvidenceFile(page);
     expect(uploaded.status).toBe(200);
-    // Information export is audited where user data leaves the system: the file download.
-    // Audit review and its CSV are queries and record nothing.
+    // The file-content download is the data transfer under test. Query reads stay side-effect-free
+    // in the query service; successful list reviews are recorded separately at the API boundary.
     const uploadedFileId = (uploaded.body as { file?: { id?: string } } | null)?.file?.id;
     expect(uploadedFileId).toBeTruthy();
+    const importRecords = await platformAuditQuery(administratorPage, { ...auditEvents.dataImport, outcome: "succeeded" });
+    const uploadRecord = importRecords.items.find((item) => item.resource === `files/${uploadedFileId!.replaceAll("-", "")}`);
+    expect(uploadRecord).toMatchObject({
+      eventName: auditEvents.dataImport.name,
+      eventCategory: auditEvents.dataImport.category,
+      outcome: "succeeded",
+      tenantId: ownerTenantId,
+      resourceName: normalizedEvidenceFileName,
+      resourceNameHash: evidenceFileNameHash,
+      resourceExtension: "png",
+      resourceSize: evidenceFileSize,
+    });
     expect(await downloadEvidenceFile(page, uploadedFileId!)).toBe(200);
+    const exportRecords = await platformAuditQuery(administratorPage, { ...auditEvents.auditExport, outcome: "succeeded" });
+    const downloadRecord = exportRecords.items.find((item) => item.resource === `files/${uploadedFileId!.replaceAll("-", "")}`);
+    expect(downloadRecord?.id).toEqual(expect.any(String));
+    expect(downloadRecord).toMatchObject({
+      eventName: auditEvents.auditExport.name,
+      eventCategory: auditEvents.auditExport.category,
+      outcome: "succeeded",
+      tenantId: ownerTenantId,
+      resourceName: normalizedEvidenceFileName,
+      resourceNameHash: evidenceFileNameHash,
+      resourceExtension: "png",
+      resourceSize: evidenceFileSize,
+    });
 
     // An unauthorized read is recorded once, naming the attempted operation; the
     // clinic owner may review only its own tenant, not the platform audit.
-    const deniedReview = { ...auditEvents.auditReview, operation: platformAuditListOperation, outcome: "denied" };
+    const signedInOperation = platformAuditExportOperation;
+    const signedInEndpoint = getAuditPlatformSecurityEventsExportQueryKey()[0];
+    const deniedReview = { ...auditEvents.auditReview, operation: signedInOperation, outcome: "denied" };
     const deniedBefore = await platformAuditQuery(administratorPage, deniedReview);
-    const forbiddenStatus = await page.evaluate(async (origin) => {
-      const url = new URL("/api/audit/platform/security-events", origin || window.location.origin);
-      url.search = new URLSearchParams({ page: "1", pageSize: "1", sortBy: "1", descending: "true", uncataloguedOnly: "false" }).toString();
-      return (await fetch(url, { credentials: "include" })).status;
-    }, browserApiOrigin);
-    expect(forbiddenStatus).toBe(403);
+    const ownerSessionResponse = await page.evaluate(async ({ origin, path, tenantHostHeader }) => {
+      const response = await fetch(`${origin}${path}`, {
+        credentials: "include",
+        headers: { [tenantHostHeader]: window.location.host },
+      });
+      return { status: response.status, body: await response.json() };
+    }, { origin: browserApiOrigin, path: getAuthenticationSessionGetQueryKey()[0], tenantHostHeader: TENANT_HOST_HEADER });
+    expect(ownerSessionResponse.status).toBe(200);
+    const ownerSession = ownerSessionResponse.body as AuthenticationSessionDto;
+    expect(ownerSession.isAuthenticated).toBe(true);
+    expect(ownerSession.user?.userId).toEqual(expect.any(String));
+    const signedInExportParams: AuditPlatformSecurityEventsExportParams = {
+      eventId: uploadRecord!.id!,
+      sortBy: auditSortFields.occurredAt,
+      descending: true,
+      uncataloguedOnly: false,
+    };
+    const forbiddenResponse = await page.evaluate(async ({ origin, endpoint, params, tenantHostHeader }) => {
+      const url = new URL(endpoint, origin || window.location.origin);
+      const search = new URLSearchParams();
+      for (const [name, value] of Object.entries(params))
+        if (value !== undefined) search.set(name, String(value));
+      url.search = search.toString();
+      const response = await fetch(url, {
+        credentials: "include",
+        headers: { [tenantHostHeader]: window.location.host },
+      });
+      return { status: response.status, body: await response.text() };
+    }, { origin: browserApiOrigin, endpoint: signedInEndpoint, params: signedInExportParams, tenantHostHeader: TENANT_HOST_HEADER });
+    expect(forbiddenResponse.status).toBe(403);
+    expect(forbiddenResponse.body).not.toContain(uploadRecord!.id!);
+    expect(forbiddenResponse.body).not.toContain(normalizedEvidenceFileName);
     const deniedAfter = await platformAuditQuery(administratorPage, deniedReview);
-    expect(deniedAfter.totalCount).toBe(deniedBefore.totalCount + 1);
-    expect(deniedAfter.items[0]?.resource).toBe(`endpoint/${platformAuditListOperation}`);
+    const deniedCountDelta = deniedAfter.totalCount - deniedBefore.totalCount;
+    expect(deniedCountDelta).toBeGreaterThanOrEqual(0);
+    expect(deniedCountDelta).toBeLessThanOrEqual(1, "a retry can reuse the same actor and operation within the deduplication window");
+    if (testInfo.retry === 0) expect(deniedCountDelta).toBe(1, "the export operation is distinct from the list denial captured by the preceding audit-grid scenario");
+    const signedInDenial = deniedAfter.items.find((item) => item.actorId === ownerSession.user?.userId);
+    expect(signedInDenial).toMatchObject({
+      eventName: auditEvents.auditReview.name,
+      eventCategory: auditEvents.auditReview.category,
+      outcome: "denied",
+      actorKind: "user",
+      actorId: ownerSession.user!.userId,
+      tenantId: ownerTenantId,
+      operation: signedInOperation,
+      resource: `endpoint/${signedInOperation}`,
+      redactedReason: "unauthorized",
+      sourceIpAddress: ownerClientIp,
+    });
+
+    const anonymousOperation = testInfo.retry === 0 ? platformAuditListOperation : platformAuditCatalogOperation;
+    const anonymousEndpoint = testInfo.retry === 0
+      ? platformAuditEventsPath
+      : getAuditPlatformSecurityEventCatalogGetQueryKey()[0];
+    const anonymousReview = { ...auditEvents.auditReview, operation: anonymousOperation, outcome: "denied" };
+    const anonymousBefore = await platformAuditQuery(administratorPage, anonymousReview);
+    const anonymousStatus = await request.get(`${apiOrigin}${anonymousEndpoint}${testInfo.retry === 0 ? "?page=1&pageSize=1&sortBy=1&descending=true&uncataloguedOnly=false" : ""}`, {
+      headers: { [TENANT_HOST_HEADER]: "localhost", [forwardedForHeaderName]: auditClientIp },
+      ignoreHTTPSErrors: true,
+    });
+    expect(anonymousStatus.status()).toBe(401);
+    const anonymousAfter = await platformAuditQuery(administratorPage, anonymousReview);
+    expect(anonymousAfter.totalCount).toBe(anonymousBefore.totalCount + 1);
+    const anonymousDenial = anonymousAfter.items.find((item) => item.actorKind === "anonymous" && item.operation === anonymousOperation);
+    expect(anonymousDenial).toMatchObject({
+      eventName: auditEvents.auditReview.name,
+      eventCategory: auditEvents.auditReview.category,
+      outcome: "denied",
+      actorKind: "anonymous",
+      actorId: null,
+      subjectId: null,
+      tenantId: ownerTenantId,
+      operation: anonymousOperation,
+      resource: `endpoint/${anonymousOperation}`,
+      redactedReason: "unauthorized",
+      sourceIpAddress: auditClientIp,
+    });
+    expect(signedInDenial?.id).toEqual(expect.any(String));
+    expect(anonymousDenial?.id).toEqual(expect.any(String));
+    await captureAuditReviewDetail(administratorPage, signedInDenial!.id!, [
+      signedInDenial!.actorId!,
+      ownerTenantId,
+      ownerClientIp,
+      "unauthorized",
+    ], "audit-review-denied-signed-in-detail.png");
+    await captureAuditReviewDetail(administratorPage, anonymousDenial!.id!, [
+      "anonymous",
+      ownerTenantId,
+      auditClientIp,
+      "unauthorized",
+    ], "audit-review-denied-anonymous-detail.png");
+
+    const tenantReview = { ...auditEvents.auditReview, operation: tenantAuditListOperation, outcome: "succeeded" };
+    const tenantReviewBefore = await platformAuditQuery(administratorPage, tenantReview);
+    const tenantReviewResponse = await page.evaluate(async ({ origin, path, tenantHostHeader }) => {
+      const url = new URL(path, origin || window.location.origin);
+      url.search = new URLSearchParams({ page: "1", pageSize: "10", sortBy: "1", descending: "true" }).toString();
+      const response = await fetch(url, {
+        credentials: "include",
+        headers: { [tenantHostHeader]: window.location.host },
+      });
+      return { status: response.status, body: await response.json() };
+    }, { origin: browserApiOrigin, path: getAuditSecurityEventsListQueryKey()[0], tenantHostHeader: TENANT_HOST_HEADER });
+    expect(tenantReviewResponse.status).toBe(200);
+    const tenantReviewAfter = await platformAuditQuery(administratorPage, tenantReview);
+    const tenantReviewCountDelta = tenantReviewAfter.totalCount - tenantReviewBefore.totalCount;
+    expect(tenantReviewCountDelta).toBeGreaterThanOrEqual(0);
+    expect(tenantReviewCountDelta).toBeLessThanOrEqual(1, "a retry may reuse the matching review record within its deduplication window");
+    const tenantReviewRecord = tenantReviewAfter.items.find((item) =>
+      item.actorKind === "user" && item.sourceIpAddress === ownerClientIp && item.tenantId === ownerTenantId,
+    );
+    expect(tenantReviewRecord).toMatchObject({
+      eventName: auditEvents.auditReview.name,
+      eventCategory: auditEvents.auditReview.category,
+      outcome: "succeeded",
+      actorKind: "user",
+      actorId: expect.any(String),
+      tenantId: ownerTenantId,
+      operation: tenantAuditListOperation,
+      resource: `endpoint/${tenantAuditListOperation}`,
+      sourceIpAddress: ownerClientIp,
+    });
+    expect(tenantReviewRecord?.id).toEqual(expect.any(String));
+    await captureAuditReviewDetail(administratorPage, tenantReviewRecord!.id!, [
+      tenantReviewRecord!.actorId!,
+      ownerTenantId,
+      ownerClientIp,
+    ], "audit-review-tenant-detail.png");
+
+    const tenantFileReview = await tenantAuditEventQuery(page, uploadRecord!.id!);
+    const tenantFileRecord = tenantFileReview.items.find((item) => item.id === uploadRecord!.id);
+    expect(tenantFileRecord).toMatchObject({
+      eventName: auditEvents.dataImport.name,
+      eventCategory: auditEvents.dataImport.category,
+      outcome: "succeeded",
+      tenantId: ownerTenantId,
+      resourceName: normalizedEvidenceFileName,
+    });
+    expect(tenantFileRecord?.resourceNameHash ?? null).toBeNull();
+    expect(tenantFileRecord?.resourceExtension ?? null).toBeNull();
+    expect(tenantFileRecord?.resourceSize ?? null).toBeNull();
+    expect(tenantFileRecord?.changes ?? null).toBeNull();
+
+    const tenantDownloadReview = await tenantAuditEventQuery(page, downloadRecord!.id!);
+    const tenantDownloadRecord = tenantDownloadReview.items.find((item) => item.id === downloadRecord!.id);
+    expect(tenantDownloadRecord).toMatchObject({
+      eventName: auditEvents.auditExport.name,
+      eventCategory: auditEvents.auditExport.category,
+      outcome: "succeeded",
+      tenantId: ownerTenantId,
+      resourceName: normalizedEvidenceFileName,
+    });
+    expect(tenantDownloadRecord?.resourceNameHash ?? null).toBeNull();
+    expect(tenantDownloadRecord?.resourceExtension ?? null).toBeNull();
+    expect(tenantDownloadRecord?.resourceSize ?? null).toBeNull();
+    expect(tenantDownloadRecord?.changes ?? null).toBeNull();
+
+    const tenantBOwnerContext = await browser.newContext();
+    const tenantBOwnerPage = await tenantBOwnerContext.newPage();
+    let tenantBOwnerSignedIn = false;
+    try {
+      await login(tenantBOwnerPage, tenantBOwnerUsername, tenantBOrigin, tenantBOwnerClientIp);
+      tenantBOwnerSignedIn = true;
+      for (const fileEventId of [uploadRecord!.id!, downloadRecord!.id!]) {
+        const foreignTenantFileReview = await tenantAuditEventQuery(tenantBOwnerPage, fileEventId);
+        expect(foreignTenantFileReview.totalCount).toBe(0);
+        expect(foreignTenantFileReview.items).toEqual([]);
+        expect(JSON.stringify(foreignTenantFileReview)).not.toContain(normalizedEvidenceFileName);
+      }
+    } finally {
+      if (tenantBOwnerSignedIn) {
+        const signedOut = await postJson(tenantBOwnerPage, clinicLogoutPath, clinicLogoutRequest);
+        expect(signedOut.status).toBe(200);
+        expect(signedOut.body).toMatchObject({ signedOut: true });
+      }
+      await tenantBOwnerPage.close();
+      await tenantBOwnerContext.close();
+    }
+
+    await page.goto(ClinicRoutes.Clinic.Settings.Audit, { waitUntil: "domcontentloaded" });
+    const tenantAuditText = securityMessageCatalogs[locale].security.audit;
+    await expect(page.getByRole("heading", { name: tenantAuditText.title })).toBeVisible({ timeout: 30_000 });
+    await expect(page.locator("tbody tr").first()).toBeVisible({ timeout: 30_000 });
+    mkdirSync(evidenceDirectory, { recursive: true });
+    await hideDevelopmentIndicator(page);
+    await page.screenshot({ path: join(evidenceDirectory, "tenant-audit-review.png"), fullPage: true });
+    const tenantFileListResponse = page.waitForResponse((candidate) =>
+      candidate.url().includes(getAuditSecurityEventsListQueryKey()[0]) && candidate.request().method() === "GET",
+    );
+    await page.getByRole("textbox", { name: tenantAuditText.eventName, exact: true }).fill(auditEvents.dataImport.name);
+    await page.getByRole("button", { name: tenantAuditText.applyFilters, exact: true }).click();
+    await tenantFileListResponse;
+    const tenantFileRow = page.locator("tbody tr").filter({ hasText: normalizedEvidenceFileName }).first();
+    await expect(tenantFileRow).toBeVisible({ timeout: 30_000 });
+    await expect(tenantFileRow).toContainText(auditEvents.dataImport.name);
+    await hideDevelopmentIndicator(page);
+    await page.screenshot({ path: join(evidenceDirectory, "tenant-file-transfer-audit.png"), fullPage: true });
+    const tenantDownloadListResponse = page.waitForResponse((candidate) =>
+      candidate.url().includes(getAuditSecurityEventsListQueryKey()[0]) && candidate.request().method() === "GET",
+    );
+    await page.getByRole("textbox", { name: tenantAuditText.eventName, exact: true }).fill(auditEvents.auditExport.name);
+    await page.getByRole("button", { name: tenantAuditText.applyFilters, exact: true }).click();
+    await tenantDownloadListResponse;
+    const tenantDownloadRow = page.locator("tbody tr").filter({ hasText: normalizedEvidenceFileName }).first();
+    await expect(tenantDownloadRow).toBeVisible({ timeout: 30_000 });
+    await expect(tenantDownloadRow).toContainText(auditEvents.auditExport.name);
+    await hideDevelopmentIndicator(page);
+    await page.screenshot({ path: join(evidenceDirectory, "tenant-file-download-audit.png"), fullPage: true });
 
     const accessHistory = await page.evaluate(async (origin) => {
       const response = await fetch(`${origin}/api/modules/authentication/access-history`, { credentials: "include" });
@@ -653,15 +1017,7 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     await captureAuditEvidence(administratorPage, { ...auditEvents.tenantMemberProvisioning, outcome: "succeeded" }, "tenant-member-provisioned.png");
     await captureAuditEvidence(administratorPage, { ...auditEvents.tenantMemberRemoval, outcome: "succeeded" }, "tenant-member-removed.png");
     await captureAuditEvidence(administratorPage, { ...auditEvents.tenantRoleReplacement, outcome: "succeeded" }, "tenant-role-replaced.png");
-    const importRecords = await platformAuditQuery(administratorPage, { ...auditEvents.dataImport, outcome: "succeeded" });
-    expect(importRecords.items.some((item) => item.resourceName === evidenceFileName && item.resourceNameHash === evidenceFileNameHash && item.resourceExtension === "png" && item.resourceSize === evidenceFileSize), "an upload records the uploaded file's name, name hash, extension, and size").toBe(true);
-    const exportRecords = await platformAuditQuery(administratorPage, { ...auditEvents.auditExport, outcome: "succeeded" });
-    const downloadRecord = exportRecords.items.find((item) => item.resource === `files/${uploadedFileId!.replaceAll("-", "")}`);
-    expect(downloadRecord?.resourceName, "a download records the stored file's name").toBe(evidenceFileName);
-    expect(downloadRecord?.resourceNameHash, "a download records the stored file's name hash").toBe(evidenceFileNameHash);
-    expect(downloadRecord?.resourceExtension, "a download records the stored file's extension").toBe("png");
-    expect(downloadRecord?.resourceSize, "a download records the stored file's size").toBe(evidenceFileSize);
-    // Role changes keep the previous and new role on the record, shown in its detail sheet.
+    // Role changes keep the previous and new role on the record, shown in its detail dialog.
     const roleChangeRecords = await platformAuditQuery(administratorPage, { ...auditEvents.tenantRoleReplacement, outcome: "succeeded" });
     expect(roleChangeRecords.items.some((item) =>
       item.subjectId === memberId && item.changes?.some((change) => change.field === "tenantRole" && change.previousValue !== change.newValue),
@@ -676,14 +1032,50 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     await roleChangeLine.scrollIntoViewIfNeeded();
     await hideDevelopmentIndicator(administratorPage);
     await administratorPage.screenshot({ path: join(evidenceDirectory, "tenant-role-change-detail.png") });
-    const uploadRecord = importRecords.items.find((item) => item.resourceName === evidenceFileName);
     await captureFileTransferDetail(administratorPage, auditEvents.dataImport, uploadRecord!.id!, "data-import-detail.png");
     await captureFileTransferDetail(administratorPage, auditEvents.auditExport, downloadRecord!.id!, "data-export-detail.png");
     await captureAuditEvidence(administratorPage, { ...auditEvents.dataImport, outcome: "succeeded" }, "data-import.png");
     // Viewing the audit list is itself recorded, once per viewer and minute.
     await administratorPage.goto(`${platformOrigin}${PlatformRoutes.Audit}`, { waitUntil: "domcontentloaded" });
     await expect(administratorPage.getByRole("heading", { name: uiText.auditTitle })).toBeVisible({ timeout: 30_000 });
-    await captureAuditEvidence(administratorPage, { ...auditEvents.auditReview, operation: platformAuditListOperation, outcome: "succeeded" }, "audit-review.png");
+    const platformReview = { ...auditEvents.auditReview, operation: platformAuditListOperation, outcome: "succeeded" };
+    await captureAuditEvidence(administratorPage, platformReview, "audit-review.png");
+    const platformReviewRecords = await platformAuditQuery(administratorPage, platformReview);
+    const platformSessionResponse = await administratorPage.evaluate(async ({ origin, path, tenantHostHeader }) => {
+      const response = await fetch(`${origin}${path}`, {
+        credentials: "include",
+        headers: { [tenantHostHeader]: window.location.host },
+      });
+      return { status: response.status, body: await response.json() };
+    }, { origin: browserApiOrigin, path: getAuthenticationSessionGetQueryKey()[0], tenantHostHeader: TENANT_HOST_HEADER });
+    expect(platformSessionResponse.status).toBe(200);
+    const platformSession = platformSessionResponse.body as AuthenticationSessionDto;
+    expect(platformSession.isAuthenticated).toBe(true);
+    expect(platformSession.user?.userId).toEqual(expect.any(String));
+    // The preceding serial auth-grid scenario already recorded this same actor,
+    // tenant scope, and IP; review events deduplicate within the configured window.
+    const platformReviewRecord = platformReviewRecords.items.find((item) =>
+      item.actorKind === "user" && item.actorId === platformSession.user?.userId &&
+      item.sourceIpAddress === platformAdminClientIp && item.tenantId === ownerTenantId,
+    );
+    expect(platformReviewRecord).toMatchObject({
+      eventName: auditEvents.auditReview.name,
+      eventCategory: auditEvents.auditReview.category,
+      outcome: "succeeded",
+      actorKind: "user",
+      actorId: platformSession.user!.userId,
+      tenantId: ownerTenantId,
+      operation: platformAuditListOperation,
+      resource: `endpoint/${platformAuditListOperation}`,
+      sourceIpAddress: platformAdminClientIp,
+    });
+    expect(platformReviewRecord?.id).toEqual(expect.any(String));
+    await captureAuditReviewDetail(administratorPage, platformReviewRecord!.id!, [
+      platformReviewRecord!.actorId!,
+      ownerTenantId,
+      platformAdminClientIp,
+    ], "audit-review-platform-detail.png");
+    await captureAuditSortOrders(administratorPage);
     await captureAuditEvidence(administratorPage, { ...auditEvents.accessHistory, outcome: "succeeded" }, "access-history.png");
     await captureAuditEvidence(administratorPage, { ...auditEvents.sessionPolicy, outcome: "succeeded" }, "session-policy.png");
     const securityFailureRecords = await platformAuditQuery(administratorPage, { ...auditEvents.securityFunctionFailure, outcome: "failed" });
@@ -691,11 +1083,23 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     await captureAuditEvidence(administratorPage, { ...auditEvents.securityFunctionFailure, outcome: "failed" }, "security-function-failure.png");
     await captureAuditEvidence(administratorPage, { ...auditEvents.sessionEstablished, outcome: "denied" }, "session-concurrent-limit-denied.png");
 
+    await administratorPage.getByRole("button", { name: uiText.clearFilters }).click();
+    await administratorPage.getByRole("textbox", { name: securityMessageCatalogs[locale].security.platformAudit.eventId, exact: true }).fill(uploadRecord!.id!);
+    const uploadFilterResponse = administratorPage.waitForResponse((candidate) =>
+      candidate.url().includes(platformAuditEventsPath) && candidate.request().method() === "GET",
+    );
+    await administratorPage.getByRole("button", { name: uiText.applyFilters }).click();
+    await uploadFilterResponse;
     const [download] = await Promise.all([
       administratorPage.waitForEvent("download"),
       administratorPage.getByRole("button", { name: uiText.export }).click(),
     ]);
-    expect(await download.path()).toBeTruthy();
+    const downloadPath = await download.path();
+    expect(downloadPath).toBeTruthy();
+    const csv = readFileSync(downloadPath!, "utf8").replace(/^\uFEFF/, "");
+    expectFileTransferCsvRow(csv, uploadRecord!.id!);
+    const downloadCsv = await exportPlatformAuditCsvForEvent(administratorPage, downloadRecord!.id!);
+    expectFileTransferCsvRow(downloadCsv, downloadRecord!.id!);
     await captureAuditEvidence(administratorPage, { ...auditEvents.auditExport, outcome: "succeeded" }, "audit-export.png");
     await captureAllAuthenticationCatalogEvidence(administratorPage);
 

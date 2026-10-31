@@ -14,7 +14,7 @@ import { auditSortFields } from "../../shared/security/src/api/securityAuditSort
 import { ApiError, ANTIFORGERY_VALIDATION_FAILED_CODE, TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
 import { localizePlatformAuditCategory, localizePlatformAuditEvent } from "../../shared/security/src/localization";
 import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
-import { twoHostE2eApiOriginEnvironmentKey, twoHostE2eProofScreenshotEnvironmentKey } from "../../scripts/two-host-e2e-artifacts.mjs";
+import { twoHostE2eApiOriginEnvironmentKey, twoHostE2ePlatformAdminClientIp, twoHostE2eProofScreenshotEnvironmentKey, twoHostE2eTenantBClinicOrigin, twoHostE2eTenantBOwnerUsername, twoHostE2eTenantBOwnerUsernameEnvironmentKey } from "../../scripts/two-host-e2e-artifacts.mjs";
 import { agentEnvelopeCanonical, base64UrlHmac } from "./agentCallback";
 import { forwardedForHeaderName, signInToClinic } from "./signInHost";
 
@@ -26,10 +26,10 @@ const e2eUsername = process.env.VITARISH_E2E_USERNAME ?? "e2e-owner";
 const e2ePassword = process.env.VITARISH_E2E_PASSWORD;
 const webOrigin = process.env.VITARISH_E2E_WEB_ORIGIN ?? "http://localhost:3005";
 const tenantUserUsername = process.env.VITARISH_E2E_TENANT_USER_USERNAME ?? "e2e-tenant-user";
-const tenantBOwnerUsername = process.env.VITARISH_E2E_TENANT_B_OWNER_USERNAME ?? "e2e-tenant-b-owner";
+const tenantBOwnerUsername = process.env[twoHostE2eTenantBOwnerUsernameEnvironmentKey] ?? twoHostE2eTenantBOwnerUsername;
 const platformAdminUsername = process.env.VITARISH_E2E_PLATFORM_ADMIN_USERNAME ?? "e2e-platform-admin";
 const lockoutPlatformAdminUsername = "e2e-lockout-platform-admin";
-const tenantBOrigin = "http://tenant-b.localhost:3005";
+const tenantBOrigin = twoHostE2eTenantBClinicOrigin;
 const platformAdminOrigin = process.env.PLAYWRIGHT_PLATFORM_ADMIN_ORIGIN ?? "http://localhost:3006";
 const forbiddenScreenshotPath = process.env.VITARISH_E2E_FORBIDDEN_SCREENSHOT;
 const tenantAId = "9c8b6b3a-7d6e-4f75-a88d-7d3f5b1b0f92";
@@ -1320,7 +1320,7 @@ test("audits denied user creation and editing requests", async ({ page }) => {
 // platform-audit
 test("proves the global audit grid across a separate platform-admin origin", async ({ page }) => {
   test.setTimeout(300_000);
-  await login(page, platformAdminUsername, platformAdminOrigin, e2ePassword, "198.51.100.21");
+  await login(page, platformAdminUsername, platformAdminOrigin, e2ePassword, twoHostE2ePlatformAdminClientIp);
   const tenantBContext = await page.context().browser()!.newContext();
   const tenantBPage = await tenantBContext.newPage();
   const ownerContext = await page.context().browser()!.newContext();
@@ -1423,9 +1423,17 @@ test("proves the global audit grid across a separate platform-admin origin", asy
     expect(csv).not.toContain("payload");
 
     await page.locator("tbody tr").first().click();
-    await expect(page.getByRole("heading", { name: "Event details" })).toBeVisible();
-    await expect(page.getByText("This panel exposes review-safe metadata only.")).toBeVisible();
-    await page.getByRole("button", { name: "Close event details" }).click();
+    const detailDialog = page.getByRole("dialog");
+    await expect(detailDialog).toBeInViewport();
+    await expect(detailDialog.getByRole("heading", { name: "Event details" })).toBeVisible();
+    await expect(detailDialog.getByText("This panel exposes review-safe metadata only.")).toBeVisible();
+    const detailScreenshot = process.env[twoHostE2eProofScreenshotEnvironmentKey]?.replace(/\.png$/i, "-authenticated-boundary-audit-dialog.png");
+    if (detailScreenshot) {
+      mkdirSync(dirname(detailScreenshot), { recursive: true });
+      expect(existsSync(detailScreenshot), `refusing to overwrite retained evidence at ${detailScreenshot}`).toBe(false);
+      await page.screenshot({ path: detailScreenshot });
+    }
+    await detailDialog.getByRole("button", { name: "Close event details" }).click();
 
     await login(ownerPage, e2eUsername, webOrigin, e2ePassword, "198.51.100.23");
     await ownerPage.goto(`${platformAdminOrigin}/audit`, { waitUntil: "domcontentloaded" });
