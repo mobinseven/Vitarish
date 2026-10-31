@@ -173,6 +173,8 @@ test("walks an owner through surgery types, planning, the calendar, editing, and
   await captureStep(page, "calendar-month");
 
   await page.getByRole("radio", { name: surgeryMessages.calendar.view.week }).or(page.getByRole("tab", { name: surgeryMessages.calendar.view.week })).or(page.getByRole("button", { name: surgeryMessages.calendar.view.week, exact: true })).first().click();
+  // The month step above may have moved the calendar; the week count below starts from today.
+  await page.getByRole("button", { name: surgeryMessages.calendar.navigation.today }).click();
   const today = new Date();
   const startOfWeek = new Date(today);
   startOfWeek.setDate(today.getDate() - today.getDay());
