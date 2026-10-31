@@ -264,10 +264,12 @@ internal sealed class SecurityAuditQueryService(
                 ? source.OrderByDescending(item => item.SourceIpAddress).ThenByDescending(item => item.OccurredAt)
                 : source.OrderBy(item => item.SourceIpAddress).ThenBy(item => item.OccurredAt),
             _ => query.Descending
-                ? source.OrderByDescending(item => item.OccurredAt).ThenByDescending(item => item.Id)
-                : source.OrderBy(item => item.OccurredAt).ThenBy(item => item.Id)
+                ? source.OrderByDescending(item => item.OccurredAt)
+                : source.OrderBy(item => item.OccurredAt)
         };
-        return ordered;
+        return query.Descending
+            ? ordered.ThenByDescending(item => item.Id)
+            : ordered.ThenBy(item => item.Id);
     }
 
     internal static Expression<Func<SecurityAuditEvent, SecurityAuditEventReadDto>> ToReadDto => item => new SecurityAuditEventReadDto
@@ -307,6 +309,7 @@ internal sealed class SecurityAuditQueryService(
         SubjectId = item.SubjectId,
         TenantId = item.TenantId,
         Resource = item.Resource,
+        ResourceName = item.ResourceName,
         Operation = item.Operation,
         OccurredAt = item.OccurredAt,
         CorrelationId = item.CorrelationId,
