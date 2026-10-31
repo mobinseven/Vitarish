@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, isInaccessible, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import {
   AuthMethodList,
@@ -167,7 +167,9 @@ describe("@vitarish/ui presentation components", () => {
       screen.getByText("Check the source before acting."),
     ).toBeInTheDocument();
     expect(screen.getByText("Sources")).toBeInTheDocument();
-    expect(screen.getByText("Working")).toBeInTheDocument();
+    expect(
+      screen.getAllByText("Working").filter((element) => !isInaccessible(element)),
+    ).toHaveLength(1);
   });
 
   it("renders chat prompt input from caller-provided accessibility text", () => {

@@ -1,7 +1,8 @@
 "use client";
 
 import { Alert, Button, Checkbox, Chip, Input, Label, ListBox, Select, Spinner, Surface, TextField, Tooltip } from "@heroui/react";
-import { DataGrid, Sheet, type DataGridColumn } from "@heroui-pro/react";
+import { Sheet } from "@heroui/react";
+import { DataGrid, type DataGridColumn } from "@heroui-pro/react";
 import { ApiError } from "@vitarish/api-client";
 import { formatDateTime, formatNumber, localizeApiError, parseIsoDateValue, useLocalizedText, type SupportedLocale } from "@vitarish/localization";
 import { FaIcon, LoadingSpinner  } from "@vitarish/ui";

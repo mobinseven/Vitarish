@@ -2,7 +2,8 @@
 
 import * as React from "react";
 import { Button, Tooltip } from "@heroui/react";
-import { ChatConversation, ChatMessage, Sheet } from "@heroui-pro/react";
+import { Sheet } from "@heroui/react";
+import { ChatConversation, ChatMessage } from "@heroui-pro/react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   AgentConversationComposer,
@@ -241,7 +242,7 @@ export function PmEventAssistantSheet({
     }
   };
   return (
-    <Sheet isOpen={open} isHandleOnly onOpenChange={setOpen}>
+    <Sheet isOpen={open} onOpenChange={setOpen}>
       <Tooltip>
         <Button size="sm" variant="secondary" onPress={() => setOpen(true)}>
           <FaIcon icon="sparkles" aria-hidden="true" />

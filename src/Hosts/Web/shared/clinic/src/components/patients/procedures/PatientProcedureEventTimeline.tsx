@@ -9,12 +9,8 @@ import {
   Label,
   Tooltip,
 } from "@heroui/react";
-import {
-  ContextMenu,
-  PressableFeedback,
-  Sheet,
-  Timeline,
-} from "@heroui-pro/react";
+import { Sheet } from "@heroui/react";
+import { ContextMenu, PressableFeedback, Timeline } from "@heroui-pro/react";
 import { MenuItem } from "react-aria-components";
 import { useSeaEventCapabilities } from "@vitarish/sea";
 import {

@@ -57,5 +57,12 @@
       "apps/knowledge-qa-demo/public",
       "apps/vitarish-landing/public"
     ]
+  },
+  "dependencies": {
+    "@heroui/react": "^3.2.7",
+    "@heroui/styles": "^3.2.7",
+    "react-aria": "^3.53.1",
+    "react-aria-components": "^1.22.1",
+    "react-stately": "^3.51.0"
   }
 }

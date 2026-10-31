@@ -15,8 +15,8 @@
     "generate:api": "orval --config src/api/client/orval.config.ts"
   },
   "dependencies": {
-    "@heroui-pro/react": "^1.0.0-beta.8",
-    "@heroui/react": "^3.2.2",
+    "@heroui-pro/react": "^1.0.0-beta.11",
+    "@heroui/react": "^3.2.7",
     "@tanstack/react-query": "^5.101.2",
     "@vitarish/api-client": "0.1.0",
     "@vitarish/localization": "0.1.0",
@@ -27,8 +27,8 @@
   "devDependencies": {
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
-    "@types/react": "^19.1.4",
-    "@types/react-dom": "^19.1.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
     "jsdom": "^26.1.0",
     "orval": "7.21.0",
     "typescript": "5.8.3",

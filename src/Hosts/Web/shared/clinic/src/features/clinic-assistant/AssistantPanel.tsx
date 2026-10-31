@@ -1,11 +1,7 @@
 "use client";
 
-import {
-  ChatConversation,
-  ChatLoader,
-  ChatMessage,
-  Sheet,
-} from "@heroui-pro/react";
+import { Sheet } from "@heroui/react";
+import { ChatConversation, ChatLoader, ChatMessage } from "@heroui-pro/react";
 import { Button, Modal, Tooltip } from "@heroui/react";
 import { FaIcon } from "@vitarish/ui";
 import { AgentConversationComposer } from "@vitarish/intelligence";

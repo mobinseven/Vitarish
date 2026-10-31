@@ -13,7 +13,8 @@ import {
   TextField,
   Tooltip,
 } from "@heroui/react";
-import { ItemCard, PressableFeedback, Sheet } from "@heroui-pro/react";
+import { Sheet } from "@heroui/react";
+import { ItemCard, PressableFeedback } from "@heroui-pro/react";
 import { FaIcon } from "@vitarish/ui";
 import {
   medicalEditPrescription,

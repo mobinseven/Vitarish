@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button, ListBox, SearchField } from "@heroui/react";
-import { Sheet } from "@heroui-pro/react";
+import { Sheet } from "@heroui/react";
 import { FaIcon } from "@vitarish/ui";
 import { clinicStartVisitPrescriptionDraft } from "../../../api/generated/clinic/clinic";
 import {

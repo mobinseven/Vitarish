@@ -25,28 +25,7 @@ const uploadPolicy = {
   ],
 };
 
-vi.mock("@heroui/react", () => ({
-  Button: ({
-    children,
-    onPress,
-    isDisabled: _isDisabled,
-    isPending: _isPending,
-    ...props
-  }: any) => (
-    <button onClick={onPress} {...props}>
-      {children}
-    </button>
-  ),
-  Tooltip: Object.assign(({ children }: any) => <>{children}</>, {
-    Content: ({ children }: any) => <>{children}</>,
-  }),
-  Label: ({ children }: any) => <label>{children}</label>,
-  TextArea: (props: any) => <textarea {...props} />,
-  TextField: ({ children, value, onChange }: any) => (
-    <div onInput={(event: any) => onChange(event.target.value)}>{children}</div>
-  ),
-}));
-vi.mock("@heroui-pro/react", () => {
+vi.mock("@heroui/react", () => {
   const Root = ({ children }: any) => <>{children}</>;
   return {
     Sheet: Object.assign(Root, {
@@ -60,6 +39,31 @@ vi.mock("@heroui-pro/react", () => {
       Body: Root,
       Footer: Root,
     }),
+
+    Button: ({
+      children,
+      onPress,
+      isDisabled: _isDisabled,
+      isPending: _isPending,
+      ...props
+    }: any) => (
+      <button onClick={onPress} {...props}>
+        {children}
+      </button>
+    ),
+    Tooltip: Object.assign(({ children }: any) => <>{children}</>, {
+      Content: ({ children }: any) => <>{children}</>,
+    }),
+    Label: ({ children }: any) => <label>{children}</label>,
+    TextArea: (props: any) => <textarea {...props} />,
+    TextField: ({ children, value, onChange }: any) => (
+      <div onInput={(event: any) => onChange(event.target.value)}>{children}</div>
+    ),
+  };
+});
+vi.mock("@heroui-pro/react", () => {
+  const Root = ({ children }: any) => <>{children}</>;
+  return {
     ChatConversation: Object.assign(Root, { Content: Root }),
     ChatMessage: { User: Root, Assistant: Root, Bubble: Root, Content: Root },
   };

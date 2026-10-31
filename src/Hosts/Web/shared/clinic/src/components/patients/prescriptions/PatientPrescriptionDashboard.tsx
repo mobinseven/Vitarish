@@ -1,7 +1,8 @@
 "use client";
 
 import { Alert, Button, Chip, ListBox, Select, Spinner } from "@heroui/react";
-import { Sheet, Widget } from "@heroui-pro/react";
+import { Sheet } from "@heroui/react";
+import { Widget } from "@heroui-pro/react";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { FaIcon } from "@vitarish/ui";
