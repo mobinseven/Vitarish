@@ -55,7 +55,7 @@ public sealed class UsersService(ISender sender) : IUsersService
         sender.Send(command, ct);
 
     public Task<IdentityResult> DeleteAsync(User user, CancellationToken cancellationToken) =>
-        sender.Send(new DeleteUserCommand(user.Id), cancellationToken);
+        sender.Send(new DeleteUserCommand(user.Id, user.ConcurrencyStamp), cancellationToken);
 
     public Task<bool> UserHasPasswordAsync(string userId, CancellationToken ct = default) =>
         sender.Send(new UserHasPasswordQuery(userId), ct);

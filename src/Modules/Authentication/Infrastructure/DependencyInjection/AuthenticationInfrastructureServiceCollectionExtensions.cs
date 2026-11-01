@@ -46,6 +46,7 @@ public static class AuthenticationInfrastructureServiceCollectionExtensions
         services.AddSingleton<AuthenticationChallengePolicy>(AuthenticationChallengePolicy.Default);
         services.AddSingleton<IAuthenticationChallengeStore, DistributedAuthenticationChallengeStore>();
         services.AddScoped<IAuthenticationUserDirectory, AspNetIdentityAuthenticationUserDirectory>();
+        services.AddTransient<Microsoft.AspNetCore.Authentication.IClaimsTransformation, LiveAccountClaimsTransformation>();
         services.AddScoped<IInitialPlatformAdministratorGrant, UsersInitialPlatformAdministratorGrant>();
         services.AddScoped<IAuthenticationSignInService, AspNetIdentitySignInService>();
         services.AddScoped<ITenantHandoffTicketStore, TenantHandoffTicketStore>();

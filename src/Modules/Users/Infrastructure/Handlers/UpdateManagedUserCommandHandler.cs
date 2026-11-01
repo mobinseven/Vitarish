@@ -70,7 +70,7 @@ internal sealed class UpdateManagedUserCommandHandler(
         // Compatibility window: callers that predate Revision omit it and skip the stale-edit check (see docs/memory.md).
         if (request.Revision is not null && !string.Equals(user.ConcurrencyStamp, request.Revision, StringComparison.Ordinal))
         {
-            await UserCacheExtensions.SetUserAsync(cache, user, cancellationToken);
+            await UserCacheExtensions.RemoveUserAsync(cache, user, cancellationToken);
             await managementAudit.AccountEditFailedAsync(user.Id, SecurityAuditReasonCatalog.SecurityPolicyConcurrencyConflict, cancellationToken);
             if (contactIdentifierChanged)
                 await managementAudit.SecurityAttributeChangedAsync(user.Id, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.SecurityPolicyConcurrencyConflict, cancellationToken);
@@ -164,7 +164,7 @@ internal sealed class UpdateManagedUserCommandHandler(
             contactIdentifierChanged ? UsersSecurityAuditEvents.UserContactIdentifierChangedReason : null,
             changes,
             CancellationToken.None);
-        await UserCacheExtensions.SetUserAsync(cache, user, cancellationToken);
+        await UserCacheExtensions.RemoveUserAsync(cache, user, cancellationToken);
         await UserCacheExtensions.RemoveUsersAsync(cache, cancellationToken);
         return result;
     }

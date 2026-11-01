@@ -20,6 +20,7 @@ namespace Vitarish.Users.Tests.Api;
 public sealed class ProtectedUsersEndpointAuthorizationTests
 {
     [Theory]
+    [InlineData(UsersApiRoutes.DeleteUser, UsersApiRoutes.DeleteUserOperation)]
     [InlineData(UsersApiRoutes.DisableUser, UsersApiRoutes.DisableUserOperation)]
     [InlineData(UsersApiRoutes.EnableUser, UsersApiRoutes.EnableUserOperation)]
     public void Account_status_endpoints_require_the_platform_account_policy_and_application_audit(string route, string operationId)

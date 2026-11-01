@@ -79,6 +79,17 @@ public sealed class UsersManagementAudit(
             reason ?? SecurityAuditReasonCatalog.MutationRejected,
             cancellationToken);
 
+    public Task AccountDeletedAsync(string? userId, string outcome, string? reason, string? before, string? after,
+        CancellationToken cancellationToken, bool conflict = false) =>
+        WriteAsync(
+            reason == SecurityAuditReasonCatalog.LastTenantOwner ? UsersSecurityAuditEvents.UserDeletionLastOwnerConflict
+                : conflict ? UsersSecurityAuditEvents.UserDeletionConflict
+                : outcome == SecurityAuditOutcome.Succeeded ? UsersSecurityAuditEvents.UserDeletion : UsersSecurityAuditEvents.UserDeletionDenied,
+            UsersSecurityAuditEvents.UserDeletionOperation,
+            UsersSecurityAuditEvents.UserDeletionIdempotencySuffix,
+            userId, SecurityAuditEventCatalog.ManagementCategory, outcome, reason, cancellationToken,
+            before is null ? null : [new SecurityAuditChange(SecurityAuditChangeFields.AccountStatus, before, after)]);
+
     public Task AccountStatusChangedAsync(
         string? userId,
         bool enabled,

@@ -43,6 +43,9 @@ public static class SecurityAuditReasonCatalog
     public const string AdministrativeRevocation = "administrative_revocation";
     public const string InvalidTenantRole = "invalid_tenant_role";
     public const string ActiveSessionConflict = "active_session_conflict";
+    public const string SelfDeletion = "self_deletion";
+    public const string LastPlatformAdministrator = "last_platform_administrator";
+    public const string LastTenantOwner = "last_tenant_owner";
     public const string UserNotFound = "user_not_found";
     public const string TenantRoleConcurrencyConflict = "tenant_role_concurrency_conflict";
     public const string TenantRolePersistenceFailure = "tenant_role_persistence_failure";
@@ -118,6 +121,9 @@ public static class SecurityAuditReasonCatalog
         InvalidTenantRole,
         ActiveSessionConflict,
         UserNotFound,
+        SelfDeletion,
+        LastPlatformAdministrator,
+        LastTenantOwner,
         TenantRoleConcurrencyConflict,
         TenantRolePersistenceFailure,
         TenantRoleNotFound,

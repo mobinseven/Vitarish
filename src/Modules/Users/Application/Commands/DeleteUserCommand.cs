@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace Vitarish.Users.Application.Commands;
 
-public record DeleteUserCommand(string Id) : IRequest<IdentityResult>;
+public record DeleteUserCommand(string Id, string? Revision = null) : IRequest<IdentityResult>;
 
 public class DeleteUserCommandValidator : AbstractValidator<DeleteUserCommand>
 {

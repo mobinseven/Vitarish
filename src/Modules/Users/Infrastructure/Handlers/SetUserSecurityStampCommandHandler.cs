@@ -45,7 +45,7 @@ internal sealed class SetUserSecurityStampCommandHandler(
         {
             if (changed)
                 await managementAudit.SecurityAttributeChangedAsync(request.User.Id, SecurityAuditOutcome.Succeeded, SecurityAuditReasonCatalog.SecurityAttributeChanged, CancellationToken.None);
-            await UserCacheExtensions.SetUserAsync(cache, user, cancellationToken);
+            await UserCacheExtensions.RemoveUserAsync(cache, user, cancellationToken);
             await UserCacheExtensions.RemoveUsersAsync(cache, cancellationToken);
         }
         else if (changed)

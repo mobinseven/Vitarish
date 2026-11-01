@@ -17,22 +17,24 @@ public sealed class AspNetIdentityAuthenticationUserDirectory(
     public async Task<AuthenticationUserDescriptor?> FindByIdAsync(string userId, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(userId)) return null;
-        User? user = await userManager.FindByIdAsync(userId);
-        return user is null ? null : ToDescriptor(user);
+        // FindById uses Identity's tracked-entity shortcut; a pre-issued challenge
+        // must observe a deletion committed since that entity was loaded.
+        User? user = await userManager.Users.AsNoTracking().SingleOrDefaultAsync(candidate => candidate.Id == userId, cancellationToken);
+        return user is null || user.IsDeleted ? null : ToDescriptor(user);
     }
 
     public async Task<AuthenticationUserDescriptor?> FindByLoginAsync(string login, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(login)) return null;
         User? user = await userManager.FindByNameAsync(login) ?? await userManager.FindByEmailAsync(login);
-        return user is null ? null : ToDescriptor(user);
+        return user is null || user.IsDeleted ? null : ToDescriptor(user);
     }
 
     public async Task<AuthenticationUserDescriptor?> FindByEmailAsync(string email, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(email)) return null;
         User? user = await userManager.FindByEmailAsync(email);
-        return user is null ? null : ToDescriptor(user);
+        return user is null || user.IsDeleted ? null : ToDescriptor(user);
     }
 
     public async Task<AuthenticationUserDescriptor> FindOrCreateByEmailAsync(string email, CancellationToken cancellationToken)
@@ -49,7 +51,7 @@ public sealed class AspNetIdentityAuthenticationUserDirectory(
     {
         if (string.IsNullOrWhiteSpace(phoneNumber)) return null;
         User? user = await userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == phoneNumber, cancellationToken);
-        return user is null ? null : ToDescriptor(user);
+        return user is null || user.IsDeleted ? null : ToDescriptor(user);
     }
 
     public async Task<AuthenticationUserDescriptor> FindOrCreateByPhoneNumberAsync(string phoneNumber, CancellationToken cancellationToken)
@@ -67,7 +69,7 @@ public sealed class AspNetIdentityAuthenticationUserDirectory(
         ClaimsPrincipal? principal = httpContextAccessor.HttpContext?.User;
         if (principal?.Identity?.IsAuthenticated != true) return null;
         User? user = await userManager.GetUserAsync(principal);
-        return user is null ? null : ToDescriptor(user);
+        return user is null || user.IsDeleted ? null : ToDescriptor(user);
     }
 
     private static AuthenticationUserDescriptor ToDescriptor(User user)

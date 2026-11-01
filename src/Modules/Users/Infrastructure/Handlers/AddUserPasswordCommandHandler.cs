@@ -61,7 +61,7 @@ public class AddUserPasswordCommandHandler(UserManager<User> userManager, IDistr
         if (result.Succeeded)
         {
             await managementAudit.AccountEditedAsync(user.Id, SecurityAuditReasonCatalog.SecurityAttributeChanged, CancellationToken.None);
-            await UserCacheExtensions.SetUserAsync(cache, user, cancellationToken);
+            await UserCacheExtensions.RemoveUserAsync(cache, user, cancellationToken);
             await UserCacheExtensions.RemoveUsersAsync(cache, cancellationToken);
         }
         else
