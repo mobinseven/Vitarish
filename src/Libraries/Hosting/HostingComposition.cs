@@ -70,6 +70,7 @@ public static class HostingComposition
     public static WebApplication UseHostingPipeline(this WebApplication app, SecurityConfigurationOptions security)
     {
         _ = app.UseForwardedHeaders();
+        _ = app.UseCapabilityFailureAudit();
         _ = app.UseRequestLocalization(new RequestLocalizationOptions().SetDefaultCulture("fa").AddSupportedCultures(["en", "fa"]).AddSupportedUICultures(["en", "fa"]));
         _ = app.UseCookiePolicy(new CookiePolicyOptions { Secure = CookieSecurePolicy.Always });
         _ = app.UseExceptionHandler();

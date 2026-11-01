@@ -48,6 +48,8 @@ public static class SecurityAuditEventCatalog
     public const string AuditStorageThresholdOperation = "audit.storage.threshold";
     public const string AuditStorageThresholdSourceBoundary = "main.audit-storage-threshold";
     public const string AuditStorageOutageSourceBoundary = "main.audit-storage-outage";
+    public const string CapabilityFailureSourceBoundary = "audit.capability-failure";
+    public const string BackgroundJobResourcePrefix = "job/";
     public const string AuthenticationPasswordChangeEvent = "authentication.account.password.change";
     public const string AuthenticationPasswordLoginEvent = "authentication.password.login";
     public const string AuthenticationPasswordLoginOtpEvent = "authentication.password.login.otp";

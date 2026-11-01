@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Vitarish.Audit.Domain;
+using Vitarish.E2e.Infrastructure.Storage;
 using Vitarish.Files.Application.Abstractions;
 using Vitarish.Files.Domain.Entities;
 using Vitarish.Files.Domain.Models;
@@ -23,11 +24,15 @@ internal static class E2eAuditEvidenceEndpoints
     private const string IntegrityTamperRoute = "/files/{fileId:guid}/tamper";
     private const string StoreOutageStartRoute = "/store-outage/start";
     private const string StoreOutageEndRoute = "/store-outage/end";
+    private const string FileStorageOutageStartRoute = "/file-storage-outage/start";
+    private const string FileStorageOutageEndRoute = "/file-storage-outage/end";
     private const string StorageThresholdCheckOperation = "E2eAuditEvidenceCheckStorageThreshold";
     private const string IntegrityVerificationOperation = "E2eAuditEvidenceVerifyFileIntegrity";
     private const string IntegrityTamperOperation = "E2eAuditEvidenceTamperStoredFile";
     private const string StoreOutageStartOperation = "E2eAuditEvidenceStartStoreOutage";
     private const string StoreOutageEndOperation = "E2eAuditEvidenceEndStoreOutage";
+    private const string FileStorageOutageStartOperation = "E2eAuditEvidenceStartFileStorageOutage";
+    private const string FileStorageOutageEndOperation = "E2eAuditEvidenceEndFileStorageOutage";
 
     public static IEndpointRouteBuilder MapE2eAuditEvidenceEndpoints(this IEndpointRouteBuilder endpoints)
     {
@@ -42,7 +47,15 @@ internal static class E2eAuditEvidenceEndpoints
         _ = group.MapModulePost(IntegrityTamperRoute, TamperFileObjectAsync, IntegrityTamperOperation, successStatusCode: StatusCodes.Status204NoContent);
         _ = group.MapModulePost(StoreOutageStartRoute, StartStoreOutage, StoreOutageStartOperation, successStatusCode: StatusCodes.Status204NoContent);
         _ = group.MapModulePost(StoreOutageEndRoute, EndStoreOutageAsync, StoreOutageEndOperation, successStatusCode: StatusCodes.Status204NoContent);
+        _ = group.MapModulePost(FileStorageOutageStartRoute, (IObjectStorageService storage) => SetFileStorageOutage(storage, unavailable: true), FileStorageOutageStartOperation, successStatusCode: StatusCodes.Status204NoContent);
+        _ = group.MapModulePost(FileStorageOutageEndRoute, (IObjectStorageService storage) => SetFileStorageOutage(storage, unavailable: false), FileStorageOutageEndOperation, successStatusCode: StatusCodes.Status204NoContent);
         return endpoints;
+    }
+
+    private static IResult SetFileStorageOutage(IObjectStorageService storage, bool unavailable)
+    {
+        ((E2eObjectStorageService)storage).Unavailable = unavailable;
+        return Results.NoContent();
     }
 
     // Runs one real capacity check while the simulated storage size is above the threshold.

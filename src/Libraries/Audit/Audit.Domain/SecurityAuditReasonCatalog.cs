@@ -5,6 +5,7 @@ namespace Vitarish.Audit.Domain;
 public static class SecurityAuditReasonCatalog
 {
     public const string EndpointException = "endpoint_exception";
+    public const string DependencyUnavailable = "dependency_unavailable";
     public const string AuditStoreUnavailable = "audit_store_unavailable";
     public const string MutationRejected = "mutation_rejected";
     public const string PasswordPolicyRejected = "password_policy_rejected";
@@ -79,6 +80,7 @@ public static class SecurityAuditReasonCatalog
     private static readonly HashSet<string> KnownReasons = new(StringComparer.Ordinal)
     {
         EndpointException,
+        DependencyUnavailable,
         AuditStoreUnavailable,
         MutationRejected,
         PasswordPolicyRejected,

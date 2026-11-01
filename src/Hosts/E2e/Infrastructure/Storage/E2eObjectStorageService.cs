@@ -6,6 +6,14 @@ namespace Vitarish.E2e.Infrastructure.Storage;
 internal sealed class E2eObjectStorageService : IObjectStorageService
 {
     private readonly ConcurrentDictionary<string, StoredObject> objects = new(StringComparer.Ordinal);
+    private volatile bool unavailable;
+
+    /// <summary>Makes every stored-object read fail. Switched only by the audit-evidence endpoints.</summary>
+    public bool Unavailable
+    {
+        get => unavailable;
+        set => unavailable = value;
+    }
 
     public Task EnsureBucketAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
 
@@ -82,7 +90,9 @@ internal sealed class E2eObjectStorageService : IObjectStorageService
         Task.FromResult($"e2e://object-storage/{Uri.EscapeDataString(objectKey)}");
 
     private StoredObject Get(string objectKey) =>
-        objects.TryGetValue(objectKey, out StoredObject? stored)
+        unavailable
+            ? throw new IOException("The E2E object store is simulating an outage.")
+            : objects.TryGetValue(objectKey, out StoredObject? stored)
             ? stored
             : throw new FileNotFoundException("The E2E object was not found.", objectKey);
 
