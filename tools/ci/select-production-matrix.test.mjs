@@ -20,7 +20,7 @@ const deployScriptRules = /^            deploy_script:\r?\n((?:              - .
   ?.trim().split(/\r?\n/).map((line) => line.trim().slice(3).replace(/^'|'$/g, ""));
 
 const deployedWorkspaces = [
-  "agent-runtime", "patients", "platform-admin", "private-practice-owner", "vitarish-landing", "vitarish-pm",
+  "agent-runtime", "patients", "personal-site", "platform-admin", "private-practice-owner", "vitarish-landing", "vitarish-pm",
 ];
 
 function assertBuildsDeployedAppsOnly(selected) {
@@ -49,8 +49,8 @@ test("workflow path rules exclude classified source changes before selecting the
   assert.equal(matchesUnknownSource(ownerPath), false);
   assert.equal(matchesUnknownSource(unknownPath), true);
   assert.deepEqual(selectProductionMatrix("push", { main: true, web_all: true, unknown_source: matchesUnknownSource(mainPath) }).images,
-    ["main", "private-practice-owner", "patients", "platform-admin", "pm", "landing", "agent-runtime"]);
-  assert.equal(selectProductionMatrix("push", { unknown_source: matchesUnknownSource(unknownPath) }).services.length, 8);
+    ["main", "private-practice-owner", "patients", "platform-admin", "pm", "landing", "agent-runtime", "personal-site"]);
+  assert.equal(selectProductionMatrix("push", { unknown_source: matchesUnknownSource(unknownPath) }).services.length, 9);
 });
 
 test("configuration-only deployments remain eligible when publishing is skipped", () => {
@@ -72,7 +72,7 @@ test("deployment script changes select every production service without publishi
   assert.deepEqual(selected.images, []);
   assert.deepEqual(selected.services, [
     "main", "private-practice-owner", "patients", "platform-admin", "pm",
-    "landing", "agent-runtime", "caddy",
+    "landing", "agent-runtime", "personal-site", "caddy",
   ]);
 });
 
@@ -143,14 +143,14 @@ test("a shared Web change checks every workspace once and builds every deployed 
   assert.match(workflow, /^  web:\r?\n[\s\S]*?if: \$\{\{ needs\.changes\.outputs\.web_matrix != '\[\]' \}\}/m);
   assert.equal(selected.images.includes("main"), false);
   assert.equal(selected.images.includes("caddy"), false);
-  assert.equal(selected.images.length, 6);
+  assert.equal(selected.images.length, 7);
 });
 
 test("an API contract change selects Main and every Web consumer", () => {
   const selected = selectProductionMatrix("pull_request", { dotnet: true, main: true, web_all: true });
   assertBuildsDeployedAppsOnly(selected);
   assert.equal(selected.images[0], "main");
-  assert.equal(selected.images.length, 7);
+  assert.equal(selected.images.length, 8);
 });
 
 test("a Caddy change selects only the Caddy image and ingress service", () => {
@@ -173,7 +173,7 @@ test("an unclassified source change falls back to the broad matrix", () => {
   assertBuildsDeployedAppsOnly(selected);
   assert.equal(selected.images.includes("main"), true);
   assert.equal(selected.images.includes("caddy"), true);
-  assert.equal(selected.services.length, 8);
+  assert.equal(selected.services.length, 9);
 });
 
 test("a Compose change updates service configuration without publishing new images", () => {
@@ -181,7 +181,7 @@ test("a Compose change updates service configuration without publishing new imag
   assert.equal(selected.images.length, 0);
   assert.deepEqual(selected.services, [
     "main", "private-practice-owner", "patients", "platform-admin", "pm",
-    "landing", "agent-runtime", "caddy",
+    "landing", "agent-runtime", "personal-site", "caddy",
   ]);
 });
 
@@ -196,8 +196,8 @@ test("a release without a deployed commit selects the full suite and every image
   const selected = selectProductionMatrix("workflow_dispatch", {});
   assert.equal(selected.full_suite, true);
   assert.deepEqual(selected.web, []);
-  assert.equal(selected.images.length, 8);
-  assert.equal(selected.services.length, 8);
+  assert.equal(selected.images.length, 9);
+  assert.equal(selected.services.length, 9);
 });
 
 test("a release selects only the changes since the deployed commit", () => {

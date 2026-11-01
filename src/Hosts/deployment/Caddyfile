@@ -231,3 +231,18 @@ https://{$PRODUCTION_CLINIC_WILDCARD_HOST} {
     import brand_fonts
     reverse_proxy production-private-practice-owner:3000
 }
+# The owner's personal website; its hostname is not product configuration.
+http://farzadm.ir, http://www.farzadm.ir {
+    redir https://farzadm.ir{uri} 308
+}
+https://www.farzadm.ir {
+    import security_headers
+    route {
+        respond @unsafe_method 405
+        redir https://farzadm.ir{uri} 308
+    }
+}
+https://farzadm.ir {
+    import security_headers
+    reverse_proxy production-personal-site:3010
+}

@@ -14,6 +14,7 @@
     "dev:knowledge-qa-demo": "npm run dev --workspace @vitarish/knowledge-qa-demo",
     "dev:vitarish-landing": "npm run dev --workspace @vitarish/vitarish-landing",
     "dev:agent-runtime": "npm run dev --workspace @vitarish/agent-runtime",
+    "dev:personal-site": "npm run dev --workspace @vitarish/personal-site",
     "dev:mock:private-practice-owner": "node scripts/mock-app-server.mjs @vitarish/private-practice-owner",
     "dev:mock:patients": "node scripts/mock-app-server.mjs @vitarish/patients",
     "dev:mock:platform-admin": "node scripts/mock-app-server.mjs @vitarish/platform-admin",

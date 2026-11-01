@@ -1,0 +1,4 @@
+@import "tailwindcss";
+@import "@heroui/styles";
+@import "@vitarish/ui/layout.css";
+@import "./theme.css";

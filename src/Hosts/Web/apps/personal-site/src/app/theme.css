@@ -1,0 +1,14 @@
+/*
+ * Active HeroUI theme for this host: monochrome on the base theme, in the light
+ * and dark modes next-themes resolves from the visitor's device. Keep the theme
+ * in ./theme.ts in sync with the selectors below.
+ */
+:root,
+.light,
+[data-theme="light"],
+.dark,
+[data-theme="dark"] {
+  --accent: var(--foreground);
+  --accent-foreground: var(--background);
+  --focus: var(--foreground);
+}

@@ -35,7 +35,7 @@ from pathlib import Path
 plan = json.loads(Path(sys.argv[1]).read_text())
 services = plan.get('services')
 images = plan.get('images')
-allowed = {'main', 'private-practice-owner', 'patients', 'platform-admin', 'pm', 'landing', 'agent-runtime', 'caddy'}
+allowed = {'main', 'private-practice-owner', 'patients', 'platform-admin', 'pm', 'landing', 'agent-runtime', 'personal-site', 'caddy'}
 if (plan.get('commit') != sys.argv[3] or plan.get('runId') != sys.argv[4] or
     not isinstance(services, list) or not services or len(services) != len(set(services)) or not set(services) <= allowed or
     not isinstance(images, list) or not re.fullmatch(r'/[A-Za-z0-9/_-]+', plan.get('readinessPath', ''))):
