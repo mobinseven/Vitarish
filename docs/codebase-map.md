@@ -122,6 +122,7 @@ Run npm workspace commands from `src/Hosts/Web`.
 | `apps/vitarish-landing` | Public landing application. |
 | `apps/vitarish-pm` | Dedicated tenant-scoped project-management application backed by SEA. |
 | `apps/agent-runtime` | Server-only OpenAI Agents SDK runtime; not a browser UI. |
+| `apps/personal-site` | Owner's static personal website; not part of the product or its deployment. |
 
 ### Shared packages
 
