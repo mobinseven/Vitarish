@@ -231,3 +231,11 @@ https://{$PRODUCTION_CLINIC_WILDCARD_HOST} {
     import brand_fonts
     reverse_proxy production-private-practice-owner:3000
 }
+# Placeholder for a domain with no application yet.
+http://farzadm.ir, http://www.farzadm.ir {
+    redir https://{host}{uri} 308
+}
+https://farzadm.ir, https://www.farzadm.ir {
+    import security_headers
+    respond "Coming soon" 200
+}
