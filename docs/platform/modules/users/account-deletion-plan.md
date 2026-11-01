@@ -91,7 +91,6 @@ No production configuration or dependency/lockfile change is included. Local dep
 2. **Localized platform administrator confirmation:** generated hook exports, existing detail surface/dialog, typed refusal text, query-cache removal, navigation and purposeful interactions. Depends on slice 1; introduces no security decision in React.
 3. **Real-host scenario and operational handoff:** isolated target account/client IP, actual UI deletion/self-denial/audit detail, reference map, authorization matrix and validation/rollout restrictions. Execution remains the owner's scoped gate; no two-host runner is authorized here.
 
-Exact paths for the suggested commits are in [account-deletion-validation.md](account-deletion-validation.md). Nothing was staged or committed in this continuation.
 
 Acceptance hot scenarios: last owner in either of two clinics then transfer; sign-in-first/delete-first row locking; concurrent role/credential update; active session across tenants; stale/missing revision; lost-response repeat; cache dependency failure before mutation; post-save rollback/recovery; cancelled lease; deleted OTP/handoff subject, passkey and issued token; release and reuse all contacts under unique indexes; UI cancel/refusal/unavailable/success; audit detail with status-only changes and source IP.
 
