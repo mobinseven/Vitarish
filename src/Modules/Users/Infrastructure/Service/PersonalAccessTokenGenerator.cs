@@ -50,6 +50,8 @@ public sealed class PersonalAccessTokenGenerator(
         User user = await userManager.FindByIdAsync(subjectId)
             ?? throw new InvalidOperationException("User not found for personal access token generation.");
 
+        if (user.IsDeleted) throw new InvalidOperationException("A deleted account cannot issue tokens.");
+
         IList<Claim> userClaims = await userManager.GetClaimsAsync(user);
         HashSet<string> allowedScopes = userClaims
             .Where(static claim => string.Equals(claim.Type, IdentityDefinitions.AccessClaim, StringComparison.Ordinal) &&

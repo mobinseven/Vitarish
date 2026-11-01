@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
+    <ProjectReference Include="..\..\Authentication\Application\Authentication.Application.csproj" />
     <InternalsVisibleTo Include="Users.Tests" />
   </ItemGroup>
   <ItemGroup>

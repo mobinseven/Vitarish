@@ -111,7 +111,7 @@ public class CreateUserWithPhoneCommandHandler(UserManager<User> userManager, IS
                 CancellationToken.None);
         }
 
-        await UserCacheExtensions.SetUserAsync(cache, user, cancellationToken);
+        await UserCacheExtensions.RemoveUserAsync(cache, user, cancellationToken);
         await UserCacheExtensions.RemoveUsersAsync(cache, cancellationToken);
         return user;
     }

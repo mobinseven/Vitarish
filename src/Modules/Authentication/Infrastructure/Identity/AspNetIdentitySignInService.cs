@@ -10,6 +10,7 @@ using Vitarish.Authentication.Application.Security;
 using Vitarish.Authentication.Domain.Methods;
 using Vitarish.Authentication.Domain.Security;
 using Vitarish.Users.Application.Authorization;
+using Vitarish.Users.Application.Abstractions;
 using Vitarish.Users.Domain.Entities;
 
 namespace Vitarish.Authentication.Infrastructure;
@@ -24,6 +25,7 @@ public sealed class AspNetIdentitySignInService(
     IAuthenticationSessionRegistry sessionRegistry,
     IHttpContextAccessor httpContextAccessor,
     AuthenticationSourceAttemptGuard sourceAttemptGuard,
+    IUserSignInGuard accountGuard,
     IEnumerable<IRoleFreeSessionPolicy>? roleFreeSessions = null) : IAuthenticationSignInService
 {
     public Task<PasswordSignInResult> PasswordSignInAsync(string login, string password, CancellationToken cancellationToken) =>
@@ -36,10 +38,13 @@ public sealed class AspNetIdentitySignInService(
     {
         if (string.IsNullOrWhiteSpace(userId))
             return AuthenticationSessionSignInResult.Failed(new(AuthenticationFailureReason.InvalidInput, "User ID cannot be empty."));
+        await using IUserSignInLease accountLease = await accountGuard.AcquireAsync(userId, cancellationToken);
+        if (!accountLease.AccountAvailable)
+            return AuthenticationSessionSignInResult.Failed(new(AuthenticationFailureReason.InvalidCredentials, "The account is unavailable."));
         User? user = await userManager.FindByIdAsync(userId);
         if (user is null)
             return AuthenticationSessionSignInResult.Failed(new(AuthenticationFailureReason.InvalidCredentials, "Cannot sign in an unknown user."));
-        if (!user.IsEnabled)
+        if (user.IsDeleted || !user.IsEnabled)
         {
             await sessionRegistry.RecordFailedAttemptAsync(user.Id, cancellationToken);
             return AuthenticationSessionSignInResult.Failed(new(AuthenticationFailureReason.AccountDisabled, "The account is disabled."));

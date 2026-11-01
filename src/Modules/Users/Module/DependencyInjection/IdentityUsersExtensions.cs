@@ -80,6 +80,8 @@ public static class IdentityUsersExtensions
             builder.Configuration.GetSection("Vitarish").GetSection(TemporaryAutoAuthLinkOptions.SectionName));
         _ = builder.Services.AddSingleton<IUserAccessAuditLogger, UserAccessAuditLogger>();
         _ = builder.Services.AddScoped<UsersManagementAudit>();
+        _ = builder.Services.AddTransient<IUserAccountDeletionStore, UserAccountDeletionStore>();
+        _ = builder.Services.AddTransient<IUserSignInGuard, UserSignInGuard>();
         _ = builder.Services.AddTransient<IUserProfileService, UserProfileService>();
         _ = builder.Services.AddTransient<IPersonalAccessTokenGenerator, PersonalAccessTokenGenerator>();
         builder.Services.TryAddSingleton(TimeProvider.System);

@@ -109,7 +109,7 @@ public class SetUserPhoneNumberCommandHandler(UserManager<User> userManager, ISe
                     (user.Email, previousPhoneNumber, user.FirstName, user.LastName),
                     (user.Email, user.PhoneNumber, user.FirstName, user.LastName)),
                 CancellationToken.None);
-            await UserCacheExtensions.SetUserAsync(cache, user, cancellationToken);
+            await UserCacheExtensions.RemoveUserAsync(cache, user, cancellationToken);
             await UserCacheExtensions.RemoveUsersAsync(cache, cancellationToken);
         }
         else

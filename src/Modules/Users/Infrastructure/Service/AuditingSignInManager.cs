@@ -25,6 +25,9 @@ public sealed class AuditingSignInManager(
 {
     private readonly ILogger<AuditingSignInManager> _logger = logger;
 
+    public override async Task<bool> CanSignInAsync(User user) =>
+        !user.IsDeleted && await base.CanSignInAsync(user);
+
     public override Task<SignInResult> PasswordSignInAsync(User user, string password, bool isPersistent, bool lockoutOnFailure) =>
         ExecuteAsync(UsersSecurityAuditEvents.IdentityPasswordSignInUser, UsersSecurityAuditEvents.IdentityPasswordSignInUserOperation, UsersSecurityAuditEvents.IdentityPasswordSignInUserIdempotencySuffix,
             () => Task.FromResult<string?>(user.Id), () => base.PasswordSignInAsync(user, password, isPersistent, lockoutOnFailure), false);

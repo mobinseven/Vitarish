@@ -49,6 +49,20 @@ internal static class PostgresTestSupport
         return new UsersDbContext(options);
     }
 
+    internal static UsersDbContext CreateContextWithoutDeletion(string connectionString) => new(
+        new DbContextOptionsBuilder<UsersDbContext>().UseNpgsql(connectionString)
+            .ReplaceService<IModelCustomizer, ModelCustomizerWithoutDeletion>().Options);
+
+    private sealed class ModelCustomizerWithoutDeletion(ModelCustomizerDependencies dependencies) : ModelCustomizer(dependencies)
+    {
+        public override void Customize(ModelBuilder modelBuilder, DbContext context)
+        {
+            base.Customize(modelBuilder, context);
+            modelBuilder.Entity<User>().HasQueryFilter((System.Linq.Expressions.Expression<Func<User, bool>>?)null);
+            modelBuilder.Entity<User>().Ignore(user => user.DeletedAt);
+        }
+    }
+
     /// <summary>
     /// A context for databases migrated only up to a migration that predates the
     /// account status and password tracking columns, so seeding and verification
@@ -69,6 +83,8 @@ internal static class PostgresTestSupport
         public override void Customize(ModelBuilder modelBuilder, DbContext context)
         {
             base.Customize(modelBuilder, context);
+            modelBuilder.Entity<User>().HasQueryFilter((System.Linq.Expressions.Expression<Func<User, bool>>?)null);
+            modelBuilder.Entity<User>().Ignore(user => user.DeletedAt);
             _ = modelBuilder.Entity<User>().Ignore(user => user.IsEnabled);
             IgnorePasswordTracking(modelBuilder);
         }
@@ -92,6 +108,8 @@ internal static class PostgresTestSupport
         public override void Customize(ModelBuilder modelBuilder, DbContext context)
         {
             base.Customize(modelBuilder, context);
+            modelBuilder.Entity<User>().HasQueryFilter((System.Linq.Expressions.Expression<Func<User, bool>>?)null);
+            modelBuilder.Entity<User>().Ignore(user => user.DeletedAt);
             IgnorePasswordTracking(modelBuilder);
         }
     }

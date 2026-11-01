@@ -161,7 +161,7 @@ internal sealed class ProvisionTenantMemberCommandHandler(
                     SecurityAuditChangeFields.TenantRole,
                     SecurityAuditReasonCatalog.TenantRoleStateNone,
                     SecurityAuditReasonCatalog.TenantRoleStateUser)]);
-            await UserCacheExtensions.SetUserAsync(cache, user, cancellationToken);
+            await UserCacheExtensions.RemoveUserAsync(cache, user, cancellationToken);
             await UserCacheExtensions.RemoveUsersAsync(cache, cancellationToken);
             return new ProvisionTenantMemberResult(user, IdentityDefinitions.TenantUser, created, false);
         }

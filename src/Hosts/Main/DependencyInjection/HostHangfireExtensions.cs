@@ -1,7 +1,9 @@
 using Hangfire;
 using Hangfire.PostgreSql;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Vitarish.Main.Authorization;
 using Vitarish.Main.DependencyInjection;
+using Vitarish.Main.Infrastructure.BackgroundJobs;
 using Vitarish.Main.Infrastructure.Platform;
 using Vitarish.Modules.Base.Core.Platform.Transactions;
 
@@ -30,7 +32,11 @@ public static class HostHangfireExtensions
         }
 
         // Configure Hangfire to use PostgreSQL storage
-        _ = builder.Services.AddHangfire(config => config
+        builder.Services.TryAddSingleton<PlatformBackgroundAuditRecorder>();
+        builder.Services.TryAddSingleton(TimeProvider.System);
+        _ = builder.Services.AddSingleton<BackgroundJobFailureAuditFilter>();
+        _ = builder.Services.AddHangfire((services, config) => config
+            .UseFilter(services.GetRequiredService<BackgroundJobFailureAuditFilter>())
             .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
             .UseSimpleAssemblyNameTypeSerializer()
             .UseRecommendedSerializerSettings()

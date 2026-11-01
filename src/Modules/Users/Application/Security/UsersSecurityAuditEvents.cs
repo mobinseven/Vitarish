@@ -33,6 +33,12 @@ public static class UsersSecurityAuditEvents
     public const string UserEditFailureOperation = SecurityAuditEventCatalog.UserEditFailureOperation;
     public const string UserSecurityAttributeChange = SecurityAuditEventCatalog.UserSecurityAttributeChangeEvent;
     public const string UserSecurityAttributeChangeOperation = SecurityAuditEventCatalog.UserSecurityAttributeChangeOperation;
+    public const string UserDeletion = SecurityAuditEventCatalog.UserDeletionEvent;
+    public const string UserDeletionDenied = SecurityAuditEventCatalog.UserDeletionDeniedEvent;
+    public const string UserDeletionConflict = SecurityAuditEventCatalog.UserDeletionConflictEvent;
+    public const string UserDeletionLastOwnerConflict = SecurityAuditEventCatalog.UserDeletionLastOwnerConflictEvent;
+    public const string UserDeletionOperation = SecurityAuditEventCatalog.UserDeletionOperation;
+    public const string UserDeletionIdempotencySuffix = ":user-account-delete";
     public const string UserAccountDisabled = SecurityAuditEventCatalog.UserAccountDisabledEvent;
     public const string UserAccountDisableOperation = SecurityAuditEventCatalog.UserAccountDisableOperation;
     public const string UserAccountEnabled = SecurityAuditEventCatalog.UserAccountEnabledEvent;

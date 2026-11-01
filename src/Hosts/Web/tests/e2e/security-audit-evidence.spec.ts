@@ -21,6 +21,8 @@ import type {
   AuditPlatformSecurityEventsExportParams,
   AuditSecurityEventsListParams,
 } from "../../shared/security/src/api/generated/audit/model";
+import { getUsersAdministrationGetUserSecurityQueryKey } from "../../shared/auth/src/api/generated/users/users";
+import type { UserSecurityDetailsResponse } from "../../shared/auth/src/api/generated/users/model";
 import { auditSortFields } from "../../shared/security/src/api/securityAuditSortFields";
 import {
   localizePlatformAuditCategory,
@@ -39,6 +41,7 @@ const ownerUsername = process.env.VITARISH_E2E_USERNAME ?? "e2e-owner";
 const tenantBOwnerUsername = process.env[twoHostE2eTenantBOwnerUsernameEnvironmentKey] ?? twoHostE2eTenantBOwnerUsername;
 const tenantBOrigin = twoHostE2eTenantBClinicOrigin;
 const ownerClientIp = "198.51.100.61";
+const failedAttemptClientIp = "198.51.100.64";
 const tenantBOwnerClientIp = "198.51.100.63";
 const ownerOrigin = "";
 const platformAdminUsername = process.env.VITARISH_E2E_PLATFORM_ADMIN_USERNAME ?? "e2e-platform-admin";
@@ -89,6 +92,7 @@ const auditEvents = {
   integrityVerification: { controls: [7], category: "import-export", name: "security.data.integrity-verification", operation: "data.integrity.verify" },
   tenantRoleReplacement: { controls: [11, 17, 18], category: "management", name: "users.tenant-role-replacement", operation: "Users_ReplaceTenantRole" },
   dataImport: { controls: [14], category: "import-export", name: "security.data.import", operation: "data.import" },
+  userEdit: { controls: [12, 17, 18], category: "management", name: "users.account.edited", operation: "users.account.edit" },
   sourceBlocked: { controls: [9], category: "authentication", name: "authentication.source.blocked", operation: "authentication.source.block" },
 } as const;
 
@@ -98,12 +102,14 @@ const e2eAuditEvidenceBase = "/api/e2e/audit-evidence";
 const storageThresholdCheckPath = `${e2eAuditEvidenceBase}/storage-threshold/check`;
 const storeOutageStartPath = `${e2eAuditEvidenceBase}/store-outage/start`;
 const storeOutageEndPath = `${e2eAuditEvidenceBase}/store-outage/end`;
+const fileStorageOutageStartPath = `${e2eAuditEvidenceBase}/file-storage-outage/start`;
+const fileStorageOutageEndPath = `${e2eAuditEvidenceBase}/file-storage-outage/end`;
 const integrityVerificationPath = (fileId: string) => `${e2eAuditEvidenceBase}/files/${fileId}/integrity-verification`;
 const integrityTamperPath = (fileId: string) => `${e2eAuditEvidenceBase}/files/${fileId}/tamper`;
 
 // An endpoint-level record names the endpoint's operation ID instead of the catalog operation.
 type AuditEventExpectation = Omit<(typeof auditEvents)[keyof typeof auditEvents], "operation"> & { operation: string; outcome: string };
-type AuditPage = { items: Array<{ id?: string; eventName?: string; eventCategory?: string; operation?: string; outcome?: string; actorId?: string; actorKind?: string; tenantId?: string; subjectId?: string; resource?: string; resourceName?: string; resourceNameHash?: string; resourceExtension?: string; resourceSize?: number; redactedReason?: string; sourceIpAddress?: string; changes?: Array<{ field: string; previousValue: string | null; newValue: string | null }> }>; totalCount: number };
+type AuditPage = { items: Array<{ id?: string; sourceBoundary?: string | null; eventName?: string; eventCategory?: string; operation?: string; outcome?: string; actorId?: string; actorKind?: string; tenantId?: string; subjectId?: string; resource?: string; resourceName?: string; resourceNameHash?: string; resourceExtension?: string; resourceSize?: number; redactedReason?: string; sourceIpAddress?: string; changes?: Array<{ field: string; previousValue: string | null; newValue: string | null }> }>; totalCount: number };
 
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -478,6 +484,65 @@ async function captureAuditSortOrders(page: Page): Promise<void> {
   await captureOrder(await oldestFirst, false, "audit-sort-ascending.png");
 }
 
+const securityDetailsParams = { page: "1", pageSize: "1" };
+
+// Editing a user keeps the previous and new value on the record, shown in its detail dialog.
+async function captureUserEditDetail(page: Page): Promise<void> {
+  const platformAuditText = securityMessageCatalogs[locale].security.platformAudit;
+  // A new account has no session, so the active-session conflict does not apply to this edit.
+  const created = await postJson(page, "/api/modules/users/administration/create/email", {
+    email: `e2e-audit-edit-${Date.now()}@example.test`,
+    firstName: "Audit",
+    lastName: "Evidence",
+  });
+  expect(created.status, JSON.stringify(created.body)).toBe(200);
+  const userId = (created.body as { id: string }).id;
+  expect(userId).toEqual(expect.any(String));
+  const details = await page.evaluate(async ({ origin, path }) => {
+    const response = await fetch(`${origin}${path}`, {
+      credentials: "include",
+      headers: { "X-Vitarish-Tenant-Host": window.location.host },
+    });
+    return await response.json() as UserSecurityDetailsResponse;
+  }, { origin: browserApiOrigin, path: `${getUsersAdministrationGetUserSecurityQueryKey(userId)[0]}?${new URLSearchParams(securityDetailsParams)}` });
+  const previousFirstName = String(details.user.firstName);
+  const editedFirstName = `${previousFirstName}-edited`;
+  const edited = await putJson(page, `/api/modules/users/${encodeURIComponent(userId)}`, {
+    email: details.user.email,
+    phoneNumber: details.user.phoneNumber,
+    firstName: editedFirstName,
+    lastName: details.user.lastName,
+    revision: details.user.revision,
+  });
+  expect(edited.status, JSON.stringify(edited.body)).toBe(200);
+  const records = await platformAuditQuery(page, { ...auditEvents.userEdit, outcome: "succeeded" });
+  const record = records.items.find((item) => item.subjectId === userId && item.changes?.some((change) =>
+    change.field === "firstName" && change.previousValue === previousFirstName && change.newValue === editedFirstName));
+  expect(record?.id, "the user edit must carry the previous and new first name").toEqual(expect.any(String));
+  await page.goto(`${platformOrigin}${PlatformRoutes.Audit}`, { waitUntil: "domcontentloaded" });
+  await expect(page.getByRole("heading", { name: uiText.auditTitle })).toBeVisible({ timeout: 30_000 });
+  await page.getByRole("button", { name: uiText.clearFilters }).click();
+  await page.getByRole("textbox", { name: platformAuditText.eventId, exact: true }).fill(record!.id!);
+  const response = page.waitForResponse((candidate) =>
+    candidate.url().includes(platformAuditEventsPath) && candidate.request().method() === "GET",
+  );
+  await page.getByRole("button", { name: uiText.applyFilters }).click();
+  await response;
+  await page.locator("tbody tr").first().click();
+  const detail = page.getByRole("dialog");
+  await expect(detail.getByRole("heading", { name: platformAuditText.detailTitle })).toBeVisible();
+  const changeLine = detail.getByRole("listitem").filter({ hasText: localizePlatformAuditChangeField(locale, "firstName", "firstName") });
+  await expect(changeLine).toContainText(previousFirstName);
+  await expect(changeLine).toContainText(editedFirstName);
+  await changeLine.scrollIntoViewIfNeeded();
+  await page.evaluate(() => Promise.all(document.getAnimations()
+    .filter((animation) => animation.effect?.getComputedTiming().endTime !== Infinity)
+    .map((animation) => animation.finished)));
+  mkdirSync(evidenceDirectory, { recursive: true });
+  await hideDevelopmentIndicator(page);
+  await page.screenshot({ path: join(evidenceDirectory, "user-edit-detail.png") });
+}
+
 async function exportPlatformAuditCsvForEvent(page: Page, eventId: string): Promise<string> {
   const platformAuditText = securityMessageCatalogs[locale].security.platformAudit;
   await page.getByRole("button", { name: uiText.clearFilters }).click();
@@ -659,6 +724,22 @@ test("real actions create visible platform security-audit evidence", async ({ pa
       resourceSize: evidenceFileSize,
     });
     expect(await downloadEvidenceFile(page, uploadedFileId!)).toBe(200);
+
+    // A capability that cannot complete because a dependency failed leaves its own failure record.
+    expect((await postJson(administratorPage, fileStorageOutageStartPath)).status).toBe(204);
+    try {
+      expect(await downloadEvidenceFile(page, uploadedFileId!)).toBe(503);
+    } finally {
+      expect((await postJson(administratorPage, fileStorageOutageEndPath)).status).toBe(204);
+    }
+    const isCapabilityFailure = (item: { sourceBoundary?: string | null; redactedReason?: string | null }) =>
+      item.sourceBoundary === "audit.capability-failure" && item.redactedReason === "dependency_unavailable";
+    await expect.poll(async () =>
+      (await platformAuditQuery(administratorPage, { ...auditEvents.securityFunctionFailure, outcome: "failed" })).items.filter(isCapabilityFailure).length,
+    { timeout: 15_000 }).toBeGreaterThan(0);
+    const capabilityFailure = (await platformAuditQuery(administratorPage, { ...auditEvents.securityFunctionFailure, outcome: "failed" })).items.find(isCapabilityFailure);
+    expect(capabilityFailure?.resource).toMatch(/^endpoint\//);
+    await captureAuditReviewDetail(administratorPage, capabilityFailure!.id!, [capabilityFailure!.resource!], "capability-failure-detail.png");
     const exportRecords = await platformAuditQuery(administratorPage, { ...auditEvents.auditExport, outcome: "succeeded" });
     const downloadRecord = exportRecords.items.find((item) => item.resource === `files/${uploadedFileId!.replaceAll("-", "")}`);
     expect(downloadRecord?.id).toEqual(expect.any(String));
@@ -714,8 +795,8 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     const deniedAfter = await platformAuditQuery(administratorPage, deniedReview);
     const deniedCountDelta = deniedAfter.totalCount - deniedBefore.totalCount;
     expect(deniedCountDelta).toBeGreaterThanOrEqual(0);
-    expect(deniedCountDelta).toBeLessThanOrEqual(1, "a retry can reuse the same actor and operation within the deduplication window");
-    if (testInfo.retry === 0) expect(deniedCountDelta).toBe(1, "the export operation is distinct from the list denial captured by the preceding audit-grid scenario");
+    expect(deniedCountDelta, "a retry can reuse the same actor and operation within the deduplication window").toBeLessThanOrEqual(1);
+    if (testInfo.retry === 0) expect(deniedCountDelta, "the export operation is distinct from the list denial captured by the preceding audit-grid scenario").toBe(1);
     const signedInDenial = deniedAfter.items.find((item) => item.actorId === ownerSession.user?.userId);
     expect(signedInDenial).toMatchObject({
       eventName: auditEvents.auditReview.name,
@@ -787,7 +868,7 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     const tenantReviewAfter = await platformAuditQuery(administratorPage, tenantReview);
     const tenantReviewCountDelta = tenantReviewAfter.totalCount - tenantReviewBefore.totalCount;
     expect(tenantReviewCountDelta).toBeGreaterThanOrEqual(0);
-    expect(tenantReviewCountDelta).toBeLessThanOrEqual(1, "a retry may reuse the matching review record within its deduplication window");
+    expect(tenantReviewCountDelta, "a retry may reuse the matching review record within its deduplication window").toBeLessThanOrEqual(1);
     const tenantReviewRecord = tenantReviewAfter.items.find((item) =>
       item.actorKind === "user" && item.sourceIpAddress === ownerClientIp && item.tenantId === ownerTenantId,
     );
@@ -896,8 +977,16 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     expect(accessHistory.status).toBe(200);
     // The access history keeps the address of the owner's sign-in (the forwarded test client IP).
     expect((accessHistory.body as { lastSuccessfulIpAddress?: string } | null)?.lastSuccessfulIpAddress).toBe(ownerClientIp);
+    // One failed attempt from a distinct address must appear in the owner's history with that address.
+    expect(await passwordLoginFrom(request, failedAttemptClientIp, ownerUsername, `${password!}-wrong`, "history")).toBe(401);
+    const historyAfterFailure = await page.evaluate(async (origin) => {
+      const response = await fetch(`${origin}/api/modules/authentication/access-history`, { credentials: "include" });
+      return await response.json() as { lastUnsuccessfulIpAddress?: string };
+    }, browserApiOrigin);
+    expect(historyAfterFailure.lastUnsuccessfulIpAddress).toBe(failedAttemptClientIp);
     await page.goto(ClinicRoutes.Account.Security, { waitUntil: "domcontentloaded" });
     await expect(page.getByText(new RegExp(escapeRegExp(ownerClientIp))).first()).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByText(new RegExp(escapeRegExp(failedAttemptClientIp))).first()).toBeVisible();
     mkdirSync(evidenceDirectory, { recursive: true });
     await page.screenshot({ path: join(evidenceDirectory, "account-security-access-history.png"), fullPage: true });
     expect((await postJson(page, "/api/modules/authentication/access-history/acknowledge")).status).toBe(200);
@@ -1032,6 +1121,7 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     await roleChangeLine.scrollIntoViewIfNeeded();
     await hideDevelopmentIndicator(administratorPage);
     await administratorPage.screenshot({ path: join(evidenceDirectory, "tenant-role-change-detail.png") });
+    await captureUserEditDetail(administratorPage);
     await captureFileTransferDetail(administratorPage, auditEvents.dataImport, uploadRecord!.id!, "data-import-detail.png");
     await captureFileTransferDetail(administratorPage, auditEvents.auditExport, downloadRecord!.id!, "data-export-detail.png");
     await captureAuditEvidence(administratorPage, { ...auditEvents.dataImport, outcome: "succeeded" }, "data-import.png");
@@ -1079,7 +1169,9 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     await captureAuditEvidence(administratorPage, { ...auditEvents.accessHistory, outcome: "succeeded" }, "access-history.png");
     await captureAuditEvidence(administratorPage, { ...auditEvents.sessionPolicy, outcome: "succeeded" }, "session-policy.png");
     const securityFailureRecords = await platformAuditQuery(administratorPage, { ...auditEvents.securityFunctionFailure, outcome: "failed" });
-    expect(securityFailureRecords.items.every((item) => item.redactedReason === "validation_failed")).toBe(true);
+    expect(securityFailureRecords.items
+      .filter((item) => item.sourceBoundary !== "audit.capability-failure")
+      .every((item) => item.redactedReason === "validation_failed")).toBe(true);
     await captureAuditEvidence(administratorPage, { ...auditEvents.securityFunctionFailure, outcome: "failed" }, "security-function-failure.png");
     await captureAuditEvidence(administratorPage, { ...auditEvents.sessionEstablished, outcome: "denied" }, "session-concurrent-limit-denied.png");
 
@@ -1119,8 +1211,9 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     // While every audit-store save fails, a sign-in attempt still gets its normal answer. Once the
     // store accepts writes again, one security-failure record summarizes the outage.
     const outageSummaryPattern = /^audit_storage_outage:start=[^;]+;end=[^;]+;failed_writes=(\d+)$/;
-    // The outage start outcome and recovery trigger start each fail, as do the login started/completed events.
-    const refusedAuditWrites = 4;
+    // The outage start outcome and recovery trigger start each fail, as do the login started/completed events
+    // and the capability failure of the audit review that the outage makes unavailable.
+    const refusedAuditWrites = 5;
     expect((await postJson(administratorPage, storeOutageStartPath)).status).toBe(204);
     let statusDuringOutage = 0;
     try {
