@@ -3,6 +3,19 @@ export const usersMessageCatalogs = {
     users: {
       management: {
         title: "Users",
+        deleteAccount: "Delete account",
+        deleteAccountDescription: "Permanently clear account details and remove all access. Clinical and audit records keep the user identifier.",
+        deleteAccountDialogTitle: "Permanently delete this account?",
+        deleteAccountConfirm: "This cannot be undone. Personal account details, credentials, passkeys and memberships will be removed. The user must have no active sessions and must not be the last clinic owner or platform administrator.",
+        deleteAccountConfirmAction: "Permanently delete account",
+        accountDeleted: "The account was deleted and its personal details cleared.",
+        deleteLastOwner: "Transfer ownership first. This user is the last owner of a clinic.",
+        deleteSelf: "You cannot delete your own account.",
+        deleteLastAdministrator: "The last platform administrator cannot be deleted.",
+        deleteActiveSession: "End this user's active sessions before deleting the account.",
+        deleteUnavailable: "Account deletion is temporarily unavailable. Reload the account before retrying.",
+        deleteError: "The account could not be deleted. Reload the account before retrying.",
+
         description: "Manage accounts and tenant memberships.",
         searchLabel: "Search users",
         searchPlaceholder: "Email, phone, name, or username",
@@ -153,6 +166,19 @@ export const usersMessageCatalogs = {
   fa: {
     users: {
       management: {
+        deleteAccount: "حذف حساب",
+        deleteAccountDescription: "اطلاعات شخصی حساب برای همیشه پاک می‌شود و همهٔ دسترسی‌ها حذف می‌شوند. شناسهٔ کاربر در سوابق درمانی و ممیزی باقی می‌ماند.",
+        deleteAccountDialogTitle: "این حساب برای همیشه حذف شود؟",
+        deleteAccountConfirm: "این کار قابل بازگشت نیست. اطلاعات شخصی حساب، اطلاعات ورود، کلیدهای عبور و عضویت‌ها پاک می‌شوند. کاربر نباید نشست فعال داشته باشد یا آخرین مالک مطب یا آخرین مدیر پلتفرم باشد.",
+        deleteAccountConfirmAction: "حذف همیشگی حساب",
+        accountDeleted: "حساب حذف شد و اطلاعات شخصی آن پاک شد.",
+        deleteLastOwner: "ابتدا مالکیت را منتقل کنید. این کاربر آخرین مالک یک مطب است.",
+        deleteSelf: "نمی‌توانید حساب خودتان را حذف کنید.",
+        deleteLastAdministrator: "حساب آخرین مدیر پلتفرم را نمی‌توان حذف کرد.",
+        deleteActiveSession: "پیش از حذف حساب، نشست‌های فعال این کاربر را پایان دهید.",
+        deleteUnavailable: "حذف حساب فعلاً در دسترس نیست. پیش از تلاش دوباره، حساب را بازخوانی کنید.",
+        deleteError: "حذف حساب انجام نشد. پیش از تلاش دوباره، حساب را بازخوانی کنید.",
+
         title: "کاربران",
         description: "حساب‌ها و عضویت‌های مستأجری را مدیریت کنید.",
         searchLabel: "جست‌وجوی کاربران",

@@ -1,4 +1,5 @@
-import { tenantRoleSuffixes, UsersCommandErrorKind } from "@vitarish/auth/users";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { getUsersGetUserQueryKey, getUsersSearchUsersQueryKey, tenantRoleSuffixes, UsersCommandErrorKind } from "@vitarish/auth/users";
 import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -15,6 +16,7 @@ const globalRoleGrant = vi.fn((_input: unknown, options?: { onSuccess?: () => vo
 const inactivityPolicySave = vi.fn((_input: unknown, options?: { onSuccess?: () => void; onError?: (error: unknown) => void }) => options?.onSuccess?.());
 const revokeSessions = vi.fn((_input: unknown, options?: { onSuccess?: (result: { endedSessions: number }) => void; onError?: (error: unknown) => void }) => options?.onSuccess?.({ endedSessions: 2 }));
 const disableUser = vi.fn((_input: unknown, options?: { onSuccess?: () => void; onError?: (error: unknown) => void }) => options?.onSuccess?.());
+const deleteUser = vi.fn((_input: unknown, options?: { onSuccess?: () => void; onError?: (error: unknown) => void }) => options?.onSuccess?.());
 const enableUser = vi.fn((_input: unknown, options?: { onSuccess?: () => void; onError?: (error: unknown) => void }) => options?.onSuccess?.());
 const securityQueryParams = vi.fn();
 const membershipUserIds = vi.fn();
@@ -109,6 +111,7 @@ vi.mock("@vitarish/auth", () => ({
   useAuthenticationUserInactivityPolicyGet: () => ({ data: { version: 1, inactivityTimeoutMinutes: null }, isLoading: false, isError: false, refetch }),
   useAuthenticationUserInactivityPolicyPut: () => ({ isPending: false, mutate: inactivityPolicySave }),
   useAuthenticationUserSessionsRevoke: () => ({ isPending: false, mutate: revokeSessions }),
+  useUsersDeleteUser: () => ({ isPending: false, mutate: deleteUser }),
   useUsersDisableUser: () => ({ isPending: false, mutate: disableUser }),
   useUsersEnableUser: () => ({ isPending: false, mutate: enableUser }),
   useUsersAdministrationCreateWithEmail: () => ({ isPending: false, mutate: vi.fn() }),
@@ -127,11 +130,12 @@ afterEach(() => {
 
 securityDetailsQueryResponse = { data: userSecurityDetails, error: null, isLoading: false, isError: false, refetch };
 
-function renderSurface(mode: "tenant" | "platform", props: Partial<UserManagementSurfaceProps> = {}) {
+function renderSurface(mode: "tenant" | "platform", props: Partial<UserManagementSurfaceProps> = {}, client = new QueryClient()) {
   return render(
     <LocalizationProvider locale="en" messages={usersMessageCatalogs.en}>
       <UserManagementSurface mode={mode} {...props} />
     </LocalizationProvider>,
+    { wrapper: ({ children }) => <QueryClientProvider client={client}>{children}</QueryClientProvider> },
   );
 }
 
@@ -155,6 +159,59 @@ function accountStatusSection(): HTMLElement {
   if (!section) throw new Error("The account status section is not rendered.");
   return section;
 }
+
+describe("platform account deletion", () => {
+  it("requires explicit confirmation, submits the current revision and removes the editor after success", async () => {
+    const onUserDeleted = vi.fn();
+    const client = new QueryClient();
+    const targetKey = getUsersGetUserQueryKey(userSecurityDetails.user.id);
+    const otherKey = getUsersGetUserQueryKey("other-user");
+    client.setQueryData(targetKey, userSecurityDetails.user);
+    client.setQueryData(otherKey, { id: "other-user" });
+    client.setQueryData(getUsersSearchUsersQueryKey(), [userSecurityDetails.user]);
+    renderSurface("platform", { platformView: "detail", userId: userSecurityDetails.user.id, onUserDeleted }, client);
+    await userEvent.click(screen.getByRole("button", { name: usersMessageCatalogs.en.users.management.deleteAccount }));
+    expect(deleteUser).not.toHaveBeenCalled();
+    await userEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: usersMessageCatalogs.en.users.management.cancel }));
+    expect(deleteUser).not.toHaveBeenCalled();
+    await userEvent.click(screen.getByRole("button", { name: usersMessageCatalogs.en.users.management.deleteAccount }));
+    await userEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: usersMessageCatalogs.en.users.management.deleteAccountConfirmAction }));
+    expect(deleteUser).toHaveBeenCalledWith({ userId: userSecurityDetails.user.id, data: { revision: userSecurityDetails.user.revision } }, expect.anything());
+    expect(await screen.findByText(usersMessageCatalogs.en.users.management.accountDeleted)).toBeVisible();
+    expect(screen.queryByRole("button", { name: usersMessageCatalogs.en.users.management.saveChanges })).not.toBeInTheDocument();
+    expect(onUserDeleted).toHaveBeenCalledOnce();
+    expect(client.getQueryData(targetKey)).toBeUndefined();
+    expect(client.getQueryData(getUsersSearchUsersQueryKey())).toBeUndefined();
+    expect(client.getQueryData(otherKey)).toEqual({ id: "other-user" });
+  });
+
+  it.each([401, 403, 503])("keeps the editor and reports deletion failure for HTTP %s", async status => {
+    const onUserDeleted = vi.fn();
+    deleteUser.mockImplementationOnce((_input, options) => options?.onError?.({ status }));
+    renderSurface("platform", { platformView: "detail", userId: userSecurityDetails.user.id, onUserDeleted });
+    await userEvent.click(screen.getByRole("button", { name: usersMessageCatalogs.en.users.management.deleteAccount }));
+    await userEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: usersMessageCatalogs.en.users.management.deleteAccountConfirmAction }));
+    expect(await screen.findByText(status === 503 ? usersMessageCatalogs.en.users.management.deleteUnavailable : usersMessageCatalogs.en.users.management.accountStatusForbidden)).toBeVisible();
+    expect(onUserDeleted).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: usersMessageCatalogs.en.users.management.saveChanges })).toBeEnabled();
+  });
+
+  it.each([
+    [UsersCommandErrorKind.LastOwnerProtection, "deleteLastOwner"],
+    [UsersCommandErrorKind.SelfDeletion, "deleteSelf"],
+    [UsersCommandErrorKind.LastPlatformAdministrator, "deleteLastAdministrator"],
+    [UsersCommandErrorKind.ActiveSessionConflict, "deleteActiveSession"],
+    [UsersCommandErrorKind.ConcurrencyFailure, "editConflict"],
+  ] as const)("keeps the editor and displays the server refusal %s", async (failureCode, messageKey) => {
+    deleteUser.mockImplementationOnce((_input, options) => options?.onError?.({ status: 409, problem: { succeeded: false, errors: [{ code: failureCode, failureCode }] } }));
+    renderSurface("platform", { platformView: "detail", userId: userSecurityDetails.user.id });
+    await userEvent.click(screen.getByRole("button", { name: usersMessageCatalogs.en.users.management.deleteAccount }));
+    await userEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: usersMessageCatalogs.en.users.management.deleteAccountConfirmAction }));
+    expect(await screen.findByText(usersMessageCatalogs.en.users.management[messageKey])).toBeVisible();
+    expect(screen.getByRole("button", { name: usersMessageCatalogs.en.users.management.saveChanges })).toBeEnabled();
+    expect(refetch).toHaveBeenCalled();
+  });
+});
 
 describe("UserManagementSurface", () => {
   it("shows the owner and staff while exposing removal and refresh only for staff", async () => {

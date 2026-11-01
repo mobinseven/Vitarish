@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useMemo, useState, type ComponentProps, type FormEvent } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Alert, Button, Chip, Modal, Pagination, Surface, Table, Tooltip } from "@heroui/react";
 import {
   useAuthSession,
@@ -17,6 +18,7 @@ import {
   useUsersAdministrationListTenantRoles,
   useUsersAdministrationRevokeTenantRole,
   useUsersAdministrationUpdateUser,
+  useUsersDeleteUser,
   useUsersDisableUser,
   useUsersEnableUser,
   useUsersListTenantMembers,
@@ -25,12 +27,12 @@ import {
   useUsersRemoveTenantMember,
 } from "@vitarish/auth";
 import type { TenantRoleMembershipResponse, UserAuthenticationMethodsResponse, UserPasskeyResponse, UserSecurityDetailsResponse, UserSecurityEventResponse, UserSecurityHistoryResponse } from "@vitarish/auth";
-import { tenantRoleSuffixes, UsersCommandErrorKind } from "@vitarish/auth/users";
+import { getUsersAdministrationGetUserSecurityQueryKey, getUsersAdministrationListTenantRolesQueryKey, getUsersGetUserQueryKey, getUsersSearchUsersQueryKey, getUsersGetProfileQueryKey, getUsersGetCultureQueryKey, getUsersListWebAuthnCredentialsQueryKey, tenantRoleSuffixes, UsersCommandErrorKind } from "@vitarish/auth/users";
 import type { TenantRoleSuffix } from "@vitarish/auth/users";
 import { formatDateTime, formatNumber, useLocalizedText } from "@vitarish/localization";
 import { auditOutcomeColor } from "@vitarish/security";
 import { localizePlatformAuditEvent, localizeSecurityAuditOutcome } from "@vitarish/security/localization";
-import { HeaderIcon, MobileNumberField } from "@vitarish/ui";
+import { HeaderIcon, MobileNumberField, removeButtonClassName } from "@vitarish/ui";
 
 export type UserManagementMode = "tenant" | "platform";
 export type UserManagementPlatformView = "directory" | "create" | "detail";
@@ -42,6 +44,7 @@ export interface UserManagementSurfaceProps {
   platformView?: UserManagementPlatformView;
   userId?: string;
   onOpenUserDetails?: (userId: string) => void;
+  onUserDeleted?: () => void;
 }
 
 const maxResults = 50;
@@ -56,6 +59,7 @@ export function UserManagementSurface({
   platformView = "directory",
   userId,
   onOpenUserDetails,
+  onUserDeleted,
 }: UserManagementSurfaceProps) {
   const { t } = useLocalizedText();
   const { isAuthenticated, isLoading: sessionLoading } = useAuthSession();
@@ -121,6 +125,7 @@ export function UserManagementSurface({
         title={title ?? t("users.management.platformDetail")}
         userId={userId ?? ""}
         memberships={platformMemberships}
+        onUserDeleted={onUserDeleted}
         t={t}
       />
     );
@@ -389,7 +394,10 @@ function PlatformCreateUser({ title, t }: { title: string; t: Translate }) {
   return <main className="max-w-2xl space-y-5"><SurfaceHeader title={title} /><Surface className="flex flex-col gap-6 rounded-3xl p-6"><div><form className="space-y-4" onSubmit={submit}><label className="block">{t("users.management.contactType")}<select className={nativeFieldClassName} value={contactType} onChange={(event) => { setContactType(event.target.value as "email" | "phone"); setContactFieldError(undefined); }}><option value="email">{t("users.management.emailContact")}</option><option value="phone">{t("users.management.phoneContact")}</option></select></label><div>{contactType === "email" ? <label className="block">{t("users.management.emailContact")}<input className={nativeFieldClassName} required value={contact} onChange={(event) => setContact(event.target.value)} /></label> : <MobileNumberField label={t("users.management.phoneContact")} hint={t("users.management.phoneContactHint")} value={contact} onChange={(value) => { setContact(value); setContactFieldError(undefined); }} isRequired error={contactFieldError} />}</div><label className="block">{t("users.management.firstName")}<input className={nativeFieldClassName} value={firstName} onChange={(event) => setFirstName(event.target.value)} /></label><label className="block">{t("users.management.lastName")}<input className={nativeFieldClassName} value={lastName} onChange={(event) => setLastName(event.target.value)} /></label><button className={nativePrimaryButtonClassName} disabled={pending} title={t("users.management.createUser")}><Icon name="user-plus" />{pending ? t("users.management.adding") : t("users.management.createUser")}</button></form></div></Surface>{message && <p role="status">{message}</p>}</main>;
 }
 
-function PlatformUserDetail({ title, userId, memberships, t }: { title: string; userId: string; memberships: MembershipQuery; t: Translate }) {
+function PlatformUserDetail({ title, userId, memberships, onUserDeleted, t }: { title: string; userId: string; memberships: MembershipQuery; onUserDeleted?: () => void; t: Translate }) {
+  const queryClient = useQueryClient();
+  const deleteUser = useUsersDeleteUser();
+  const [deleted, setDeleted] = useState(false);
   const { locale } = useLocalizedText();
   const emailContactLabel = t("users.management.emailContact");
   const phoneContactLabel = t("users.management.phoneContact");
@@ -403,7 +411,7 @@ function PlatformUserDetail({ title, userId, memberships, t }: { title: string; 
   const disableUser = useUsersDisableUser();
   const enableUser = useUsersEnableUser();
   const [confirmEndSessions, setConfirmEndSessions] = useState(false);
-  const [confirmAccountStatus, setConfirmAccountStatus] = useState<"disable" | "enable" | null>(null);
+  const [confirmAccountStatus, setConfirmAccountStatus] = useState<"disable" | "enable" | "delete" | null>(null);
   const [securityPage, setSecurityPage] = useState(1);
   const [authenticationPage, setAuthenticationPage] = useState(1);
   const [tenantId, setTenantId] = useState("");
@@ -441,6 +449,7 @@ function PlatformUserDetail({ title, userId, memberships, t }: { title: string; 
   const authenticationMethodsUnavailable = securityDetails?.authenticationMethodsUnavailable ?? false;
 
   useEffect(() => {
+    setDeleted(false);
     setSecurityPage(1);
     setAuthenticationPage(1);
     setGlobalRole("");
@@ -583,6 +592,37 @@ function PlatformUserDetail({ title, userId, memberships, t }: { title: string; 
       },
     });
   };
+  const deleteAccount = () => {
+    if (!revision) return;
+    deleteUser.mutate({ userId, data: { revision } }, {
+      onSuccess: async () => {
+        setConfirmAccountStatus(null);
+        setDeleted(true);
+        const prefixes = [
+          getUsersAdministrationGetUserSecurityQueryKey(userId, { page: 1, pageSize }).slice(0, 1),
+          getUsersAdministrationListTenantRolesQueryKey(userId), getUsersGetUserQueryKey(userId), getUsersGetProfileQueryKey(userId),
+          getUsersGetCultureQueryKey(userId), getUsersListWebAuthnCredentialsQueryKey(userId), getUsersSearchUsersQueryKey().slice(0, 1),
+        ];
+        for (const queryKey of prefixes) queryClient.removeQueries({ queryKey });
+        await queryClient.invalidateQueries({ queryKey: getUsersSearchUsersQueryKey().slice(0, 1) });
+        onUserDeleted?.();
+      },
+      onError: async (error) => {
+        setConfirmAccountStatus(null);
+        const status = readHttpStatus(error);
+        const messageKey = hasUsersCommandFailure(error, UsersCommandErrorKind.LastOwnerProtection) ? "users.management.deleteLastOwner"
+          : hasUsersCommandFailure(error, UsersCommandErrorKind.SelfDeletion) ? "users.management.deleteSelf"
+          : hasUsersCommandFailure(error, UsersCommandErrorKind.LastPlatformAdministrator) ? "users.management.deleteLastAdministrator"
+          : hasUsersCommandFailure(error, UsersCommandErrorKind.ActiveSessionConflict) ? "users.management.deleteActiveSession"
+          : status === 409 ? "users.management.editConflict"
+          : status === 401 || status === 403 ? "users.management.accountStatusForbidden"
+          : status === 503 ? "users.management.deleteUnavailable" : "users.management.deleteError";
+        setMessage(t(messageKey));
+        if (status === 409) await refreshSecurityDetails();
+      },
+    });
+  };
+  if (deleted) return <main className="max-w-4xl"><Alert status="success"><Alert.Content><Alert.Title>{t("users.management.accountDeleted")}</Alert.Title></Alert.Content></Alert></main>;
   if (securityQuery.isLoading && !securityDetails) {
     return <main className="max-w-4xl space-y-6"><SurfaceHeader title={title} description={userId} /><p aria-live="polite">{t("users.management.loadingSecurity")}</p></main>;
   }
@@ -720,6 +760,15 @@ function PlatformUserDetail({ title, userId, memberships, t }: { title: string; 
         <Tooltip.Content>{securityDetails.user.isEnabled ? t("users.management.disableAccount") : t("users.management.enableAccount")}</Tooltip.Content>
       </Tooltip>
       </div>
+      <div className="space-y-3">
+        <p className="text-sm text-muted">{t("users.management.deleteAccountDescription")}</p>
+        <Tooltip>
+          <Button variant="tertiary" className={removeButtonClassName} isDisabled={!revision} isPending={deleteUser.isPending} onPress={() => setConfirmAccountStatus("delete")}>
+            <i aria-hidden="true" className="fa-light fa-user-xmark" /> {t("users.management.deleteAccount")}
+          </Button>
+          <Tooltip.Content>{t("users.management.deleteAccount")}</Tooltip.Content>
+        </Tooltip>
+      </div>
     </Surface>
 
     <Surface className="flex flex-col gap-6 rounded-3xl p-6" render={renderSection}>
@@ -742,7 +791,7 @@ function PlatformUserDetail({ title, userId, memberships, t }: { title: string; 
       </div>
     </Surface>
     <EndUserSessionsDialog isOpen={confirmEndSessions} isPending={revokeUserSessions.isPending} onCancel={() => setConfirmEndSessions(false)} onConfirm={endUserSessions} t={t} />
-    <AccountStatusDialog action={confirmAccountStatus} isPending={disableUser.isPending || enableUser.isPending} onCancel={() => setConfirmAccountStatus(null)} onConfirm={() => changeAccountStatus(confirmAccountStatus === "enable")} t={t} />
+    <AccountStatusDialog action={confirmAccountStatus} isPending={disableUser.isPending || enableUser.isPending || deleteUser.isPending} onCancel={() => setConfirmAccountStatus(null)} onConfirm={() => confirmAccountStatus === "delete" ? deleteAccount() : changeAccountStatus(confirmAccountStatus === "enable")} t={t} />
 
     <Surface className="flex flex-col gap-6 rounded-3xl p-6" render={renderSection}>
       <div className="flex flex-col items-start gap-1">
@@ -881,7 +930,7 @@ function EndUserSessionsDialog({ isOpen, isPending, onCancel, onConfirm, t }: {
 }
 
 function AccountStatusDialog({ action, isPending, onCancel, onConfirm, t }: {
-  action: "disable" | "enable" | null;
+  action: "disable" | "enable" | "delete" | null;
   isPending: boolean;
   onCancel: () => void;
   onConfirm: () => void;
@@ -905,9 +954,10 @@ function AccountStatusDialog({ action, isPending, onCancel, onConfirm, t }: {
     [isOpen, isPending, onCancel],
   );
   if (!isOpen) return null;
+  const isDelete = action === "delete";
   const isEnable = action === "enable";
-  const title = isEnable ? t("users.management.enableAccountDialogTitle") : t("users.management.disableAccountDialogTitle");
-  const confirmAction = isEnable ? t("users.management.enableAccountConfirmAction") : t("users.management.disableAccountConfirmAction");
+  const title = isDelete ? t("users.management.deleteAccountDialogTitle") : isEnable ? t("users.management.enableAccountDialogTitle") : t("users.management.disableAccountDialogTitle");
+  const confirmAction = isDelete ? t("users.management.deleteAccountConfirmAction") : isEnable ? t("users.management.enableAccountConfirmAction") : t("users.management.disableAccountConfirmAction");
   return (
     <Modal state={state}>
       <Modal.Backdrop isDismissable={!isPending}>
@@ -917,7 +967,7 @@ function AccountStatusDialog({ action, isPending, onCancel, onConfirm, t }: {
               <Modal.Heading>{title}</Modal.Heading>
             </Modal.Header>
             <Modal.Body>
-              <p>{isEnable ? t("users.management.enableAccountConfirm") : t("users.management.disableAccountConfirm")}</p>
+              <p>{isDelete ? t("users.management.deleteAccountConfirm") : isEnable ? t("users.management.enableAccountConfirm") : t("users.management.disableAccountConfirm")}</p>
             </Modal.Body>
             <Modal.Footer>
               <Tooltip>
@@ -928,7 +978,7 @@ function AccountStatusDialog({ action, isPending, onCancel, onConfirm, t }: {
               </Tooltip>
               <Tooltip>
                 <Button variant={isEnable ? "primary" : "danger"} onPress={onConfirm} isPending={isPending}>
-                  <Icon name={isEnable ? "user-check" : "user-slash"} /> {confirmAction}
+                  <Icon name={isDelete ? "user-xmark" : isEnable ? "user-check" : "user-slash"} /> {confirmAction}
                 </Button>
                 <Tooltip.Content>{confirmAction}</Tooltip.Content>
               </Tooltip>

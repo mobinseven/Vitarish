@@ -91,6 +91,7 @@ export {
   useUsersAdministrationListTenantRoles,
   useUsersAdministrationGetUserSecurity,
   useUsersAdministrationUpdateUser,
+  useUsersDeleteUser,
   useUsersDisableUser,
   useUsersEnableUser,
   useUsersAddRole,
