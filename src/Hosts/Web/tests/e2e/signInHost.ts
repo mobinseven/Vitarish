@@ -1,12 +1,12 @@
 import { expect, type Page, type Response } from "@playwright/test";
 import { Routes } from "../../apps/private-practice-owner/src/app/routes";
-import { twoHostE2eClinicOrigin, twoHostE2eSignInOrigin as signInOrigin } from "../../scripts/two-host-e2e-artifacts.mjs";
+import { twoHostE2eClinicOrigin, twoHostE2eForwardedForHeaderName as forwardedForHeaderName, twoHostE2eSignInOrigin as signInOrigin } from "../../scripts/two-host-e2e-artifacts.mjs";
 import { authenticationLoginPassword } from "../../shared/auth/src/api/generated/authentication/authentication";
 import { generatedOperationPath } from "./generatedOperationPath";
 
 /** The E2E clinic's own host. */
 export const defaultClinicOrigin = twoHostE2eClinicOrigin;
-export const forwardedForHeaderName = "X-Forwarded-For";
+export { forwardedForHeaderName };
 const handoffTimeoutMilliseconds = 120_000;
 const passwordLoginPath = generatedOperationPath(authenticationLoginPassword);
 
