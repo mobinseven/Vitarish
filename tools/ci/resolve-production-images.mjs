@@ -12,6 +12,7 @@ const imageVariables = Object.freeze({
   pm: "VITARISH_PRODUCTION_PM_WEB_IMAGE",
   landing: "VITARISH_PRODUCTION_LANDING_WEB_IMAGE",
   "agent-runtime": "VITARISH_PRODUCTION_AGENT_RUNTIME_IMAGE",
+  "personal-site": "VITARISH_PRODUCTION_PERSONAL_SITE_WEB_IMAGE",
 });
 
 const digestPattern = /^sha256:[0-9a-f]{64}$/;

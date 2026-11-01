@@ -100,6 +100,8 @@ jobs:
               - 'src/Hosts/Web/apps/vitarish-landing/**'
             web_agent:
               - 'src/Hosts/Web/apps/agent-runtime/**'
+            web_personal_site:
+              - 'src/Hosts/Web/apps/personal-site/**'
             web_all:
               - 'src/Hosts/Web/shared/**'
               - '!src/Hosts/Web/shared/auth/**'

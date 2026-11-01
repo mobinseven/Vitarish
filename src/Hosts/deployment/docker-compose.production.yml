@@ -154,6 +154,12 @@ services:
     expose: [3002]
     healthcheck: *node-healthcheck
     networks: { application: {}, proxy: { aliases: [production-landing] } }
+  personal-site:
+    <<: *app-runtime
+    image: "${VITARISH_PRODUCTION_PERSONAL_SITE_WEB_IMAGE:?VITARISH_PRODUCTION_PERSONAL_SITE_WEB_IMAGE is required}"
+    expose: [3010]
+    healthcheck: *node-healthcheck
+    networks: { proxy: { aliases: [production-personal-site] } }
   agent-runtime:
     <<: *app-runtime
     image: "${VITARISH_PRODUCTION_AGENT_RUNTIME_IMAGE:?VITARISH_PRODUCTION_AGENT_RUNTIME_IMAGE is required}"

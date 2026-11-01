@@ -14,11 +14,12 @@ const webConsumers = [
   { service: "knowledge-qa", image: "knowledge-qa", workspace: "knowledge-qa-demo", filter: "web_qa", authConsumer: true, deploy: false },
   { service: "landing", image: "landing", workspace: "vitarish-landing", filter: "web_landing", authConsumer: true },
   { service: "agent-runtime", image: "agent-runtime", workspace: "agent-runtime", filter: "web_agent" },
+  { service: "personal-site", image: "personal-site", workspace: "personal-site", filter: "web_personal_site" },
 ];
 
 const sharedComposeConsumers = [
   "main", "private-practice-owner", "patients", "platform-admin", "pm",
-  "landing", "agent-runtime", "caddy",
+  "landing", "agent-runtime", "personal-site", "caddy",
 ];
 
 // A manual release selects the changes since the deployed commit; without a
