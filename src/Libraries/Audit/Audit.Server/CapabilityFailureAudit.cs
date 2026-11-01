@@ -14,21 +14,28 @@ public static class CapabilityFailureAuditExtensions
 {
     /// <summary>
     /// Records a security failure for each product operation that ends in a server error. Register it outside
-    /// the exception handler: it reads the final response status, after that response has completed, so it
-    /// neither changes nor delays the response.
+    /// the exception handler, so it reads the final status. It runs while the request's services are still
+    /// available; the record's write timeout bounds the only delay, and only failed requests take it.
     /// </summary>
     public static IApplicationBuilder UseCapabilityFailureAudit(this IApplicationBuilder app) =>
-        app.Use((context, next) =>
+        app.Use(async (context, next) =>
         {
-            context.Response.OnCompleted(static state =>
+            try
             {
-                HttpContext completed = (HttpContext)state;
-                return completed.Response.StatusCode >= StatusCodes.Status500InternalServerError
-                    ? completed.RequestServices.GetRequiredService<CapabilityFailureRecorder>().RecordAsync(completed)
-                    : Task.CompletedTask;
-            }, context);
-            return next(context);
+                await next(context);
+            }
+            catch (Exception exception) when (exception is not OperationCanceledException)
+            {
+                await RecordAsync(context);
+                throw;
+            }
+
+            if (context.Response.StatusCode >= StatusCodes.Status500InternalServerError)
+                await RecordAsync(context);
         });
+
+    private static Task RecordAsync(HttpContext context) =>
+        context.RequestServices.GetRequiredService<CapabilityFailureRecorder>().RecordAsync(context);
 }
 
 internal sealed class CapabilityFailureRecorder(

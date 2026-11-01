@@ -121,40 +121,77 @@ public sealed class CapabilityFailureAuditTests
         logger.Errors.Should().ContainSingle();
     }
 
-    [Fact]
-    public async Task The_pipeline_records_only_server_errors_after_the_response_completes()
+    [Theory]
+    [InlineData(StatusCodes.Status200OK, 0)]
+    [InlineData(StatusCodes.Status404NotFound, 0)]
+    [InlineData(StatusCodes.Status499ClientClosedRequest, 0)]
+    [InlineData(StatusCodes.Status503ServiceUnavailable, 1)]
+    public async Task The_pipeline_records_only_server_errors(int status, int expected)
     {
-        foreach ((int status, int expected) in new[] { (StatusCodes.Status200OK, 0), (StatusCodes.Status404NotFound, 0), (StatusCodes.Status499ClientClosedRequest, 0), (StatusCodes.Status503ServiceUnavailable, 1) })
+        RecordingWriter writer = new();
+        await using ServiceProvider provider = CreateServices(writer);
+        await using AsyncServiceScope scope = provider.CreateAsyncScope();
+        DefaultHttpContext context = new() { RequestServices = scope.ServiceProvider };
+        context.SetEndpoint(Endpoint());
+
+        await BuildPipeline(provider, inner =>
         {
-            RecordingWriter writer = new();
-            ServiceCollection services = new();
-            services.AddSingleton<ISecurityAuditWriter>(writer);
-            services.AddSingleton<IRequestContext>(new TestRequestContext("tenant-1", "user-1"));
-            services.AddSingleton(Options.Create(new SecurityAuditOptions()));
-            services.AddSingleton(TimeProvider.System);
-            services.AddSingleton<ILogger<CapabilityFailureRecorder>>(NullLogger<CapabilityFailureRecorder>.Instance);
-            services.AddTransient<CapabilityFailureRecorder>();
-            ServiceProvider provider = services.BuildServiceProvider();
+            inner.Response.StatusCode = status;
+            return Task.CompletedTask;
+        })(context);
 
-            ApplicationBuilder app = new(provider);
-            app.UseCapabilityFailureAudit();
-            app.Run(context =>
-            {
-                context.Response.StatusCode = status;
-                return Task.CompletedTask;
-            });
+        writer.Written.Should().HaveCount(expected);
+        context.Response.StatusCode.Should().Be(status);
+    }
 
-            CompletionResponseFeature responseFeature = new();
-            DefaultHttpContext context = new() { RequestServices = provider };
-            context.Features.Set<Microsoft.AspNetCore.Http.Features.IHttpResponseFeature>(responseFeature);
-            context.SetEndpoint(Endpoint());
+    [Fact]
+    public async Task An_exception_escaping_the_handler_is_recorded_and_still_propagates()
+    {
+        RecordingWriter writer = new();
+        await using ServiceProvider provider = CreateServices(writer);
+        await using AsyncServiceScope scope = provider.CreateAsyncScope();
+        DefaultHttpContext context = new() { RequestServices = scope.ServiceProvider };
+        context.SetEndpoint(Endpoint());
 
-            await app.Build()(context);
-            writer.Written.Should().BeEmpty("the response has not completed yet");
+        Func<Task> run = () => BuildPipeline(provider, _ => throw new InvalidOperationException("boom"))(context);
 
-            await responseFeature.CompleteAsync();
-            writer.Written.Should().HaveCount(expected, "status {0}", status);
-        }
+        await run.Should().ThrowAsync<InvalidOperationException>();
+        writer.Written.Should().ContainSingle();
+    }
+
+    [Fact]
+    public async Task A_cancelled_request_is_not_a_failed_capability()
+    {
+        RecordingWriter writer = new();
+        await using ServiceProvider provider = CreateServices(writer);
+        await using AsyncServiceScope scope = provider.CreateAsyncScope();
+        DefaultHttpContext context = new() { RequestServices = scope.ServiceProvider };
+        context.SetEndpoint(Endpoint());
+
+        Func<Task> run = () => BuildPipeline(provider, _ => throw new OperationCanceledException())(context);
+
+        await run.Should().ThrowAsync<OperationCanceledException>();
+        writer.Written.Should().BeEmpty();
+    }
+
+    private static ServiceProvider CreateServices(ISecurityAuditWriter writer)
+    {
+        ServiceCollection services = new();
+        services.AddSingleton(writer);
+        services.AddScoped<IRequestContext>(_ => new TestRequestContext("tenant-1", "user-1"));
+        services.AddSingleton(Options.Create(new SecurityAuditOptions()));
+        services.AddSingleton(TimeProvider.System);
+        services.AddSingleton<ILogger<CapabilityFailureRecorder>>(NullLogger<CapabilityFailureRecorder>.Instance);
+        services.AddTransient<CapabilityFailureRecorder>();
+        return services.BuildServiceProvider();
+    }
+
+    private static RequestDelegate BuildPipeline(IServiceProvider provider, RequestDelegate endpoint)
+    {
+        ApplicationBuilder app = new(provider);
+        app.UseCapabilityFailureAudit();
+        app.Run(endpoint);
+        return app.Build();
     }
 
     private static CapabilityFailureRecorder CreateRecorder(
@@ -229,19 +266,6 @@ public sealed class CapabilityFailureAuditTests
         {
             if (logLevel == LogLevel.Error)
                 Errors.Add(formatter(state, exception));
-        }
-    }
-
-    private sealed class CompletionResponseFeature : Microsoft.AspNetCore.Http.Features.HttpResponseFeature
-    {
-        private readonly List<(Func<object, Task> Callback, object State)> completed = [];
-
-        public override void OnCompleted(Func<object, Task> callback, object state) => completed.Add((callback, state));
-
-        public async Task CompleteAsync()
-        {
-            foreach ((Func<object, Task> callback, object state) in completed)
-                await callback(state);
         }
     }
 

@@ -109,7 +109,7 @@ const integrityTamperPath = (fileId: string) => `${e2eAuditEvidenceBase}/files/$
 
 // An endpoint-level record names the endpoint's operation ID instead of the catalog operation.
 type AuditEventExpectation = Omit<(typeof auditEvents)[keyof typeof auditEvents], "operation"> & { operation: string; outcome: string };
-type AuditPage = { items: Array<{ id?: string; eventName?: string; eventCategory?: string; operation?: string; outcome?: string; actorId?: string; actorKind?: string; tenantId?: string; subjectId?: string; resource?: string; resourceName?: string; resourceNameHash?: string; resourceExtension?: string; resourceSize?: number; redactedReason?: string; sourceIpAddress?: string; changes?: Array<{ field: string; previousValue: string | null; newValue: string | null }> }>; totalCount: number };
+type AuditPage = { items: Array<{ id?: string; sourceBoundary?: string | null; eventName?: string; eventCategory?: string; operation?: string; outcome?: string; actorId?: string; actorKind?: string; tenantId?: string; subjectId?: string; resource?: string; resourceName?: string; resourceNameHash?: string; resourceExtension?: string; resourceSize?: number; redactedReason?: string; sourceIpAddress?: string; changes?: Array<{ field: string; previousValue: string | null; newValue: string | null }> }>; totalCount: number };
 
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -795,8 +795,8 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     const deniedAfter = await platformAuditQuery(administratorPage, deniedReview);
     const deniedCountDelta = deniedAfter.totalCount - deniedBefore.totalCount;
     expect(deniedCountDelta).toBeGreaterThanOrEqual(0);
-    expect(deniedCountDelta).toBeLessThanOrEqual(1, "a retry can reuse the same actor and operation within the deduplication window");
-    if (testInfo.retry === 0) expect(deniedCountDelta).toBe(1, "the export operation is distinct from the list denial captured by the preceding audit-grid scenario");
+    expect(deniedCountDelta, "a retry can reuse the same actor and operation within the deduplication window").toBeLessThanOrEqual(1);
+    if (testInfo.retry === 0) expect(deniedCountDelta, "the export operation is distinct from the list denial captured by the preceding audit-grid scenario").toBe(1);
     const signedInDenial = deniedAfter.items.find((item) => item.actorId === ownerSession.user?.userId);
     expect(signedInDenial).toMatchObject({
       eventName: auditEvents.auditReview.name,
@@ -868,7 +868,7 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     const tenantReviewAfter = await platformAuditQuery(administratorPage, tenantReview);
     const tenantReviewCountDelta = tenantReviewAfter.totalCount - tenantReviewBefore.totalCount;
     expect(tenantReviewCountDelta).toBeGreaterThanOrEqual(0);
-    expect(tenantReviewCountDelta).toBeLessThanOrEqual(1, "a retry may reuse the matching review record within its deduplication window");
+    expect(tenantReviewCountDelta, "a retry may reuse the matching review record within its deduplication window").toBeLessThanOrEqual(1);
     const tenantReviewRecord = tenantReviewAfter.items.find((item) =>
       item.actorKind === "user" && item.sourceIpAddress === ownerClientIp && item.tenantId === ownerTenantId,
     );
@@ -1211,8 +1211,9 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     // While every audit-store save fails, a sign-in attempt still gets its normal answer. Once the
     // store accepts writes again, one security-failure record summarizes the outage.
     const outageSummaryPattern = /^audit_storage_outage:start=[^;]+;end=[^;]+;failed_writes=(\d+)$/;
-    // The outage start outcome and recovery trigger start each fail, as do the login started/completed events.
-    const refusedAuditWrites = 4;
+    // The outage start outcome and recovery trigger start each fail, as do the login started/completed events
+    // and the capability failure of the audit review that the outage makes unavailable.
+    const refusedAuditWrites = 5;
     expect((await postJson(administratorPage, storeOutageStartPath)).status).toBe(204);
     let statusDuringOutage = 0;
     try {

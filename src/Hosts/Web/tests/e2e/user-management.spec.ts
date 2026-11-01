@@ -194,7 +194,7 @@ test("authenticated platform administrator retains global search and membership 
   const authenticationHistory = page.locator("section").filter({
     has: page.getByRole("heading", { name: "Authentication history", exact: true }),
   });
-  await expect(authenticationHistory.getByText("Password login", { exact: true })).toBeVisible();
+  await expect(authenticationHistory.getByText("Password login", { exact: true }).first()).toBeVisible();
   const passwordLoginEvent = authenticationHistory.getByRole("row").filter({ hasText: "Password login" }).first();
   await expect(passwordLoginEvent.getByText(new URL(platformOrigin).hostname, { exact: true })).toBeVisible();
   await signOutThroughPublicApi(page);

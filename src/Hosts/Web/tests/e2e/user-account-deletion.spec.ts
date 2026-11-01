@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { Routes } from "../../apps/platform-admin/src/app/routes";
-import { TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
+import { REQUEST_ID_HEADER, TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
 import { authenticationLoginPassword, authenticationLogoutPost, getAuthenticationAntiforgeryGetQueryKey, getAuthenticationSessionGetQueryKey } from "../../shared/auth/src/api/generated/authentication/authentication";
 import { usersAdministrationCreateWithEmail, usersDeleteUser, getUsersSearchUsersQueryKey } from "../../shared/auth/src/api/generated/users/users";
 import type { AuthenticationSessionDto } from "../../shared/auth/src/api/generated/authentication/model";
@@ -37,14 +37,14 @@ const auditText = securityMessageCatalogs[locale].security.platformAudit;
 const deletePath = (id: string) => generatedOperationPath(usersDeleteUser).replace("${userId}", encodeURIComponent(id));
 
 async function mutation(page: Page, path: string, body: unknown): Promise<number> {
-  return page.evaluate(async ({ path, body, tokenPath, tenantHeader }) => {
+  return page.evaluate(async ({ path, body, tokenPath, tenantHeader, requestIdHeader }) => {
     const headers = { [tenantHeader]: location.host };
     const token = await fetch(tokenPath, { credentials: "include", headers }).then(response => response.json()) as { headerName: string; requestToken: string };
     const response = await fetch(path, { method: "POST", credentials: "include", headers: {
-      ...headers, "Content-Type": "application/json", [token.headerName]: token.requestToken,
+      ...headers, "Content-Type": "application/json", [requestIdHeader]: crypto.randomUUID(), [token.headerName]: token.requestToken,
     }, body: JSON.stringify(body) });
     return response.status;
-  }, { path, body, tokenPath: getAuthenticationAntiforgeryGetQueryKey()[0], tenantHeader: TENANT_HOST_HEADER });
+  }, { path, body, tokenPath: getAuthenticationAntiforgeryGetQueryKey()[0], tenantHeader: TENANT_HOST_HEADER, requestIdHeader: REQUEST_ID_HEADER });
 }
 
 async function records(page: Page, subjectId: string, eventName: string): Promise<SecurityAuditEventReadDto[]> {
@@ -133,7 +133,7 @@ test(`platform account deletion, refusal and attributable audit detail ${locale}
     await expect(detail.getByText(subject.id, { exact: true })).toBeVisible();
     await expect(detail.getByText(actorId, { exact: true })).toBeVisible();
     await expect(detail.getByText(twoHostE2eAccountDeletionClientIp, { exact: true })).toBeVisible();
-    await expect(detail.getByText(localizePlatformAuditChangeValue(locale, "deleted", "deleted"), { exact: true })).toBeVisible();
+    await expect(detail.getByRole("listitem").filter({ hasText: localizePlatformAuditChangeValue(locale, "deleted", "deleted") })).toBeVisible();
     await page.screenshot({ path: testInfo.outputPath("account-deletion-audit-detail.png"), fullPage: true });
   } finally {
     expect(await mutation(page, generatedOperationPath(authenticationLogoutPost), { logoutId: null, returnUrl: null })).toBe(200);
