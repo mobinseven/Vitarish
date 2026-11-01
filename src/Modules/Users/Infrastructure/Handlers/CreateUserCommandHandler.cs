@@ -76,7 +76,7 @@ internal sealed class CreateUserCommandHandler(UserManager<User> userManager, IS
         }
 
         await managementAudit.AccountCreatedAsync(request.User.Id, CancellationToken.None);
-        await UserCacheExtensions.SetUserAsync(cache, request.User, cancellationToken);
+        await UserCacheExtensions.RemoveUserAsync(cache, request.User, cancellationToken);
         await UserCacheExtensions.RemoveUsersAsync(cache, cancellationToken);
 
         return result;

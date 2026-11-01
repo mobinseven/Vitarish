@@ -24,7 +24,9 @@ public enum UsersCommandErrorKind
     TenantMemberNotFound,
     TenantOwnerRemovalRejected,
     TenantMemberConflict,
-    LastOwnerProtection
+    LastOwnerProtection,
+    SelfDeletion,
+    LastPlatformAdministrator
 }
 
 public static class UsersCommandErrorKinds

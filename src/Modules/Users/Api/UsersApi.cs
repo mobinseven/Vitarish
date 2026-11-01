@@ -26,6 +26,12 @@ public static class UsersApi
     public static IEndpointRouteBuilder MapUsersApi(this IEndpointRouteBuilder endpoints)
     {
         RouteGroupBuilder users = endpoints.MapProtectedModuleGroup(UsersApiRoutes.Base, requireTenantAccess: false);
+        _ = users.MapModulePost(UsersApiRoutes.DeleteUser, DeleteUserAsync, UsersApiRoutes.DeleteUserOperation, typeof(UsersCommandResponse))
+            .RequireAuthorization(UsersAuthorizationPolicies.ManageAccounts)
+            .WithMetadata(new SecurityAuditHandledByApplicationMetadata())
+            .Produces(StatusCodes.Status403Forbidden)
+            .Produces<UsersCommandResponse>(StatusCodes.Status404NotFound)
+            .Produces<UsersCommandResponse>(StatusCodes.Status409Conflict);
         _ = users.MapModuleGet(UsersApiRoutes.Search, SearchUsersAsync, "UsersSearchUsers", typeof(UserSummaryResponse[])).RequireAuthorization(UsersAuthorizationPolicies.ReadSecurityState);
         _ = users.MapModuleGet(UsersApiRoutes.ById, GetUserAsync, "UsersGetUser", typeof(UserSummaryResponse)).RequireAuthorization(UsersAuthorizationPolicies.ReadSecurityState);
         _ = users.MapModuleGet(UsersApiRoutes.CheckEmail, CheckEmailAsync, "UsersCheckEmail", typeof(UserExistenceResponse)).RequireAuthorization(UsersAuthorizationPolicies.ReadSecurityState);
@@ -147,6 +153,9 @@ public static class UsersApi
     private static async Task<IResult> DisableUserAsync(string userId, ISender sender, CancellationToken ct) =>
         ToAccountStatusResult(await sender.Send(new ChangeUserAccountStatusCommand(userId, Enabled: false), ct));
 
+    private static async Task<IResult> DeleteUserAsync(string userId, DeleteUserRequest request, ISender sender, CancellationToken ct) =>
+        ToAccountStatusResult(await sender.Send(new DeleteUserCommand(userId, request.Revision), ct));
+
     private static async Task<IResult> EnableUserAsync(string userId, ISender sender, CancellationToken ct) =>
         ToAccountStatusResult(await sender.Send(new ChangeUserAccountStatusCommand(userId, Enabled: true), ct));
 
@@ -160,7 +169,8 @@ public static class UsersApi
             return Results.NotFound(UsersCommandResponse.Failed(errors));
         if (result.Errors.Any(error => string.Equals(error.Code, UsersCommandErrorCodes.Unauthorized, StringComparison.Ordinal)))
             return Results.Forbid();
-        if (result.Errors.Any(error => error.Code is UsersCommandErrorCodes.ActiveSessionConflict or UsersCommandErrorCodes.ConcurrencyFailure))
+        if (result.Errors.Any(error => error.Code is UsersCommandErrorCodes.ActiveSessionConflict or UsersCommandErrorCodes.ConcurrencyFailure
+            or UsersCommandErrorCodes.SelfDeletion or UsersCommandErrorCodes.LastPlatformAdministrator or UsersCommandErrorCodes.LastOwnerProtection))
             return Results.Conflict(UsersCommandResponse.Failed(errors));
         return Results.BadRequest(UsersCommandResponse.Failed(errors));
     }
@@ -172,6 +182,7 @@ public static class UsersApi
 
         return failureCode switch
         {
+            UsersCommandFailureCode.ActiveSessionConflict => new(UsersCommandErrorCodes.ActiveSessionConflict, UsersCommandErrorCodes.ActiveSessionConflictDescription, UsersCommandErrorKind.ActiveSessionConflict),
             UsersCommandFailureCode.InvalidContact => new(UsersCommandErrorCodes.InvalidContact, UsersCommandErrorCodes.InvalidContactDescription, UsersCommandErrorKind.InvalidContact),
             UsersCommandFailureCode.ContactIdentifierInUse => new(UsersCommandErrorCodes.ContactIdentifierInUse, UsersCommandErrorCodes.ContactIdentifierInUseDescription, UsersCommandErrorKind.ContactIdentifierInUse),
             UsersCommandFailureCode.UserNotFound => new(UsersCommandErrorCodes.UserNotFound, UsersCommandErrorCodes.UserNotFoundDescription, UsersCommandErrorKind.UserNotFound),

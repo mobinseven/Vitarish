@@ -6,5 +6,6 @@ public enum UsersCommandFailureCode
     UserNotFound,
     ConcurrencyFailure,
     Unauthorized,
-    ContactIdentifierInUse
+    ContactIdentifierInUse,
+    ActiveSessionConflict
 }

@@ -33,7 +33,7 @@ internal sealed class ConfirmUserContactCommandHandler(UserManager<User> userMan
         }
 
         await managementAudit.SecurityAttributeChangedAsync(user.Id, SecurityAuditOutcome.Succeeded, SecurityAuditReasonCatalog.SecurityAttributeChanged, cancellationToken);
-        await UserCacheExtensions.SetUserAsync(cache, user, cancellationToken);
+        await UserCacheExtensions.RemoveUserAsync(cache, user, cancellationToken);
         return true;
     }
 }

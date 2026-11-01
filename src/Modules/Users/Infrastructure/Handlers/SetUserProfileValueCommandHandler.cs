@@ -51,7 +51,7 @@ public sealed class SetUserProfileValueCommandHandler(UsersDbContext dbContext, 
             return SetUserProfileValueOutcome.Conflict;
         }
 
-        await UserCacheExtensions.SetUserAsync(cache, user, cancellationToken);
+        await UserCacheExtensions.RemoveUserAsync(cache, user, cancellationToken);
         return SetUserProfileValueOutcome.Saved;
     }
 }

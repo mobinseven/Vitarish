@@ -36,6 +36,33 @@ public class User : IdentityUser
     /// </summary>
     public bool IsEnabled { get; set; } = true;
 
+    /// <summary>Terminal account deletion; the ID remains valid for clinical and audit attribution.</summary>
+    public DateTime? DeletedAt { get; private set; }
+
+    [NotMapped]
+    public bool IsDeleted => DeletedAt.HasValue;
+
+    public void EraseAccount(DateTime deletedAt, string securityStamp, string revision)
+    {
+        if (IsDeleted) return;
+        if (deletedAt.Kind != DateTimeKind.Utc) throw new ArgumentException("Deletion time must be UTC.", nameof(deletedAt));
+        DeletedAt = deletedAt;
+        IsEnabled = false;
+        FirstName = LastName = IdentificationCode = BirthCountryCode = BirthCity = ProfileJson = null;
+        DateOfBirth = null;
+        Email = NormalizedEmail = PhoneNumber = UserName = NormalizedUserName = null;
+        EmailConfirmed = PhoneNumberConfirmed = TwoFactorEnabled = false;
+        PasswordHash = null;
+        PasswordChangedAt = null;
+        if (PasswordHashFingerprint is { } fingerprint) System.Security.Cryptography.CryptographicOperations.ZeroMemory(fingerprint);
+        PasswordHashFingerprint = null;
+        LockoutEnd = null;
+        LockoutEnabled = false;
+        AccessFailedCount = 0;
+        SecurityStamp = securityStamp;
+        ConcurrencyStamp = revision;
+    }
+
     /// <summary>UTC time of the last known successful password assignment.</summary>
     public DateTime? PasswordChangedAt { get; set; }
 

@@ -30,4 +30,6 @@ public static class UsersCommandErrorCodes
     public const string TenantMemberConflictDescription = "The tenant membership changed concurrently; retry the operation.";
     public const string LastOwnerProtection = "LastOwnerProtection";
     public const string LastOwnerProtectionDescription = "The last tenant owner cannot be removed or demoted.";
+    public const string SelfDeletion = "SelfDeletion";
+    public const string LastPlatformAdministrator = "LastPlatformAdministrator";
 }

@@ -52,6 +52,7 @@ public static class SecurityAuditChangeFields
 
     public const string AccountStatusEnabled = "enabled";
     public const string AccountStatusDisabled = "disabled";
+    public const string AccountStatusDeleted = "deleted";
 
     public static IReadOnlySet<SecurityAuditChangeField> All { get; } = new HashSet<SecurityAuditChangeField>
     {

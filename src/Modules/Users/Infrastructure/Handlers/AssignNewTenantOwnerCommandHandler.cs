@@ -111,7 +111,7 @@ internal sealed class AssignNewTenantOwnerCommandHandler(
             SecurityAuditOutcome.Succeeded,
             SecurityAuditReasonCatalog.TenantRoleReplacement(SecurityAuditReasonCatalog.TenantRoleStateNone, SecurityAuditReasonCatalog.TenantRoleStateOwner),
             CancellationToken.None);
-        await UserCacheExtensions.SetUserAsync(cache, user, cancellationToken);
+        await UserCacheExtensions.RemoveUserAsync(cache, user, cancellationToken);
         return AssignNewTenantOwnerResult.Assigned;
     }
 

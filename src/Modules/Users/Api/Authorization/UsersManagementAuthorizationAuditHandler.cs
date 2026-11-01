@@ -31,6 +31,10 @@ public sealed class UsersManagementAuthorizationAuditHandler(UsersManagementAudi
 
         switch (convention.OperationId)
         {
+            case UsersApiRoutes.DeleteUserOperation:
+                await managementAudit.AccountDeletedAsync(userId, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.Unauthorized,
+                    null, null, cancellationToken);
+                break;
             case UsersApiRoutes.CreateWithPhoneOperation:
             case UsersApiRoutes.CreateWithEmailOperation:
             case UsersApiRoutes.AdministrationCreateWithPhoneOperation:

@@ -7,6 +7,8 @@ using Vitarish.Users.Domain.Entities;
 
 namespace Vitarish.Users.Infrastructure.Extensions;
 
+// Production queries bypass these legacy payloads and mutations only evict them.
+// Set/Get codecs remain for cached-copy compatibility tests; see the deletion rollout plan.
 internal static class UserCacheExtensions
 {
     private const string UsersKey = "users:all";

@@ -1,3 +1,4 @@
+using Vitarish.Users.Application.Abstractions;
 using Vitarish.Authentication.Domain.Sessions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
@@ -82,11 +83,42 @@ public sealed class AspNetIdentitySignInServiceTests
             attemptKeyFactory.Object,
             sessionRegistry.Object,
             new HttpContextAccessor(),
-            TestSourceAttemptGuards.WithoutClientAddress());
+            TestSourceAttemptGuards.WithoutClientAddress(), AvailableAccountGuard());
 
         PasswordSignInResult result = await service.PasswordSignInAsync(user.UserName!, "unused-password", CancellationToken.None);
 
         result.Status.Should().Be(expectedStatus);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task A_deleted_or_unreadable_account_guard_never_prepares_a_session(bool unavailable)
+    {
+        User user = CreateUser(isEnabled: true);
+        Mock<UserManager<User>> manager = CreateUserManager(new Mock<IUserStore<User>>());
+        manager.Setup(value => value.FindByIdAsync(user.Id)).ReturnsAsync(user);
+        Mock<IAuthenticationSessionRegistry> sessions = new();
+        Mock<IUserSignInGuard> guard = new();
+        if (unavailable)
+            guard.Setup(value => value.AcquireAsync(user.Id, It.IsAny<CancellationToken>())).ThrowsAsync(new IOException("unavailable"));
+        else
+            guard.Setup(value => value.AcquireAsync(user.Id, It.IsAny<CancellationToken>())).ReturnsAsync(Mock.Of<IUserSignInLease>());
+        AspNetIdentitySignInService service = CreateService(manager, CreateSignInManager(manager.Object),
+            new Mock<IAuthenticationAttemptTracker>(), sessions, new Mock<IAuthenticationAttemptKeyFactory>(), accountGuard: guard.Object);
+        if (unavailable)
+        {
+            Func<Task> signIn = () => service.SignInAsync(user.Id, default);
+            await signIn.Should().ThrowAsync<IOException>();
+        }
+        else
+        {
+            AuthenticationSessionSignInResult result = await service.SignInAsync(user.Id, default);
+            result.Succeeded.Should().BeFalse();
+            result.Failure!.Reason.Should().Be(AuthenticationFailureReason.InvalidCredentials);
+        }
+        sessions.Verify(value => value.PrepareAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+        manager.Verify(value => value.FindByIdAsync(It.IsAny<string>()), Times.Never);
     }
 
     [Fact]
@@ -189,7 +221,7 @@ public sealed class AspNetIdentitySignInServiceTests
             attemptKeyFactory,
             new Mock<IAuthenticationSessionRegistry>().Object,
             new HttpContextAccessor(),
-            TestSourceAttemptGuards.WithoutClientAddress());
+            TestSourceAttemptGuards.WithoutClientAddress(), AvailableAccountGuard());
 
         PasswordSignInResult firstFailure = await service.CheckPasswordSignInAsync(user.UserName!, "wrong-password", CancellationToken.None);
         PasswordSignInResult secondFailure = await service.CheckPasswordSignInAsync(user.Email!, "wrong-password", CancellationToken.None);
@@ -604,6 +636,7 @@ public sealed class AspNetIdentitySignInServiceTests
             sessionRegistry.Object,
             new HttpContextAccessor { HttpContext = httpContext },
             TestSourceAttemptGuards.WithoutClientAddress(),
+            AvailableAccountGuard(),
             [refusing.Object, admitting.Object]);
 
         AuthenticationSessionSignInResult result = await service.SignInAsync(user.Id, CancellationToken.None);
@@ -676,7 +709,8 @@ public sealed class AspNetIdentitySignInServiceTests
         Mock<IAuthenticationAttemptKeyFactory> attemptKeyFactory,
         IHttpContextAccessor? httpContextAccessor = null,
         IRoleFreeSessionPolicy? roleFreeSessions = null,
-        AuthenticationSourceAttemptGuard? sourceAttemptGuard = null)
+        AuthenticationSourceAttemptGuard? sourceAttemptGuard = null,
+        IUserSignInGuard? accountGuard = null)
     {
         Mock<IAuthenticationSecurityPolicyProvider> policyProvider = new();
         policyProvider.Setup(provider => provider.GetAsync(It.IsAny<CancellationToken>())).ReturnsAsync(SecurityAccessPolicy.Default);
@@ -691,7 +725,17 @@ public sealed class AspNetIdentitySignInServiceTests
             sessionRegistry.Object,
             httpContextAccessor ?? new HttpContextAccessor(),
             sourceAttemptGuard ?? TestSourceAttemptGuards.WithoutClientAddress(),
+            accountGuard ?? AvailableAccountGuard(),
             roleFreeSessions is null ? null : [roleFreeSessions]);
+    }
+
+    private static IUserSignInGuard AvailableAccountGuard()
+    {
+        Mock<IUserSignInLease> lease = new();
+        lease.SetupGet(value => value.AccountAvailable).Returns(true);
+        Mock<IUserSignInGuard> guard = new();
+        guard.Setup(value => value.AcquireAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync(lease.Object);
+        return guard.Object;
     }
 
     private static Mock<UserManager<User>> CreateUserManager(Mock<IUserStore<User>> userStore)

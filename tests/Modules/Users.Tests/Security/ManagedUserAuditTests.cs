@@ -287,8 +287,7 @@ public sealed class ManagedUserAuditTests
             entry.Outcome == SecurityAuditOutcome.Denied &&
             entry.RedactedReason == SecurityAuditReasonCatalog.SecurityPolicyConcurrencyConflict);
         User? cached = await UserCacheExtensions.GetUserAsync(cache, ManagedUserId, CancellationToken.None);
-        cached.Should().NotBeNull();
-        cached!.ConcurrencyStamp.Should().Be(SeedRevision);
+        cached.Should().BeNull("account reads are authoritative and mutations evict legacy cached personal data");
     }
 
     [Fact]
@@ -319,8 +318,7 @@ public sealed class ManagedUserAuditTests
         persisted.PhoneNumberConfirmed.Should().BeTrue();
         persisted.ConcurrencyStamp.Should().NotBeNull().And.NotBe(SeedRevision);
         User? cached = await UserCacheExtensions.GetUserAsync(cache, ManagedUserId, CancellationToken.None);
-        cached.Should().NotBeNull();
-        cached!.ConcurrencyStamp.Should().Be(persisted.ConcurrencyStamp);
+        cached.Should().BeNull("mutations must not repopulate personal-data caches after a concurrent deletion");
     }
 
     [Fact]

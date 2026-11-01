@@ -156,7 +156,7 @@ public class UpdateUserCommandHandler(UsersDbContext dbContext, UserManager<User
                     ? SecurityAuditReasonCatalog.UserContactIdentifierChanged
                     : null;
             await managementAudit.AccountEditedAsync(request.User.Id, securityAttributeChangeReason, CancellationToken.None);
-            await UserCacheExtensions.SetUserAsync(cache, user, cancellationToken);
+            await UserCacheExtensions.RemoveUserAsync(cache, user, cancellationToken);
             await UserCacheExtensions.RemoveUsersAsync(cache, cancellationToken);
         }
         else

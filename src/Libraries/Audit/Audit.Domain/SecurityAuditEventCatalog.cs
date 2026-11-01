@@ -123,6 +123,11 @@ public static class SecurityAuditEventCatalog
     public const string UserEditOperation = "users.account.edit";
     public const string UserEditFailureEvent = "users.account.edit-failed";
     public const string UserEditFailureOperation = UserEditOperation;
+    public const string UserDeletionEvent = "users.account.deleted";
+    public const string UserDeletionDeniedEvent = "users.account.deletion-denied";
+    public const string UserDeletionConflictEvent = "users.account.deletion-conflict";
+    public const string UserDeletionLastOwnerConflictEvent = "users.account.deletion-last-owner-conflict";
+    public const string UserDeletionOperation = "users.account.delete";
     public const string UserAccountDisabledEvent = "users.account.disabled";
     public const string UserAccountDisableOperation = "users.account.disable";
     public const string UserAccountEnabledEvent = "users.account.enabled";
@@ -184,6 +189,10 @@ public static class SecurityAuditEventCatalog
         new(ManagementCategory, UserEditEvent, UserEditOperation, Controls: [SecurityAuditControl.SecurityAttributeChange, SecurityAuditControl.SecurityAdministration]),
         new(SecurityFailureCategory, UserEditFailureEvent, UserEditFailureOperation, Controls: [SecurityAuditControl.SecurityFunctionFailure, SecurityAuditControl.SecurityAdministration]),
         new(SecurityAttributeCategory, UserSecurityAttributeChangeEvent, UserSecurityAttributeChangeOperation, Controls: [SecurityAuditControl.SecurityAttributeAssignment, SecurityAuditControl.SecurityAttributeChange]),
+        new(ManagementCategory, UserDeletionEvent, UserDeletionOperation, Controls: [SecurityAuditControl.SecurityAdministration, SecurityAuditControl.SecurityAttributeChange]),
+        new(ManagementCategory, UserDeletionDeniedEvent, UserDeletionOperation, Controls: [SecurityAuditControl.SecurityAdministration, SecurityAuditControl.SecurityAttributeChange]),
+        new(ManagementCategory, UserDeletionConflictEvent, UserDeletionOperation, Controls: [SecurityAuditControl.SecurityAdministration, SecurityAuditControl.SecurityAttributeChange]),
+        new(ManagementCategory, UserDeletionLastOwnerConflictEvent, UserDeletionOperation, Controls: [SecurityAuditControl.SecurityAdministration, SecurityAuditControl.SecurityAttributeChange]),
         new(ManagementCategory, UserAccountDisabledEvent, UserAccountDisableOperation, Controls: [SecurityAuditControl.SecurityAdministration, SecurityAuditControl.SecurityAttributeChange]),
         new(ManagementCategory, UserAccountEnabledEvent, UserAccountEnableOperation, Controls: [SecurityAuditControl.SecurityAdministration, SecurityAuditControl.SecurityAttributeChange]),
         new(ManagementCategory, SelfServiceTenantCreationEvent, SelfServiceTenantCreationOperation, Controls: [SecurityAuditControl.SecurityAdministration, SecurityAuditControl.GroupRoleMembershipChange]),

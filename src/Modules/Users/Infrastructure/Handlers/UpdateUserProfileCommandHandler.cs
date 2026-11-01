@@ -84,7 +84,7 @@ public class UpdateUserProfileCommandHandler(UserManager<User> userManager, IDis
             throw new InvalidOperationException(string.Join("; ", result.Errors.Select(error => error.Description)));
         }
         await managementAudit.AccountEditedAsync(user.Id, null, CancellationToken.None);
-        await UserCacheExtensions.SetUserAsync(cache, user, cancellationToken);
+        await UserCacheExtensions.RemoveUserAsync(cache, user, cancellationToken);
         await UserCacheExtensions.RemoveUsersAsync(cache, cancellationToken);
     }
 }

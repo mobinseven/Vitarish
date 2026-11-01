@@ -105,7 +105,7 @@ public class SetUserEmailCommandHandler(UserManager<User> userManager, ISender s
                     (previousEmail, user.PhoneNumber, user.FirstName, user.LastName),
                     (user.Email, user.PhoneNumber, user.FirstName, user.LastName)),
                 CancellationToken.None);
-            await UserCacheExtensions.SetUserAsync(cache, user, cancellationToken);
+            await UserCacheExtensions.RemoveUserAsync(cache, user, cancellationToken);
             await UserCacheExtensions.RemoveUsersAsync(cache, cancellationToken);
         }
         else
