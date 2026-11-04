@@ -8,9 +8,9 @@ namespace Vitarish.Main.Tests;
 public sealed class CompositionProfileTests
 {
     [Fact]
-    public void Product_evaluated_profile_includes_all_compiled_modules_and_apps()
+    public void Composition_without_an_evaluated_profile_includes_all_compiled_modules_and_apps()
     {
-        IConfiguration configuration = Configuration(Module.ProductEvaluatedProfileIdentity);
+        IConfiguration configuration = new ConfigurationBuilder().Build();
 
         ModulesExtensions.GetModules(configuration).Select(module => module.Name)
             .Should().BeEquivalentTo([

@@ -92,7 +92,7 @@ public sealed class AuditingSignInManager(
                 EventName = eventName,
                 EventCategory = SecurityAuditEventCatalog.AuthenticationCategory,
                 Outcome = outcome,
-                ActorId = requestContext.UserId,
+                ActorId = SecurityAuditSignInActor.Resolve(requestContext.UserId, outcome, subjectId),
                 SubjectId = subjectId,
                 TenantId = requestContext.TenantId,
                 Resource = UsersSecurityAuditEvents.IdentityResource,

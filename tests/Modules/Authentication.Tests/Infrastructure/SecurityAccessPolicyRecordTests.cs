@@ -10,7 +10,7 @@ public sealed class SecurityAccessPolicyRecordTests
     [Fact]
     public void Persistence_record_round_trips_the_policy_values()
     {
-        SecurityAccessPolicy policy = SecurityAccessPolicy.ProductEvaluated;
+        SecurityAccessPolicy policy = SecurityAccessPolicy.Default;
 
         SecurityAccessPolicy result = SecurityAccessPolicyRecord.FromDomain(policy).ToDomain();
 
@@ -63,11 +63,11 @@ public sealed class SecurityAccessPolicyRecordTests
     {
         SecurityAccessPolicyRecord record = SecurityAccessPolicyRecord.FromDomain(SecurityAccessPolicy.Default);
 
-        record.Apply(SecurityAccessPolicy.ProductEvaluated);
+        record.Apply(SecurityAccessPolicy.Default);
 
         SecurityAccessPolicyState state = record.ToState();
         state.Version.Should().Be(1);
-        state.Policy.Should().BeEquivalentTo(SecurityAccessPolicy.ProductEvaluated);
+        state.Policy.Should().BeEquivalentTo(SecurityAccessPolicy.Default);
     }
 
 }

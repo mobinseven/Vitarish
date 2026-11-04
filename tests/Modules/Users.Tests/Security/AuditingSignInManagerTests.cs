@@ -74,13 +74,16 @@ public sealed class AuditingSignInManagerTests
         AuditingSignInManager manager = CreateManager(dbContext, writer.Object);
 
         (await manager.CheckPasswordSignInAsync(user, "ValidPassword1!", false)).Should().Be(SignInResult.Success);
+        SecurityAuditEvent succeeded = (SecurityAuditEvent)writer.Invocations.Single().Arguments[0];
+        succeeded.Outcome.Should().Be(SecurityAuditOutcome.Succeeded);
+        succeeded.ActorId.Should().Be("subject");
         writer.Invocations.Clear();
         user.TwoFactorEnabled = true;
         await dbContext.SaveChangesAsync();
         (await manager.PasswordSignInAsync(user, "ValidPassword1!", false, false)).Should().Be(SignInResult.TwoFactorRequired);
 
         SecurityAuditEvent[] events = writer.Invocations.Select(invocation => invocation.Arguments[0]).Cast<SecurityAuditEvent>().ToArray();
-        events.Should().ContainSingle(auditEvent => auditEvent.Outcome == SecurityAuditOutcome.Pending && auditEvent.RedactedReason == SecurityAuditReasonCatalog.SecondFactorRequired);
+        events.Should().ContainSingle(auditEvent => auditEvent.Outcome == SecurityAuditOutcome.Pending && auditEvent.RedactedReason == SecurityAuditReasonCatalog.SecondFactorRequired && auditEvent.ActorId == null);
     }
 
     [Fact]

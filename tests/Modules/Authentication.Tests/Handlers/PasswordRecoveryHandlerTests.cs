@@ -273,7 +273,7 @@ public sealed class PasswordRecoveryHandlerTests
     public async Task Begin_email_uses_registered_contact_even_when_email_sign_in_is_disabled()
     {
         BeginDependencies dependencies = CreateBeginDependencies(PasswordRecoveryChannel.Email);
-        SecurityAccessPolicy disabledEmailLogin = SecurityAccessPolicy.ProductEvaluated with
+        SecurityAccessPolicy disabledEmailLogin = SecurityAccessPolicy.Default with
         {
             EnabledAuthenticationMechanisms = new HashSet<AuthenticationMethod> { AuthenticationMethod.Password },
             PermittedPreAuthenticationActions = new HashSet<PreAuthenticationAction>
@@ -349,7 +349,7 @@ public sealed class PasswordRecoveryHandlerTests
     {
         BeginDependencies dependencies = CreateBeginDependencies(PasswordRecoveryChannel.Email);
         dependencies.SecurityPolicy.Setup(x => x.GetAsync(It.IsAny<CancellationToken>())).ReturnsAsync(
-            SecurityAccessPolicy.ProductEvaluated with
+            SecurityAccessPolicy.Default with
             {
                 PermittedPreAuthenticationActions = new HashSet<PreAuthenticationAction> { PreAuthenticationAction.PasswordLogin }
             });
@@ -540,7 +540,7 @@ public sealed class PasswordRecoveryHandlerTests
     {
         CompleteDependencies dependencies = CreateCompleteDependencies(codeMatches: true);
         dependencies.SecurityPolicy.Setup(x => x.GetAsync(It.IsAny<CancellationToken>())).ReturnsAsync(
-            SecurityAccessPolicy.ProductEvaluated with { PasswordPolicy = PasswordPolicy.Default with { MinimumLength = 14 } });
+            SecurityAccessPolicy.Default with { PasswordPolicy = PasswordPolicy.Default with { MinimumLength = 14 } });
 
         AuthenticationResult<bool> result = await dependencies.Handler.Handle(
             new(dependencies.Challenge.Id.Value, "valid", "StrongPass1!"), CancellationToken.None);
@@ -559,7 +559,7 @@ public sealed class PasswordRecoveryHandlerTests
         Mock<IUserAccountUpdater> updater = new();
         Mock<IAuthenticationSecurityPolicyProvider> policy = new();
         policy.Setup(x => x.GetAsync(It.IsAny<CancellationToken>())).ReturnsAsync(
-            SecurityAccessPolicy.ProductEvaluated with
+            SecurityAccessPolicy.Default with
             {
                 PermittedPreAuthenticationActions = new HashSet<PreAuthenticationAction> { PreAuthenticationAction.PasswordLogin }
             });
@@ -589,7 +589,7 @@ public sealed class PasswordRecoveryHandlerTests
         Mock<IAuthenticationRecoveryDeliveryFailureRecorder> recorder = new();
         recorder.Setup(x => x.RecordAsync(It.IsAny<PasswordRecoveryChannel>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
         Mock<IAuthenticationSecurityPolicyProvider> policy = new();
-        policy.Setup(x => x.GetAsync(It.IsAny<CancellationToken>())).ReturnsAsync(SecurityAccessPolicy.ProductEvaluated);
+        policy.Setup(x => x.GetAsync(It.IsAny<CancellationToken>())).ReturnsAsync(SecurityAccessPolicy.Default);
 
         Mock<IPasswordRecoveryCodeDispatcher>? dispatcherMock = null;
         ServiceProvider? dispatcherProvider = null;
@@ -636,7 +636,7 @@ public sealed class PasswordRecoveryHandlerTests
             .ReturnsAsync(PasswordChangeOutcome.Success());
         InMemoryAuthenticationAttemptTracker attemptTracker = new();
         Mock<IAuthenticationSecurityPolicyProvider> policy = new();
-        policy.Setup(x => x.GetAsync(It.IsAny<CancellationToken>())).ReturnsAsync(SecurityAccessPolicy.ProductEvaluated);
+        policy.Setup(x => x.GetAsync(It.IsAny<CancellationToken>())).ReturnsAsync(SecurityAccessPolicy.Default);
         CompletePasswordRecoveryHandler handler = new(store, verifier.Object, updater.Object, attemptTracker,
             CreateKeys(), policy.Object, TestSourceAttemptGuards.WithoutClientAddress(), TimeProvider.System);
         return new(handler, store, verifier, updater, policy, challenge);

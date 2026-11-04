@@ -287,7 +287,7 @@ public sealed class CompletePasswordLoginOtpHandlerTests
     private sealed class TestSecurityPolicyProvider : IAuthenticationSecurityPolicyProvider
     {
         public Task<SecurityAccessPolicy> GetAsync(CancellationToken cancellationToken) =>
-            Task.FromResult(SecurityAccessPolicy.ProductEvaluated);
+            Task.FromResult(SecurityAccessPolicy.Default);
     }
 
     private sealed class RecordingWriter(List<SecurityAuditEvent> events) : ISecurityAuditWriter

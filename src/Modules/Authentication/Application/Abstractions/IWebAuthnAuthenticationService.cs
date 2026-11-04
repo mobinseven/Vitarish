@@ -7,8 +7,7 @@ public interface IWebAuthnAuthenticationService
 {
     Task<WebAuthnBeginResult> BeginAsync(string? userNameOrEmail, CancellationToken cancellationToken);
     Task<string?> GetAttemptKeyAsync(string challengeId, CancellationToken cancellationToken);
-    Task<string?> GetSubjectIdAsync(string challengeId, CancellationToken cancellationToken) => Task.FromResult<string?>(null);
-    Task<string?> GetSubjectIdAsync(string challengeId, string credentialJson, CancellationToken cancellationToken) => GetSubjectIdAsync(challengeId, cancellationToken);
+    Task<string?> GetSubjectIdAsync(string challengeId, string credentialJson, CancellationToken cancellationToken);
     Task<string?> GetAttemptKeyAsync(string challengeId, string credentialJson, CancellationToken cancellationToken) =>
         GetAttemptKeyAsync(challengeId, cancellationToken);
     Task<WebAuthnCompleteResult> CompleteAsync(string challengeId, string credentialJson, CancellationToken cancellationToken);

@@ -13,6 +13,13 @@ namespace Vitarish.Authentication.Tests.Infrastructure;
 [Collection(AuthenticationPostgresCollection.Name)]
 public sealed class PostgresSecurityAccessPolicyStoreTests
 {
+    private static readonly AuthenticationProfilePolicy RestrictedProfile = new(
+        UsePhoneOtpForTwoFactorAccounts: true,
+        AllowPasswordlessPhoneLogin: false,
+        AllowPasswordlessEmailLogin: false,
+        AllowPasskeyLogin: false);
+    private static readonly SecurityAccessPolicy RestrictedPolicy = SecurityAccessPolicy.ForProfile(RestrictedProfile);
+
     [PostgresFact]
     public async Task First_save_moves_the_missing_policy_from_version_zero_to_one()
     {
@@ -37,7 +44,7 @@ public sealed class PostgresSecurityAccessPolicyStoreTests
         DbContextOptions<AuthenticationDbContext> options = await PrepareAsync(connectionString);
         _ = await SaveAsync(options, SecurityAccessPolicy.Default, 0);
 
-        Func<Task> staleFirstSave = () => SaveAsync(options, SecurityAccessPolicy.ProductEvaluated, 0);
+        Func<Task> staleFirstSave = () => SaveAsync(options, RestrictedPolicy, 0);
 
         await staleFirstSave.Should().ThrowAsync<SecurityAccessPolicyConcurrencyException>();
     }
@@ -91,7 +98,7 @@ public sealed class PostgresSecurityAccessPolicyStoreTests
 
         DbContextOptions<AuthenticationDbContext> options = await PrepareAsync(connectionString);
         Task<SecurityAccessPolicyState> first = SaveAsync(options, SecurityAccessPolicy.Default, 0);
-        Task<SecurityAccessPolicyState> second = SaveAsync(options, SecurityAccessPolicy.ProductEvaluated, 0);
+        Task<SecurityAccessPolicyState> second = SaveAsync(options, RestrictedPolicy, 0);
         (SecurityAccessPolicyState? result, Exception? error)[] outcomes = await Task.WhenAll(Capture(first), Capture(second));
 
         outcomes.Count(item => item.result is not null).Should().Be(1);
@@ -109,7 +116,7 @@ public sealed class PostgresSecurityAccessPolicyStoreTests
 
         await using (AuthenticationDbContext context = new(options))
         {
-            SecurityAccessPolicyStore store = new(context, AuthenticationProfilePolicy.ProductEvaluated);
+            SecurityAccessPolicyStore store = new(context, RestrictedProfile);
             await store.InitializeAsync(CancellationToken.None);
 
             IAuthenticationSecurityPolicyProvider provider = store;
@@ -132,9 +139,9 @@ public sealed class PostgresSecurityAccessPolicyStoreTests
             .UseInMemoryDatabase(databaseName)
             .Options;
 
-        await using (AuthenticationDbContext evaluatedContext = new(options))
+        await using (AuthenticationDbContext restrictedContext = new(options))
         {
-            SecurityAccessPolicyStore store = new(evaluatedContext, AuthenticationProfilePolicy.ProductEvaluated);
+            SecurityAccessPolicyStore store = new(restrictedContext, RestrictedProfile);
             await store.InitializeAsync(CancellationToken.None);
 
             IAuthenticationSecurityPolicyProvider provider = store;

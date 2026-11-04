@@ -34,14 +34,15 @@ public sealed class AuthenticationAttemptAuditor(
     public async Task RecordAsync(string eventName, string operation, string? subjectId, string? failureReason, CancellationToken cancellationToken)
     {
         string requestKey = requestContext.RequestId ?? requestContext.TraceId ?? Guid.NewGuid().ToString("N");
+        string outcome = failureReason is null ? SecurityAuditOutcome.Succeeded : SecurityAuditOutcome.Denied;
         try
         {
             _ = await auditWriter.WriteAsync(new SecurityAuditEvent
             {
                 EventName = eventName,
                 EventCategory = SecurityAuditEventCatalog.AuthenticationCategory,
-                Outcome = failureReason is null ? SecurityAuditOutcome.Succeeded : SecurityAuditOutcome.Denied,
-                ActorId = requestContext.UserId,
+                Outcome = outcome,
+                ActorId = SecurityAuditSignInActor.Resolve(requestContext.UserId, outcome, subjectId),
                 SubjectId = subjectId,
                 TenantId = requestContext.TenantId ?? SecurityAuditScopeCatalog.PlatformScopeId,
                 Resource = AuthenticationSecurityAuditEvents.Resource,

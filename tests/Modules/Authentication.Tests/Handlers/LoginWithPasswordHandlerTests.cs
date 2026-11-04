@@ -149,7 +149,7 @@ public sealed class LoginWithPasswordHandlerTests
     [Fact]
     public async Task Disabled_password_login_is_audited_before_the_denial_is_returned()
     {
-        SecurityAccessPolicy policy = SecurityAccessPolicy.ProductEvaluated with
+        SecurityAccessPolicy policy = SecurityAccessPolicy.Default with
         {
             PermittedPreAuthenticationActions = new HashSet<PreAuthenticationAction>
             {
@@ -255,14 +255,14 @@ public sealed class LoginWithPasswordHandlerTests
             redirects.Object,
             auditWriter.Object,
             new TestRequestContext(),
-            AuthenticationProfilePolicy.ProductEvaluated,
+            AuthenticationProfilePolicy.Default,
             challengeStore.Object,
             AuthenticationChallengePolicy.Default,
             userDirectory.Object,
             codeGenerator.Object,
             phoneSender.Object,
             attemptTracker.Object,
-            new TestSecurityPolicyProvider(policy ?? SecurityAccessPolicy.ProductEvaluated),
+            new TestSecurityPolicyProvider(policy ?? SecurityAccessPolicy.Default),
             AuthenticationAttemptKeyFactoryForTests());
 
         return new TestDependencies(handler, signIn, challengeStore, phoneSender, attemptTracker, auditWriter);

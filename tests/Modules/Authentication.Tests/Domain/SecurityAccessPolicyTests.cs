@@ -49,36 +49,27 @@ public sealed class SecurityAccessPolicyTests
     }
 
     [Fact]
-    public void Product_evaluated_profile_keeps_password_and_phone_second_factor_only()
+    public void Default_policy_offers_every_sign_in_method_and_a_phone_second_factor_for_two_factor_accounts()
     {
-        AuthenticationProfilePolicy.ProductEvaluated.AllowPasswordlessPhoneLogin.Should().BeFalse();
-        AuthenticationProfilePolicy.ProductEvaluated.AllowPasswordlessEmailLogin.Should().BeFalse();
-        AuthenticationProfilePolicy.ProductEvaluated.AllowPasskeyLogin.Should().BeFalse();
-    }
-
-    [Fact]
-    public void Product_evaluated_policy_records_all_existing_enabled_mechanisms()
-    {
-        SecurityAccessPolicy.ProductEvaluated.EnabledAuthenticationMechanisms
-            .Should().BeEquivalentTo([AuthenticationMethod.Password, AuthenticationMethod.Phone]);
-        SecurityAccessPolicy.ProductEvaluated.PermittedPreAuthenticationActions
-            .Should().BeEquivalentTo([
-                PreAuthenticationAction.AuthenticationProfile,
-                PreAuthenticationAction.PasswordLogin,
-                PreAuthenticationAction.PasswordRecovery,
-                PreAuthenticationAction.PasswordPlusPhoneOtp]);
+        SecurityAccessPolicy.Default.EnabledAuthenticationMechanisms
+            .Should().BeEquivalentTo([AuthenticationMethod.Password, AuthenticationMethod.Phone, AuthenticationMethod.Email, AuthenticationMethod.Passkey]);
+        SecurityAccessPolicy.Default.PermittedPreAuthenticationActions
+            .Should().Contain([PreAuthenticationAction.PasskeyLogin, PreAuthenticationAction.PasswordPlusPhoneOtp]);
+        AuthenticationProfilePolicy.Default.RequiredPreAuthenticationActions
+            .Should().Contain(PreAuthenticationAction.PasswordPlusPhoneOtp);
     }
 
     [Fact]
     public void Profile_reconciliation_changes_only_profile_owned_mechanisms()
     {
+        AuthenticationProfilePolicy restricted = new AuthenticationProfilePolicy(UsePhoneOtpForTwoFactorAccounts: true, AllowPasswordlessPhoneLogin: false, AllowPasswordlessEmailLogin: false, AllowPasskeyLogin: false);
         SecurityAccessPolicy customized = SecurityAccessPolicy.Default with { FailedAttemptThreshold = 9 };
 
-        SecurityAccessPolicy reconciled = customized.ReconcileProfile(AuthenticationProfilePolicy.ProductEvaluated);
+        SecurityAccessPolicy reconciled = customized.ReconcileProfile(restricted);
 
         reconciled.FailedAttemptThreshold.Should().Be(9);
-        reconciled.EnabledAuthenticationMechanisms.Should().BeEquivalentTo(SecurityAccessPolicy.ProductEvaluated.EnabledAuthenticationMechanisms);
-        reconciled.PermittedPreAuthenticationActions.Should().BeEquivalentTo(SecurityAccessPolicy.ProductEvaluated.PermittedPreAuthenticationActions);
+        reconciled.EnabledAuthenticationMechanisms.Should().BeEquivalentTo(SecurityAccessPolicy.ForProfile(restricted).EnabledAuthenticationMechanisms);
+        reconciled.PermittedPreAuthenticationActions.Should().BeEquivalentTo(SecurityAccessPolicy.ForProfile(restricted).PermittedPreAuthenticationActions);
     }
 
     [Fact]

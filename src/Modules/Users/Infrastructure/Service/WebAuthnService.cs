@@ -58,10 +58,12 @@ public class WebAuthnService(
             DisplayName = $"{appUser.FirstName} {appUser.LastName}".Trim()
         };
 
-        // Create authenticator selection criteria from configuration
+        // Sign-in never names the user's keys (that would reveal which accounts exist),
+        // so every passkey must be discoverable by the authenticator itself.
         AuthenticatorSelection authenticatorSelection = new()
         {
-            RequireResidentKey = ParseResidentKeyRequirement(webAuthnOptions.RequireResidentKey),
+            ResidentKey = ResidentKeyRequirement.Required,
+            RequireResidentKey = true,
             UserVerification = ParseUserVerificationRequirement(webAuthnOptions.UserVerification)
         };
 
@@ -378,14 +380,6 @@ public class WebAuthnService(
     }
 
     // Helper methods for parsing configuration strings to enums
-    private static bool ParseResidentKeyRequirement(string value) => value?.ToLowerInvariant() switch
-    {
-        "required" => true,
-        "preferred" => false,
-        "discouraged" => false,
-        _ => false
-    };
-
     private static string GetAttestationCacheKey(string userId) => $"fido2.attestationOptions.{userId}";
 
     private static string GetAssertionCacheKey(string userId) => $"fido2.assertionOptions.{userId}";

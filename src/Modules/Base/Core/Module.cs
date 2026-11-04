@@ -14,7 +14,6 @@ public abstract class Module : IModule
     /// <summary>Self-service tenant onboarding; <c>FeaturesOptions.TenantOnboarding</c> binds the same key.</summary>
     public const string TenantOnboardingFeatureKey = FeaturesSection + ":TenantOnboarding";
     public const string MainOnlyEvaluatedProfileIdentity = "vitarish-toe-main-evaluated-2026-08-15";
-    public const string ProductEvaluatedProfileIdentity = "vitarish-product-evaluated-v1.0";
 
     public abstract string Name { get; }
 
