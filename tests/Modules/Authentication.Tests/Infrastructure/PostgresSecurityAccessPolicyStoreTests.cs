@@ -20,6 +20,14 @@ public sealed class PostgresSecurityAccessPolicyStoreTests
         AllowPasskeyLogin: false);
     private static readonly SecurityAccessPolicy RestrictedPolicy = SecurityAccessPolicy.ForProfile(RestrictedProfile);
 
+    // A stored policy that differs from RestrictedProfile in both directions: no SMS second step, passkeys allowed.
+    private static readonly SecurityAccessPolicy PolicyWithoutPhoneSecondStep = SecurityAccessPolicy.ForProfile(new AuthenticationProfilePolicy(
+        UsePhoneOtpForTwoFactorAccounts: false,
+        AllowPasswordlessPhoneLogin: true,
+        AllowPasswordlessEmailLogin: true,
+        AllowPasskeyLogin: true,
+        AllowTenantHandoff: true));
+
     [PostgresFact]
     public async Task First_save_moves_the_missing_policy_from_version_zero_to_one()
     {
@@ -112,7 +120,7 @@ public sealed class PostgresSecurityAccessPolicyStoreTests
 
         DbContextOptions<AuthenticationDbContext> options = await PrepareAsync(connectionString);
         await using (AuthenticationDbContext seed = new(options))
-            _ = await new SecurityAccessPolicyStore(seed).SaveAsync(SecurityAccessPolicy.Default, 0, CancellationToken.None);
+            _ = await new SecurityAccessPolicyStore(seed).SaveAsync(PolicyWithoutPhoneSecondStep, 0, CancellationToken.None);
 
         await using (AuthenticationDbContext context = new(options))
         {
