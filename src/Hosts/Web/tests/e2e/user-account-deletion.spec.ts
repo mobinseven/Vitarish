@@ -15,6 +15,7 @@ import { localizePlatformAuditEvent, localizePlatformAuditChangeValue, securityM
 import { usersMessageCatalogs } from "../../shared/users/src/localization/catalogs";
 import { localeCookieName } from "../../shared/localization/src/localeCookie";
 import { twoHostE2eAccountDeletionClientIp, twoHostE2eForwardedForHeaderName as forwardedForHeaderName, twoHostE2eLocaleEnvironmentKey, twoHostE2ePasswordEnvironmentKey, twoHostE2ePlatformAdminOrigin } from "../../scripts/two-host-e2e-artifacts.mjs";
+import { auditDetailEvidenceViewport } from "./auditEvidenceViewport";
 import { generatedOperationPath } from "./generatedOperationPath";
 
 // Read fixture and event identifiers from their actual source owners, never copy their values here.
@@ -30,6 +31,8 @@ const administrator = sourceString(fixtureSource, "UserManagementPlatformAdminUs
 const deletionEvent = sourceString(auditSource, "UserDeletionEvent");
 const deletionConflict = sourceString(auditSource, "UserDeletionConflictEvent");
 const deletionOperation = sourceString(auditSource, "UserDeletionOperation");
+const creationEvent = sourceString(auditSource, "UserCreationEvent");
+const creationOperation = sourceString(auditSource, "UserCreationOperation");
 const origin = twoHostE2ePlatformAdminOrigin;
 const locale = process.env[twoHostE2eLocaleEnvironmentKey] === "fa" ? "fa" : "en";
 const text = usersMessageCatalogs[locale].users.management;
@@ -47,10 +50,10 @@ async function mutation(page: Page, path: string, body: unknown): Promise<number
   }, { path, body, tokenPath: getAuthenticationAntiforgeryGetQueryKey()[0], tenantHeader: TENANT_HOST_HEADER, requestIdHeader: REQUEST_ID_HEADER });
 }
 
-async function records(page: Page, subjectId: string, eventName: string): Promise<SecurityAuditEventReadDto[]> {
+async function records(page: Page, subjectId: string, eventName: string, operation = deletionOperation): Promise<SecurityAuditEventReadDto[]> {
   const params: AuditPlatformSecurityEventsListParams = {
     page: 1, pageSize: 25, sortBy: auditSortFields.occurredAt, descending: true, uncataloguedOnly: false,
-    subjectId, eventName, operation: deletionOperation,
+    subjectId, eventName, operation,
   };
   const query = new URLSearchParams(Object.entries(params).map(([key, value]) => [key, String(value)]));
   const response = await page.request.get(`${origin}${getAuditPlatformSecurityEventsListQueryKey(params)[0]}?${query}`, {
@@ -124,17 +127,28 @@ test(`platform account deletion, refusal and attributable audit detail ${locale}
     expect(Number.isFinite(Date.parse(event.occurredAt!))).toBe(true);
     expect(JSON.stringify(event)).not.toContain(contact);
 
-    await page.goto(`${origin}${Routes.Audit}`);
-    await page.getByRole("textbox", { name: auditText.eventId, exact: true }).fill(event.id!);
-    await page.getByRole("button", { name: auditText.applyFilters, exact: true }).click();
-    await page.getByRole("row").filter({ hasText: localizePlatformAuditEvent(locale, deletionEvent, deletionEvent) }).first().click();
-    const detail = page.getByRole("dialog");
-    await expect(detail).toHaveAccessibleName(auditText.detailTitle);
-    await expect(detail.getByText(subject.id, { exact: true })).toBeVisible();
-    await expect(detail.getByText(actorId, { exact: true })).toBeVisible();
-    await expect(detail.getByText(twoHostE2eAccountDeletionClientIp, { exact: true })).toBeVisible();
-    await expect(detail.getByRole("listitem").filter({ hasText: localizePlatformAuditChangeValue(locale, "deleted", "deleted") })).toBeVisible();
-    await page.screenshot({ path: testInfo.outputPath("account-deletion-audit-detail.png"), fullPage: true });
+    const creations = await records(page, subject.id, creationEvent, creationOperation);
+    expect(creations).toHaveLength(1);
+    expect(creations[0]).toMatchObject({ actorId, subjectId: subject.id, outcome: "succeeded", sourceIpAddress: twoHostE2eAccountDeletionClientIp });
+
+    await page.setViewportSize(auditDetailEvidenceViewport);
+    const openDetail = async (eventId: string, eventName: string) => {
+      await page.goto(`${origin}${Routes.Audit}`);
+      await page.getByRole("textbox", { name: auditText.eventId, exact: true }).fill(eventId);
+      await page.getByRole("button", { name: auditText.applyFilters, exact: true }).click();
+      await page.getByRole("row").filter({ hasText: localizePlatformAuditEvent(locale, eventName, eventName) }).first().click();
+      const detail = page.getByRole("dialog");
+      await expect(detail).toHaveAccessibleName(auditText.detailTitle);
+      await expect(detail.getByText(subject.id, { exact: true }).first()).toBeInViewport();
+      await expect(detail.getByText(actorId, { exact: true })).toBeInViewport();
+      await expect(detail.getByText(twoHostE2eAccountDeletionClientIp, { exact: true })).toBeInViewport();
+      return detail;
+    };
+    await openDetail(creations[0].id!, creationEvent);
+    await page.screenshot({ path: testInfo.outputPath("account-creation-audit-detail.png") });
+    const detail = await openDetail(event.id!, deletionEvent);
+    await expect(detail.getByRole("listitem").filter({ hasText: localizePlatformAuditChangeValue(locale, "deleted", "deleted") })).toBeInViewport();
+    await page.screenshot({ path: testInfo.outputPath("account-deletion-audit-detail.png") });
   } finally {
     expect(await mutation(page, generatedOperationPath(authenticationLogoutPost), { logoutId: null, returnUrl: null })).toBe(200);
   }

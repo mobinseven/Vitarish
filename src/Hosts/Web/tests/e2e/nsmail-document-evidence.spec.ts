@@ -82,16 +82,22 @@ async function signIn(page: Page, origin: string, username: string, loginPath: s
   expect(response.status()).toBe(200);
 }
 
+const animationSettleMilliseconds = 5_000;
+
 async function capture(page: Page, name: string, fullPage = true): Promise<void> {
   mkdirSync(evidenceDirectory, { recursive: true });
   await page.waitForLoadState("networkidle").catch(() => undefined);
   // The two-host runner serves the apps in development mode; hide the framework's
   // development indicator so it never appears in product evidence.
   await page.addStyleTag({ content: "nextjs-portal { display: none !important; }" }).catch(() => undefined);
-  // Let enter transitions (for example a dialog fading in) settle; endless spinners are ignored.
-  await page.evaluate(() => Promise.all(document.getAnimations()
-    .filter((animation) => animation.effect?.getComputedTiming().iterations !== Infinity)
-    .map((animation) => animation.finished.catch(() => undefined))));
+  // Let enter transitions (for example a dialog fading in) settle; endless spinners are ignored. An
+  // animation whose element is replaced mid-run never finishes, so settling stops after a short wait.
+  await page.evaluate((settleMilliseconds) => Promise.race([
+    Promise.all(document.getAnimations()
+      .filter((animation) => animation.effect?.getComputedTiming().iterations !== Infinity)
+      .map((animation) => animation.finished.catch(() => undefined))),
+    new Promise((resolve) => window.setTimeout(resolve, settleMilliseconds)),
+  ]), animationSettleMilliseconds);
   await page.screenshot({ path: join(evidenceDirectory, `${name}.png`), fullPage });
 }
 
@@ -133,8 +139,6 @@ test.describe("NSMAIL document evidence", () => {
       await openPage(page, `${platformOrigin}${PlatformRoutes.Settings.Security}`, "admin-security-settings");
       await openPage(page, `${platformOrigin}${PlatformRoutes.Audit}`, "admin-audit");
       await openPage(page, `${platformOrigin}${PlatformRoutes.Users.Index}`, "admin-users");
-      await openUserDetail(page, ownerUsername);
-      await capture(page, "admin-user-detail");
       await openPage(page, `${platformOrigin}${PlatformRoutes.Tenants.Index}`, "admin-tenants");
     } finally {
       await context.close();
@@ -177,6 +181,21 @@ test.describe("NSMAIL document evidence", () => {
       );
 
       await openPage(page, `${webOrigin}${ClinicRoutes.Logout}`, "sign-out-confirmation");
+    } finally {
+      await context.close();
+    }
+  });
+
+  // Runs after the clinic owner has signed in, so the detail page shows the owner's real sign-in history.
+  test("platform administrator user detail", async ({ browser }) => {
+    test.setTimeout(300_000);
+    const context = await persianContext(browser, "198.51.100.240");
+    const page = await context.newPage();
+    try {
+      await signIn(page, platformOrigin, platformAdminUsername, PlatformRoutes.LoginPassword);
+      await openUserDetail(page, ownerUsername);
+      await expect(page.getByText(usersText.authenticationHistoryEmpty, { exact: true })).toHaveCount(0);
+      await capture(page, "admin-user-detail");
     } finally {
       await context.close();
     }
