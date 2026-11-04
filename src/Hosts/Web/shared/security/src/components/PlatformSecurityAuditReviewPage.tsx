@@ -3,16 +3,24 @@
 import { Alert, Button, Checkbox, Chip, Input, Label, ListBox, Modal, Select, Spinner, Surface, TextField, Tooltip } from "@heroui/react";
 import { DataGrid, type DataGridColumn } from "@heroui-pro/react";
 import { ApiError } from "@vitarish/api-client";
-import { formatDateTime, formatNumber, localizeApiError, parseIsoDateValue, useLocalizedText, type SupportedLocale } from "@vitarish/localization";
+import { formatDate, formatDateTime, formatNumber, localizeApiError, parseIsoDateValue, useLocalizedText, type SupportedLocale } from "@vitarish/localization";
 import { FaIcon, LoadingSpinner  } from "@vitarish/ui";
 import { useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { TransferredFileDescription } from "./transferredFile";
 import {
+  localizePlatformAuditActorKind,
   localizePlatformAuditCategory,
   localizePlatformAuditChangeField,
   localizePlatformAuditChangeValue,
   localizePlatformAuditEvent,
+  localizePlatformAuditOperation,
+  localizePlatformAuditReason,
+  localizePlatformAuditResource,
+  localizePlatformAuditScope,
+  localizePlatformAuditSourceBoundary,
+  localizePlatformAuditSourceKind,
   localizeSecurityAuditOutcome,
+  securityAuditOutcomes,
 } from "../localization";
 import { AuditDateFilter } from "./AuditDateFilter";
 import { auditOutcomeColor } from "./auditOutcomeColor";
@@ -110,6 +118,12 @@ function toUtcBoundary(value: string, endOfDay: boolean): string | undefined {
 
 function displayValue(value: string | null | undefined, fallback: string): string {
   return value?.trim() || fallback;
+}
+
+function auditScopeName(tenantId: string | null | undefined, tenantNamesById: ReadonlyMap<string, string>, locale: SupportedLocale): string | undefined {
+  if (!tenantId) return undefined;
+  const scopeLabel = localizePlatformAuditScope(locale, tenantId, tenantId);
+  return tenantNamesById.get(tenantId) ?? (scopeLabel === tenantId ? undefined : scopeLabel);
 }
 
 function errorStatus(error: unknown): number {
@@ -271,8 +285,8 @@ export function PlatformSecurityAuditReviewPage({
       catalog
         .filter((entry) => (!draftFilters.category || entry.category === draftFilters.category) && (!draftFilters.eventName || entry.eventName === draftFilters.eventName) && !entry.isWildcard)
         .map((entry) => [entry.operation, entry] as const),
-    ).keys()).map((operation) => ({ id: operation, label: operation })),
-    [catalog, draftFilters.category, draftFilters.eventName],
+    ).keys()).map((operation) => ({ id: operation, label: localizePlatformAuditOperation(locale, operation, operation) })),
+    [catalog, draftFilters.category, draftFilters.eventName, locale],
   );
   const tenantOptions = useMemo(
     () => tenants
@@ -331,10 +345,12 @@ export function PlatformSecurityAuditReviewPage({
     add("actorId", t("security.platformAudit.actorId"), filters.actorId);
     add("category", t("security.platformAudit.category"), localizePlatformAuditCategory(locale, filters.category, filters.category));
     add("eventName", t("security.platformAudit.event"), localizePlatformAuditEvent(locale, filters.eventName, filters.eventName));
-    add("operation", t("security.platformAudit.operation"), filters.operation);
-    add("outcome", t("security.platformAudit.outcome"), filters.outcome);
-    add("fromDate", t("security.platformAudit.fromDate"), filters.fromDate);
-    add("toDate", t("security.platformAudit.toDate"), filters.toDate);
+    add("operation", t("security.platformAudit.operation"), localizePlatformAuditOperation(locale, filters.operation, filters.operation));
+    add("outcome", t("security.platformAudit.outcome"), localizeSecurityAuditOutcome(locale, filters.outcome, filters.outcome));
+    // Filter dates are calendar days stored as ISO dates; show them in the reader's calendar.
+    const filterDate = (value: string) => (value ? formatDate(value, locale, { dateStyle: "medium", timeZone: "UTC" }) : "");
+    add("fromDate", t("security.platformAudit.fromDate"), filterDate(filters.fromDate));
+    add("toDate", t("security.platformAudit.toDate"), filterDate(filters.toDate));
     if (filters.uncataloguedOnly) chips.push({ key: "uncataloguedOnly", label: t("security.platformAudit.uncataloguedOnly"), color: activeFilterColor("uncataloguedOnly") });
     return chips;
   }, [filters, locale, t, tenantOptions]);
@@ -452,8 +468,8 @@ export function PlatformSecurityAuditReviewPage({
       minWidth: 150,
       cell: (item) => {
         const scope = displayValue(item.tenantId, t("security.platformAudit.notAvailable"));
-        const tenantName = item.tenantId ? tenantNamesById.get(item.tenantId) : undefined;
-        return <span className={tenantName ? "text-xs" : "font-mono text-xs"} title={tenantName ? scope : undefined}>{tenantName ?? scope}</span>;
+        const scopeName = auditScopeName(item.tenantId, tenantNamesById, locale);
+        return <span className={scopeName ? "text-xs" : "font-mono text-xs"} title={scopeName ? scope : undefined}>{scopeName ?? scope}</span>;
       },
     },
     {
@@ -475,14 +491,16 @@ export function PlatformSecurityAuditReviewPage({
       header: t("security.platformAudit.operation"),
       accessorKey: "operation",
       minWidth: 190,
-      cell: (item) => <span className="font-mono text-xs">{displayValue(item.operation, t("security.platformAudit.notAvailable"))}</span>,
+      cell: (item) => <span className="text-xs">{localizePlatformAuditOperation(locale, item.operation, t("security.platformAudit.notAvailable"))}</span>,
     },
     {
       id: "actorId",
       header: t("security.platformAudit.actor"),
       accessorKey: "actorId",
       minWidth: 150,
-      cell: (item) => <span className="font-mono text-xs">{displayValue(item.actorId, displayValue(item.actorKind, t("security.platformAudit.unknownActor")))}</span>,
+      cell: (item) => item.actorId?.trim()
+        ? <span className="font-mono text-xs">{item.actorId}</span>
+        : <span className="text-xs">{localizePlatformAuditActorKind(locale, item.actorKind, t("security.platformAudit.unknownActor"))}</span>,
     },
     {
       id: "outcome",
@@ -496,7 +514,9 @@ export function PlatformSecurityAuditReviewPage({
       header: t("security.platformAudit.sourceIp"),
       accessorKey: "sourceIpAddress",
       minWidth: 150,
-      cell: (item) => <span className="font-mono text-xs">{displayValue(item.sourceIpAddress, displayValue(item.sourceIpKind, t("security.platformAudit.notAvailable")))}</span>,
+      cell: (item) => item.sourceIpAddress?.trim()
+        ? <span className="font-mono text-xs">{item.sourceIpAddress}</span>
+        : <span className="text-xs">{localizePlatformAuditSourceKind(locale, item.sourceIpKind, t("security.platformAudit.notAvailable"))}</span>,
     },
   ];
 
@@ -621,10 +641,15 @@ export function PlatformSecurityAuditReviewPage({
                 />
               </div>
             )}
-            <TextField className="min-w-0 lg:col-span-3" value={draftFilters.outcome} onChange={(value) => updateDraft("outcome", value)}>
-              <Label>{t("security.platformAudit.outcome")}</Label>
-              <Input placeholder={t("security.platformAudit.outcomePlaceholder")} />
-            </TextField>
+            <div className="min-w-0 lg:col-span-3">
+              <FilterSelect
+                label={t("security.platformAudit.outcome")}
+                placeholder={t("security.platformAudit.allOutcomes")}
+                value={draftFilters.outcome}
+                options={[{ id: "", label: t("security.platformAudit.allOutcomes") }, ...securityAuditOutcomes.map((outcome) => ({ id: outcome, label: localizeSecurityAuditOutcome(locale, outcome, outcome) }))]}
+                onChange={(value) => updateDraft("outcome", value)}
+              />
+            </div>
             <div className="flex min-w-0 items-end lg:col-span-3">
               <Checkbox aria-label={t("security.platformAudit.uncataloguedOnly")} isSelected={draftFilters.uncataloguedOnly} onChange={toggleUncatalogued}>
                 <Checkbox.Content>
@@ -770,23 +795,25 @@ export function PlatformSecurityAuditReviewPage({
         </div>
       </Surface>
 
-      <EventDetailDialog event={selectedEvent} onClose={() => setSelectedEvent(null)} />
+      <EventDetailDialog event={selectedEvent} tenantNamesById={tenantNamesById} onClose={() => setSelectedEvent(null)} />
     </div>
   );
 }
 
-function EventDetailDialog({ event, onClose }: { event: SecurityAuditEventReadDto | null; onClose: () => void }) {
+function EventDetailDialog({ event, tenantNamesById, onClose }: { event: SecurityAuditEventReadDto | null; tenantNamesById: ReadonlyMap<string, string>; onClose: () => void }) {
   const { t, locale } = useLocalizedText();
-  return <PlatformAuditDetailDialog event={event} onClose={onClose} locale={locale} t={t} />;
+  return <PlatformAuditDetailDialog event={event} tenantNamesById={tenantNamesById} onClose={onClose} locale={locale} t={t} />;
 }
 
 function PlatformAuditDetailDialog({
   event,
+  tenantNamesById,
   onClose,
   locale,
   t,
 }: {
   event: SecurityAuditEventReadDto | null;
+  tenantNamesById: ReadonlyMap<string, string>;
   onClose: () => void;
   locale: SupportedLocale;
   t: ReturnType<typeof useLocalizedText>["t"];
@@ -814,20 +841,22 @@ function PlatformAuditDetailDialog({
                   <DetailField label={t("security.platformAudit.id")} value={displayValue(event.id, t("security.platformAudit.notAvailable"))} />
                   <DetailField label={t("security.platformAudit.event")} value={localizePlatformAuditEvent(locale, event.eventName, t("security.platformAudit.notAvailable"))} />
                   <DetailField label={t("security.platformAudit.category")} value={localizePlatformAuditCategory(locale, event.eventCategory, t("security.platformAudit.uncatalogued"))} />
-                  <DetailField label={t("security.platformAudit.operation")} value={displayValue(event.operation, t("security.platformAudit.notAvailable"))} />
+                  <DetailField label={t("security.platformAudit.operation")} value={localizePlatformAuditOperation(locale, event.operation, t("security.platformAudit.notAvailable"))} />
                   <DetailField label={t("security.platformAudit.outcome")} value={localizeSecurityAuditOutcome(locale, event.outcome, t("security.platformAudit.notAvailable"))} />
-                  <DetailField label={t("security.platformAudit.actorKind")} value={displayValue(event.actorKind, t("security.platformAudit.notAvailable"))} />
-                  <DetailField label={t("security.platformAudit.actor")} value={displayValue(event.actorId, t("security.platformAudit.unknownActor"))} />
+                  <DetailField label={t("security.platformAudit.actorKind")} value={localizePlatformAuditActorKind(locale, event.actorKind, t("security.platformAudit.notAvailable"))} />
+                  <DetailField label={t("security.platformAudit.actor")} value={displayValue(event.actorId, localizePlatformAuditActorKind(locale, event.actorKind, t("security.platformAudit.unknownActor")))} />
                   <DetailField label={t("security.platformAudit.subject")} value={displayValue(event.subjectId, t("security.platformAudit.notAvailable"))} />
-                  <DetailField label={t("security.platformAudit.scope")} value={displayValue(event.tenantId, t("security.platformAudit.notAvailable"))} />
-                  <DetailField label={t("security.platformAudit.resource")} value={displayValue(event.resource, t("security.platformAudit.notAvailable"))} />
+                  <DetailField label={t("security.platformAudit.scope")} value={event.tenantId && tenantNamesById.has(event.tenantId)
+                    ? <>{tenantNamesById.get(event.tenantId)}<span className="block font-mono text-xs text-muted">{event.tenantId}</span></>
+                    : auditScopeName(event.tenantId, tenantNamesById, locale) ?? displayValue(event.tenantId, t("security.platformAudit.notAvailable"))} />
+                  <DetailField label={t("security.platformAudit.resource")} value={localizePlatformAuditResource(locale, event.resource, t("security.platformAudit.notAvailable"))} />
                   <DetailField label={t("security.platformAudit.transferredFile")} value={<TransferredFileDescription event={event} locale={locale} fallback={t("security.platformAudit.notAvailable")} />} />
                   <DetailField label={t("security.platformAudit.occurredAt")} value={event.occurredAt ? formatDateTime(event.occurredAt, locale) : t("security.platformAudit.notAvailable")} />
                   <DetailField label={t("security.platformAudit.correlationId")} value={displayValue(event.correlationId, t("security.platformAudit.notAvailable"))} />
-                  <DetailField label={t("security.platformAudit.sourceBoundary")} value={displayValue(event.sourceBoundary, t("security.platformAudit.notAvailable"))} />
-                  <DetailField label={t("security.platformAudit.sourceIpKind")} value={displayValue(event.sourceIpKind, t("security.platformAudit.notAvailable"))} />
+                  <DetailField label={t("security.platformAudit.sourceBoundary")} value={localizePlatformAuditSourceBoundary(locale, event.sourceBoundary, t("security.platformAudit.notAvailable"))} />
+                  <DetailField label={t("security.platformAudit.sourceIpKind")} value={localizePlatformAuditSourceKind(locale, event.sourceIpKind, t("security.platformAudit.notAvailable"))} />
                   <DetailField label={t("security.platformAudit.sourceIpAddress")} value={displayValue(event.sourceIpAddress, t("security.platformAudit.notAvailable"))} />
-                  <DetailField label={t("security.platformAudit.redactedReason")} value={displayValue(event.redactedReason, t("security.platformAudit.notAvailable"))} />
+                  <DetailField label={t("security.platformAudit.redactedReason")} value={localizePlatformAuditReason(locale, event.redactedReason, t("security.platformAudit.notAvailable"))} />
                   <DetailField label={t("security.platformAudit.changes")} value={<AuditChangeList changes={event.changes ?? []} locale={locale} t={t} />} />
                 </dl>
                 <p className="mt-6 border-t border-separator pt-5 text-xs leading-5 text-muted">{t("security.platformAudit.detailReadOnly")}</p>

@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { LocalizationProvider } from "@vitarish/localization";
 import { securityMessageCatalogs } from "../localization";
@@ -89,6 +89,19 @@ describe("PlatformSecurityAuditReviewPage", () => {
     await waitFor(() => expect(auditPlatformSecurityEventsExport).toHaveBeenCalledWith(expect.objectContaining({ actorId: "actor-b" })));
   });
 
+  it("filters by a listed outcome and names it in the active filter", async () => {
+    renderPage();
+
+    fireEvent.click(screen.getByRole("button", { name: /Outcome/ }));
+    fireEvent.click(await screen.findByRole("option", { name: "Denied" }));
+    fireEvent.click(screen.getByRole("button", { name: "Apply filters" }));
+
+    await waitFor(() => expect(vi.mocked(useAuditPlatformSecurityEventsList).mock.lastCall?.[0]).toMatchObject({ outcome: "denied" }));
+    expect(screen.getByRole("button", { name: "Remove filter: Outcome: Denied" })).toBeInTheDocument();
+    // The default date range chips use the reader's date format, not the stored ISO dates.
+    expect(screen.getByRole("button", { name: /^Remove filter: From date: [A-Z][a-z]{2} \d{1,2}, \d{4}$/ })).toBeInTheDocument();
+  });
+
   it("supports exact legacy event and operation fallbacks with removable active filters", async () => {
     renderPage();
 
@@ -135,7 +148,7 @@ describe("PlatformSecurityAuditReviewPage", () => {
     expect(screen.getByRole("columnheader", { name: "Operation" })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: "Source IP" })).toBeInTheDocument();
     expect(screen.getByText("Tenant A", { selector: "span" })).toHaveAttribute("title", "tenant-a");
-    expect(screen.getByText("Succeeded").closest(".chip")).toHaveClass("chip--success");
+    expect(within(screen.getAllByRole("row")[1]).getByText("Succeeded").closest(".chip")).toHaveClass("chip--success");
 
     expect(screen.getAllByText("Authentication").length).toBeGreaterThan(0);
     const eventCells = screen.getAllByText("Password login");
@@ -146,6 +159,47 @@ describe("PlatformSecurityAuditReviewPage", () => {
     expect(screen.getAllByText("203.0.113.7")).toHaveLength(2);
     expect(screen.getByText("redacted")).toBeInTheDocument();
     expect(screen.getByText("File").closest("div")).toHaveTextContent("PDF · 2.4 MB");
+  });
+
+  it("labels coded audit values instead of showing the stored codes", async () => {
+    vi.mocked(useAuditPlatformSecurityEventsList).mockReturnValue({
+      data: {
+        items: [{
+          ...event,
+          eventName: "authentication.phone.login",
+          operation: "phone.login",
+          actorKind: "anonymous",
+          actorId: undefined,
+          tenantId: "platform",
+          resource: "user/subject-a",
+          sourceBoundary: "authentication.application",
+          sourceIpKind: "client",
+          redactedReason: "tenant_role_replacement:before=tenant_user;after=tenant_owner",
+          resourceExtension: undefined,
+          resourceSize: undefined,
+        }],
+        page: 1,
+        pageSize: 25,
+        totalCount: 1,
+        capacityThresholdReached: false,
+      },
+      isPending: false,
+      isError: false,
+      isFetching: false,
+      error: null,
+    } as never);
+    renderPage();
+
+    const eventCells = screen.getAllByText("Phone login");
+    fireEvent.click(eventCells[eventCells.length - 1]);
+    const dialog = await screen.findByRole("dialog");
+
+    for (const label of ["Sign in with phone code", "Not signed in", "Platform", "User subject-a", "Sign-in service", "User's device", "Clinic role from Clinic user to Clinic owner"]) {
+      expect(within(dialog).getAllByText(label).length).toBeGreaterThan(0);
+    }
+    for (const code of ["phone.login", "anonymous", "authentication.application", "client", "tenant_role_replacement:before=tenant_user;after=tenant_owner"]) {
+      expect(within(dialog).queryByText(code)).not.toBeInTheDocument();
+    }
   });
 
   it("renders capacity warnings and service authorization errors", async () => {

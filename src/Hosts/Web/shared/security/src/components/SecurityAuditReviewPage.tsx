@@ -6,7 +6,7 @@ import { useMemo, useState } from "react";
 import { useAuditSecurityEventsList } from "../api/generated/audit/audit";
 import type { AuditSecurityEventsListParams } from "../api/generated/audit/model";
 import { formatDateTime, formatNumber, localizeApiError, useLocalizedText } from "@vitarish/localization";
-import { localizeSecurityAuditOutcome } from "../localization";
+import { localizePlatformAuditActorKind, localizePlatformAuditEvent, localizePlatformAuditSourceKind, localizeSecurityAuditOutcome } from "../localization";
 import { TransferredFileDescription } from "./transferredFile";
 import { AuditDateFilter } from "./AuditDateFilter";
 import { auditOutcomeColor } from "./auditOutcomeColor";
@@ -210,8 +210,8 @@ export function SecurityAuditReviewPage() {
                 <tbody>
                   {result.items.map((item) => (
                     <tr key={item.id} className="border-b border-separator transition-colors last:border-0 hover:bg-surface-secondary">
-                      <td className="px-3 py-3 font-mono text-xs font-medium text-accent">
-                        <span dir="ltr">{item.eventName ?? "—"}</span>
+                      <td className="px-3 py-3 text-sm font-medium text-accent">
+                        <span>{localizePlatformAuditEvent(locale, item.eventName, "—")}</span>
                         <TransferredFileDescription
                           event={item}
                           locale={locale}
@@ -219,13 +219,13 @@ export function SecurityAuditReviewPage() {
                           accessibleLabel={t("security.audit.transferredFile")}
                         />
                       </td>
-                      <td className="px-3 py-3 text-foreground">{item.actorId ?? item.actorKind ?? t("security.audit.unknownActor")}</td>
+                      <td className="px-3 py-3 text-foreground">{item.actorId ?? localizePlatformAuditActorKind(locale, item.actorKind, t("security.audit.unknownActor"))}</td>
                       <td className="px-3 py-3">
                         <Chip color={auditOutcomeColor(item.outcome)} size="sm" variant="soft">
                           <Chip.Label>{outcomeLabel(item.outcome, locale)}</Chip.Label>
                         </Chip>
                       </td>
-                      <td className="px-3 py-3 font-mono text-xs text-muted"><span dir="ltr">{item.sourceIpAddress ?? item.sourceIpKind ?? "—"}</span></td>
+                      <td className="px-3 py-3 font-mono text-xs text-muted">{item.sourceIpAddress ? <span dir="ltr">{item.sourceIpAddress}</span> : <span className="font-sans">{localizePlatformAuditSourceKind(locale, item.sourceIpKind, "—")}</span>}</td>
                       <td className="px-3 py-3 whitespace-nowrap text-muted">{item.occurredAt ? formatDateTime(item.occurredAt, locale) : "—"}</td>
                     </tr>
                   ))}
