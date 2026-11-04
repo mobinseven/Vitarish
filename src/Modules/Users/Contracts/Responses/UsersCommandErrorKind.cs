@@ -26,7 +26,8 @@ public enum UsersCommandErrorKind
     TenantMemberConflict,
     LastOwnerProtection,
     SelfDeletion,
-    LastPlatformAdministrator
+    LastPlatformAdministrator,
+    RoleScopeConflict
 }
 
 public static class UsersCommandErrorKinds

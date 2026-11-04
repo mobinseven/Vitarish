@@ -3082,6 +3082,7 @@
           "LastOwnerProtection",
           "SelfDeletion",
           "LastPlatformAdministrator",
+          "RoleScopeConflict",
           null
         ]
       },
@@ -3114,7 +3115,9 @@
           "securityHistoryAvailable",
           "authenticationHistoryAvailable",
           "authenticationMethods",
-          "authenticationMethodsUnavailable"
+          "authenticationMethodsUnavailable",
+          "globalRoleGrantAllowed",
+          "tenantRoleGrantAllowed"
         ],
         "type": "object",
         "properties": {
@@ -3176,6 +3179,12 @@
             ]
           },
           "authenticationMethodsUnavailable": {
+            "type": "boolean"
+          },
+          "globalRoleGrantAllowed": {
+            "type": "boolean"
+          },
+          "tenantRoleGrantAllowed": {
             "type": "boolean"
           }
         }

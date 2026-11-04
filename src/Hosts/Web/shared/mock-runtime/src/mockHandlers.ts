@@ -349,6 +349,8 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
         user: { id: userId, userName: "mock.user", firstName: "Mock", lastName: "User", email: "mock.user@example.test", phoneNumber: null, fullName: "Mock User", revision: "mock-revision", isEnabled: true },
         globalRoles: [],
         permittedGlobalRoles: ["PlatformAdmin"],
+        globalRoleGrantAllowed: true,
+        tenantRoleGrantAllowed: true,
         tenantRoles: store.memberships.filter((membership) => membership.userId === "mock-user").map(({ userId: _userId, ...membership }) => membership),
         securityHistory: history(securityCount, securityPage, (index) => ({
           eventName: index % 2 === 0 ? "users.security-attributes.changed" : "users.account.edited",

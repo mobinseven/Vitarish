@@ -8,3 +8,8 @@ export const tenantRoleSuffixes = {
 } as const;
 
 export type TenantRoleSuffix = (typeof tenantRoleSuffixes)[keyof typeof tenantRoleSuffixes];
+
+/** Platform-wide role names the Users API returns in a user's global roles. */
+export const globalRoleNames = {
+  platformAdministrator: "PlatformAdmin",
+} as const;

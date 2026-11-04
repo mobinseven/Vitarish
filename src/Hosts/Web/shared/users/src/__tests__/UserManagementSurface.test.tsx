@@ -12,7 +12,8 @@ const tenantProvision = vi.fn((_input: unknown, options?: { onSuccess?: () => vo
 const tenantRemove = vi.fn((_input: unknown, options?: { onSuccess?: () => void }) => options?.onSuccess?.());
 const managedUserUpdate = vi.fn((_input: unknown, options?: { onSuccess?: () => void; onError?: (error: unknown) => void }) => options?.onSuccess?.());
 const platformPhoneCreate = vi.fn((_input: unknown, options?: { onSuccess?: () => void; onError?: (error: unknown) => void }) => options?.onSuccess?.());
-const globalRoleGrant = vi.fn((_input: unknown, options?: { onSuccess?: () => void }) => options?.onSuccess?.());
+const globalRoleGrant = vi.fn((_input: unknown, options?: { onSuccess?: () => void; onError?: (error: unknown) => void }) => options?.onSuccess?.());
+const tenantRoleGrant = vi.fn((_input: unknown, options?: { onSuccess?: () => void; onError?: (error: unknown) => void }) => options?.onSuccess?.());
 const inactivityPolicySave = vi.fn((_input: unknown, options?: { onSuccess?: () => void; onError?: (error: unknown) => void }) => options?.onSuccess?.());
 const revokeSessions = vi.fn((_input: unknown, options?: { onSuccess?: (result: { endedSessions: number }) => void; onError?: (error: unknown) => void }) => options?.onSuccess?.({ endedSessions: 2 }));
 const disableUser = vi.fn((_input: unknown, options?: { onSuccess?: () => void; onError?: (error: unknown) => void }) => options?.onSuccess?.());
@@ -81,6 +82,8 @@ const userSecurityDetails = {
     passkeys: [{ id: "3f2a7c1e-0000-4000-8000-000000000001", friendlyName: "Office laptop", registeredAt: "2026-09-01T08:00:00Z", lastUsedAt: null }],
   },
   authenticationMethodsUnavailable: false,
+  globalRoleGrantAllowed: true,
+  tenantRoleGrantAllowed: true,
 };
 
 vi.mock("@vitarish/auth", () => ({
@@ -116,7 +119,7 @@ vi.mock("@vitarish/auth", () => ({
   useUsersEnableUser: () => ({ isPending: false, mutate: enableUser }),
   useUsersAdministrationCreateWithEmail: () => ({ isPending: false, mutate: vi.fn() }),
   useUsersAdministrationCreateWithPhone: () => ({ isPending: false, mutate: platformPhoneCreate }),
-  useUsersAdministrationGrantTenantRole: () => ({ isPending: false, mutate: vi.fn() }),
+  useUsersAdministrationGrantTenantRole: () => ({ isPending: false, mutate: tenantRoleGrant }),
   useUsersAdministrationRevokeTenantRole: () => ({ isPending: false, mutate: vi.fn() }),
 }));
 
@@ -248,7 +251,7 @@ describe("UserManagementSurface", () => {
 
     await userEvent.setup().click(screen.getByText("Platform User"));
     expect(screen.getByText(/Tenant: tenant-a/)).toBeInTheDocument();
-    expect(screen.getByText(/Role: TenantUser/)).toBeInTheDocument();
+    expect(screen.getByText(/Role: Staff/)).toBeInTheDocument();
   });
 
   it("explains and submits phone identifiers for tenant user creation", async () => {
@@ -295,9 +298,9 @@ describe("UserManagementSurface", () => {
 
     expect(screen.getByText("User ID")).toBeInTheDocument();
     expect(screen.getAllByText("platform-user")).toHaveLength(2);
-    expect(screen.getByText("PlatformAdmin")).toBeInTheDocument();
+    expect(screen.getByText("Platform administrator")).toBeInTheDocument();
     expect(screen.getByText(/Tenant: tenant-a/)).toBeInTheDocument();
-    expect(screen.getByText(/Role: TenantUser/)).toBeInTheDocument();
+    expect(screen.getByText(/Role: Staff/)).toBeInTheDocument();
     expect(screen.getByText("Authentication history")).toBeInTheDocument();
     expect(screen.getByText("Passkey login")).toBeInTheDocument();
     expect(screen.getByText("User security attributes changed")).toBeInTheDocument();
@@ -401,6 +404,14 @@ describe("UserManagementSurface", () => {
     expect(within(section).queryByRole("list", { name: "Passkeys" })).toBeNull();
   });
 
+  it("names each history reason instead of showing its stored code", () => {
+    renderSurface("platform", { platformView: "detail", userId: "platform-user" });
+
+    expect(within(historySection("Authentication history")).getByText("Wrong credentials")).toBeInTheDocument();
+    expect(within(historySection("Security history")).getByText("Security attributes changed")).toBeInTheDocument();
+    expect(screen.queryByText("authentication_failed")).not.toBeInTheDocument();
+  });
+
   it("pages the sign-in history on its own without moving the security history", async () => {
     const user = userEvent.setup();
     securityDetailsQueryResponse = { ...securityDetailsQueryResponse, data: withHistoryTotals(60, 60) };
@@ -441,6 +452,33 @@ describe("UserManagementSurface", () => {
     expect(globalRoleGrant).toHaveBeenCalledWith({ userId: "platform-user", data: { roleName: "PlatformAdmin" } }, expect.any(Object));
     expect(refetch).toHaveBeenCalled();
     expect(screen.getByRole("status")).toHaveTextContent("Global role granted.");
+  });
+
+  it.each([
+    ["globalRoleGrantAllowed", usersMessageCatalogs.en.users.management.grantGlobalRole, usersMessageCatalogs.en.users.management.globalRoleBlockedByMemberships],
+    ["tenantRoleGrantAllowed", usersMessageCatalogs.en.users.management.grant, usersMessageCatalogs.en.users.management.membershipBlockedByGlobalRole],
+  ] as const)("hides a role grant the server refuses through %s and explains why", (flag, grantButton, note) => {
+    securityDetailsQueryResponse.data = { ...userSecurityDetails, [flag]: false };
+    renderSurface("platform", { platformView: "detail", userId: "platform-user" });
+
+    expect(screen.queryByRole("button", { name: grantButton })).not.toBeInTheDocument();
+    expect(screen.getByText(note)).toBeInTheDocument();
+  });
+
+  it("explains a role-scope refusal from a concurrent change and reloads the account", async () => {
+    const user = userEvent.setup();
+    tenantRoleGrant.mockImplementationOnce((_input, options) => options?.onError?.({
+      status: 409,
+      problem: { succeeded: false, errors: [{ code: UsersCommandErrorKind.RoleScopeConflict, failureCode: UsersCommandErrorKind.RoleScopeConflict }] },
+    }));
+    renderSurface("platform", { platformView: "detail", userId: "platform-user" });
+
+    await user.type(screen.getByRole("textbox", { name: usersMessageCatalogs.en.users.management.tenantId }), "tenant-b");
+    await user.click(screen.getByRole("button", { name: usersMessageCatalogs.en.users.management.grant }));
+
+    expect(tenantRoleGrant).toHaveBeenCalled();
+    expect(screen.getByRole("status")).toHaveTextContent(usersMessageCatalogs.en.users.management.membershipBlockedByGlobalRole);
+    expect(refetch).toHaveBeenCalled();
   });
 
   it("saves a per-user inactivity override with the server version", async () => {
@@ -601,7 +639,7 @@ describe("UserManagementSurface", () => {
     renderSurface("platform", { platformView: "detail", userId: "platform-user" });
 
     expect(screen.getByText("platform-user")).toBeInTheDocument();
-    expect(screen.getByText("PlatformAdmin")).toBeInTheDocument();
+    expect(screen.getByText("Platform administrator")).toBeInTheDocument();
     expect(screen.getByRole("status")).toHaveTextContent("Audit history is temporarily unavailable. User details and roles are still shown.");
   });
 

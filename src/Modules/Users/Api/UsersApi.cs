@@ -103,6 +103,7 @@ public static class UsersApi
                 UsersCommandErrorCodes.TenantMemberNotFound => Results.NotFound(),
                 UsersCommandErrorCodes.InvalidContact => Results.BadRequest(UsersCommandResponse.Failed([UsersCommandErrorKinds.ForCode(UsersCommandErrorCodes.InvalidContact, UsersCommandErrorCodes.InvalidContactDescription)])),
                 UsersCommandErrorCodes.ActiveSessionConflict => Results.Conflict(UsersCommandResponse.Failed([UsersCommandErrorKinds.ForCode(result.ErrorCode, UsersCommandErrorCodes.ActiveSessionConflictDescription)])),
+                UsersCommandErrorCodes.RoleScopeConflict => Results.Conflict(UsersCommandResponse.Failed([UsersCommandErrorKinds.ForCode(result.ErrorCode, UsersCommandErrorCodes.RoleScopeConflictDescription)])),
                 UsersCommandErrorCodes.TenantMemberConflict => Results.Conflict(UsersCommandResponse.Failed([UsersCommandErrorKinds.ForCode(result.ErrorCode, UsersCommandErrorCodes.TenantMemberConflictDescription)])),
                 UsersCommandErrorCodes.ContactIdentifierInUse => Results.Conflict(UsersCommandResponse.Failed([UsersCommandErrorKinds.ForCode(UsersCommandErrorCodes.ContactIdentifierInUse, UsersCommandErrorCodes.ContactIdentifierInUseDescription)])),
                 _ => Results.Conflict(UsersCommandResponse.Failed([UsersCommandErrorKinds.ForCode(result.ErrorCode ?? UsersCommandErrorCodes.TenantMemberConflict, result.ErrorCode ?? UsersCommandErrorCodes.TenantMemberConflictDescription)]))
@@ -247,7 +248,9 @@ public static class UsersApi
             details.SecurityHistoryAvailable,
             details.AuthenticationHistoryAvailable,
             details.AuthenticationMethods is null ? null : MapAuthenticationMethods(details.AuthenticationMethods),
-            details.AuthenticationMethodsUnavailable);
+            details.AuthenticationMethodsUnavailable,
+            RoleScopeSeparationPolicy.CanGrantGlobalRole(details.AssignedRoles),
+            RoleScopeSeparationPolicy.CanGrantTenantRole(details.AssignedRoles));
 
         if (!details.SecurityHistoryAvailable || !details.AuthenticationHistoryAvailable)
         {

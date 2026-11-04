@@ -3,7 +3,8 @@ using Vitarish.Parties.Domain.Profiles;
 namespace Vitarish.Parties.Application.Onboarding;
 
 /// <summary>The account asking to create a tenant, as far as creation cares.</summary>
-public sealed record TenantCreator(string UserId, bool HasVerifiedPhone);
+/// <param name="CanOwnTenant">False when the account holds a platform role, which excludes tenant roles.</param>
+public sealed record TenantCreator(string UserId, bool HasVerifiedPhone, bool CanOwnTenant);
 
 public interface ITenantCreatorDirectory
 {

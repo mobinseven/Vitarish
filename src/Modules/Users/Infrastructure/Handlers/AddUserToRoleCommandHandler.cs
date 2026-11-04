@@ -81,6 +81,18 @@ internal sealed class AddUserToRoleCommandHandler(
             return IdentityResult.Success;
         }
 
+        string[] previousRoles = await AssignedRoleNamesAsync(request.User.Id, cancellationToken);
+        if (!RoleScopeSeparationPolicy.CanGrantGlobalRole(previousRoles))
+        {
+            IdentityResult result = IdentityResult.Failed(new IdentityError
+            {
+                Code = UsersCommandErrorCodes.RoleScopeConflict,
+                Description = UsersCommandErrorCodes.RoleScopeConflictDescription
+            });
+            await WriteAuditAsync(request, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.RoleScopeConflict, cancellationToken);
+            return result;
+        }
+
         if (await activeSessionQuery.HasActiveSessionAsync(request.User.Id, cancellationToken))
         {
             IdentityResult result = IdentityResult.Failed(new IdentityError
@@ -92,7 +104,6 @@ internal sealed class AddUserToRoleCommandHandler(
             return result;
         }
 
-        string[] previousRoles = await AssignedRoleNamesAsync(request.User.Id, cancellationToken);
         dbContext.UserRoles.Add(new IdentityUserRole<string>
         {
             UserId = request.User.Id,

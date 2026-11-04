@@ -27,11 +27,11 @@ import {
   useUsersRemoveTenantMember,
 } from "@vitarish/auth";
 import type { TenantRoleMembershipResponse, UserAuthenticationMethodsResponse, UserPasskeyResponse, UserSecurityDetailsResponse, UserSecurityEventResponse, UserSecurityHistoryResponse } from "@vitarish/auth";
-import { getUsersAdministrationGetUserSecurityQueryKey, getUsersAdministrationListTenantRolesQueryKey, getUsersGetUserQueryKey, getUsersSearchUsersQueryKey, getUsersGetProfileQueryKey, getUsersGetCultureQueryKey, getUsersListWebAuthnCredentialsQueryKey, tenantRoleSuffixes, UsersCommandErrorKind } from "@vitarish/auth/users";
+import { getUsersAdministrationGetUserSecurityQueryKey, getUsersAdministrationListTenantRolesQueryKey, getUsersGetUserQueryKey, getUsersSearchUsersQueryKey, getUsersGetProfileQueryKey, getUsersGetCultureQueryKey, getUsersListWebAuthnCredentialsQueryKey, globalRoleNames, tenantRoleSuffixes, UsersCommandErrorKind } from "@vitarish/auth/users";
 import type { TenantRoleSuffix } from "@vitarish/auth/users";
 import { formatDateTime, formatNumber, useLocalizedText } from "@vitarish/localization";
 import { auditOutcomeColor } from "@vitarish/security";
-import { localizePlatformAuditEvent, localizeSecurityAuditOutcome } from "@vitarish/security/localization";
+import { localizePlatformAuditEvent, localizePlatformAuditReason, localizeSecurityAuditOutcome } from "@vitarish/security/localization";
 import { HeaderIcon, MobileNumberField, removeButtonClassName } from "@vitarish/ui";
 
 export type UserManagementMode = "tenant" | "platform";
@@ -355,7 +355,7 @@ function PlatformUserDirectory({
 }
 
 function MembershipList({ userId, memberships, t }: { userId: string; memberships: MembershipQuery; t: Translate }) {
-  return <Surface className="flex flex-col gap-6 rounded-3xl p-6" render={renderSection}><div className="flex items-center gap-3"><HeaderIcon icon="id-badge" /><h2 className="text-lg font-semibold text-foreground">{t("users.management.memberships")}</h2></div><div>{!userId && <p className="mt-2 text-muted">{t("users.management.selectUser")}</p>}{userId && memberships.isLoading && <p className="mt-2">{t("users.management.membershipLoading")}</p>}{userId && memberships.isError && <p className="mt-2 text-danger">{t("users.management.membershipError")}</p>}{userId && !memberships.isLoading && !memberships.isError && !memberships.data?.length && <p className="mt-2 text-muted">{t("users.management.noMemberships")}</p>}{!!memberships.data?.length && <ul className="mt-3 space-y-2">{memberships.data.map((membership) => <li className="rounded-2xl bg-surface-secondary p-3" key={`${membership.tenantId}:${membership.roleSuffix}`}><div>{t("users.management.tenant")}: {membership.tenantId}</div><div>{t("users.management.role")}: {membership.roleSuffix}</div></li>)}</ul>}</div></Surface>;
+  return <Surface className="flex flex-col gap-6 rounded-3xl p-6" render={renderSection}><div className="flex items-center gap-3"><HeaderIcon icon="id-badge" /><h2 className="text-lg font-semibold text-foreground">{t("users.management.memberships")}</h2></div><div>{!userId && <p className="mt-2 text-muted">{t("users.management.selectUser")}</p>}{userId && memberships.isLoading && <p className="mt-2">{t("users.management.membershipLoading")}</p>}{userId && memberships.isError && <p className="mt-2 text-danger">{t("users.management.membershipError")}</p>}{userId && !memberships.isLoading && !memberships.isError && !memberships.data?.length && <p className="mt-2 text-muted">{t("users.management.noMemberships")}</p>}{!!memberships.data?.length && <ul className="mt-3 space-y-2">{memberships.data.map((membership) => <li className="rounded-2xl bg-surface-secondary p-3" key={`${membership.tenantId}:${membership.roleSuffix}`}><div>{t("users.management.tenant")}: {membership.tenantId}</div><div>{t("users.management.role")}: {roleLabel(membership.roleSuffix, t)}</div></li>)}</ul>}</div></Surface>;
 }
 
 function PlatformCreateUser({ title, t }: { title: string; t: Translate }) {
@@ -526,7 +526,14 @@ function PlatformUserDetail({ title, userId, memberships, onUserDeleted, t }: { 
   const submit = (event: FormEvent) => {
     event.preventDefault();
     if (!tenantId.trim()) return;
-    grant.mutate({ userId, tenantId: tenantId.trim(), roleSuffix, data: { roleSuffix } }, { onSuccess: () => { setMessage(t("users.management.roleGranted")); refreshSecurityDetails(); }, onError: () => setMessage(t("users.management.roleError")) });
+    grant.mutate({ userId, tenantId: tenantId.trim(), roleSuffix, data: { roleSuffix } }, {
+      onSuccess: () => { setMessage(t("users.management.roleGranted")); refreshSecurityDetails(); },
+      onError: async (error) => {
+        if (!hasUsersCommandFailure(error, UsersCommandErrorKind.RoleScopeConflict)) { setMessage(t("users.management.roleError")); return; }
+        setMessage(t("users.management.membershipBlockedByGlobalRole"));
+        await refreshSecurityDetails();
+      },
+    });
   };
   const revokeRole = (tenant: string, role: string) => {
     if (!window.confirm(t("users.management.revokeConfirm"))) return;
@@ -537,7 +544,11 @@ function PlatformUserDetail({ title, userId, memberships, onUserDeleted, t }: { 
     if (!globalRole || !securityDetails?.permittedGlobalRoles.includes(globalRole)) return;
     grantGlobalRole.mutate({ userId, data: { roleName: globalRole } }, {
       onSuccess: async () => { setMessage(t("users.management.globalRoleGranted")); setGlobalRole(""); await refreshSecurityDetails(); },
-      onError: () => setMessage(t("users.management.roleError")),
+      onError: async (error) => {
+        if (!hasUsersCommandFailure(error, UsersCommandErrorKind.RoleScopeConflict)) { setMessage(t("users.management.roleError")); return; }
+        setMessage(t("users.management.globalRoleBlockedByMemberships"));
+        await refreshSecurityDetails();
+      },
     });
   };
   const submitInactivityPolicy = (event: FormEvent) => {
@@ -692,26 +703,26 @@ function PlatformUserDetail({ title, userId, memberships, onUserDeleted, t }: { 
       <div className="space-y-3">
       {securityDetails.globalRoles.length === 0
         ? <p className="text-muted">{t("users.management.noRoles")}</p>
-        : <ul className="flex flex-wrap gap-2">{securityDetails.globalRoles.map((role) => <li className="rounded-xl bg-surface-secondary px-3 py-1" key={role}>{role}</li>)}</ul>}
-      <form className="flex flex-wrap items-end gap-3 border-t pt-4" onSubmit={submitGlobalRole}>
-        <label className="min-w-56 flex-1">{t("users.management.globalRoleToGrant")}<select className={nativeFieldClassName} value={globalRole} onChange={(event) => setGlobalRole(event.target.value)}><option value="">{t("users.management.selectGlobalRole")}</option>{securityDetails.permittedGlobalRoles.filter((role) => !securityDetails.globalRoles.includes(role)).map((role) => <option key={role} value={role}>{role}</option>)}</select></label>
+        : <ul className="flex flex-wrap gap-2">{securityDetails.globalRoles.map((role) => <li className="rounded-xl bg-surface-secondary px-3 py-1" key={role}>{roleLabel(role, t)}</li>)}</ul>}
+      {securityDetails.globalRoleGrantAllowed ? <form className="flex flex-wrap items-end gap-3 border-t pt-4" onSubmit={submitGlobalRole}>
+        <label className="min-w-56 flex-1">{t("users.management.globalRoleToGrant")}<select className={nativeFieldClassName} value={globalRole} onChange={(event) => setGlobalRole(event.target.value)}><option value="">{t("users.management.selectGlobalRole")}</option>{securityDetails.permittedGlobalRoles.filter((role) => !securityDetails.globalRoles.includes(role)).map((role) => <option key={role} value={role}>{roleLabel(role, t)}</option>)}</select></label>
         <button className={nativeSecondaryButtonClassName} disabled={!globalRole || grantGlobalRole.isPending} title={t("users.management.grantGlobalRole")}><Icon name="user-check" />{t("users.management.grantGlobalRole")}</button>
-      </form>
+      </form> : <RoleScopeNote>{t("users.management.globalRoleBlockedByMemberships")}</RoleScopeNote>}
       <p className="text-sm text-muted">{t("users.management.globalRoleRevokeGap")}</p>
       <h3 className="pt-2 font-medium">{t("users.management.memberships")}</h3>
       {memberships.isLoading && <p aria-live="polite">{t("users.management.membershipLoading")}</p>}
       {memberships.isError && <p className="text-danger">{t("users.management.membershipError")}</p>}
       {!memberships.isLoading && !memberships.isError && tenantRoles.length === 0 && <p className="text-muted">{t("users.management.noMemberships")}</p>}
       {tenantRoles.map((membership) => <div className="mt-2 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-surface-secondary p-3" key={`${membership.tenantId}:${membership.roleSuffix}`}>
-        <span>{t("users.management.tenant")}: {membership.tenantId} · {t("users.management.role")}: {membership.roleSuffix}</span>
+        <span>{t("users.management.tenant")}: {membership.tenantId} · {t("users.management.role")}: {roleLabel(membership.roleSuffix, t)}</span>
         <button className="inline-flex items-center gap-2 text-danger" disabled={revoke.isPending || memberships.isError} onClick={() => revokeRole(membership.tenantId, membership.roleSuffix)} title={t("users.management.revoke")}><Icon name="user-minus" />{t("users.management.revoke")}</button>
       </div>)}
-      <form className="space-y-3 border-t pt-4" onSubmit={submit}>
+      {securityDetails.tenantRoleGrantAllowed ? <form className="space-y-3 border-t pt-4" onSubmit={submit}>
         <h3 className="font-medium">{t("users.management.grant")}</h3>
         <label className="block">{t("users.management.tenantId")}<input className={nativeFieldClassName} required value={tenantId} onChange={(event) => setTenantId(event.target.value)} /></label>
-        <label className="block">{t("users.management.roleToGrant")}<select className={`${nativeFieldClassName} w-auto`} value={roleSuffix} onChange={(event) => setRoleSuffix(event.target.value === tenantRoleSuffixes.owner ? tenantRoleSuffixes.owner : tenantRoleSuffixes.user)}><option value={tenantRoleSuffixes.user}>{tenantRoleSuffixes.user}</option><option value={tenantRoleSuffixes.owner}>{tenantRoleSuffixes.owner}</option></select></label>
+        <label className="block">{t("users.management.roleToGrant")}<select className={`${nativeFieldClassName} w-auto`} value={roleSuffix} onChange={(event) => setRoleSuffix(event.target.value === tenantRoleSuffixes.owner ? tenantRoleSuffixes.owner : tenantRoleSuffixes.user)}><option value={tenantRoleSuffixes.user}>{roleLabel(tenantRoleSuffixes.user, t)}</option><option value={tenantRoleSuffixes.owner}>{roleLabel(tenantRoleSuffixes.owner, t)}</option></select></label>
         <button className={nativePrimaryButtonClassName} disabled={grant.isPending || !tenantId.trim()} title={t("users.management.grant")}><Icon name="user-check" />{t("users.management.grant")}</button>
-      </form>
+      </form> : <RoleScopeNote>{t("users.management.membershipBlockedByGlobalRole")}</RoleScopeNote>}
       </div>
     </Surface>
 
@@ -1068,7 +1079,7 @@ function UserSecurityHistoryTable({ history, available, emptyMessage, label, pag
             </Table.Cell>
             <Table.Cell><HistoryIdentifier value={item.actorId} fallback={t("users.management.notAvailable")} /></Table.Cell>
             <Table.Cell><HistoryIdentifier value={item.clientInterfaceHost} fallback={t("users.management.notAvailable")} /></Table.Cell>
-            <Table.Cell>{item.redactedReason ?? "—"}</Table.Cell>
+            <Table.Cell>{localizePlatformAuditReason(locale, item.redactedReason, "—")}</Table.Cell>
           </Table.Row>)}
         </Table.Body>
       </Table.Content>
@@ -1083,6 +1094,23 @@ function isContactIdentifierInUse(error: unknown): boolean {
 
 function isInvalidContact(error: unknown): boolean {
   return hasUsersCommandFailure(error, UsersCommandErrorKind.InvalidContact);
+}
+
+function roleLabel(role: string, t: Translate): string {
+  switch (role) {
+    case tenantRoleSuffixes.owner:
+      return t("users.management.owner");
+    case tenantRoleSuffixes.user:
+      return t("users.management.staff");
+    case globalRoleNames.platformAdministrator:
+      return t("users.management.platformAdministrator");
+    default:
+      return role;
+  }
+}
+
+function RoleScopeNote({ children }: { children: string }) {
+  return <Alert><Alert.Indicator /><Alert.Content><Alert.Title>{children}</Alert.Title></Alert.Content></Alert>;
 }
 
 function hasUsersCommandFailure(error: unknown, failureCode: UsersCommandErrorKind): boolean {
@@ -1131,7 +1159,9 @@ function isUserSecurityDetailsResponse(value: unknown, userId: string): value is
     && typeof details.securityHistoryAvailable === "boolean"
     && typeof details.authenticationHistoryAvailable === "boolean"
     && (details.authenticationMethods === null || isAuthenticationMethods(details.authenticationMethods))
-    && typeof details.authenticationMethodsUnavailable === "boolean";
+    && typeof details.authenticationMethodsUnavailable === "boolean"
+    && typeof details.globalRoleGrantAllowed === "boolean"
+    && typeof details.tenantRoleGrantAllowed === "boolean";
 }
 
 function isAuthenticationMethods(value: unknown): value is UserAuthenticationMethodsResponse {

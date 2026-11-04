@@ -25,7 +25,7 @@ public sealed class CreateOwnTenantCommandHandlerTests
     {
         Mock<ITenantCreatorDirectory> creators = new();
         creators.Setup(item => item.FindAsync(CreatorUserId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new TenantCreator(CreatorUserId, HasVerifiedPhone: true));
+            .ReturnsAsync(new TenantCreator(CreatorUserId, HasVerifiedPhone: true, CanOwnTenant: true));
 
         NewSelfServiceTenant? captured = null;
         Mock<ISelfServiceTenantStore> store = new();
@@ -69,7 +69,7 @@ public sealed class CreateOwnTenantCommandHandlerTests
     {
         Mock<ITenantCreatorDirectory> creators = new();
         creators.Setup(item => item.FindAsync(CreatorUserId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new TenantCreator(CreatorUserId, HasVerifiedPhone: true));
+            .ReturnsAsync(new TenantCreator(CreatorUserId, HasVerifiedPhone: true, CanOwnTenant: true));
 
         Mock<ISelfServiceTenantStore> store = new();
         store.Setup(item => item.CreateAsync(It.IsAny<NewSelfServiceTenant>(), It.IsAny<CancellationToken>()))
@@ -98,7 +98,7 @@ public sealed class CreateOwnTenantCommandHandlerTests
     {
         Mock<ITenantCreatorDirectory> creators = new();
         creators.Setup(item => item.FindAsync(CreatorUserId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new TenantCreator(CreatorUserId, HasVerifiedPhone: true));
+            .ReturnsAsync(new TenantCreator(CreatorUserId, HasVerifiedPhone: true, CanOwnTenant: true));
         Mock<ISelfServiceTenantStore> store = new();
         store.Setup(item => item.CreateAsync(It.IsAny<NewSelfServiceTenant>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(TenantProvisioningOutcome.Created);
@@ -119,7 +119,7 @@ public sealed class CreateOwnTenantCommandHandlerTests
     {
         Mock<ITenantCreatorDirectory> creators = new();
         creators.Setup(item => item.FindAsync(CreatorUserId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new TenantCreator(CreatorUserId, HasVerifiedPhone: true));
+            .ReturnsAsync(new TenantCreator(CreatorUserId, HasVerifiedPhone: true, CanOwnTenant: true));
 
         List<NewSelfServiceTenant> captured = [];
         Mock<ISelfServiceTenantStore> store = new();
@@ -271,7 +271,7 @@ public sealed class CreateOwnTenantCommandHandlerTests
     {
         Mock<ITenantCreatorDirectory> creators = new();
         creators.Setup(item => item.FindAsync(CreatorUserId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new TenantCreator(CreatorUserId, HasVerifiedPhone: false));
+            .ReturnsAsync(new TenantCreator(CreatorUserId, HasVerifiedPhone: false, CanOwnTenant: true));
         Mock<ISelfServiceTenantStore> store = new();
         Mock<ISecurityAuditWriter> audit = AuditWriter();
         Mock<ITenantHandoffIssuer> handoffs = new(MockBehavior.Strict);
@@ -291,11 +291,33 @@ public sealed class CreateOwnTenantCommandHandlerTests
     }
 
     [Fact]
+    public async Task Denies_a_platform_role_holder_before_anything_is_created_and_audits_the_reason()
+    {
+        Mock<ITenantCreatorDirectory> creators = new();
+        creators.Setup(item => item.FindAsync(CreatorUserId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new TenantCreator(CreatorUserId, HasVerifiedPhone: true, CanOwnTenant: false));
+        Mock<ISelfServiceTenantStore> store = new();
+        Mock<ISecurityAuditWriter> audit = AuditWriter();
+        Mock<ITenantHandoffIssuer> handoffs = new(MockBehavior.Strict);
+        CreateOwnTenantCommandHandler handler = CreateHandler(creators.Object, store.Object, audit.Object, handoffs.Object);
+
+        CreateOwnTenantResult result = await handler.Handle(
+            new CreateOwnTenantCommand(CreatorUserId, "Clinic", "rezaei", null, IdempotencyKey),
+            CancellationToken.None);
+
+        result.Status.Should().Be(CreateOwnTenantStatus.RoleScopeConflict);
+        store.Verify(item => item.CreateAsync(It.IsAny<NewSelfServiceTenant>(), It.IsAny<CancellationToken>()), Times.Never);
+        audit.Verify(writer => writer.WriteAsync(
+            It.Is<SecurityAuditEvent>(entry => entry.Outcome == SecurityAuditOutcome.Denied && entry.RedactedReason == SecurityAuditReasonCatalog.RoleScopeConflict),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
     public async Task Denies_when_the_creator_has_reached_the_daily_creation_limit()
     {
         Mock<ITenantCreatorDirectory> creators = new();
         creators.Setup(item => item.FindAsync(CreatorUserId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new TenantCreator(CreatorUserId, HasVerifiedPhone: true));
+            .ReturnsAsync(new TenantCreator(CreatorUserId, HasVerifiedPhone: true, CanOwnTenant: true));
 
         NewSelfServiceTenant? captured = null;
         Mock<ISelfServiceTenantStore> store = new();
@@ -326,7 +348,7 @@ public sealed class CreateOwnTenantCommandHandlerTests
     {
         Mock<ITenantCreatorDirectory> creators = new();
         creators.Setup(item => item.FindAsync(CreatorUserId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new TenantCreator(CreatorUserId, HasVerifiedPhone: true));
+            .ReturnsAsync(new TenantCreator(CreatorUserId, HasVerifiedPhone: true, CanOwnTenant: true));
 
         Mock<ISelfServiceTenantStore> store = new();
         store.Setup(item => item.FindAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
@@ -355,7 +377,7 @@ public sealed class CreateOwnTenantCommandHandlerTests
     {
         Mock<ITenantCreatorDirectory> creators = new();
         creators.Setup(item => item.FindAsync(CreatorUserId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new TenantCreator(CreatorUserId, HasVerifiedPhone: true));
+            .ReturnsAsync(new TenantCreator(CreatorUserId, HasVerifiedPhone: true, CanOwnTenant: true));
 
         Mock<ISelfServiceTenantStore> store = new();
         store.Setup(item => item.CreateAsync(It.IsAny<NewSelfServiceTenant>(), It.IsAny<CancellationToken>()))
@@ -474,7 +496,7 @@ public sealed class CreateOwnTenantCommandHandlerTests
     {
         Mock<ITenantCreatorDirectory> creators = new();
         creators.Setup(item => item.FindAsync(CreatorUserId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new TenantCreator(CreatorUserId, HasVerifiedPhone: true));
+            .ReturnsAsync(new TenantCreator(CreatorUserId, HasVerifiedPhone: true, CanOwnTenant: true));
         return creators;
     }
 

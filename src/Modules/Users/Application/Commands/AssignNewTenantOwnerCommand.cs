@@ -19,7 +19,9 @@ public enum AssignNewTenantOwnerResult
     /// <summary>Someone else already holds a role in the tenant, so it is not new.</summary>
     TenantHasMembers = 4,
     ActiveSessionConflict = 5,
-    Unauthorized = 6
+    Unauthorized = 6,
+    /// <summary>The user holds a platform role, which excludes clinic roles.</summary>
+    RoleScopeConflict = 7
 }
 
 /// <summary>

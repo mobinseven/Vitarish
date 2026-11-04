@@ -60,7 +60,9 @@ internal sealed class ReplaceTenantRoleCommandHandler(
                         ? SecurityAuditReasonCatalog.UserNotFound
                         : replacement.Result.Errors.Any(error => error.Code == UsersCommandErrorCodes.RoleNotFound)
                             ? SecurityAuditReasonCatalog.TenantRoleNotFound
-                            : SecurityAuditReasonCatalog.MutationRejected;
+                            : replacement.Result.Errors.Any(error => error.Code == UsersCommandErrorCodes.RoleScopeConflict)
+                                ? SecurityAuditReasonCatalog.RoleScopeConflict
+                                : SecurityAuditReasonCatalog.MutationRejected;
                     await WriteAuditAsync(request, operationKey, SecurityAuditOutcome.Denied, reason, cancellationToken);
                     return replacement.Result;
                 }
@@ -148,6 +150,15 @@ internal sealed class ReplaceTenantRoleCommandHandler(
                     TenantRoleState.For(request.RoleSuffix));
             }
 
+            if (request.RoleSuffix is not null &&
+                !RoleScopeSeparationPolicy.CanGrantTenantRole(await AssignedRoleNamesAsync(request.UserId, cancellationToken)))
+            {
+                return new ReplacementResult(
+                    Failed(UsersCommandErrorCodes.RoleScopeConflict, UsersCommandErrorCodes.RoleScopeConflictDescription),
+                    beforeState,
+                    TenantRoleState.For(request.RoleSuffix));
+            }
+
             IdentityRole? ownerRole = tenantRoles.SingleOrDefault(role => role.Name == ownerRoleName);
             bool currentlyOwner = ownerRole is not null && memberships.Any(membership => membership.RoleId == ownerRole.Id);
             bool ownerWouldBeRemoved = currentlyOwner && request.RoleSuffix != IdentityDefinitions.TenantOwner;
@@ -202,6 +213,12 @@ internal sealed class ReplaceTenantRoleCommandHandler(
             throw;
         }
     }
+
+    private Task<string[]> AssignedRoleNamesAsync(string userId, CancellationToken cancellationToken) =>
+        (from membership in dbContext.UserRoles
+         join role in dbContext.Roles on membership.RoleId equals role.Id
+         where membership.UserId == userId
+         select role.Name!).ToArrayAsync(cancellationToken);
 
     private async Task WriteAuditAsync(
         ReplaceTenantRoleCommand request,

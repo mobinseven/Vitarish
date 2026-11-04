@@ -20,7 +20,7 @@ const subdomainMinimumLength = 3;
 export type TenantSetupStep = 0 | 1;
 
 /** Why creation failed, as the wizard explains it; the server decided each one. */
-export type TenantSetupFailure = "invalid" | "addressTaken" | "phoneNotVerified" | "limitReached" | "unavailable";
+export type TenantSetupFailure = "invalid" | "addressTaken" | "notPermitted" | "limitReached" | "unavailable";
 
 export interface TenantSetupValues {
   name: string;
@@ -43,7 +43,7 @@ function failureFor(error: unknown): TenantSetupFailure {
     case 409:
       return "addressTaken";
     case 403:
-      return "phoneNotVerified";
+      return "notPermitted";
     case 429:
       return "limitReached";
     default:

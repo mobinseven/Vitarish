@@ -196,6 +196,30 @@ public sealed class AssignNewTenantOwnerCommandHandlerTests
         (await dbContext.UserRoles.CountAsync()).Should().Be(1);
     }
 
+    [Fact]
+    public async Task Refuses_ownership_to_a_platform_administrator_and_audits_the_role_scope_conflict()
+    {
+        await using TestUsersDbContext dbContext = await CreateDbContextAsync();
+        IdentityRole platformRole = new() { Id = "role-platform", Name = IdentityDefinitions.PlatformAdmin, NormalizedName = IdentityDefinitions.PlatformAdmin.ToUpperInvariant() };
+        dbContext.Roles.Add(platformRole);
+        dbContext.UserRoles.Add(new IdentityUserRole<string> { UserId = "creator", RoleId = platformRole.Id });
+        await dbContext.SaveChangesAsync();
+        Mock<ISecurityAuditWriter> audit = AuditWriter();
+        AssignNewTenantOwnerCommandHandler handler = CreateHandler(dbContext, audit.Object);
+
+        AssignNewTenantOwnerResult result = await handler.Handle(
+            new AssignNewTenantOwnerCommand("creator", TenantId),
+            CancellationToken.None);
+
+        result.Should().Be(AssignNewTenantOwnerResult.RoleScopeConflict);
+        (await dbContext.UserRoles.CountAsync()).Should().Be(1);
+        audit.Verify(writer => writer.WriteAsync(
+            It.Is<SecurityAuditEvent>(entry =>
+                entry.Outcome == SecurityAuditOutcome.Denied &&
+                entry.RedactedReason == SecurityAuditReasonCatalog.RoleScopeConflict),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
     private static AssignNewTenantOwnerCommandHandler CreateHandler(
         UsersDbContext dbContext,
         ISecurityAuditWriter auditWriter,

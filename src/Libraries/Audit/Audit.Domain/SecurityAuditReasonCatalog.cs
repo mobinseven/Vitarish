@@ -52,6 +52,7 @@ public static class SecurityAuditReasonCatalog
     public const string TenantRolePersistenceFailure = "tenant_role_persistence_failure";
     public const string TenantRoleNotFound = "tenant_role_not_found";
     public const string GlobalRoleNotFound = "global_role_not_found";
+    public const string RoleScopeConflict = "role_scope_conflict";
     public const string InitialPlatformAdministrator = "initial_platform_administrator";
     public const string TenantRoleReplacementReasonPrefix = "tenant_role_replacement:";
     public const string TenantRoleReplacementBeforePrefix = "before=";
@@ -130,6 +131,7 @@ public static class SecurityAuditReasonCatalog
         TenantRolePersistenceFailure,
         TenantRoleNotFound,
         GlobalRoleNotFound,
+        RoleScopeConflict,
         InitialPlatformAdministrator
     };
 
