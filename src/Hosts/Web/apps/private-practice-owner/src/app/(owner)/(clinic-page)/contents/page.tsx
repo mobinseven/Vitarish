@@ -1,2 +1,5 @@
-import { ContentsPageSurface } from "./ContentsPageSurface";
-export default function ContentsPage() { return <ContentsPageSurface />; }
+import { ContentStudio } from "@vitarish/contents/studio";
+
+export default function ContentsPage() {
+  return <ContentStudio />;
+}

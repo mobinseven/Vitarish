@@ -4,14 +4,18 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Vitarish.Apps.Base.Core;
+using Vitarish.Contents.Application.Abstractions;
+using Vitarish.Intelligence.Domain.Options;
 using Vitarish.Landing.Api;
 using Vitarish.Landing.Application;
-using Vitarish.Intelligence.Domain.Options;
+using Vitarish.Modules.Base.Core;
+using Vitarish.Modules.Base.Core.BackgroundJobs;
 using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Domain.Models;
-using Vitarish.Modules.Base.Core;
+using Vitarish.Requests.Application.Abstractions;
 
 namespace Vitarish.Landing.App;
 
@@ -47,13 +51,44 @@ public sealed class LandingApp : Vitarish.Apps.Base.Core.App
         IPartiesService parties = scope.ServiceProvider.GetRequiredService<IPartiesService>();
         Uri landingUrl = new(options.LandingUrl, UriKind.Absolute);
         LandingHostBinding binding = await parties.GetLandingHostBindingAsync(landingUrl.Host, CancellationToken.None);
-        if (binding.TenantId is null)
+        Guid tenantId = binding.TenantId ?? await provisioner.EnsureAsync(new EnsureAppTenantRequest(
+            LandingTenant.OwnerName,
+            LandingTenant.AppId,
+            LandingTenant.Name,
+            landingUrl.Host), CancellationToken.None);
+
+        try
         {
-            _ = await provisioner.EnsureAsync(new EnsureAppTenantRequest(
-                LandingTenant.OwnerName,
-                LandingTenant.AppId,
-                LandingTenant.Name,
-                landingUrl.Host), CancellationToken.None);
+            bool tenantScopeFound = false;
+            string tenantIdValue = tenantId.ToString();
+            TenantBackgroundExecutor tenantBackgroundExecutor = scope.ServiceProvider.GetRequiredService<TenantBackgroundExecutor>();
+            await tenantBackgroundExecutor.ExecutePerTenantAsync(
+                LandingContentSeed.BackgroundResource,
+                async (tenantServices, cancellationToken) =>
+                {
+                    IRequestContext requestContext = tenantServices.GetRequiredService<IRequestContext>();
+                    if (requestContext.TenantId is not string requestTenantId ||
+                        !string.Equals(requestTenantId, tenantIdValue, StringComparison.Ordinal))
+                    {
+                        return;
+                    }
+
+                    tenantScopeFound = true;
+                    await LandingContentSeed.EnsureAsync(
+                        tenantServices.GetRequiredService<IContentSeeding>(),
+                        requestTenantId,
+                        cancellationToken);
+                },
+                CancellationToken.None);
+            if (!tenantScopeFound)
+            {
+                throw new InvalidOperationException("The provisioned Landing tenant was not available to the background tenant executor.");
+            }
+        }
+        catch (Exception exception)
+        {
+            ILogger<LandingApp> logger = scope.ServiceProvider.GetRequiredService<ILogger<LandingApp>>();
+            logger.LogError(exception, "Failed to seed landing content for tenant {TenantId}; the host will continue starting.", tenantId);
         }
     }
 

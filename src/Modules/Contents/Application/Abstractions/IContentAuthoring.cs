@@ -1,0 +1,69 @@
+using System.Text.Json;
+using Vitarish.Contents.Application.Models;
+using Vitarish.Contents.Domain.Models;
+using Vitarish.Entities.Contracts.Models;
+
+namespace Vitarish.Contents.Application.Abstractions;
+
+public interface IContentAuthoring
+{
+    Task<EntityResult<ContentAuthoringOutcome>> CreateSiteAsync(
+        string key,
+        string name,
+        string defaultLocale,
+        string[] locales,
+        CancellationToken cancellationToken);
+    Task<EntityResult<ContentAuthoringOutcome>> UpdateSiteAsync(
+        Guid siteId,
+        string key,
+        string name,
+        string defaultLocale,
+        string[] locales,
+        CancellationToken cancellationToken);
+    Task<EntityResult<ContentAuthoringOutcome>> CreateContentTypeAsync(
+        string key,
+        string name,
+        string? description,
+        IReadOnlyList<ContentFieldDefinition> fields,
+        CancellationToken cancellationToken);
+    Task<EntityResult<ContentAuthoringOutcome>> UpdateContentTypeSchemaAsync(
+        Guid typeId,
+        IReadOnlyList<ContentFieldDefinition> fields,
+        CancellationToken cancellationToken);
+    Task<EntityResult<ContentAuthoringOutcome>> CreateEntryAsync(
+        Guid siteId,
+        Guid typeId,
+        string slug,
+        string path,
+        string title,
+        string? excerpt,
+        JsonElement fields,
+        CancellationToken cancellationToken);
+    Task<EntityResult<ContentAuthoringOutcome>> SaveDraftAsync(
+        Guid contentId,
+        int expectedVersion,
+        string slug,
+        string path,
+        string title,
+        string? excerpt,
+        JsonElement fields,
+        CancellationToken cancellationToken);
+    Task<EntityResult<ContentAuthoringOutcome>> PublishAsync(
+        Guid contentId,
+        Guid revisionId,
+        int expectedVersion,
+        CancellationToken cancellationToken);
+    Task<EntityResult<ContentAuthoringOutcome>> UnpublishAsync(
+        Guid contentId,
+        int expectedVersion,
+        CancellationToken cancellationToken);
+    Task<EntityResult<ContentAuthoringOutcome>> ArchiveAsync(
+        Guid contentId,
+        int expectedVersion,
+        CancellationToken cancellationToken);
+    Task<EntityResult<ContentAuthoringOutcome>> RestoreRevisionAsync(
+        Guid contentId,
+        Guid revisionId,
+        int expectedVersion,
+        CancellationToken cancellationToken);
+}

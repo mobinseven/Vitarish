@@ -65,6 +65,11 @@ internal sealed class SearchService : ISearchService
 
         BulkResponse response = await client.BulkAsync(request, cancellationToken);
 
+        if (!response.IsValidResponse)
+        {
+            throw new InvalidOperationException($"Bulk index to '{fullIndexName}' failed.");
+        }
+
         if (response.Errors)
         {
             IEnumerable<string> failed = response.Items
@@ -96,7 +101,19 @@ internal sealed class SearchService : ISearchService
 
         if (!response.IsValidResponse)
         {
+            Elastic.Clients.Elasticsearch.IndexManagement.ExistsResponse existsResponse =
+                await client.Indices.ExistsAsync(fullIndexName, cancellationToken);
+            if (existsResponse.IsValidResponse && !existsResponse.Exists)
+            {
+                return;
+            }
+
             throw new InvalidOperationException($"Delete from index '{fullIndexName}' failed.");
+        }
+
+        if (response.TimedOut is true || response.Failures?.Any() is true || response.VersionConflicts is > 0)
+        {
+            throw new InvalidOperationException($"Delete from index '{fullIndexName}' did not complete.");
         }
     }
 

@@ -1,6 +1,7 @@
 import { defaultLocale, type SupportedLocale } from "../locales";
 import { authMessageCatalogs } from "@vitarish/auth/localization";
 import { clinicMessageCatalogs } from "@vitarish/clinic/localization";
+import { contentsStudioMessageCatalogs } from "@vitarish/contents/studio";
 import { intelligenceMessageCatalogs } from "@vitarish/intelligence/localization";
 import { securityMessageCatalogs } from "@vitarish/security/localization";
 import { usersMessageCatalogs } from "@vitarish/users/localization";
@@ -8,8 +9,8 @@ import { enMessages } from "./en";
 import { faMessages } from "./fa";
 
 export const catalogs = {
-  fa: { ...faMessages, auth: { ...faMessages.auth, ...authMessageCatalogs.fa.auth }, ...clinicMessageCatalogs.fa, ...intelligenceMessageCatalogs.fa, ...securityMessageCatalogs.fa, ...usersMessageCatalogs.fa },
-  en: { ...enMessages, auth: { ...enMessages.auth, ...authMessageCatalogs.en.auth }, ...clinicMessageCatalogs.en, ...intelligenceMessageCatalogs.en, ...securityMessageCatalogs.en, ...usersMessageCatalogs.en },
+  fa: { ...faMessages, auth: { ...faMessages.auth, ...authMessageCatalogs.fa.auth }, ...clinicMessageCatalogs.fa, ...intelligenceMessageCatalogs.fa, ...securityMessageCatalogs.fa, ...usersMessageCatalogs.fa, ...contentsStudioMessageCatalogs.fa },
+  en: { ...enMessages, auth: { ...enMessages.auth, ...authMessageCatalogs.en.auth }, ...clinicMessageCatalogs.en, ...intelligenceMessageCatalogs.en, ...securityMessageCatalogs.en, ...usersMessageCatalogs.en, ...contentsStudioMessageCatalogs.en },
 } as const;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
