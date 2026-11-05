@@ -9,6 +9,7 @@ internal sealed class ContentItemsSearchProvider(
     IRequestContext requestContext) : ISearchIndexProvider
 {
     public const string IndexNameValue = "contents.items";
+    public const string ContentIdMetadataKey = "contentId";
 
     public string IndexName => IndexNameValue;
 
@@ -20,12 +21,7 @@ internal sealed class ContentItemsSearchProvider(
         Type = dto.Type.ToString(),
         TenantId = tenantId,
         NavigationUrl = dto.CanonicalPath,
-        Metadata = new Dictionary<string, object?>
-        {
-            ["locale"] = dto.Locale,
-            ["authorId"] = dto.AuthorId,
-            ["publishedAt"] = dto.PublishedAt
-        }
+        Metadata = CreateMetadata(contentId, dto.Locale, dto.AuthorId, dto.PublishedAt)
     };
 
     public async Task<IReadOnlyList<SearchDocument>> GetDocumentsAsync(CancellationToken cancellationToken = default)
@@ -36,6 +32,7 @@ internal sealed class ContentItemsSearchProvider(
 
         var rows = await dbContext.ContentItems
             .AsNoTracking()
+            .Where(c => c.Status == ContentStatus.Published)
             .Select(c => new
             {
                 c.Id,
@@ -58,14 +55,17 @@ internal sealed class ContentItemsSearchProvider(
             Type = c.Type.ToString(),
             TenantId = tenantId,
             NavigationUrl = c.CanonicalPath,
-            Metadata = new Dictionary<string, object?>
-            {
-                ["locale"] = c.Locale,
-                ["authorId"] = c.AuthorId,
-                ["publishedAt"] = c.PublishedAt
-            }
+            Metadata = CreateMetadata(c.Id, c.Locale, c.AuthorId, c.PublishedAt)
         })];
     }
+
+    private static Dictionary<string, object?> CreateMetadata(Guid contentId, string locale, Guid authorId, DateTime? publishedAt) => new()
+    {
+        [ContentIdMetadataKey] = contentId.ToString(),
+        ["locale"] = locale,
+        ["authorId"] = authorId,
+        ["publishedAt"] = publishedAt
+    };
 
     private static string BuildSearchBody(string? excerpt, IEnumerable<ContentBodyBlock> blocks)
     {

@@ -1,8 +1,10 @@
 using Microsoft.EntityFrameworkCore.Storage;
+using Vitarish.Contents.Domain.Policies;
 using Vitarish.Contents.Infrastructure.SearchProviders;
 using Vitarish.Entities.Contracts.Models;
 using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Search.Application.Abstractions;
+using Vitarish.Search.Domain.Models;
 
 namespace Vitarish.Contents.Infrastructure.Services;
 
@@ -216,9 +218,26 @@ internal sealed class ContentItemsService(
             ? requestContext.TenantId
             : throw new InvalidOperationException("Tenant ID must be set before indexing content documents.");
 
-        await searchService.IndexAsync(
-            ContentItemsSearchProvider.IndexNameValue,
-            [ContentItemsSearchProvider.CreateDocument(contentId, dto, tenantId)],
-            cancellationToken);
+        if (ContentSearchVisibility.IsSearchable(dto.Status))
+        {
+            await searchService.IndexAsync(
+                ContentItemsSearchProvider.IndexNameValue,
+                [ContentItemsSearchProvider.CreateDocument(contentId, dto, tenantId)],
+                cancellationToken);
+        }
+        else
+        {
+            await searchService.DeleteAsync(
+                ContentItemsSearchProvider.IndexNameValue,
+                new SearchDeleteOptions
+                {
+                    TenantId = tenantId,
+                    MetadataFilters = new Dictionary<string, string>
+                    {
+                        [ContentItemsSearchProvider.ContentIdMetadataKey] = contentId.ToString()
+                    }
+                },
+                cancellationToken);
+        }
     }
 }
