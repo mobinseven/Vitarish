@@ -136,7 +136,7 @@ public sealed class PlatformLocaleNotificationStore(PlatformDbContext dbContext)
                 EmailSubject: null,
                 EmailTextBody: null,
                 EmailHtmlBody: null,
-                SmsTemplateId: record.VerificationSmsTemplateId,
+                SmsTemplateId: string.IsNullOrWhiteSpace(record.VerificationSmsTemplateId) ? null : record.VerificationSmsTemplateId,
                 SmsParameters: new Dictionary<string, string>()),
 
             NotificationPurpose.SeaReminder => new ResolvedNotificationTemplate(
@@ -144,7 +144,7 @@ public sealed class PlatformLocaleNotificationStore(PlatformDbContext dbContext)
                 EmailSubject: record.SeaReminderEmailSubject,
                 EmailTextBody: record.SeaReminderEmailTextBody,
                 EmailHtmlBody: record.SeaReminderEmailHtmlBody,
-                SmsTemplateId: record.SeaReminderSmsTemplateId,
+                SmsTemplateId: string.IsNullOrWhiteSpace(record.SeaReminderSmsTemplateId) ? null : record.SeaReminderSmsTemplateId,
                 SmsParameters: null),
 
             NotificationPurpose.AppointmentReminder => new ResolvedNotificationTemplate(
@@ -152,7 +152,7 @@ public sealed class PlatformLocaleNotificationStore(PlatformDbContext dbContext)
                 EmailSubject: record.AppointmentReminderEmailSubject,
                 EmailTextBody: record.AppointmentReminderEmailTextBody,
                 EmailHtmlBody: record.AppointmentReminderEmailHtmlBody,
-                SmsTemplateId: record.AppointmentReminderSmsTemplateId,
+                SmsTemplateId: string.IsNullOrWhiteSpace(record.AppointmentReminderSmsTemplateId) ? null : record.AppointmentReminderSmsTemplateId,
                 SmsParameters: null),
 
             _ => null

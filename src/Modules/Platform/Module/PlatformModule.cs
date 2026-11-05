@@ -65,15 +65,15 @@ public sealed class PlatformModule : Modules.Base.Core.Module
             {
                 NormalizedLocale = "en-US",
                 Locale = "en-US",
-                VerificationSmsTemplateId = "100001",
+                VerificationSmsTemplateId = string.Empty,
                 SeaReminderEmailSubject = "Appointment Reminder",
                 SeaReminderEmailTextBody = "Dear patient, your appointment for {ProcedureName} with {ProjectName} is scheduled for {EventTitle}.",
                 SeaReminderEmailHtmlBody = "<p>Dear patient, your appointment for <strong>{ProcedureName}</strong> with <strong>{ProjectName}</strong> is scheduled for <strong>{EventTitle}</strong>.</p>",
-                SeaReminderSmsTemplateId = "100002",
+                SeaReminderSmsTemplateId = string.Empty,
                 AppointmentReminderEmailSubject = "Upcoming Appointment",
                 AppointmentReminderEmailTextBody = "Your appointment is scheduled for {OccurrenceStart}.",
                 AppointmentReminderEmailHtmlBody = "<p>Your appointment is scheduled for <strong>{OccurrenceStart}</strong>.</p>",
-                AppointmentReminderSmsTemplateId = "100003"
+                AppointmentReminderSmsTemplateId = string.Empty
             });
         }
 
@@ -84,15 +84,15 @@ public sealed class PlatformModule : Modules.Base.Core.Module
             {
                 NormalizedLocale = "fa-IR",
                 Locale = "fa-IR",
-                VerificationSmsTemplateId = "100004",
+                VerificationSmsTemplateId = string.Empty,
                 SeaReminderEmailSubject = "یادآوری نوبت",
                 SeaReminderEmailTextBody = "بیمار عزیز، نوبت شما برای {ProcedureName} با {ProjectName} در {EventTitle} تعیین شده است.",
                 SeaReminderEmailHtmlBody = "<p>بیمار عزیز، نوبت شما برای <strong>{ProcedureName}</strong> با <strong>{ProjectName}</strong> در <strong>{EventTitle}</strong> تعیین شده است.</p>",
-                SeaReminderSmsTemplateId = "100005",
+                SeaReminderSmsTemplateId = string.Empty,
                 AppointmentReminderEmailSubject = "نوبت آینده",
                 AppointmentReminderEmailTextBody = "نوبت شما در {OccurrenceStart} تعیین شده است.",
                 AppointmentReminderEmailHtmlBody = "<p>نوبت شما در <strong>{OccurrenceStart}</strong> تعیین شده است.</p>",
-                AppointmentReminderSmsTemplateId = "100006"
+                AppointmentReminderSmsTemplateId = string.Empty
             });
         }
     }
