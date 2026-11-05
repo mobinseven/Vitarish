@@ -41,8 +41,7 @@ public static class ModulesExtensions
         bool evaluated = configuration?.GetValue<bool>(BaseModule.EvaluatedConfigurationEnabledKey) == true;
         string? profile = configuration?[BaseModule.EvaluatedConfigurationIdentityKey];
 
-        if (evaluated && !string.Equals(profile, BaseModule.MainOnlyEvaluatedProfileIdentity, StringComparison.Ordinal) &&
-            !string.Equals(profile, BaseModule.ProductEvaluatedProfileIdentity, StringComparison.Ordinal))
+        if (evaluated && !string.Equals(profile, BaseModule.MainOnlyEvaluatedProfileIdentity, StringComparison.Ordinal))
             throw new InvalidOperationException($"Unknown evaluated composition profile '{profile ?? ""}'.");
 
         bool mainOnly = evaluated && string.Equals(profile, BaseModule.MainOnlyEvaluatedProfileIdentity, StringComparison.Ordinal);

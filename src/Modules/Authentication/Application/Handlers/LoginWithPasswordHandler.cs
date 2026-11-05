@@ -215,7 +215,7 @@ public sealed class LoginWithPasswordHandler(
     {
         EventName = AuthenticationSecurityAuditEvents.PasswordLogin,
         Outcome = outcome,
-        ActorId = requestContext.UserId,
+        ActorId = SecurityAuditSignInActor.Resolve(requestContext.UserId, outcome, subjectId),
         SubjectId = subjectId,
         TenantId = requestContext.TenantId!,
         Resource = AuthenticationSecurityAuditEvents.Resource,

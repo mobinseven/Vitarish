@@ -25,7 +25,9 @@ public enum CreateOwnTenantStatus
     PhoneNotVerified = 8,
     LimitReached = 9,
     /// <summary>The idempotency key was already used for a different request.</summary>
-    IdempotencyConflict = 10
+    IdempotencyConflict = 10,
+    /// <summary>The creator holds a platform role, so they cannot also own a tenant.</summary>
+    RoleScopeConflict = 11
 }
 
 /// <param name="HandoffToken">One-time token to continue signed in on <paramref name="Hostname"/>; null when none could be issued.</param>
@@ -96,6 +98,9 @@ public sealed partial class CreateOwnTenantCommandHandler(
             return await DeniedAsync(CreateOwnTenantStatus.CreatorNotFound, request, tenantId, SecurityAuditReasonCatalog.UserNotFound, cancellationToken);
         if (!creator.HasVerifiedPhone)
             return await DeniedAsync(CreateOwnTenantStatus.PhoneNotVerified, request, tenantId, SecurityAuditReasonCatalog.Unauthorized, cancellationToken);
+        // Refused before anything is written or the creator's sessions are replaced.
+        if (!creator.CanOwnTenant)
+            return await DeniedAsync(CreateOwnTenantStatus.RoleScopeConflict, request, tenantId, SecurityAuditReasonCatalog.RoleScopeConflict, cancellationToken);
 
         TenantCreationAllowance allowance = new(timeProvider.GetUtcNow().UtcDateTime - CreationWindow, CreationsPerWindow);
         TenantProvisioningOutcome outcome = await tenants.CreateAsync(

@@ -19,7 +19,7 @@ share an event because the catalog assigns that event to more than one control.
 | 5 Audit-storage threshold action | The E2E host runs the real Main capacity monitor against an E2E storage-size adapter that reports the configured threshold crossed | `audit-storage-threshold.png` | Covered by the E2E-only threshold composition; production operator-channel delivery is not proved |
 | 6 Audit-storage failure action | The E2E host makes every audit-store save fail, a sign-in attempt still gets its normal answer, and once saves succeed again the real Main outage reporter records one `security.failure` summary (start, last failure, failed writes) | `audit-storage-outage.png`, `audit-storage-outage-detail.png` | Covered by the E2E-only store-outage composition |
 | 7 User-data integrity verification | Upload a valid PNG through the public upload endpoint, run the real Files verification, tamper the E2E-stored object, and verify again | `integrity-verification.png`, `integrity-verification-failed.png` | Covered by the E2E-only integrity triggers; production storage verification is not proved |
-| 8 Authentication-mechanism use | Password login, real email-OTP completion, and an authentication-category review | `password-login-succeeded.png`, `password-login-denied.png`, `authentication-catalog-page-1.png` | Password records are individually asserted. The catalog and attempt auditor support phone, email, and passkey events; this procedure does not assert and capture every mechanism separately |
+| 8 Authentication-mechanism use | Password login, real email-OTP completion, and an authentication-category review; `authentication-mechanism-evidence.spec.ts` signs in by password, email code, phone code, password plus SMS code, and a discoverable passkey, and opens each record | `password-login-succeeded.png`, `password-login-denied.png`, `authentication-catalog-page-1.png`, `sign-in-password-detail.png`, `sign-in-email-detail.png`, `sign-in-phone-detail.png`, `sign-in-passwordOtp-detail.png`, `sign-in-passkey-detail.png` | Every sign-in mechanism record is asserted and captured; a succeeded record names the signed-in account as its actor. The passkey ceremony runs on the clinic origin because the local sign-in host cannot use the `localhost` relying-party ID |
 | 9 Authentication outcome | Successful and denied password login, and a client address blocked after repeated failures (threshold set in `source-threshold-setting.png`) | `password-login-succeeded.png`, `password-login-denied.png`, `source-address-blocked.png`, `source-threshold-setting.png` | Covered for implemented password path |
 | 10 Password verification | Successful password login and password change | `password-login-succeeded.png`, `password-change.png` | Covered for implemented password paths |
 | 11 Security-attribute assignment | Tenant-member provisioning | `tenant-member-provisioned.png` | Covered for tenant membership |
@@ -39,8 +39,8 @@ share an event because the catalog assigns that event to more than one control.
 
 Controls 6 and 20 share the recovered audit-storage-outage procedure. Controls
 13, 23, and 24 still lack dedicated evidence procedures. Control 2 has a signed-in
-denial assertion but lacks its own screenshot and anonymous-denial recording;
-control 8 lacks separate evidence for every mechanism. These limits must remain
+denial assertion but lacks its own screenshot and anonymous-denial recording.
+These limits must remain
 visible when assessing completion. A new evidence run must produce every listed
 screenshot in one fresh disposable directory, and its canonical two-host result
 must be reviewed separately from this source-coverage inventory.

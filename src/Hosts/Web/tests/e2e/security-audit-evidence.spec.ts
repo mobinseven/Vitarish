@@ -10,6 +10,7 @@ import type { AuthenticationSessionDto } from "../../shared/auth/src/api/generat
 import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
 import { Routes as PlatformRoutes } from "../../apps/platform-admin/src/app/routes";
 import { defaultClinicOrigin, forwardedForHeaderName, signInToClinic } from "./signInHost";
+import { auditDetailEvidenceViewport } from "./auditEvidenceViewport";
 import { generatedOperationPath } from "./generatedOperationPath";
 import {
   getAuditSecurityEventsListQueryKey,
@@ -27,7 +28,11 @@ import { auditSortFields } from "../../shared/security/src/api/securityAuditSort
 import {
   localizePlatformAuditCategory,
   localizePlatformAuditChangeField,
+  localizePlatformAuditActorKind,
   localizePlatformAuditEvent,
+  localizePlatformAuditOperation,
+  localizePlatformAuditReason,
+  localizePlatformAuditResource,
   localizeSecurityAuditOutcome,
   securityMessageCatalogs,
 } from "../../shared/security/src/localization";
@@ -68,7 +73,6 @@ const uiText = {
   allEvents: locale === "fa" ? "همه انواع رویداد" : "All event types",
   allOperations: locale === "fa" ? "همه عملیات" : "All operations",
   applyFilters: locale === "fa" ? "اعمال فیلتر" : "Apply filters",
-  outcome: locale === "fa" ? "نتیجه" : "Outcome",
   export: locale === "fa" ? "خروجی CSV" : "Export CSV",
   next: locale === "fa" ? "بعدی" : "Next",
   sourceThreshold: locale === "fa" ? "آستانه تلاش ناموفق احراز هویت برای هر نشانی IP" : "Failed authentication threshold per IP address",
@@ -381,9 +385,13 @@ async function captureAuditEvidence(page: Page, event: AuditEventExpectation, fi
   await page.getByRole("option", { name: visibleCategory, exact: true }).click();
   await page.getByRole("button", { name: uiText.allEvents }).click();
   await page.getByRole("option", { name: visibleEvent, exact: true }).click();
+  // The event list closes first, so its option of the same name is never picked instead.
+  await expect(page.getByRole("listbox")).toHaveCount(0);
   await page.getByRole("button", { name: uiText.allOperations }).click();
-  await page.getByRole("option", { name: event.operation, exact: true }).click();
-  await page.getByRole("textbox", { name: uiText.outcome, exact: true }).fill(event.outcome);
+  // Persian names an operation and its event alike, so pick from the open operation list only.
+  await page.getByRole("listbox").getByRole("option", { name: localizePlatformAuditOperation(locale, event.operation, event.operation), exact: true }).click();
+  await page.getByRole("button", { name: securityMessageCatalogs[locale].security.platformAudit.allOutcomes }).click();
+  await page.getByRole("listbox").getByRole("option", { name: localizeSecurityAuditOutcome(locale, event.outcome, event.outcome), exact: true }).click();
   const response = page.waitForResponse((candidate) =>
     candidate.url().includes(platformAuditEventsPath) && candidate.request().method() === "GET",
   );
@@ -392,7 +400,7 @@ async function captureAuditEvidence(page: Page, event: AuditEventExpectation, fi
   const firstRow = page.locator("tbody tr").first();
   await expect(firstRow).toBeVisible({ timeout: 30_000 });
   await expect(firstRow.getByText(visibleEvent, { exact: true }).first()).toBeVisible();
-  await expect(firstRow.getByText(event.operation, { exact: true }).last()).toBeVisible();
+  await expect(firstRow.getByText(localizePlatformAuditOperation(locale, event.operation, event.operation), { exact: true }).last()).toBeVisible();
   await expect(firstRow.getByText(localizeSecurityAuditOutcome(locale, event.outcome, event.outcome), { exact: true })).toBeVisible();
 
   mkdirSync(evidenceDirectory, { recursive: true });
@@ -635,7 +643,7 @@ test("real actions create visible platform security-audit evidence", async ({ pa
   const auditClientIp = `198.18.1.${testInfo.retry + 1}`;
   const anonymousContext = await browser.newContext({ extraHTTPHeaders: { [forwardedForHeaderName]: auditClientIp } });
   const anonymousPage = await anonymousContext.newPage();
-  const administratorContext = await browser.newContext();
+  const administratorContext = await browser.newContext({ viewport: auditDetailEvidenceViewport });
   const administratorPage = await administratorContext.newPage();
   const temporaryPassword = `E2E-Audit-${Date.now()}-Temporary!`;
   // The session policy is one record for the whole host. Leaving the two-session limit
@@ -739,7 +747,7 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     { timeout: 15_000 }).toBeGreaterThan(0);
     const capabilityFailure = (await platformAuditQuery(administratorPage, { ...auditEvents.securityFunctionFailure, outcome: "failed" })).items.find(isCapabilityFailure);
     expect(capabilityFailure?.resource).toMatch(/^endpoint\//);
-    await captureAuditReviewDetail(administratorPage, capabilityFailure!.id!, [capabilityFailure!.resource!], "capability-failure-detail.png");
+    await captureAuditReviewDetail(administratorPage, capabilityFailure!.id!, [localizePlatformAuditResource(locale, capabilityFailure!.resource!, capabilityFailure!.resource!)], "capability-failure-detail.png");
     const exportRecords = await platformAuditQuery(administratorPage, { ...auditEvents.auditExport, outcome: "succeeded" });
     const downloadRecord = exportRecords.items.find((item) => item.resource === `files/${uploadedFileId!.replaceAll("-", "")}`);
     expect(downloadRecord?.id).toEqual(expect.any(String));
@@ -844,13 +852,13 @@ test("real actions create visible platform security-audit evidence", async ({ pa
       signedInDenial!.actorId!,
       ownerTenantId,
       ownerClientIp,
-      "unauthorized",
+      localizePlatformAuditReason(locale, "unauthorized", "unauthorized"),
     ], "audit-review-denied-signed-in-detail.png");
     await captureAuditReviewDetail(administratorPage, anonymousDenial!.id!, [
-      "anonymous",
+      localizePlatformAuditActorKind(locale, "anonymous", "anonymous"),
       ownerTenantId,
       auditClientIp,
-      "unauthorized",
+      localizePlatformAuditReason(locale, "unauthorized", "unauthorized"),
     ], "audit-review-denied-anonymous-detail.png");
 
     const tenantReview = { ...auditEvents.auditReview, operation: tenantAuditListOperation, outcome: "succeeded" };
@@ -955,7 +963,7 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     await tenantFileListResponse;
     const tenantFileRow = page.locator("tbody tr").filter({ hasText: normalizedEvidenceFileName }).first();
     await expect(tenantFileRow).toBeVisible({ timeout: 30_000 });
-    await expect(tenantFileRow).toContainText(auditEvents.dataImport.name);
+    await expect(tenantFileRow).toContainText(localizePlatformAuditEvent(locale, auditEvents.dataImport.name, auditEvents.dataImport.name));
     await hideDevelopmentIndicator(page);
     await page.screenshot({ path: join(evidenceDirectory, "tenant-file-transfer-audit.png"), fullPage: true });
     const tenantDownloadListResponse = page.waitForResponse((candidate) =>
@@ -966,7 +974,7 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     await tenantDownloadListResponse;
     const tenantDownloadRow = page.locator("tbody tr").filter({ hasText: normalizedEvidenceFileName }).first();
     await expect(tenantDownloadRow).toBeVisible({ timeout: 30_000 });
-    await expect(tenantDownloadRow).toContainText(auditEvents.auditExport.name);
+    await expect(tenantDownloadRow).toContainText(localizePlatformAuditEvent(locale, auditEvents.auditExport.name, auditEvents.auditExport.name));
     await hideDevelopmentIndicator(page);
     await page.screenshot({ path: join(evidenceDirectory, "tenant-file-download-audit.png"), fullPage: true });
 
@@ -1104,6 +1112,10 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     expect(passwordPolicyRecords.items.every((item) => item.redactedReason === "password_policy_rejected")).toBe(true);
     await captureAuditEvidence(administratorPage, { ...auditEvents.passwordPolicyRejected, outcome: "denied" }, "password-policy-rejected.png");
     await captureAuditEvidence(administratorPage, { ...auditEvents.tenantMemberProvisioning, outcome: "succeeded" }, "tenant-member-provisioned.png");
+    const provisioningRecord = (await platformAuditQuery(administratorPage, { ...auditEvents.tenantMemberProvisioning, outcome: "succeeded" })).items
+      .find((item) => item.subjectId === memberId);
+    expect(provisioningRecord?.id, "the new member's provisioning must have a record").toEqual(expect.any(String));
+    await captureAuditReviewDetail(administratorPage, provisioningRecord!.id!, [memberId!, ownerTenantId], "tenant-member-provisioned-detail.png");
     await captureAuditEvidence(administratorPage, { ...auditEvents.tenantMemberRemoval, outcome: "succeeded" }, "tenant-member-removed.png");
     await captureAuditEvidence(administratorPage, { ...auditEvents.tenantRoleReplacement, outcome: "succeeded" }, "tenant-role-replaced.png");
     // Role changes keep the previous and new role on the record, shown in its detail dialog.
@@ -1241,7 +1253,8 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     await administratorPage.locator("tbody tr").first()
       .getByText(localizePlatformAuditEvent(locale, outageEvent.name, outageEvent.name), { exact: true }).first().click();
     await expect(administratorPage.getByRole("heading", { name: uiText.eventDetails })).toBeVisible();
-    const outageReason = administratorPage.getByText(/^audit_storage_outage:/);
+    const outageReasonText = outageSummaries[0].redactedReason!;
+    const outageReason = administratorPage.getByText(localizePlatformAuditReason(locale, outageReasonText, outageReasonText), { exact: true });
     await expect(outageReason).toBeVisible();
     await outageReason.scrollIntoViewIfNeeded();
     await hideDevelopmentIndicator(administratorPage);

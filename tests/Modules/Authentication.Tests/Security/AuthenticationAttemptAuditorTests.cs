@@ -49,7 +49,7 @@ public sealed class AuthenticationAttemptAuditorTests
         });
         auditEvent.EventCategory.Should().Be(SecurityAuditEventCatalog.AuthenticationCategory);
         auditEvent.Outcome.Should().Be(succeeded ? SecurityAuditOutcome.Succeeded : SecurityAuditOutcome.Denied);
-        auditEvent.ActorId.Should().BeNull();
+        auditEvent.ActorId.Should().Be(succeeded ? "user-42" : null);
         auditEvent.SubjectId.Should().Be("user-42");
         auditEvent.TenantId.Should().Be("tenant-a");
         auditEvent.Operation.Should().Be(method switch

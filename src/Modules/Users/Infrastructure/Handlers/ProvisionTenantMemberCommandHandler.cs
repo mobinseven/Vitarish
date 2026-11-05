@@ -125,6 +125,14 @@ internal sealed class ProvisionTenantMemberCommandHandler(
                 return new ProvisionTenantMemberResult(user, hasOwnerRole ? IdentityDefinitions.TenantOwner : IdentityDefinitions.TenantUser, created, true);
             }
 
+            if (!created && !RoleScopeSeparationPolicy.CanGrantTenantRole(await AssignedRoleNamesAsync(user.Id, cancellationToken)))
+            {
+                if (transaction is not null)
+                    await transaction.RollbackAsync(CancellationToken.None);
+                await WriteAuditAsync(request, tenantId, operationKey, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.RoleScopeConflict, cancellationToken, user.Id);
+                return Failure(UsersCommandErrorCodes.RoleScopeConflict);
+            }
+
             if (!created && await activeSessionQuery.HasActiveSessionAsync(user.Id, cancellationToken))
             {
                 if (transaction is not null)
@@ -231,6 +239,12 @@ internal sealed class ProvisionTenantMemberCommandHandler(
          join role in dbContext.Roles on membership.RoleId equals role.Id
          where membership.UserId == userId && role.Name == roleName
          select membership).AnyAsync(cancellationToken);
+
+    private Task<string[]> AssignedRoleNamesAsync(string userId, CancellationToken cancellationToken) =>
+        (from membership in dbContext.UserRoles
+         join role in dbContext.Roles on membership.RoleId equals role.Id
+         where membership.UserId == userId
+         select role.Name!).ToArrayAsync(cancellationToken);
 
     private async Task WriteAuditAsync(
         ProvisionTenantMemberCommand request,

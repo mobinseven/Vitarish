@@ -204,6 +204,39 @@ public sealed class TenantMemberManagementTests
                 SecurityAuditReasonCatalog.TenantRoleStateNone));
     }
 
+    [Fact]
+    public async Task Provision_refuses_an_existing_platform_administrator_and_audits_the_role_scope_conflict()
+    {
+        await using TestUsersDbContext dbContext = await CreateDbContextAsync();
+        IdentityRole platformRole = new() { Id = "platform-role", Name = IdentityDefinitions.PlatformAdmin, NormalizedName = IdentityDefinitions.PlatformAdmin.ToUpperInvariant() };
+        dbContext.Roles.Add(platformRole);
+        dbContext.UserRoles.Add(new IdentityUserRole<string> { UserId = "other", RoleId = platformRole.Id });
+        await dbContext.SaveChangesAsync();
+        Mock<ISecurityAuditWriter> auditWriter = AuditWriter();
+        IRequestContext requestContext = RequestContext(TenantId, IdentityDefinitions.PlatformAdmin);
+        ProvisionTenantMemberCommandHandler handler = new(
+            dbContext,
+            CreateUserManager(dbContext),
+            CreateSender(dbContext),
+            new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions())),
+            ActiveSessions(false).Object,
+            auditWriter.Object,
+            requestContext,
+            new UsersManagementAudit(auditWriter.Object, requestContext, TimeProvider.System));
+
+        ProvisionTenantMemberResult result = await handler.Handle(
+            new("other", null, null, null, null), CancellationToken.None);
+
+        result.User.Should().BeNull();
+        result.ErrorCode.Should().Be(UsersCommandErrorCodes.RoleScopeConflict);
+        (await dbContext.UserRoles.Where(membership => membership.UserId == "other").Select(membership => membership.RoleId).ToListAsync())
+            .Should().BeEquivalentTo(["other-role", platformRole.Id]);
+        AuditEvents(auditWriter).Should().ContainSingle(entry =>
+            entry.EventName == SecurityAuditEventCatalog.TenantMemberProvisioningEvent &&
+            entry.Outcome == SecurityAuditOutcome.Denied &&
+            entry.RedactedReason == SecurityAuditReasonCatalog.RoleScopeConflict);
+    }
+
     private static ISender CreateSender(UsersDbContext dbContext)
     {
         ServiceCollection services = new();

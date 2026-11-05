@@ -85,6 +85,17 @@ internal sealed class AssignNewTenantOwnerCommandHandler(
             return AssignNewTenantOwnerResult.AlreadyOwner;
         }
 
+        string[] assignedRoleNames = await (
+            from membership in dbContext.UserRoles
+            join role in dbContext.Roles on membership.RoleId equals role.Id
+            where membership.UserId == user.Id
+            select role.Name!).ToArrayAsync(cancellationToken);
+        if (!RoleScopeSeparationPolicy.CanGrantTenantRole(assignedRoleNames))
+        {
+            await WriteAuditAsync(request, operationKey, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.RoleScopeConflict, cancellationToken);
+            return AssignNewTenantOwnerResult.RoleScopeConflict;
+        }
+
         foreach (string roleName in roleNames.Where(name => roles.All(role => role.Name != name)))
         {
             IdentityRole role = new() { Id = Guid.NewGuid().ToString(), Name = roleName, NormalizedName = roleName.ToUpperInvariant() };

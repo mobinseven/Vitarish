@@ -10,7 +10,9 @@ public sealed record UserSecurityDetailsResponse(
     bool SecurityHistoryAvailable,
     bool AuthenticationHistoryAvailable,
     UserAuthenticationMethodsResponse? AuthenticationMethods,
-    bool AuthenticationMethodsUnavailable);
+    bool AuthenticationMethodsUnavailable,
+    bool GlobalRoleGrantAllowed,
+    bool TenantRoleGrantAllowed);
 
 public sealed record UserAuthenticationMethodsResponse(
     bool PasswordSet,

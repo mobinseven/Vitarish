@@ -230,6 +230,8 @@ public static class PartiesApiEndpointMapping
             CreateOwnTenantStatus.IdempotencyConflict => Conflict($"This {PartiesApiRoutes.IdempotencyKeyHeader} was already used for a different request."),
             CreateOwnTenantStatus.CreatorNotFound or CreateOwnTenantStatus.PhoneNotVerified =>
                 Results.Json(new PartiesError(PartiesErrorCode.Forbidden, "A verified phone number is required to create a clinic."), statusCode: StatusCodes.Status403Forbidden),
+            CreateOwnTenantStatus.RoleScopeConflict =>
+                Results.Json(new PartiesError(PartiesErrorCode.Forbidden, "A platform administrator account cannot own a clinic."), statusCode: StatusCodes.Status403Forbidden),
             CreateOwnTenantStatus.LimitReached =>
                 Results.Json(new PartiesError(PartiesErrorCode.Conflict, "Too many clinics were created recently. Try again later."), statusCode: StatusCodes.Status429TooManyRequests),
             _ => throw new InvalidOperationException($"Unhandled tenant creation status {result.Status}.")

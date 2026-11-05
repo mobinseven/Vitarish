@@ -1,13 +1,10 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Authentication.Module.DependencyInjection;
 using Vitarish.Modules.Base.Core;
 using Vitarish.Authentication.Domain.Security;
 using Vitarish.Authentication.Infrastructure;
-using Vitarish.Authentication.Infrastructure.Options;
-using BaseModule = Vitarish.Modules.Base.Core.Module;
 
 namespace Vitarish.Authentication.Module;
 
@@ -16,21 +13,7 @@ public sealed class AuthenticationModule : Modules.Base.Core.Module
     public override string Name => "Authentication";
     public override Task Register(WebApplicationBuilder builder, Action<DbContextOptionsBuilder>? configureDbContext = null)
     {
-        bool productEvaluatedProfile = builder.Configuration.GetValue<bool>(BaseModule.EvaluatedConfigurationEnabledKey) &&
-            string.Equals(
-            builder.Configuration[BaseModule.EvaluatedConfigurationIdentityKey],
-            BaseModule.ProductEvaluatedProfileIdentity,
-            StringComparison.Ordinal);
-        bool openApiGeneration = string.Equals(
-            Environment.GetEnvironmentVariable(AuthenticationAttemptKeyOptions.OpenApiGenerationEnvironmentVariable),
-            "true",
-            StringComparison.OrdinalIgnoreCase);
-        AuthenticationProfilePolicy profilePolicy = productEvaluatedProfile
-            ? AuthenticationProfilePolicy.ProductEvaluated
-            : openApiGeneration
-                ? AuthenticationProfilePolicy.OpenApi
-                : AuthenticationProfilePolicy.Default;
-        builder.Services.AddAuthenticationModuleServices(profilePolicy, configureDbContext);
+        builder.Services.AddAuthenticationModuleServices(AuthenticationProfilePolicy.Default, configureDbContext);
         return Task.CompletedTask;
     }
     public override async Task Initialize(WebApplication app)

@@ -19,8 +19,7 @@ public static class AppsExtensions
         bool evaluated = configuration?.GetValue<bool>(Module.EvaluatedConfigurationEnabledKey) == true;
         string? profile = configuration?[Module.EvaluatedConfigurationIdentityKey];
 
-        if (evaluated && !string.Equals(profile, Module.MainOnlyEvaluatedProfileIdentity, StringComparison.Ordinal) &&
-            !string.Equals(profile, Module.ProductEvaluatedProfileIdentity, StringComparison.Ordinal))
+        if (evaluated && !string.Equals(profile, Module.MainOnlyEvaluatedProfileIdentity, StringComparison.Ordinal))
             throw new InvalidOperationException($"Unknown evaluated composition profile '{profile ?? ""}'.");
 
         if (evaluated && string.Equals(profile, Module.MainOnlyEvaluatedProfileIdentity, StringComparison.Ordinal))

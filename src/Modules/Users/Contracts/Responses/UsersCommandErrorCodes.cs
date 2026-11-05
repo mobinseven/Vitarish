@@ -30,6 +30,8 @@ public static class UsersCommandErrorCodes
     public const string TenantMemberConflictDescription = "The tenant membership changed concurrently; retry the operation.";
     public const string LastOwnerProtection = "LastOwnerProtection";
     public const string LastOwnerProtectionDescription = "The last tenant owner cannot be removed or demoted.";
+    public const string RoleScopeConflict = "RoleScopeConflict";
+    public const string RoleScopeConflictDescription = "An account holds either a platform role or clinic roles, not both; revoke the existing role first.";
     public const string SelfDeletion = "SelfDeletion";
     public const string LastPlatformAdministrator = "LastPlatformAdministrator";
 }

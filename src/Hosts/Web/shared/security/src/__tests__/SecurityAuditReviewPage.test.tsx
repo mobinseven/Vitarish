@@ -45,7 +45,8 @@ describe("SecurityAuditReviewPage", () => {
     );
 
     expect(screen.getByText("Audit storage has reached its configured warning threshold.")).toBeInTheDocument();
-    expect(screen.getByText("authentication.password.login")).toBeInTheDocument();
+    expect(screen.getByText("Password login")).toBeInTheDocument();
+    expect(screen.queryByText("authentication.password.login")).not.toBeInTheDocument();
     expect(screen.getByText("203.0.113.7")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /delete|edit|update/i })).not.toBeInTheDocument();
   });
@@ -76,8 +77,8 @@ describe("SecurityAuditReviewPage", () => {
     );
 
     const [, exportRow, loginRow, persianExportRow] = screen.getAllByRole("row");
-    expect(exportRow.querySelector("td")).toHaveTextContent("security.data.exportFile: MRI-report.pdf · PDF · 2.4 MB");
-    expect(loginRow.querySelector("td")).toHaveTextContent(/^authentication\.password\.login$/);
+    expect(exportRow.querySelector("td")).toHaveTextContent("Data exportFile: MRI-report.pdf · PDF · 2.4 MB");
+    expect(loginRow.querySelector("td")).toHaveTextContent(/^Password login$/);
     const persianFileName = within(persianExportRow).getByText("گزارشپزشکی.pdf", { exact: true });
     const extension = within(persianExportRow).getByText("PDF", { exact: true });
     expect(persianFileName.tagName).toBe("BDI");

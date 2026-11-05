@@ -25,8 +25,6 @@ public sealed record SecurityAccessPolicy(
 
     public static SecurityAccessPolicy Default { get; } = ForProfile(AuthenticationProfilePolicy.Default);
 
-    public static SecurityAccessPolicy ProductEvaluated { get; } = ForProfile(AuthenticationProfilePolicy.ProductEvaluated);
-
     public static SecurityAccessPolicy ForProfile(AuthenticationProfilePolicy profilePolicy) => new(
         PasswordPolicy.Default,
         FailedAttemptThreshold: 5,

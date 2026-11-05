@@ -10,19 +10,6 @@ public sealed record AuthenticationProfilePolicy(
     bool AllowTenantHandoff = false)
 {
     public static AuthenticationProfilePolicy Default { get; } = new(
-        UsePhoneOtpForTwoFactorAccounts: false,
-        AllowPasswordlessPhoneLogin: true,
-        AllowPasswordlessEmailLogin: true,
-        AllowPasskeyLogin: true,
-        AllowTenantHandoff: true);
-
-    public static AuthenticationProfilePolicy ProductEvaluated { get; } = new(
-        UsePhoneOtpForTwoFactorAccounts: true,
-        AllowPasswordlessPhoneLogin: false,
-        AllowPasswordlessEmailLogin: false,
-        AllowPasskeyLogin: false);
-
-    public static AuthenticationProfilePolicy OpenApi { get; } = new(
         UsePhoneOtpForTwoFactorAccounts: true,
         AllowPasswordlessPhoneLogin: true,
         AllowPasswordlessEmailLogin: true,

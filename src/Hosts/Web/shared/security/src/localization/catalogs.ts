@@ -102,6 +102,7 @@ const platformAuditMessages = {
   eventExact: "Exact event type",
   eventFallbackPlaceholder: "Exact event identifier",
   allOperations: "All operations",
+  allOutcomes: "All outcomes",
   operation: "Operation",
   operationExact: "Exact operation",
   operationFallbackPlaceholder: "Exact operation identifier",
@@ -111,7 +112,6 @@ const platformAuditMessages = {
   eventId: "Event ID",
   eventIdPlaceholder: "Exact event identifier",
   outcome: "Outcome",
-  outcomePlaceholder: "Exact outcome",
   fromDate: "From date",
   toDate: "To date",
   clearDate: "Clear date",
@@ -190,6 +190,7 @@ const platformAuditMessagesFa = {
   eventExact: "نوع رویداد دقیق",
   eventFallbackPlaceholder: "شناسه دقیق رویداد",
   allOperations: "همه عملیات",
+  allOutcomes: "همه نتیجه‌ها",
   operation: "عملیات",
   operationExact: "عملیات دقیق",
   operationFallbackPlaceholder: "شناسه دقیق عملیات",
@@ -199,7 +200,6 @@ const platformAuditMessagesFa = {
   eventId: "شناسه رویداد",
   eventIdPlaceholder: "شناسه دقیق رویداد",
   outcome: "نتیجه",
-  outcomePlaceholder: "نتیجه دقیق",
   fromDate: "از تاریخ",
   toDate: "تا تاریخ",
   clearDate: "پاک کردن تاریخ",
@@ -346,6 +346,161 @@ const platformAuditIdentifierLabels = {
       tenant_user: "Clinic user",
       multiple: "Several roles",
     },
+    scopes: {
+      platform: "Platform",
+    },
+    actorKinds: {
+      user: "User",
+      anonymous: "Not signed in",
+      system: "System",
+    },
+    sourceKinds: {
+      client: "User's device",
+      system: "System",
+      unknown: "Unknown",
+    },
+    sourceBoundaries: {
+      "audit.capability-failure": "Security capability check",
+      "audit.review": "Audit review",
+      "authentication.application": "Sign-in service",
+      "files.transfer": "File transfer",
+      "main.audit-storage-outage": "Audit storage monitor",
+      "main.audit-storage-threshold": "Audit storage monitor",
+      "main.endpoint-filter": "Request handling",
+      "parties.application": "Clinic management",
+      "sea.attachment-integrity": "Attachment integrity check",
+      "users.application": "User management",
+      "users.infrastructure.identity": "Account identity check",
+    },
+    operations: {
+      "audit.security-events.list": "View security events",
+      Audit_SecurityEvents_List: "View clinic security events",
+      Audit_PlatformSecurityEvents_List: "View platform security events",
+      Audit_PlatformSecurityEventCatalog_Get: "View security event catalog",
+      Audit_PlatformSecurityEvents_Export: "Export security events",
+      "audit.configuration.read": "Read audit configuration",
+      "audit.storage.threshold": "Check audit storage",
+      "account.password.change": "Change password",
+      "password.login": "Sign in with password",
+      "password.login.otp": "Sign in with password and SMS code",
+      "phone.login": "Sign in with phone code",
+      "email.login": "Sign in with email code",
+      "passkey.login": "Sign in with passkey",
+      "authentication.otp.sms.send": "Send SMS code",
+      "authentication.otp.email.send": "Send email code",
+      "identity.password.sign-in.user": "Verify account password",
+      "identity.password.sign-in.name": "Verify sign-in name and password",
+      "identity.password.check": "Check password",
+      "identity.external.login": "Sign in with external identity",
+      "identity.mfa.authenticator": "Verify authenticator code",
+      "identity.mfa.recovery-code": "Verify recovery code",
+      "identity.mfa.provider": "Verify second factor",
+      "authentication.source.block": "Block IP address",
+      Authentication_SecurityAccessPolicy_Change: "Change security access policy",
+      "security-attributes.change": "Change security attributes",
+      "data.import": "Import data",
+      "data.export": "Export data",
+      "data.integrity.verify": "Verify data integrity",
+      "management.operation": "Security management",
+      "security.failure": "Security function failure",
+      "session.establish": "Start session",
+      "session.terminate": "End session",
+      "access-history": "Access history",
+      "session.notice": "Session notice",
+      "session-policy.change": "Change session policy",
+      Users_ReplaceTenantRole: "Change clinic role",
+      Users_AssignGlobalRole: "Assign platform role",
+      Users_RevokeGlobalRole: "Revoke platform role",
+      Users_ProvisionTenantMember: "Add clinic member",
+      Users_RemoveTenantMember: "Remove clinic member",
+      "users.account.create": "Create user",
+      "users.account.edit": "Edit user",
+      "users.account.delete": "Delete account",
+      "users.account.disable": "Disable account",
+      "users.account.enable": "Enable account",
+      "users.security-attributes.change": "Change user security attributes",
+      "parties.tenant.self-service-create": "Create own clinic",
+      "authentication.tenant-handoff.issue": "Issue sign-in link to new clinic",
+      "authentication.tenant-handoff.redeem": "Use sign-in link to new clinic",
+    },
+    reasons: {
+      endpoint_exception: "Unexpected error",
+      dependency_unavailable: "Required service unavailable",
+      audit_store_unavailable: "Audit storage unavailable",
+      mutation_rejected: "Change rejected",
+      password_policy_rejected: "Password does not meet the policy",
+      password_login_disabled: "Password sign-in is disabled",
+      duplicate_outcome_unconfirmed: "Duplicate request not confirmed",
+      idempotency_key_reused: "Repeated request with different content",
+      concurrency_conflict: "Changed by someone else at the same time",
+      validation_failed: "Invalid values",
+      persistence_failure: "Could not be saved",
+      concurrent_session_limit: "Too many active sessions",
+      session_start_ip_denied: "IP address not allowed",
+      inactivity_timeout: "Idle timeout",
+      replaced_by_new_session: "Replaced by a new session",
+      acknowledged: "Acknowledged",
+      user_policy_expired: "User session setting expired",
+      policy_invalidated: "Policy changed",
+      awaiting_mutation_outcome: "Awaiting result",
+      user_timeout_default: "Default idle timeout",
+      account_disabled: "Account disabled",
+      no_access: "No access",
+      authentication_failed: "Wrong credentials",
+      authentication_lockout: "Temporarily locked after failed attempts",
+      source_failed_attempt_threshold: "Too many failed attempts from this IP address",
+      mfa_failure: "Second factor rejected",
+      second_factor_required: "Second factor required",
+      authentication_provider_failure: "Sign-in service error",
+      tenant_context_missing: "Clinic not identified",
+      integrity_validation_failed: "Integrity check failed",
+      content_type_not_allowed: "File type not allowed",
+      content_too_large: "File too large",
+      unauthorized: "Not authorized",
+      user_logout: "Signed out",
+      security_attribute_changed: "Security attributes changed",
+      user_contact_identifier_changed: "Contact identifier changed",
+      cookie_sign_in_failed: "Session could not be started",
+      administrative_revocation: "Ended by an administrator",
+      invalid_tenant_role: "Invalid clinic role",
+      active_session_conflict: "User has an active session",
+      user_not_found: "User not found",
+      self_deletion: "Cannot delete own account",
+      last_platform_administrator: "Last platform administrator",
+      last_tenant_owner: "Last clinic owner",
+      tenant_role_concurrency_conflict: "Clinic role changed at the same time",
+      tenant_role_persistence_failure: "Clinic role could not be saved",
+      tenant_role_not_found: "Clinic role not found",
+      global_role_not_found: "Platform role not found",
+      role_scope_conflict: "Platform and clinic roles cannot be combined",
+      initial_platform_administrator: "First platform administrator",
+    },
+    reasonFormats: {
+      tenantRoleReplacement: "Clinic role from {before} to {after}",
+      userTimeoutMinutes: "Idle timeout: {minutes} minutes",
+      httpStatus: "HTTP status {status}",
+      version: "Version {version}",
+      auditStorageThreshold: "Audit storage threshold reached ({details})",
+      auditStorageOutage: "Audit storage outage ({details})",
+    },
+    resources: {
+      authentication: "Sign-in",
+      "authentication/identity": "Account identity",
+      "authentication/client-address": "Client IP address",
+      "authentication/security-access-policy": "Security access policy",
+      "platform/security-audit": "Platform security audit",
+      "user/unknown": "Unknown user",
+    },
+    resourceFormats: {
+      "user/": "User {value}",
+      "tenant/": "Clinic {value}",
+      "endpoint/": "Operation {value}",
+      "job/": "Background job {value}",
+      "hangfire:": "Background job {value}",
+      "files/": "File {value}",
+      "sea/attachment/": "Attachment {value}",
+      "authentication/otp/": "One-time code sent to {value}",
+    },
   },
   fa: {
     categories: {
@@ -430,10 +585,190 @@ const platformAuditIdentifierLabels = {
       tenant_user: "کاربر مطب",
       multiple: "چند نقش",
     },
+    scopes: {
+      platform: "پلتفرم",
+    },
+    actorKinds: {
+      user: "کاربر",
+      anonymous: "کاربر واردنشده",
+      system: "سامانه",
+    },
+    sourceKinds: {
+      client: "دستگاه کاربر",
+      system: "سامانه",
+      unknown: "نامشخص",
+    },
+    sourceBoundaries: {
+      "audit.capability-failure": "بررسی قابلیت امنیتی",
+      "audit.review": "بررسی ممیزی",
+      "authentication.application": "سرویس ورود",
+      "files.transfer": "انتقال فایل",
+      "main.audit-storage-outage": "پایش ذخیره‌سازی ممیزی",
+      "main.audit-storage-threshold": "پایش ذخیره‌سازی ممیزی",
+      "main.endpoint-filter": "پردازش درخواست",
+      "parties.application": "مدیریت مطب",
+      "sea.attachment-integrity": "بررسی تمامیت پیوست",
+      "users.application": "مدیریت کاربران",
+      "users.infrastructure.identity": "بررسی هویت حساب",
+    },
+    operations: {
+      "audit.security-events.list": "مشاهده رویدادهای امنیتی",
+      Audit_SecurityEvents_List: "مشاهده رویدادهای امنیتی مطب",
+      Audit_PlatformSecurityEvents_List: "مشاهده رویدادهای امنیتی پلتفرم",
+      Audit_PlatformSecurityEventCatalog_Get: "مشاهده فهرست انواع رویداد امنیتی",
+      Audit_PlatformSecurityEvents_Export: "برون‌بری رویدادهای امنیتی",
+      "audit.configuration.read": "خواندن پیکربندی ممیزی",
+      "audit.storage.threshold": "بررسی ذخیره‌سازی ممیزی",
+      "account.password.change": "تغییر گذرواژه",
+      "password.login": "ورود با گذرواژه",
+      "password.login.otp": "ورود با گذرواژه و کد پیامکی",
+      "phone.login": "ورود با کد تلفن",
+      "email.login": "ورود با کد ایمیل",
+      "passkey.login": "ورود با کلید عبور",
+      "authentication.otp.sms.send": "ارسال کد پیامکی",
+      "authentication.otp.email.send": "ارسال کد ایمیلی",
+      "identity.password.sign-in.user": "بررسی گذرواژه حساب",
+      "identity.password.sign-in.name": "بررسی نام ورود و گذرواژه",
+      "identity.password.check": "بررسی گذرواژه",
+      "identity.external.login": "ورود با هویت بیرونی",
+      "identity.mfa.authenticator": "بررسی کد اعتبارسنج",
+      "identity.mfa.recovery-code": "بررسی کد بازیابی",
+      "identity.mfa.provider": "بررسی عامل دوم",
+      "authentication.source.block": "مسدود کردن نشانی IP",
+      Authentication_SecurityAccessPolicy_Change: "تغییر سیاست دسترسی امنیتی",
+      "security-attributes.change": "تغییر ویژگی‌های امنیتی",
+      "data.import": "درون‌ریزی داده",
+      "data.export": "برون‌بری داده",
+      "data.integrity.verify": "راستی‌آزمایی تمامیت داده",
+      "management.operation": "مدیریت امنیتی",
+      "security.failure": "شکست عملکرد امنیتی",
+      "session.establish": "آغاز نشست",
+      "session.terminate": "پایان نشست",
+      "access-history": "تاریخچه دسترسی",
+      "session.notice": "اعلان نشست",
+      "session-policy.change": "تغییر سیاست نشست",
+      Users_ReplaceTenantRole: "تغییر نقش در مطب",
+      Users_AssignGlobalRole: "اختصاص نقش پلتفرم",
+      Users_RevokeGlobalRole: "لغو نقش پلتفرم",
+      Users_ProvisionTenantMember: "افزودن عضو مطب",
+      Users_RemoveTenantMember: "حذف عضو مطب",
+      "users.account.create": "ایجاد کاربر",
+      "users.account.edit": "ویرایش کاربر",
+      "users.account.delete": "حذف حساب",
+      "users.account.disable": "غیرفعال کردن حساب",
+      "users.account.enable": "فعال کردن حساب",
+      "users.security-attributes.change": "تغییر ویژگی‌های امنیتی کاربر",
+      "parties.tenant.self-service-create": "ساخت مطب توسط مالک",
+      "authentication.tenant-handoff.issue": "صدور پیوند ورود به مطب تازه",
+      "authentication.tenant-handoff.redeem": "استفاده از پیوند ورود به مطب تازه",
+    },
+    reasons: {
+      endpoint_exception: "خطای پیش‌بینی‌نشده",
+      dependency_unavailable: "سرویس مورد نیاز در دسترس نیست",
+      audit_store_unavailable: "ذخیره‌سازی ممیزی در دسترس نیست",
+      mutation_rejected: "تغییر رد شد",
+      password_policy_rejected: "گذرواژه با سیاست گذرواژه سازگار نیست",
+      password_login_disabled: "ورود با گذرواژه غیرفعال است",
+      duplicate_outcome_unconfirmed: "نتیجه درخواست تکراری تأیید نشد",
+      idempotency_key_reused: "درخواست تکراری با محتوای متفاوت",
+      concurrency_conflict: "هم‌زمان توسط کاربر دیگری تغییر کرد",
+      validation_failed: "مقادیر نامعتبر",
+      persistence_failure: "ذخیره نشد",
+      concurrent_session_limit: "تعداد نشست‌های فعال بیش از حد مجاز است",
+      session_start_ip_denied: "نشانی IP مجاز نیست",
+      inactivity_timeout: "پایان مهلت بی‌فعالیتی",
+      replaced_by_new_session: "جایگزینی با نشست تازه",
+      acknowledged: "تأییدشده",
+      user_policy_expired: "تنظیم نشست کاربر منقضی شد",
+      policy_invalidated: "سیاست تغییر کرد",
+      awaiting_mutation_outcome: "در انتظار نتیجه",
+      user_timeout_default: "مهلت بی‌فعالیتی پیش‌فرض",
+      account_disabled: "حساب غیرفعال است",
+      no_access: "بدون دسترسی",
+      authentication_failed: "اطلاعات ورود نادرست",
+      authentication_lockout: "قفل موقت پس از تلاش‌های ناموفق",
+      source_failed_attempt_threshold: "تلاش‌های ناموفق بیش از حد از این نشانی IP",
+      mfa_failure: "عامل دوم رد شد",
+      second_factor_required: "عامل دوم لازم است",
+      authentication_provider_failure: "خطای سرویس ورود",
+      tenant_context_missing: "مطب مشخص نیست",
+      integrity_validation_failed: "بررسی تمامیت ناموفق بود",
+      content_type_not_allowed: "نوع فایل مجاز نیست",
+      content_too_large: "حجم فایل بیش از حد مجاز است",
+      unauthorized: "مجاز نیست",
+      user_logout: "خروج کاربر",
+      security_attribute_changed: "ویژگی‌های امنیتی تغییر کرد",
+      user_contact_identifier_changed: "شناسه تماس تغییر کرد",
+      cookie_sign_in_failed: "نشست آغاز نشد",
+      administrative_revocation: "پایان توسط مدیر",
+      invalid_tenant_role: "نقش مطب نامعتبر",
+      active_session_conflict: "کاربر نشست فعال دارد",
+      user_not_found: "کاربر یافت نشد",
+      self_deletion: "حذف حساب خود مجاز نیست",
+      last_platform_administrator: "آخرین مدیر پلتفرم",
+      last_tenant_owner: "آخرین مالک مطب",
+      tenant_role_concurrency_conflict: "نقش مطب هم‌زمان تغییر کرد",
+      tenant_role_persistence_failure: "نقش مطب ذخیره نشد",
+      tenant_role_not_found: "نقش مطب یافت نشد",
+      global_role_not_found: "نقش پلتفرم یافت نشد",
+      role_scope_conflict: "نقش پلتفرم و نقش مطب با هم داده نمی‌شوند",
+      initial_platform_administrator: "نخستین مدیر پلتفرم",
+    },
+    reasonFormats: {
+      tenantRoleReplacement: "نقش در مطب از {before} به {after}",
+      userTimeoutMinutes: "مهلت بی‌فعالیتی: {minutes} دقیقه",
+      httpStatus: "وضعیت HTTP {status}",
+      version: "نسخه {version}",
+      auditStorageThreshold: "رسیدن به آستانه ذخیره‌سازی ممیزی ({details})",
+      auditStorageOutage: "قطع ذخیره‌سازی ممیزی ({details})",
+    },
+    resources: {
+      authentication: "ورود",
+      "authentication/identity": "هویت حساب",
+      "authentication/client-address": "نشانی IP کاربر",
+      "authentication/security-access-policy": "سیاست دسترسی امنیتی",
+      "platform/security-audit": "ممیزی امنیتی پلتفرم",
+      "user/unknown": "کاربر نامشخص",
+    },
+    resourceFormats: {
+      "user/": "کاربر {value}",
+      "tenant/": "مطب {value}",
+      "endpoint/": "عملیات {value}",
+      "job/": "کار پس‌زمینه {value}",
+      "hangfire:": "کار پس‌زمینه {value}",
+      "files/": "فایل {value}",
+      "sea/attachment/": "پیوست {value}",
+      "authentication/otp/": "کد یک‌بارمصرف ارسال‌شده به {value}",
+    },
   },
 } as const;
 
-type PlatformAuditIdentifierKind = "categories" | "events" | "changeFields" | "changeValues";
+type PlatformAuditIdentifierKind =
+  | "categories"
+  | "events"
+  | "changeFields"
+  | "changeValues"
+  | "scopes"
+  | "actorKinds"
+  | "sourceKinds"
+  | "sourceBoundaries"
+  | "operations"
+  | "reasons"
+  | "resources";
+
+// Server-owned wire shapes of composite audit values (SecurityAuditReasonCatalog and the
+// resource prefixes of the writing modules); the label of each part comes from the catalogs above.
+const tenantRoleReplacementReason = /^tenant_role_replacement:before=([a-z_]+);after=([a-z_]+)$/;
+const userTimeoutMinutesReason = /^user_timeout_minutes:(\d+)$/;
+const httpStatusReason = /^http_(\d{3})$/;
+const versionReason = /^version:(\d+)$/;
+const auditStorageThresholdReasonPrefix = "audit_storage_threshold:";
+const auditStorageOutageReasonPrefix = "audit_storage_outage:";
+const endpointResourcePrefix = "endpoint/";
+
+function formatLabel(template: string, values: Record<string, string>): string {
+  return template.replace(/\{(\w+)\}/g, (match, key: string) => values[key] ?? match);
+}
 
 function localizePlatformAuditIdentifier(
   locale: SupportedLocale,
@@ -460,6 +795,71 @@ export function localizePlatformAuditChangeField(locale: SupportedLocale, value:
 export function localizePlatformAuditChangeValue(locale: SupportedLocale, value: string | null | undefined, fallback: string): string {
   return localizePlatformAuditIdentifier(locale, "changeValues", value, fallback);
 }
+
+export function localizePlatformAuditScope(locale: SupportedLocale, value: string | null | undefined, fallback: string): string {
+  return localizePlatformAuditIdentifier(locale, "scopes", value, fallback);
+}
+
+export function localizePlatformAuditActorKind(locale: SupportedLocale, value: string | null | undefined, fallback: string): string {
+  return localizePlatformAuditIdentifier(locale, "actorKinds", value, fallback);
+}
+
+export function localizePlatformAuditSourceKind(locale: SupportedLocale, value: string | null | undefined, fallback: string): string {
+  return localizePlatformAuditIdentifier(locale, "sourceKinds", value, fallback);
+}
+
+export function localizePlatformAuditSourceBoundary(locale: SupportedLocale, value: string | null | undefined, fallback: string): string {
+  return localizePlatformAuditIdentifier(locale, "sourceBoundaries", value, fallback);
+}
+
+export function localizePlatformAuditOperation(locale: SupportedLocale, value: string | null | undefined, fallback: string): string {
+  return localizePlatformAuditIdentifier(locale, "operations", value, fallback);
+}
+
+export function localizePlatformAuditReason(locale: SupportedLocale, value: string | null | undefined, fallback: string): string {
+  if (!value?.trim()) return fallback;
+  const labels = platformAuditIdentifierLabels[locale];
+  const known = (labels.reasons as Record<string, string>)[value];
+  if (known) return known;
+  const roleReplacement = tenantRoleReplacementReason.exec(value);
+  if (roleReplacement) {
+    return formatLabel(labels.reasonFormats.tenantRoleReplacement, {
+      before: localizePlatformAuditChangeValue(locale, roleReplacement[1], roleReplacement[1]),
+      after: localizePlatformAuditChangeValue(locale, roleReplacement[2], roleReplacement[2]),
+    });
+  }
+  const timeout = userTimeoutMinutesReason.exec(value);
+  if (timeout) return formatLabel(labels.reasonFormats.userTimeoutMinutes, { minutes: timeout[1] });
+  const httpStatus = httpStatusReason.exec(value);
+  if (httpStatus) return formatLabel(labels.reasonFormats.httpStatus, { status: httpStatus[1] });
+  const version = versionReason.exec(value);
+  if (version) return formatLabel(labels.reasonFormats.version, { version: version[1] });
+  if (value.startsWith(auditStorageThresholdReasonPrefix)) {
+    return formatLabel(labels.reasonFormats.auditStorageThreshold, { details: value.slice(auditStorageThresholdReasonPrefix.length) });
+  }
+  if (value.startsWith(auditStorageOutageReasonPrefix)) {
+    return formatLabel(labels.reasonFormats.auditStorageOutage, { details: value.slice(auditStorageOutageReasonPrefix.length) });
+  }
+  return value;
+}
+
+export function localizePlatformAuditResource(locale: SupportedLocale, value: string | null | undefined, fallback: string): string {
+  if (!value?.trim()) return fallback;
+  const labels = platformAuditIdentifierLabels[locale];
+  const known = (labels.resources as Record<string, string>)[value];
+  if (known) return known;
+  for (const [prefix, template] of Object.entries(labels.resourceFormats)) {
+    if (!value.startsWith(prefix) || value.length === prefix.length) continue;
+    const part = value.slice(prefix.length);
+    return formatLabel(template, {
+      value: prefix === endpointResourcePrefix ? localizePlatformAuditOperation(locale, part, part) : part,
+    });
+  }
+  return value;
+}
+
+/** Outcome values the server writes (SecurityAuditOutcome), in the order the outcome filter lists them. */
+export const securityAuditOutcomes = ["succeeded", "denied", "failed", "started", "pending"] as const;
 
 export function localizeSecurityAuditOutcome(locale: SupportedLocale, value: string | null | undefined, fallback: string): string {
   switch (value) {

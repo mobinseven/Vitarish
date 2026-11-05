@@ -60,11 +60,4 @@ public class WebAuthnOptions
     /// Default is "preferred".
     /// </summary>
     public string UserVerification { get; set; } = "preferred";
-
-    /// <summary>
-    /// Whether to require resident keys (discoverable credentials).
-    /// Options: "required", "preferred", "discouraged".
-    /// Default is "discouraged".
-    /// </summary>
-    public string RequireResidentKey { get; set; } = "discouraged";
 }

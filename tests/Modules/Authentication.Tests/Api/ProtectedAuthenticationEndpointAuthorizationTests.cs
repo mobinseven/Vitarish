@@ -198,13 +198,13 @@ public class ProtectedAuthenticationEndpointAuthorizationTests
     }
 
     [Fact]
-    public void Product_evaluated_profile_maps_only_enabled_login_methods()
+    public void Restricted_profile_maps_only_enabled_login_methods()
     {
         WebApplicationBuilder builder = WebApplication.CreateBuilder();
         builder.Services.AddAntiforgery();
         using WebApplication app = builder.Build();
 
-        app.MapAuthenticationApi(AuthenticationProfilePolicy.ProductEvaluated);
+        app.MapAuthenticationApi(new AuthenticationProfilePolicy(UsePhoneOtpForTwoFactorAccounts: true, AllowPasswordlessPhoneLogin: false, AllowPasswordlessEmailLogin: false, AllowPasskeyLogin: false));
 
         string[] operationIds = ((IEndpointRouteBuilder)app).DataSources
             .SelectMany(source => source.Endpoints)
@@ -266,12 +266,9 @@ public class ProtectedAuthenticationEndpointAuthorizationTests
         AuthenticationProfilePolicy.Default.PermittedPreAuthenticationActions
             .Should().Contain(PreAuthenticationAction.TenantHandoff);
 
-        AuthenticationProfilePolicy.OpenApi.AllowTenantHandoff.Should().BeTrue();
-        AuthenticationProfilePolicy.OpenApi.PermittedPreAuthenticationActions
-            .Should().Contain(PreAuthenticationAction.TenantHandoff);
-
-        AuthenticationProfilePolicy.ProductEvaluated.AllowTenantHandoff.Should().BeFalse();
-        AuthenticationProfilePolicy.ProductEvaluated.PermittedPreAuthenticationActions
+        AuthenticationProfilePolicy restricted = new AuthenticationProfilePolicy(UsePhoneOtpForTwoFactorAccounts: true, AllowPasswordlessPhoneLogin: false, AllowPasswordlessEmailLogin: false, AllowPasskeyLogin: false);
+        restricted.AllowTenantHandoff.Should().BeFalse();
+        restricted.PermittedPreAuthenticationActions
             .Should().NotContain(PreAuthenticationAction.TenantHandoff);
     }
 

@@ -12,7 +12,7 @@ import { auditPlatformSecurityEventsList, auditSecurityEventsList, getAuditPlatf
 import type { AuditPlatformSecurityEventsListParams, SecurityAuditPageReadDto } from "../../shared/security/src/api/generated/audit/model";
 import { auditSortFields } from "../../shared/security/src/api/securityAuditSortFields";
 import { ApiError, ANTIFORGERY_VALIDATION_FAILED_CODE, TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
-import { localizePlatformAuditCategory, localizePlatformAuditEvent } from "../../shared/security/src/localization";
+import { localizePlatformAuditCategory, localizePlatformAuditEvent, localizePlatformAuditOperation } from "../../shared/security/src/localization";
 import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
 import { twoHostE2eApiOriginEnvironmentKey, twoHostE2ePlatformAdminClientIp, twoHostE2eProofScreenshotEnvironmentKey, twoHostE2eTenantBClinicOrigin, twoHostE2eTenantBOwnerUsername, twoHostE2eTenantBOwnerUsernameEnvironmentKey } from "../../scripts/two-host-e2e-artifacts.mjs";
 import { agentEnvelopeCanonical, base64UrlHmac } from "./agentCallback";
@@ -1377,8 +1377,9 @@ test("proves the global audit grid across a separate platform-admin origin", asy
       name: localizePlatformAuditEvent("en", "authentication.password.login", "authentication.password.login"),
       exact: true,
     }).click();
+    await expect(page.getByRole("listbox")).toHaveCount(0);
     await page.getByRole("button", { name: "All operations" }).click();
-    await page.getByRole("option", { name: "password.login", exact: true }).click();
+    await page.getByRole("listbox").getByRole("option", { name: localizePlatformAuditOperation("en", "password.login", "password.login"), exact: true }).click();
     await page.getByRole("button", { name: "Apply filters" }).click();
     await expect(page.locator("tbody tr").first()).toBeVisible();
     const evidenceScreenshot = process.env.VITARISH_NMAIL_EVIDENCE_SCREENSHOT;
@@ -1401,8 +1402,9 @@ test("proves the global audit grid across a separate platform-admin origin", asy
           name: localizePlatformAuditEvent("en", entry.eventName, entry.eventName!),
           exact: true,
         }).click();
+        await expect(page.getByRole("listbox")).toHaveCount(0);
         await page.getByRole("button", { name: "All operations" }).click();
-        await page.getByRole("option", { name: entry.operation!, exact: true }).click();
+        await page.getByRole("listbox").getByRole("option", { name: localizePlatformAuditOperation("en", entry.operation, entry.operation!), exact: true }).click();
         await page.getByRole("button", { name: "Apply filters" }).click();
         if (await page.locator("tbody tr").count() > 0) {
           const safeEventName = entry.eventName!.replace(/[^a-z0-9.-]+/gi, "-");

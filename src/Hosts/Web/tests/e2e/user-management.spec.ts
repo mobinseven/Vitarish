@@ -14,7 +14,7 @@ import type { UpdateManagedUserRequest, UserSecurityDetailsResponse } from "../.
 import { resetAntiforgeryToken, TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
 import { UsersCommandErrorKind } from "../../shared/auth/src/users";
 import { usersMessageCatalogs } from "../../shared/users/src/localization/catalogs";
-import { localizePlatformAuditCategory, localizePlatformAuditEvent, localizeSecurityAuditOutcome } from "../../shared/security/src/localization";
+import { localizePlatformAuditCategory, localizePlatformAuditEvent, localizePlatformAuditOperation, localizeSecurityAuditOutcome } from "../../shared/security/src/localization";
 import {
   twoHostE2eApiOriginEnvironmentKey,
   twoHostE2eProofScreenshotEnvironmentKey,
@@ -140,14 +140,16 @@ async function reviewUserAuditEvent(page: Page, category: string, eventName: str
   await page.getByRole("option", { name: localizePlatformAuditCategory("en", category, category), exact: true }).click();
   await page.getByRole("button", { name: "All event types" }).click();
   await page.getByRole("option", { name: localizePlatformAuditEvent("en", eventName, eventName), exact: true }).click();
+  await expect(page.getByRole("listbox")).toHaveCount(0);
   await page.getByRole("button", { name: "All operations" }).click();
-  await page.getByRole("option", { name: operation, exact: true }).click();
-  await page.getByRole("textbox", { name: "Outcome" }).fill("succeeded");
+  await page.getByRole("listbox").getByRole("option", { name: localizePlatformAuditOperation("en", operation, operation), exact: true }).click();
+  await page.getByRole("button", { name: "All outcomes" }).click();
+  await page.getByRole("listbox").getByRole("option", { name: localizeSecurityAuditOutcome("en", "succeeded", "succeeded"), exact: true }).click();
   await page.getByRole("button", { name: "Apply filters" }).click();
   const row = page.locator("tbody tr").first();
   await expect(row).toBeVisible({ timeout: 30_000 });
   await expect(row.getByText(localizePlatformAuditEvent("en", eventName, eventName), { exact: true })).toBeVisible();
-  await expect(row.getByText(operation, { exact: true })).toBeVisible();
+  await expect(row.getByText(localizePlatformAuditOperation("en", operation, operation), { exact: true })).toBeVisible();
   await expect(row.getByText(localizeSecurityAuditOutcome("en", "succeeded", "succeeded"), { exact: true })).toBeVisible();
 }
 
@@ -466,13 +468,37 @@ test("platform administrator creates, edits, assigns access, and reviews a user'
   await expect(page.getByText("No roles are assigned.", { exact: true })).toBeVisible();
   await expect(page.getByText("No authentication attempts have been recorded for this user.", { exact: true })).toBeVisible();
 
-  await page.getByLabel("Global role to grant").selectOption("PlatformAdmin");
+  // An account holds either a platform role or clinic roles. The server reports which
+  // grant it still accepts, and the page replaces the refused grant with an explanation.
+  const roleMessages = usersMessageCatalogs.en.users.management;
+  await page.getByRole("textbox", { name: roleMessages.tenantId }).fill(tenantId!);
+  const [grantResponse] = await Promise.all([
+    page.waitForResponse((response) => response.request().method() === "PUT" && response.request().url().includes(createdUser.id!)),
+    page.getByRole("button", { name: roleMessages.grant }).click(),
+  ]);
+  expect(grantResponse.ok()).toBe(true);
+  const grantedMembership = page.getByText(new RegExp(`Tenant: ${tenantId} · Role: ${roleMessages.staff}`));
+  await expect(grantedMembership).toBeVisible();
+  await expect(page.getByText(roleMessages.globalRoleBlockedByMemberships, { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: roleMessages.grantGlobalRole })).toHaveCount(0);
+
+  page.once("dialog", (dialog) => dialog.accept());
+  const [revokeResponse] = await Promise.all([
+    page.waitForResponse((response) => response.request().method() === "DELETE" && response.request().url().includes(createdUser.id!)),
+    page.getByRole("button", { name: roleMessages.revoke }).click(),
+  ]);
+  expect(revokeResponse.ok()).toBe(true);
+  await expect(grantedMembership).toHaveCount(0);
+
+  await page.getByLabel(roleMessages.globalRoleToGrant).selectOption("PlatformAdmin");
   const [globalRoleResponse] = await Promise.all([
     page.waitForResponse((response) => response.request().method() === "POST" && response.url().includes(`/api/modules/users/${createdUser.id}/roles`)),
-    page.getByRole("button", { name: "Grant global role" }).click(),
+    page.getByRole("button", { name: roleMessages.grantGlobalRole }).click(),
   ]);
   expect(globalRoleResponse.ok()).toBe(true);
-  await expect(page.getByText("PlatformAdmin", { exact: true })).toBeVisible();
+  await expect(page.getByText(roleMessages.platformAdministrator, { exact: true })).toBeVisible();
+  await expect(page.getByText(roleMessages.membershipBlockedByGlobalRole, { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: roleMessages.grant })).toHaveCount(0);
 
   const inactivityInput = page.getByRole("spinbutton", { name: "Inactivity timeout (minutes)" });
   await inactivityInput.fill("15");
@@ -544,14 +570,6 @@ test("platform administrator creates, edits, assigns access, and reviews a user'
   await expect(stalePage.getByRole("status").filter({ hasText: "This account changed elsewhere." })).toBeVisible();
   await expect(stalePage.getByRole("textbox", { name: "Email address" })).toHaveValue(changedContact);
   await stalePage.close();
-
-  await page.getByRole("textbox", { name: "Tenant ID" }).fill(tenantId!);
-  const [grantResponse] = await Promise.all([
-    page.waitForResponse((response) => response.request().method() === "PUT" && response.request().url().includes(createdUser.id!)),
-    page.getByRole("button", { name: "Grant role" }).click(),
-  ]);
-  expect(grantResponse.ok()).toBe(true);
-  await expect(page.getByText(new RegExp(`Tenant: ${tenantId} · Role: TenantUser`))).toBeVisible();
 
   const browser = page.context().browser();
   expect(browser, "the two-host browser is required for an unauthenticated login attempt").toBeTruthy();

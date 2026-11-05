@@ -6,15 +6,6 @@ namespace Vitarish.Users.Infrastructure.Authentication;
 
 public sealed class WebAuthnCredentialLookup(UsersDbContext dbContext) : IWebAuthnCredentialLookup
 {
-    public async Task<IReadOnlyList<WebAuthnCredentialDescriptor>> GetAllowedCredentialsAsync(string userId, CancellationToken ct)
-    {
-        List<Domain.Entities.WebAuthnCredential> credentials = await dbContext.WebAuthnCredentials
-            .Where(c => c.UserId == userId && c.IsActive)
-            .ToListAsync(ct);
-
-        return credentials.Select(c => new WebAuthnCredentialDescriptor(c.CredentialId, c.UserId)).ToList();
-    }
-
     public async Task<WebAuthnCredentialData?> FindByCredentialIdAsync(byte[] credentialId, CancellationToken ct)
     {
         Domain.Entities.WebAuthnCredential? credential = await dbContext.WebAuthnCredentials

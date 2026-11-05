@@ -6,6 +6,7 @@ using Moq;
 using System.Text.Json;
 using Vitarish.Modules.Base.Core.Identity;
 using Vitarish.Users.Api;
+using Vitarish.Users.Application.Authorization;
 using Vitarish.Users.Application.Queries;
 using Vitarish.Users.Contracts.Responses;
 using Vitarish.Users.Domain.Entities;
@@ -76,6 +77,26 @@ public sealed class UserSecurityDetailsResponseMappingTests
         JsonHttpResult<UserSecurityDetailsResponse> response = result.Should().BeAssignableTo<JsonHttpResult<UserSecurityDetailsResponse>>().Subject;
         response.StatusCode.Should().Be(StatusCodes.Status503ServiceUnavailable);
         response.Value!.AuthenticationMethods!.Passkeys.Should().ContainSingle().Which.Id.Should().Be(credentialId);
+    }
+
+    [Theory]
+    [InlineData(true, false, true)]
+    [InlineData(false, true, false)]
+    public async Task Reports_which_role_scope_may_still_be_granted(bool holdsClinicRole, bool globalRoleGrantAllowed, bool tenantRoleGrantAllowed)
+    {
+        string assignedRole = holdsClinicRole
+            ? TenantRoleDefinitions.BuildRoleName(Guid.NewGuid(), IdentityDefinitions.TenantUser)
+            : IdentityDefinitions.PlatformAdmin;
+        UserSecurityDetailsQueryResult details = Details(authenticationMethods: null, authenticationMethodsUnavailable: false) with
+        {
+            AssignedRoles = [assignedRole]
+        };
+
+        IResult result = await UsersApi.GetUserSecurityDetailsAsync(UserId, 1, 25, null, Sender(details).Object, CancellationToken.None);
+
+        UserSecurityDetailsResponse response = result.Should().BeAssignableTo<Ok<UserSecurityDetailsResponse>>().Subject.Value!;
+        response.GlobalRoleGrantAllowed.Should().Be(globalRoleGrantAllowed);
+        response.TenantRoleGrantAllowed.Should().Be(tenantRoleGrantAllowed);
     }
 
     [Fact]

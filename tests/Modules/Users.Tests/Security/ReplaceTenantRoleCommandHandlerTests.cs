@@ -131,6 +131,55 @@ public sealed class ReplaceTenantRoleCommandHandlerTests
         await AssertMembershipsAsync(dbContext);
     }
 
+    [Fact]
+    public async Task Platform_administrator_is_refused_a_clinic_role_with_a_denied_audit_but_revocation_stays_allowed()
+    {
+        await using TestUsersDbContext dbContext = await CreateDbContextAsync(includeConflictingMemberships: false);
+        IdentityRole platformRole = new() { Id = "role-platform", Name = IdentityDefinitions.PlatformAdmin, NormalizedName = IdentityDefinitions.PlatformAdmin.ToUpperInvariant() };
+        dbContext.Roles.Add(platformRole);
+        dbContext.UserRoles.Add(new IdentityUserRole<string> { UserId = UserId, RoleId = platformRole.Id });
+        await dbContext.SaveChangesAsync();
+        Mock<ISecurityAuditWriter> audit = AuditWriter();
+        ReplaceTenantRoleCommandHandler handler = CreateHandler(dbContext, audit);
+
+        IdentityResult granted = await handler.Handle(
+            new ReplaceTenantRoleCommand(UserId, TenantId, IdentityDefinitions.TenantUser),
+            CancellationToken.None);
+
+        granted.Errors.Single().Code.Should().Be(UsersCommandErrorCodes.RoleScopeConflict);
+        (await dbContext.UserRoles.Where(value => value.UserId == UserId).Select(value => value.RoleId).ToListAsync())
+            .Should().Equal(platformRole.Id);
+        SecurityAuditEvent denied = audit.Invocations.Select(invocation => invocation.Arguments[0]).OfType<SecurityAuditEvent>().Single();
+        denied.Outcome.Should().Be(SecurityAuditOutcome.Denied);
+        denied.RedactedReason.Should().Be(SecurityAuditReasonCatalog.RoleScopeConflict);
+
+        (await handler.Handle(new ReplaceTenantRoleCommand(UserId, TenantId, null), CancellationToken.None)).Succeeded.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Clinic_member_is_refused_a_platform_role_with_a_denied_audit()
+    {
+        await using TestUsersDbContext dbContext = await CreateDbContextAsync(includeConflictingMemberships: false);
+        IdentityRole platformRole = new() { Id = "role-platform", Name = IdentityDefinitions.PlatformAdmin, NormalizedName = IdentityDefinitions.PlatformAdmin.ToUpperInvariant() };
+        dbContext.Roles.Add(platformRole);
+        dbContext.UserRoles.Add(new IdentityUserRole<string> { UserId = UserId, RoleId = "role-user" });
+        await dbContext.SaveChangesAsync();
+        Mock<IAuthenticationActiveSessionQuery> sessions = new();
+        sessions.Setup(value => value.HasActiveSessionAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync(false);
+        Mock<ISecurityAuditWriter> audit = AuditWriter();
+        AddUserToRoleCommandHandler handler = new(dbContext, sessions.Object, RequestContext(), audit.Object);
+
+        IdentityResult result = await handler.Handle(
+            new AddUserToRoleCommand(new User { Id = UserId }, IdentityDefinitions.PlatformAdmin),
+            CancellationToken.None);
+
+        result.Errors.Single().Code.Should().Be(UsersCommandErrorCodes.RoleScopeConflict);
+        await AssertMembershipsAsync(dbContext, IdentityDefinitions.TenantUser);
+        SecurityAuditEvent denied = audit.Invocations.Select(invocation => invocation.Arguments[0]).OfType<SecurityAuditEvent>().Single();
+        denied.Outcome.Should().Be(SecurityAuditOutcome.Denied);
+        denied.RedactedReason.Should().Be(SecurityAuditReasonCatalog.RoleScopeConflict);
+    }
+
     private static ReplaceTenantRoleCommandHandler CreateHandler(
         TestUsersDbContext dbContext,
         Mock<ISecurityAuditWriter> audit,

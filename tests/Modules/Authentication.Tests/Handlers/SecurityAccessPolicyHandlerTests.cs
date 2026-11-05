@@ -19,10 +19,17 @@ namespace Vitarish.Authentication.Tests.Handlers;
 
 public sealed class SecurityAccessPolicyHandlerTests
 {
+    private static readonly AuthenticationProfilePolicy RestrictedProfile = new(
+        UsePhoneOtpForTwoFactorAccounts: true,
+        AllowPasswordlessPhoneLogin: false,
+        AllowPasswordlessEmailLogin: false,
+        AllowPasskeyLogin: false);
+    private static readonly SecurityAccessPolicy RestrictedPolicy = SecurityAccessPolicy.ForProfile(RestrictedProfile);
+
     [Fact]
     public async Task Authorized_read_returns_the_policy_without_changing_the_security_store()
     {
-        SecurityAccessPolicyState expected = new(SecurityAccessPolicy.ProductEvaluated, 4);
+        SecurityAccessPolicyState expected = new(RestrictedPolicy, 4);
         Mock<IAuthenticationSecurityPolicyStore> store = new();
         store.Setup(item => item.GetStateAsync(It.IsAny<CancellationToken>())).ReturnsAsync(expected);
         RecordingAuditWriter audit = new();
@@ -69,13 +76,13 @@ public sealed class SecurityAccessPolicyHandlerTests
     [Fact]
     public async Task Authorized_change_saves_the_policy_and_records_completion()
     {
-        SecurityAccessPolicy policy = SecurityAccessPolicy.ProductEvaluated;
+        SecurityAccessPolicy policy = RestrictedPolicy;
         Mock<IAuthenticationSecurityPolicyStore> store = new();
         store.Setup(item => item.GetStateAsync(It.IsAny<CancellationToken>())).ReturnsAsync(new SecurityAccessPolicyState(SecurityAccessPolicy.Default, 0));
         store.Setup(item => item.SaveAsync(policy, 0, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new SecurityAccessPolicyState(policy, 1));
         RecordingAuditWriter audit = new();
-        ChangeSecurityAccessPolicyHandler handler = new(store.Object, audit, new TestRequestContext([IdentityDefinitions.PlatformAdmin]), CreateSessionRegistry(store), AuthenticationProfilePolicy.ProductEvaluated);
+        ChangeSecurityAccessPolicyHandler handler = new(store.Object, audit, new TestRequestContext([IdentityDefinitions.PlatformAdmin]), CreateSessionRegistry(store), RestrictedProfile);
 
         SecurityAccessPolicyState result = await handler.Handle(new ChangeSecurityAccessPolicyCommand(policy, 0), CancellationToken.None);
 
@@ -171,13 +178,13 @@ public sealed class SecurityAccessPolicyHandlerTests
     [Fact]
     public async Task Completion_audit_failure_preserves_the_committed_policy_result()
     {
-        SecurityAccessPolicy policy = SecurityAccessPolicy.ProductEvaluated;
+        SecurityAccessPolicy policy = RestrictedPolicy;
         Mock<IAuthenticationSecurityPolicyStore> store = new();
         store.Setup(item => item.GetStateAsync(It.IsAny<CancellationToken>())).ReturnsAsync(new SecurityAccessPolicyState(SecurityAccessPolicy.Default, 0));
         store.Setup(item => item.SaveAsync(policy, 0, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new SecurityAccessPolicyState(policy, 1));
         RecordingAuditWriter audit = new(failNextUpdate: true);
-        ChangeSecurityAccessPolicyHandler handler = new(store.Object, audit, new TestRequestContext([IdentityDefinitions.PlatformAdmin]), CreateSessionRegistry(store), AuthenticationProfilePolicy.ProductEvaluated);
+        ChangeSecurityAccessPolicyHandler handler = new(store.Object, audit, new TestRequestContext([IdentityDefinitions.PlatformAdmin]), CreateSessionRegistry(store), RestrictedProfile);
 
         SecurityAccessPolicyState result = await handler.Handle(new ChangeSecurityAccessPolicyCommand(policy, 0), CancellationToken.None);
 
@@ -189,7 +196,7 @@ public sealed class SecurityAccessPolicyHandlerTests
     [Fact]
     public async Task Retrying_the_same_operation_completes_the_durable_pending_outcome_without_repeating_the_save()
     {
-        SecurityAccessPolicy policy = SecurityAccessPolicy.ProductEvaluated;
+        SecurityAccessPolicy policy = RestrictedPolicy;
         Mock<IAuthenticationSecurityPolicyStore> store = new();
         store.Setup(item => item.GetStateAsync(It.IsAny<CancellationToken>())).ReturnsAsync(new SecurityAccessPolicyState(SecurityAccessPolicy.Default, 0));
         store.Setup(item => item.SaveAsync(policy, 0, It.IsAny<CancellationToken>()))
@@ -198,7 +205,7 @@ public sealed class SecurityAccessPolicyHandlerTests
             .ReturnsAsync(new SecurityAccessPolicyState(policy, 1));
         RecordingAuditWriter audit = new(failNextUpdate: true);
         TestRequestContext requestContext = new([IdentityDefinitions.PlatformAdmin]);
-        ChangeSecurityAccessPolicyHandler handler = new(store.Object, audit, requestContext, CreateSessionRegistry(store), AuthenticationProfilePolicy.ProductEvaluated);
+        ChangeSecurityAccessPolicyHandler handler = new(store.Object, audit, requestContext, CreateSessionRegistry(store), RestrictedProfile);
 
         SecurityAccessPolicyState first = await handler.Handle(new ChangeSecurityAccessPolicyCommand(policy, 0), CancellationToken.None);
         SecurityAccessPolicyState result = await handler.Handle(new ChangeSecurityAccessPolicyCommand(policy, 0), CancellationToken.None);
@@ -212,7 +219,7 @@ public sealed class SecurityAccessPolicyHandlerTests
     [Fact]
     public async Task In_flight_duplicate_leaves_pending_audit_for_the_committing_attempt()
     {
-        SecurityAccessPolicy policy = SecurityAccessPolicy.ProductEvaluated;
+        SecurityAccessPolicy policy = RestrictedPolicy;
         Mock<IAuthenticationSecurityPolicyStore> store = new();
         store.Setup(item => item.GetStateAsync(It.IsAny<CancellationToken>())).ReturnsAsync(new SecurityAccessPolicyState(SecurityAccessPolicy.Default, 0));
         TaskCompletionSource saveEntered = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -228,7 +235,7 @@ public sealed class SecurityAccessPolicyHandlerTests
             .ReturnsAsync(new SecurityAccessPolicyState(SecurityAccessPolicy.Default, 0));
         RecordingAuditWriter audit = new();
         TestRequestContext requestContext = new([IdentityDefinitions.PlatformAdmin]);
-        ChangeSecurityAccessPolicyHandler handler = new(store.Object, audit, requestContext, CreateSessionRegistry(store), AuthenticationProfilePolicy.ProductEvaluated);
+        ChangeSecurityAccessPolicyHandler handler = new(store.Object, audit, requestContext, CreateSessionRegistry(store), RestrictedProfile);
 
         Task<SecurityAccessPolicyState> original = handler.Handle(new ChangeSecurityAccessPolicyCommand(policy, 0), CancellationToken.None);
         await saveEntered.Task;
@@ -248,13 +255,13 @@ public sealed class SecurityAccessPolicyHandlerTests
     [Fact]
     public async Task Duplicate_reconciliation_requires_a_confirmed_succeeded_audit_outcome()
     {
-        SecurityAccessPolicy policy = SecurityAccessPolicy.ProductEvaluated;
+        SecurityAccessPolicy policy = RestrictedPolicy;
         Mock<IAuthenticationSecurityPolicyStore> store = new();
         store.Setup(item => item.GetStateAsync(It.IsAny<CancellationToken>())).ReturnsAsync(new SecurityAccessPolicyState(SecurityAccessPolicy.Default, 0));
         store.Setup(item => item.GetStateAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new SecurityAccessPolicyState(policy, 1));
         RecordingAuditWriter audit = new(SecurityAuditWriteResult.AlreadyRecorded);
-        ChangeSecurityAccessPolicyHandler handler = new(store.Object, audit, new TestRequestContext([IdentityDefinitions.PlatformAdmin]), CreateSessionRegistry(store), AuthenticationProfilePolicy.ProductEvaluated);
+        ChangeSecurityAccessPolicyHandler handler = new(store.Object, audit, new TestRequestContext([IdentityDefinitions.PlatformAdmin]), CreateSessionRegistry(store), RestrictedProfile);
 
         Func<Task> act = () => handler.Handle(new ChangeSecurityAccessPolicyCommand(policy, 0), CancellationToken.None);
 
@@ -271,7 +278,7 @@ public sealed class SecurityAccessPolicyHandlerTests
         };
         Mock<IAuthenticationSecurityPolicyStore> store = new();
         store.Setup(item => item.GetStateAsync(It.IsAny<CancellationToken>())).ReturnsAsync(new SecurityAccessPolicyState(storedPolicy, 9));
-        GetSecurityAuthenticationPolicyHandler handler = new(store.Object, AuthenticationProfilePolicy.ProductEvaluated, new TestRequestContext([IdentityDefinitions.PlatformAdmin]));
+        GetSecurityAuthenticationPolicyHandler handler = new(store.Object, RestrictedProfile, new TestRequestContext([IdentityDefinitions.PlatformAdmin]));
 
         SecurityAuthenticationPolicyManagementState result = await handler.Handle(CancellationToken.None);
 
@@ -309,7 +316,7 @@ public sealed class SecurityAccessPolicyHandlerTests
         await denied.Should().ThrowAsync<UnauthorizedAccessException>();
         store.Verify(item => item.GetStateAsync(It.IsAny<CancellationToken>()), Times.Never);
 
-        GetSecurityAuthenticationPolicyHandler allowedHandler = new(store.Object, AuthenticationProfilePolicy.ProductEvaluated, new TestRequestContext([IdentityDefinitions.PlatformAdmin]));
+        GetSecurityAuthenticationPolicyHandler allowedHandler = new(store.Object, RestrictedProfile, new TestRequestContext([IdentityDefinitions.PlatformAdmin]));
 
         SecurityAuthenticationPolicyManagementState result = await allowedHandler.Handle(CancellationToken.None);
 
@@ -333,8 +340,8 @@ public sealed class SecurityAccessPolicyHandlerTests
             FailedAttemptThreshold = 8,
             FailedAttemptDenialDuration = TimeSpan.FromMinutes(20),
             FailedAttemptResponse = FailedAttemptResponse.Deny,
-            EnabledAuthenticationMechanisms = new HashSet<AuthenticationMethod> { AuthenticationMethod.Password, AuthenticationMethod.Email },
-            PermittedPreAuthenticationActions = new HashSet<PreAuthenticationAction> { PreAuthenticationAction.AuthenticationProfile, PreAuthenticationAction.PasswordLogin, PreAuthenticationAction.EmailLogin }
+            EnabledAuthenticationMechanisms = new HashSet<AuthenticationMethod> { AuthenticationMethod.Password, AuthenticationMethod.Phone, AuthenticationMethod.Email },
+            PermittedPreAuthenticationActions = new HashSet<PreAuthenticationAction> { PreAuthenticationAction.AuthenticationProfile, PreAuthenticationAction.PasswordLogin, PreAuthenticationAction.PasswordPlusPhoneOtp, PreAuthenticationAction.EmailLogin }
         };
         Mock<IAuthenticationSecurityPolicyStore> store = new();
         store.Setup(item => item.GetStateAsync(It.IsAny<CancellationToken>())).ReturnsAsync(new SecurityAccessPolicyState(current, 6));
@@ -345,7 +352,7 @@ public sealed class SecurityAccessPolicyHandlerTests
 
         SecurityAccessPolicyState result = await handler.Handle(new ChangeSecurityAuthenticationPolicyCommand(
             12, true, true, true, true, 8, 1200, "Deny",
-            ["Password", "Email"], ["AuthenticationProfile", "PasswordLogin", "EmailLogin"], 6), CancellationToken.None);
+            ["Password", "Phone", "Email"], ["AuthenticationProfile", "PasswordLogin", "PasswordPlusPhoneOtp", "EmailLogin"], 6), CancellationToken.None);
 
         result.Policy.Should().BeEquivalentTo(expected);
         audit.Events.Select(item => item.Outcome).Should().ContainInOrder(SecurityAuditOutcome.Started, SecurityAuditOutcome.Succeeded);
@@ -376,11 +383,11 @@ public sealed class SecurityAccessPolicyHandlerTests
     [Fact]
     public async Task Authentication_policy_change_rejects_profile_forbidden_mechanisms_and_audits_denial()
     {
-        SecurityAccessPolicy current = SecurityAccessPolicy.ProductEvaluated;
+        SecurityAccessPolicy current = RestrictedPolicy;
         Mock<IAuthenticationSecurityPolicyStore> store = new();
         store.Setup(item => item.GetStateAsync(It.IsAny<CancellationToken>())).ReturnsAsync(new SecurityAccessPolicyState(current, 0));
         RecordingAuditWriter audit = new();
-        ChangeSecurityAccessPolicyHandler handler = new(store.Object, audit, new TestRequestContext([IdentityDefinitions.PlatformAdmin]), CreateSessionRegistry(store), AuthenticationProfilePolicy.ProductEvaluated);
+        ChangeSecurityAccessPolicyHandler handler = new(store.Object, audit, new TestRequestContext([IdentityDefinitions.PlatformAdmin]), CreateSessionRegistry(store), RestrictedProfile);
 
         Func<Task> act = () => handler.Handle(new ChangeSecurityAuthenticationPolicyCommand(
             8, true, true, true, true, 5, 900, "Lockout", ["Password", "Passkey"], ["AuthenticationProfile", "PasswordLogin", "PasswordPlusPhoneOtp"], 0), CancellationToken.None);
@@ -391,7 +398,7 @@ public sealed class SecurityAccessPolicyHandlerTests
     }
 
     [Fact]
-    public async Task Session_policy_change_on_product_evaluated_profile_keeps_raw_stored_authentication_choices()
+    public async Task Session_policy_change_on_a_restricted_profile_keeps_raw_stored_authentication_choices()
     {
         SecurityAccessPolicy rawStored = SecurityAccessPolicy.Default;
         SecurityAccessPolicy expected = rawStored with
@@ -406,7 +413,7 @@ public sealed class SecurityAccessPolicyHandlerTests
         store.Setup(item => item.SaveAsync(It.IsAny<SecurityAccessPolicy>(), 0, It.IsAny<CancellationToken>()))
             .ReturnsAsync((SecurityAccessPolicy policy, long version, CancellationToken _) => new SecurityAccessPolicyState(policy, version + 1));
         RecordingAuditWriter audit = new();
-        ChangeSecurityAccessPolicyHandler handler = new(store.Object, audit, new TestRequestContext([IdentityDefinitions.PlatformAdmin]), CreateSessionRegistry(store), AuthenticationProfilePolicy.ProductEvaluated);
+        ChangeSecurityAccessPolicyHandler handler = new(store.Object, audit, new TestRequestContext([IdentityDefinitions.PlatformAdmin]), CreateSessionRegistry(store), RestrictedProfile);
 
         SecurityAccessPolicyState result = await handler.Handle(
             new ChangeSecuritySessionPolicyCommand(2, true, 10, ["10.0.0.0/24"], 0),
