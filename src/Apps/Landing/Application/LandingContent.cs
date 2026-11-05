@@ -3,7 +3,7 @@ namespace Vitarish.Landing.Application;
 public static class LandingContent
 {
     public const string SiteKey = "landing";
-    public const string EditorialPageTypeKey = "editorialPage";
+    public const string EditorialPageTypeKey = "editorial-page";
     public const string EditorialPageTypeName = "Editorial page";
     public const string PurposeSlug = "our-purpose";
     // Mirrored by apps/vitarish-landing content constants.

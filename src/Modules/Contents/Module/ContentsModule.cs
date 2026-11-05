@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Contents.Application.Abstractions;
+using Vitarish.Contents.Agents;
 using Vitarish.Contents.Application;
 using Vitarish.Contents.Api;
 using Vitarish.Contents.Infrastructure.Data;
@@ -27,6 +28,13 @@ public sealed class ContentsModule : Modules.Base.Core.Module, IContentsModule
         _ = builder.Services.AddScoped<IContentAuthoring, ContentAuthoring>();
         _ = builder.Services.AddScoped<IContentSeeding, ContentSeeding>();
         _ = builder.Services.AddScoped<ContentAuthoringQueries>();
+        _ = builder.Services.AddScoped<IContentAuthoringQueries>(services => services.GetRequiredService<ContentAuthoringQueries>());
+        _ = builder.Services.AddScoped<IContentsAgentTool, ContentsListSitesAgentTool>();
+        _ = builder.Services.AddScoped<IContentsAgentTool, ContentsListTypesAgentTool>();
+        _ = builder.Services.AddScoped<IContentsAgentTool, ContentsListEntriesAgentTool>();
+        _ = builder.Services.AddScoped<IContentsAgentTool, ContentsGetEntryAgentTool>();
+        _ = builder.Services.AddScoped<IContentsAgentTool, ContentsCreateDraftEntryAgentTool>();
+        _ = builder.Services.AddScoped<IContentsAgentTool, ContentsSaveDraftAgentTool>();
         _ = builder.Services.AddScoped<ContentDelivery>();
         _ = builder.Services.AddMemoryCache();
         _ = builder.Services.ConfigureHttpJsonOptions(options =>

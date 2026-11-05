@@ -218,48 +218,22 @@ public sealed class ContentSeeding(
                 CreatedBy = requestContext.UserId
             };
             item.SaveDraft(revision);
-            item.CanonicalPath = string.Empty;
-            item.Version = 1;
-
-            EntityResult<ContentRevision> revisionResult = await store.SaveRevisionAsync(
-                tenantId,
-                item,
-                revision,
-                expectedVersion: null,
-                outboxOperation: null,
-                cancellationToken);
-            if (revisionResult.IsFailure || revisionResult.Value is null)
-            {
-                return EntityResult.Failure([.. revisionResult.Errors]);
-            }
-
-            ContentRevision savedRevision = revisionResult.Value;
-            ContentItem? savedItem = await store.GetEntryByIdAsync(tenantId, contentId, cancellationToken);
-            if (savedItem is null ||
-                savedItem.Version != 1 ||
-                savedItem.WorkingRevisionId != savedRevision.Id ||
-                savedItem.PublishedRevisionId is not null)
-            {
-                return EntityResult.Failure(EntityError.Concurrency("The seeded entry changed before it could be published."));
-            }
-
             try
             {
-                savedItem.Publish(savedRevision, timeService.Now);
+                item.Publish(revision, timeService.Now);
             }
             catch (EntityFailureException exception)
             {
                 return EntityResult.Failure(exception.Error);
             }
 
-            savedItem.CanonicalPath = savedRevision.CanonicalPath!;
-            savedItem.Version = 2;
-            return await store.SaveItemAsync(
+            item.CanonicalPath = string.Empty;
+            item.Version = 1;
+
+            return await store.SavePublishedSeedAsync(
                 tenantId,
-                savedItem,
-                expectedVersion: 1,
-                ContentPublicationOperation.Index,
-                savedRevision.Id,
+                item,
+                revision,
                 cancellationToken);
         }
     }

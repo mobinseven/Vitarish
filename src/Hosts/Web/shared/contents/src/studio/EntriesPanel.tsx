@@ -9,14 +9,14 @@ import { ContentFieldEditor, updateFieldValue } from "./ContentFieldEditor";
 import { StudioButton, StudioFailure, StudioInput, StudioSelect, StudioState, StudioTextArea } from "./StudioControls";
 import { useArchiveEntry, useContentEntries, useContentEntry, useContentRevisions, useCreateContentEntry, usePublishEntry, useRestoreRevision, useSaveDraft, useUnpublishEntry } from "./useContentsStudio";
 
-type EntryDraft = { slug: string; canonicalPath: string; title: string; excerpt: string; fields: Record<string, unknown> };
-const emptyDraft: EntryDraft = { slug: "", canonicalPath: "", title: "", excerpt: "", fields: {} };
+type EntryDraft = { readonly expectedVersion: number | null; slug: string; canonicalPath: string; title: string; excerpt: string; fields: Record<string, unknown> };
+const emptyDraft: EntryDraft = { expectedVersion: null, slug: "", canonicalPath: "", title: "", excerpt: "", fields: {} };
 const pageSize = 20;
 const objectValue = (value: unknown): Record<string, unknown> => value !== null && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
 
 function EntryForm({ entry, site, type, entries, onDone, onReload }: { entry?: ContentEntry; site: ContentSite; type: ContentType; entries: ContentEntry[]; onDone: () => void; onReload?: () => void }) {
   const { t, locale: displayLocale } = useLocalizedText();
-  const [draft, setDraft] = useState<EntryDraft>(() => entry ? { slug: entry.slug, canonicalPath: entry.canonicalPath, title: entry.title, excerpt: entry.excerpt ?? "", fields: objectValue(entry.fields) } : emptyDraft);
+  const [draft, setDraft] = useState<EntryDraft>(() => entry ? { expectedVersion: entry.version, slug: entry.slug, canonicalPath: entry.canonicalPath, title: entry.title, excerpt: entry.excerpt ?? "", fields: objectValue(entry.fields) } : emptyDraft);
   const [locale, setLocale] = useState(site.defaultLocale);
   const [failure, setFailure] = useState<unknown>();
   const create = useCreateContentEntry();
@@ -25,18 +25,19 @@ function EntryForm({ entry, site, type, entries, onDone, onReload }: { entry?: C
   const unpublish = useUnpublishEntry();
   const archive = useArchiveEntry();
   const restore = useRestoreRevision();
+  const expectedVersion = draft.expectedVersion;
   const pending = create.isPending || save.isPending || publish.isPending || unpublish.isPending || archive.isPending || restore.isPending;
   const revisions = useContentRevisions(entry?.id);
   const problemErrors = failure instanceof ApiError ? failure.problem.errors ?? {} : {};
   const errors = Object.fromEntries(Object.keys(problemErrors).map((key) => [key, [t("contentsStudio.validation")]]));
   const fieldError = (key: string) => (errors[key] ?? errors[key[0].toUpperCase() + key.slice(1)])?.join(" ");
-  const update = <K extends keyof EntryDraft>(key: K, value: EntryDraft[K]) => setDraft((current) => ({ ...current, [key]: value }));
+  const update = <K extends Exclude<keyof EntryDraft, "expectedVersion">>(key: K, value: EntryDraft[K]) => setDraft((current) => ({ ...current, [key]: value }));
   const callbacks = { onSuccess: onDone, onError: (error: unknown) => setFailure(error) };
   const saveCurrent = () => {
     setFailure(undefined);
-    const input = { ...draft, fields: draft.fields as ContentEntryFields };
-    if (entry) save.mutate({ id: entry.id, input: { ...input, expectedVersion: entry.version } }, callbacks);
-    else create.mutate({ ...input, siteId: site.id, contentTypeId: type.id }, callbacks);
+    const input = { slug: draft.slug, canonicalPath: draft.canonicalPath, title: draft.title, excerpt: draft.excerpt, fields: draft.fields as ContentEntryFields };
+    if (entry && expectedVersion !== null) save.mutate({ id: entry.id, input: { ...input, expectedVersion } }, callbacks);
+    else if (!entry) create.mutate({ ...input, siteId: site.id, contentTypeId: type.id }, callbacks);
   };
   return <Surface className="flex flex-col gap-5 rounded-3xl p-6">
     <h2 className="text-lg font-semibold">{entry ? t("contentsStudio.edit") : t("contentsStudio.newEntry")}</h2>
@@ -48,9 +49,9 @@ function EntryForm({ entry, site, type, entries, onDone, onReload }: { entry?: C
     {fieldError("fields") && <p role="alert">{fieldError("fields")}</p>}
     {Boolean(failure) && <StudioFailure error={failure} conflict />}
     <div className="flex flex-wrap gap-3"><StudioButton label={t("contentsStudio.saveDraft")} icon="fa-floppy-disk" disabled={pending} onPress={saveCurrent} />
-      {entry && <><StudioButton label={t("contentsStudio.publish")} icon="fa-cloud-arrow-up" disabled={pending || !entry.workingRevisionId} onPress={() => entry.workingRevisionId && publish.mutate({ id: entry.id, revisionId: entry.workingRevisionId, expectedVersion: entry.version }, callbacks)} /><StudioButton label={t("contentsStudio.unpublish")} icon="fa-eye-slash" disabled={pending} onPress={() => unpublish.mutate({ id: entry.id, expectedVersion: entry.version }, callbacks)} /><StudioButton label={t("contentsStudio.archive")} icon="fa-box-archive" disabled={pending} onPress={() => archive.mutate({ id: entry.id, expectedVersion: entry.version }, callbacks)} /><StudioButton label={t("contentsStudio.reload")} icon="fa-rotate" disabled={pending} onPress={() => onReload?.()} /></>}
+      {entry && <><StudioButton label={t("contentsStudio.publish")} icon="fa-cloud-arrow-up" disabled={pending || expectedVersion === null || !entry.workingRevisionId} onPress={() => expectedVersion !== null && entry.workingRevisionId && publish.mutate({ id: entry.id, revisionId: entry.workingRevisionId, expectedVersion }, callbacks)} /><StudioButton label={t("contentsStudio.unpublish")} icon="fa-eye-slash" disabled={pending || expectedVersion === null} onPress={() => expectedVersion !== null && unpublish.mutate({ id: entry.id, expectedVersion }, callbacks)} /><StudioButton label={t("contentsStudio.archive")} icon="fa-box-archive" disabled={pending || expectedVersion === null} onPress={() => expectedVersion !== null && archive.mutate({ id: entry.id, expectedVersion }, callbacks)} /><StudioButton label={t("contentsStudio.reload")} icon="fa-rotate" disabled={pending} onPress={() => onReload?.()} /></>}
     </div>
-    {entry && <div className="flex flex-col gap-3"><h3 className="text-lg font-semibold">{t("contentsStudio.revisions")}</h3>{revisions.isLoading && <StudioState>{t("contentsStudio.loading")}</StudioState>}{revisions.isError && <StudioFailure error={revisions.error} />}{revisions.data?.map((revision) => <div key={revision.id} className="flex flex-wrap items-center gap-3"><span>{t("contentsStudio.revision", { version: revision.version })} · {formatDateTime(revision.createdAt, displayLocale)}</span><StudioButton label={t("contentsStudio.restore")} icon="fa-rotate-left" disabled={pending} onPress={() => restore.mutate({ id: entry.id, revisionId: revision.id, expectedVersion: entry.version }, callbacks)} /></div>)}</div>}
+    {entry && <div className="flex flex-col gap-3"><h3 className="text-lg font-semibold">{t("contentsStudio.revisions")}</h3>{revisions.isLoading && <StudioState>{t("contentsStudio.loading")}</StudioState>}{revisions.isError && <StudioFailure error={revisions.error} />}{revisions.data?.map((revision) => <div key={revision.id} className="flex flex-wrap items-center gap-3"><span>{t("contentsStudio.revision", { version: revision.version })} · {formatDateTime(revision.createdAt, displayLocale)}</span><StudioButton label={t("contentsStudio.restore")} icon="fa-rotate-left" disabled={pending || expectedVersion === null} onPress={() => expectedVersion !== null && restore.mutate({ id: entry.id, revisionId: revision.id, expectedVersion }, callbacks)} /></div>)}</div>}
   </Surface>;
 }
 

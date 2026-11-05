@@ -79,6 +79,7 @@ export function useContentEntry(id: string | undefined) {
     queryKey: contentStudioKeys.entry(id ?? ""),
     queryFn: ({ signal }) => getContentEntry(id!, signal),
     enabled: Boolean(id),
+    refetchOnWindowFocus: false,
   });
 }
 

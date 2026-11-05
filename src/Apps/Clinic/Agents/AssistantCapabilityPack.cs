@@ -3,6 +3,7 @@ using Vitarish.Intelligence.Application.Agents;
 using Vitarish.Clinic.Application.Assistant;
 using Vitarish.Clinic.Application.Assistant.Operations;
 using Vitarish.Search.Agents;
+using Vitarish.Contents.Agents;
 using Vitarish.Clinic.Application.Assistant.Capabilities;
 
 namespace Vitarish.Clinic.Agents;
@@ -22,12 +23,13 @@ public static class AssistantCapabilityKeys
     public const string SeaManagement = "SeaManagement";
     public const string Operations = "Operations";
     public const string Search = "Search";
+    public const string Contents = "Contents";
 
     public static readonly string[] Patient =
     [Appointments, AppointmentReads, Prescriptions, PrescriptionReads, PatientReminderReads,
         ClinicPatientReads, SeaPatientReads, ClinicalEvents, Surgeries];
 
-    public static readonly string[] OperationsProfile = [Operations, SeaManagement, SurgeryOperations, Search];
+    public static readonly string[] OperationsProfile = [Operations, SeaManagement, SurgeryOperations, Search, Contents];
 
     /// <summary>Every key a profile composes; each one needs a registered capability pack.</summary>
     public static IEnumerable<string> All => Patient.Concat(OperationsProfile).Distinct(StringComparer.Ordinal);
@@ -67,4 +69,16 @@ public sealed class SearchAssistantCapability(IEnumerable<ISearchAgentTool> tool
     public override IReadOnlySet<string> RequiredPermissions { get; } = new HashSet<string>(StringComparer.Ordinal);
     public override bool IsAvailable(AssistantContext context) =>
         context.SubjectKind == "practice" && AssistantOperationsScope.IsAuthorizedRole(context.Role);
+}
+
+public sealed class ContentsAssistantCapability(IEnumerable<IContentsAgentTool> tools) : AssistantCapability(
+    [.. tools],
+    tools.Any() ? [ContentsAssistantActionPolicy.Create(ContentsCreateDraftEntryAgentTool.Name, ContentsSaveDraftAgentTool.Name)] : [])
+{
+    public override string Name => AssistantCapabilityKeys.Contents;
+    public override string Description => "Review content and author drafts for the authenticated practice.";
+    public override IReadOnlySet<string> RequiredPermissions { get; } = new HashSet<string>(StringComparer.Ordinal);
+    public override bool IsAvailable(AssistantContext context) =>
+        Tools.Count > 0 && context.SubjectKind == "practice" &&
+        string.Equals(context.Role, AssistantOperationsScope.TenantOwnerRole, StringComparison.Ordinal);
 }

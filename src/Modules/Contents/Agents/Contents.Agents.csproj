@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Vitarish.Contents.Agents</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Application\Contents.Application.csproj" />
+    <ProjectReference Include="..\..\Intelligence\Agents\Intelligence.Agents.csproj" />
+  </ItemGroup>
+</Project>

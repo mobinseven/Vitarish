@@ -9,7 +9,7 @@ namespace Vitarish.Contents.Application;
 
 public sealed class ContentAuthoringQueries(
     IContentAuthoringStore store,
-    IRequestContext requestContext)
+    IRequestContext requestContext) : IContentAuthoringQueries
 {
     public async Task<EntityResult<IReadOnlyList<SiteReadModel>>> ListSitesAsync(CancellationToken cancellationToken)
     {

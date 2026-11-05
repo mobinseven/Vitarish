@@ -52,6 +52,11 @@ public interface IContentAuthoringStore
         int? expectedVersion,
         ContentPublicationOperation? outboxOperation,
         CancellationToken cancellationToken);
+    Task<EntityResult> SavePublishedSeedAsync(
+        string tenantId,
+        ContentItem contentItem,
+        ContentRevision revision,
+        CancellationToken cancellationToken);
     Task<EntityResult> SaveItemAsync(
         string tenantId,
         ContentItem contentItem,

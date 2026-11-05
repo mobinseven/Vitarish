@@ -255,10 +255,22 @@ internal sealed class ContentAuthoringStore(
         CancellationToken cancellationToken)
     {
         EnsureTenant(tenantId);
-        return await PublishedEntryQuery(tenantId, siteId)
-            .Where(entry => entry.Revision.CanonicalPath == path)
-            .Select(entry => new PublishedContentSnapshot(entry.Site, entry.Item, entry.Revision))
+        var entry = await (
+            from item in dbContext.ContentItems.AsNoTracking()
+            join revision in dbContext.ContentRevisions.AsNoTracking()
+                on item.PublishedRevisionId equals (Guid?)revision.Id
+            join site in dbContext.Sites.AsNoTracking()
+                on item.SiteId equals (Guid?)site.Id
+            where EF.Property<string>(item, nameof(ContentPublicationOutboxRecord.TenantId)) == tenantId &&
+                  EF.Property<string>(revision, nameof(ContentPublicationOutboxRecord.TenantId)) == tenantId &&
+                  EF.Property<string>(site, nameof(ContentPublicationOutboxRecord.TenantId)) == tenantId &&
+                  item.SiteId == siteId && item.Status == ContentStatus.Published &&
+                  item.PublishedRevisionId != null && revision.ContentId == item.Id &&
+                  revision.CanonicalPath == path
+            select new { Site = site, Item = item, Revision = revision })
             .FirstOrDefaultAsync(cancellationToken);
+
+        return entry is null ? null : new PublishedContentSnapshot(entry.Site, entry.Item, entry.Revision);
     }
 
     public async Task<IReadOnlyList<PublishedContentSnapshot>> ListPublishedEntriesAsync(
@@ -270,22 +282,70 @@ internal sealed class ContentAuthoringStore(
         CancellationToken cancellationToken)
     {
         EnsureTenant(tenantId);
-        return await PublishedEntryQuery(tenantId, siteId)
-            .Where(entry => entry.Item.ContentTypeId == typeId)
-            .OrderByDescending(entry => entry.Item.PublishedAt)
-            .ThenBy(entry => entry.Item.Id)
+        var entries = await (
+            from item in dbContext.ContentItems.AsNoTracking()
+            join revision in dbContext.ContentRevisions.AsNoTracking()
+                on item.PublishedRevisionId equals (Guid?)revision.Id
+            join site in dbContext.Sites.AsNoTracking()
+                on item.SiteId equals (Guid?)site.Id
+            where EF.Property<string>(item, nameof(ContentPublicationOutboxRecord.TenantId)) == tenantId &&
+                  EF.Property<string>(revision, nameof(ContentPublicationOutboxRecord.TenantId)) == tenantId &&
+                  EF.Property<string>(site, nameof(ContentPublicationOutboxRecord.TenantId)) == tenantId &&
+                  item.SiteId == siteId && item.Status == ContentStatus.Published &&
+                  item.PublishedRevisionId != null && revision.ContentId == item.Id && item.ContentTypeId == typeId
+            orderby item.PublishedAt descending, item.Id
+            select new { Site = site, Item = item, Revision = revision })
             .Skip(skip)
             .Take(take)
-            .Select(entry => new PublishedContentSnapshot(entry.Site, entry.Item, entry.Revision))
             .ToListAsync(cancellationToken);
+
+        return entries
+            .Select(entry => new PublishedContentSnapshot(entry.Site, entry.Item, entry.Revision))
+            .ToList();
     }
 
-    public async Task<EntityResult<ContentRevision>> SaveRevisionAsync(
+    public Task<EntityResult<ContentRevision>> SaveRevisionAsync(
         string tenantId,
         ContentItem contentItem,
         ContentRevision revision,
         int? expectedVersion,
         ContentPublicationOperation? outboxOperation,
+        CancellationToken cancellationToken) =>
+        SaveRevisionCoreAsync(
+            tenantId,
+            contentItem,
+            revision,
+            expectedVersion,
+            outboxOperation,
+            publishSeed: false,
+            cancellationToken: cancellationToken);
+
+    public async Task<EntityResult> SavePublishedSeedAsync(
+        string tenantId,
+        ContentItem contentItem,
+        ContentRevision revision,
+        CancellationToken cancellationToken)
+    {
+        EntityResult<ContentRevision> result = await SaveRevisionCoreAsync(
+            tenantId,
+            contentItem,
+            revision,
+            expectedVersion: null,
+            outboxOperation: ContentPublicationOperation.Index,
+            publishSeed: true,
+            cancellationToken: cancellationToken);
+        return result.IsSuccess
+            ? EntityResult.Success()
+            : EntityResult.Failure([.. result.Errors]);
+    }
+
+    private async Task<EntityResult<ContentRevision>> SaveRevisionCoreAsync(
+        string tenantId,
+        ContentItem contentItem,
+        ContentRevision revision,
+        int? expectedVersion,
+        ContentPublicationOperation? outboxOperation,
+        bool publishSeed,
         CancellationToken cancellationToken)
     {
         EnsureTenant(tenantId);
@@ -361,6 +421,13 @@ internal sealed class ContentAuthoringStore(
             contentItem.Slug = persistedRevision.Slug ?? contentItem.Slug;
             contentItem.Title = persistedRevision.Title ?? contentItem.Title;
             contentItem.Excerpt = persistedRevision.Excerpt ?? contentItem.Excerpt;
+            if (publishSeed)
+            {
+                contentItem.PublishedRevisionId = persistedRevision.Id;
+                contentItem.CanonicalPath = persistedRevision.CanonicalPath!;
+                contentItem.Version = 2;
+            }
+
             _ = await dbContext.SaveChangesAsync(cancellationToken);
 
             if (outboxOperation is not null)
@@ -442,19 +509,6 @@ internal sealed class ContentAuthoringStore(
             return EntityResult.Failure(EntityError.Conflict("A content entry with this path already exists."));
         }
     }
-
-    private IQueryable<PublishedEntryRow> PublishedEntryQuery(string tenantId, Guid siteId) =>
-        from item in dbContext.ContentItems.AsNoTracking()
-        join revision in dbContext.ContentRevisions.AsNoTracking()
-            on item.PublishedRevisionId equals (Guid?)revision.Id
-        join site in dbContext.Sites.AsNoTracking()
-            on item.SiteId equals (Guid?)site.Id
-        where EF.Property<string>(item, nameof(ContentPublicationOutboxRecord.TenantId)) == tenantId &&
-              EF.Property<string>(revision, nameof(ContentPublicationOutboxRecord.TenantId)) == tenantId &&
-              EF.Property<string>(site, nameof(ContentPublicationOutboxRecord.TenantId)) == tenantId &&
-              item.SiteId == siteId && item.Status == ContentStatus.Published &&
-              item.PublishedRevisionId != null && revision.ContentId == item.Id
-        select new PublishedEntryRow(site, item, revision);
 
     private async Task<ContentItem?> ReadItemForUpdateAsync(
         string tenantId,
@@ -588,7 +642,5 @@ internal sealed class ContentAuthoringStore(
         await transaction.RollbackAsync(cancellationToken);
         return EntityResult.Failure(error);
     }
-
-    private sealed record PublishedEntryRow(Site Site, ContentItem Item, ContentRevision Revision);
 
 }

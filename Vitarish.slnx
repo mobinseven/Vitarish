@@ -179,6 +179,7 @@
     <Project Path="src/Modules/Communications/Module/Communications.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Contents/">
+    <Project Path="src/Modules/Contents/Agents/Contents.Agents.csproj" />
     <Project Path="src/Modules/Contents/Api/Contents.Api.csproj" />
     <Project Path="src/Modules/Contents/Application/Contents.Application.csproj" />
     <Project Path="src/Modules/Contents/Client/Contents.Client.csproj" />
