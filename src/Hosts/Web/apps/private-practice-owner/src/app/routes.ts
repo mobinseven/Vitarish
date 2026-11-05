@@ -17,7 +17,7 @@ export const Routes = {
 
   /** Public authentication routes */
   Login: {
-    Index: "/login",
+    Index: AuthenticationWebRoutes.SignIn,
     Password: "/login/password",
     Phone: "/login/phone",
     Email: "/login/email",
@@ -56,8 +56,6 @@ export const Routes = {
 
   Contents: {
     Index: "/contents",
-    New: "/contents/new",
-    Edit: (contentId: string) => `/contents/${contentId}` as const,
   },
 
   /** Workspace routes */

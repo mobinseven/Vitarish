@@ -115,7 +115,7 @@ export function createCommandGroups(
           labelKey: "contents.create",
           icon: "file-circle-plus",
           shortcut: "N C",
-          action: () => navigate(Routes.Contents.New),
+          action: () => navigate(Routes.Contents.Index),
           keywords: ["new", "add", "create", "content", "article"],
         },
       ],

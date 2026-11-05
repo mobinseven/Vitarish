@@ -4,10 +4,18 @@ import { Link } from "@heroui/react";
 import { EditorialContentPage } from "@vitarish/contents/editorial";
 import { supportedLocales, useLocalizedText, useSetLocaleCookie } from "@vitarish/localization";
 import { FaIcon, MarketingActionLink } from "@vitarish/ui";
+import type { ReactNode } from "react";
 import { LandingRoutes } from "../../app/routes";
 import { catalogs } from "../../localization/messages";
 
-export function PurposePage() {
+export interface PurposePageContent {
+  title: string;
+  category: string | null;
+  body: ReactNode;
+  seoDescription: string | null;
+}
+
+export function PurposePage({ content }: { content?: PurposePageContent | null }) {
   const { locale } = useLocalizedText();
   const setLocaleCookie = useSetLocaleCookie();
   const otherLocale = supportedLocales.find((candidate) => candidate !== locale);
@@ -34,21 +42,25 @@ export function PurposePage() {
           onPress: () => { setLocaleCookie(otherLocale); window.location.reload(); },
         }} />
       )}
-      title={text.purpose.title}
+      title={content?.title ?? text.purpose.title}
       metadata={[
         { label: text.editorial.by, value: text.brand.name },
-        { label: text.editorial.category, value: text.editorial.categoryValue },
+        { label: text.editorial.category, value: content?.category || text.editorial.categoryValue },
       ]}
       footerDescription={text.hero.lead}
       footerNavigationLabel={text.editorial.navigation}
       footerLinks={links}
     >
-      <p>{text.purpose.description}</p>
-      <h2>{text.apps.title}</h2>
-      <p>{text.apps.intro}</p>
-      <p>{text.apps.practice.description}</p>
-      <p>{text.apps.practice.note}</p>
-      <p><Link href={LandingRoutes.Darman}>{text.apps.practice.discover}</Link></p>
+      {content ? content.body : (
+        <>
+          <p>{text.purpose.description}</p>
+          <h2>{text.apps.title}</h2>
+          <p>{text.apps.intro}</p>
+          <p>{text.apps.practice.description}</p>
+          <p>{text.apps.practice.note}</p>
+          <p><Link href={LandingRoutes.Darman}>{text.apps.practice.discover}</Link></p>
+        </>
+      )}
     </EditorialContentPage>
   );
 }

@@ -18,7 +18,7 @@ namespace Vitarish.Contents.Infrastructure.Migrations.ContentsDb
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("Contents")
-                .HasAnnotation("ProductVersion", "10.0.8")
+                .HasAnnotation("ProductVersion", "10.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -163,6 +163,9 @@ namespace Vitarish.Contents.Infrastructure.Migrations.ContentsDb
                         .HasMaxLength(512)
                         .HasColumnType("character varying(512)");
 
+                    b.Property<Guid?>("ContentTypeId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -179,6 +182,9 @@ namespace Vitarish.Contents.Infrastructure.Migrations.ContentsDb
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("Fields")
+                        .HasColumnType("jsonb");
+
                     b.Property<string>("Locale")
                         .IsRequired()
                         .HasMaxLength(32)
@@ -192,6 +198,15 @@ namespace Vitarish.Contents.Infrastructure.Migrations.ContentsDb
 
                     b.Property<DateTime?>("PublishedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("PublishedRevisionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int?>("SchemaVersion")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("SiteId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Slug")
                         .IsRequired()
@@ -224,21 +239,40 @@ namespace Vitarish.Contents.Infrastructure.Migrations.ContentsDb
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("text");
 
+                    b.Property<int?>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("WorkingRevisionId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
                     b.HasIndex("AuthorId");
+
+                    b.HasIndex("ContentTypeId");
 
                     b.HasIndex("Locale");
 
                     b.HasIndex("PublishedAt");
 
+                    b.HasIndex("PublishedRevisionId");
+
+                    b.HasIndex("SiteId");
+
+                    b.HasIndex("WorkingRevisionId");
+
                     b.HasIndex("TenantId", "CanonicalPath")
                         .IsUnique()
-                        .HasFilter("\"CanonicalPath\" IS NOT NULL AND \"CanonicalPath\" <> ''");
+                        .HasFilter("\"SiteId\" IS NULL AND \"CanonicalPath\" IS NOT NULL AND \"CanonicalPath\" <> ''");
 
                     b.HasIndex("TenantId", "Slug")
                         .IsUnique()
-                        .HasFilter("\"Slug\" IS NOT NULL AND \"Slug\" <> ''");
+                        .HasFilter("\"SiteId\" IS NULL AND \"Slug\" IS NOT NULL AND \"Slug\" <> ''");
+
+                    b.HasIndex("TenantId", "SiteId", "CanonicalPath")
+                        .IsUnique()
+                        .HasFilter("\"SiteId\" IS NOT NULL AND \"CanonicalPath\" IS NOT NULL AND \"CanonicalPath\" <> ''");
 
                     b.HasIndex("Type", "Status", "PublishedAt");
 
@@ -314,6 +348,10 @@ namespace Vitarish.Contents.Infrastructure.Migrations.ContentsDb
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("CanonicalPath")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
                     b.Property<Guid>("ContentId")
                         .HasColumnType("uuid");
 
@@ -329,6 +367,19 @@ namespace Vitarish.Contents.Infrastructure.Migrations.ContentsDb
                     b.Property<string>("DeletedBy")
                         .HasColumnType("text");
 
+                    b.Property<string>("Excerpt")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Fields")
+                        .HasColumnType("jsonb");
+
+                    b.Property<int?>("SchemaVersion")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Slug")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
                     b.Property<string>("Snapshot")
                         .IsRequired()
                         .HasColumnType("text");
@@ -337,6 +388,10 @@ namespace Vitarish.Contents.Infrastructure.Migrations.ContentsDb
                         .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
+
+                    b.Property<string>("Title")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -409,6 +464,169 @@ namespace Vitarish.Contents.Infrastructure.Migrations.ContentsDb
                     b.HasAnnotation("Finbuckle:MultiTenant", true);
                 });
 
+            modelBuilder.Entity("Vitarish.Contents.Domain.Entities.ContentType", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<int>("CurrentSchemaVersion")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId", "Key")
+                        .IsUnique();
+
+                    b.ToTable("ContentTypes", "Contents");
+
+                    b.HasAnnotation("Finbuckle:MultiTenant", true);
+                });
+
+            modelBuilder.Entity("Vitarish.Contents.Domain.Entities.ContentTypeSchema", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ContentTypeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Fields")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContentTypeId", "Version")
+                        .IsUnique();
+
+                    b.ToTable("ContentTypeSchemas", "Contents");
+
+                    b.HasAnnotation("Finbuckle:MultiTenant", true);
+                });
+
+            modelBuilder.Entity("Vitarish.Contents.Domain.Entities.Site", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("DefaultLocale")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("Locales")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId", "Key")
+                        .IsUnique();
+
+                    b.ToTable("Sites", "Contents");
+
+                    b.HasAnnotation("Finbuckle:MultiTenant", true);
+                });
+
             modelBuilder.Entity("Vitarish.Contents.Domain.Entities.Term", b =>
                 {
                     b.Property<Guid>("Id")
@@ -477,6 +695,56 @@ namespace Vitarish.Contents.Infrastructure.Migrations.ContentsDb
                     b.HasAnnotation("Finbuckle:MultiTenant", true);
                 });
 
+            modelBuilder.Entity("Vitarish.Contents.Infrastructure.Data.ContentPublicationOutboxRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Attempts")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("ContentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastError")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<DateTime?>("LeaseUntil")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("NextAttemptAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Operation")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<Guid?>("RevisionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId", "CompletedAt", "NextAttemptAt", "LeaseUntil");
+
+                    b.ToTable("ContentPublicationOutbox", "Contents");
+
+                    b.HasAnnotation("Finbuckle:MultiTenant", true);
+                });
+
             modelBuilder.Entity("Vitarish.Contents.Domain.Entities.ContentAsset", b =>
                 {
                     b.HasOne("Vitarish.Contents.Domain.Entities.Asset", null)
@@ -490,6 +758,29 @@ namespace Vitarish.Contents.Infrastructure.Migrations.ContentsDb
                         .HasForeignKey("ContentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Vitarish.Contents.Domain.Entities.ContentItem", b =>
+                {
+                    b.HasOne("Vitarish.Contents.Domain.Entities.ContentType", null)
+                        .WithMany()
+                        .HasForeignKey("ContentTypeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Vitarish.Contents.Domain.Entities.ContentRevision", null)
+                        .WithMany()
+                        .HasForeignKey("PublishedRevisionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Vitarish.Contents.Domain.Entities.Site", null)
+                        .WithMany()
+                        .HasForeignKey("SiteId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Vitarish.Contents.Domain.Entities.ContentRevision", null)
+                        .WithMany()
+                        .HasForeignKey("WorkingRevisionId")
+                        .OnDelete(DeleteBehavior.Restrict);
                 });
 
             modelBuilder.Entity("Vitarish.Contents.Domain.Entities.ContentRelation", b =>
@@ -528,6 +819,15 @@ namespace Vitarish.Contents.Infrastructure.Migrations.ContentsDb
                         .WithMany()
                         .HasForeignKey("TermId")
                         .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Vitarish.Contents.Domain.Entities.ContentTypeSchema", b =>
+                {
+                    b.HasOne("Vitarish.Contents.Domain.Entities.ContentType", null)
+                        .WithMany()
+                        .HasForeignKey("ContentTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 

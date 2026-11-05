@@ -4,6 +4,8 @@ using Vitarish.Contents.Application.Abstractions;
 using Vitarish.Contents.Domain.Dto;
 using Vitarish.Contents.Domain.Enums;
 using Vitarish.Entities.Contracts.Models;
+using Vitarish.Entities.Server.Abstractions;
+using Vitarish.Requests.Application.Abstractions;
 
 namespace Vitarish.Contents.Tests.Application;
 
@@ -37,7 +39,12 @@ public sealed class ContentManagementServiceTests
             .ReturnsAsync(EntityResult<ContentItemReadDto>.Success(current));
         items.Setup(service => service.UpdateAsync(submitted, It.IsAny<CancellationToken>()))
             .ReturnsAsync(EntityResult<ContentItemReadDto>.Success(current));
-        ContentManagementService service = new(items.Object, Mock.Of<IContentRevisionsService>());
+        ContentManagementService service = new(
+            items.Object,
+            Mock.Of<IContentRevisionsService>(),
+            Mock.Of<IContentAuthoringStore>(),
+            Mock.Of<IRequestContext>(),
+            Mock.Of<IEntityTimeService>());
 
         await service.UpdateAsync(contentId, submitted, CancellationToken.None);
 
@@ -68,7 +75,12 @@ public sealed class ContentManagementServiceTests
         items.Setup(service => service.UpdateAsync(It.IsAny<ContentItemWriteDto>(), It.IsAny<CancellationToken>()))
             .Callback<ContentItemWriteDto, CancellationToken>((item, _) => archived = item)
             .ReturnsAsync(EntityResult<ContentItemReadDto>.Success(current));
-        ContentManagementService service = new(items.Object, Mock.Of<IContentRevisionsService>());
+        ContentManagementService service = new(
+            items.Object,
+            Mock.Of<IContentRevisionsService>(),
+            Mock.Of<IContentAuthoringStore>(),
+            Mock.Of<IRequestContext>(),
+            Mock.Of<IEntityTimeService>());
 
         await service.ArchiveAsync(contentId, CancellationToken.None);
 
@@ -94,7 +106,12 @@ public sealed class ContentManagementServiceTests
             .ReturnsAsync(EntityResult<ContentItemReadDto>.Success(current));
         items.Setup(service => service.UpdateAsync(submitted, It.IsAny<CancellationToken>()))
             .ReturnsAsync(EntityResult<ContentItemReadDto>.Success(current));
-        ContentManagementService service = new(items.Object, Mock.Of<IContentRevisionsService>());
+        ContentManagementService service = new(
+            items.Object,
+            Mock.Of<IContentRevisionsService>(),
+            Mock.Of<IContentAuthoringStore>(),
+            Mock.Of<IRequestContext>(),
+            Mock.Of<IEntityTimeService>());
 
         await service.UpdateAsync(contentId, submitted, CancellationToken.None);
 

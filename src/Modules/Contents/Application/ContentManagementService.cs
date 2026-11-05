@@ -1,12 +1,19 @@
 using Vitarish.Entities.Contracts.Models;
 using Vitarish.Contents.Application.Abstractions;
+using Vitarish.Contents.Domain.Entities;
 using Vitarish.Contents.Domain.Enums;
+using Vitarish.Contents.Domain.Policies;
+using Vitarish.Entities.Server.Abstractions;
+using Vitarish.Requests.Application.Abstractions;
 
 namespace Vitarish.Contents.Application;
 
 public sealed class ContentManagementService(
     IContentItemsService contentItems,
-    IContentRevisionsService contentRevisions) : IContentManagementService
+    IContentRevisionsService contentRevisions,
+    IContentAuthoringStore authoringStore,
+    IRequestContext requestContext,
+    IEntityTimeService timeService) : IContentManagementService
 {
     public Task<EntityResult<IReadOnlyList<ContentItemReadDto>>> ListAsync(CancellationToken cancellationToken) =>
         contentItems.GetListAsync(new ContentItemDescriptorDto(), cancellationToken);
@@ -16,13 +23,33 @@ public sealed class ContentManagementService(
 
     public Task<EntityResult<ContentItemReadDto>> CreateAsync(
         ContentItemWriteDto item,
-        CancellationToken cancellationToken) => contentItems.AddAsync(item, cancellationToken);
+        CancellationToken cancellationToken)
+    {
+        IReadOnlyList<EntityError> errors = ContentItemRules.Validate(item);
+        if (errors.Count > 0)
+        {
+            return Task.FromResult(EntityResult<ContentItemReadDto>.Failure([.. errors]));
+        }
+
+        if (item.Status == ContentStatus.Published && item.PublishedAt is null)
+        {
+            item.PublishedAt = timeService.Now;
+        }
+
+        return contentItems.AddAsync(item, cancellationToken);
+    }
 
     public async Task<EntityResult<ContentItemReadDto>> UpdateAsync(
         Guid contentId,
         ContentItemWriteDto item,
         CancellationToken cancellationToken)
     {
+        EntityError? structuredError = await FindStructuredMutationErrorAsync(contentId, cancellationToken);
+        if (structuredError is not null)
+        {
+            return EntityResult<ContentItemReadDto>.Failure(structuredError);
+        }
+
         EntityResult<ContentItemReadDto> currentResult = await contentItems.GetAsync(contentId, cancellationToken);
         if (currentResult.IsFailure || currentResult.Value is null)
         {
@@ -34,6 +61,17 @@ public sealed class ContentManagementService(
         item.AuthorId = current.AuthorId;
         item.Metadata = current.Metadata;
         item.PublishedAt = item.Status == ContentStatus.Published ? current.PublishedAt : null;
+        if (item.Status == ContentStatus.Published && item.PublishedAt is null)
+        {
+            item.PublishedAt = timeService.Now;
+        }
+
+        IReadOnlyList<EntityError> errors = ContentItemRules.Validate(item);
+        if (errors.Count > 0)
+        {
+            return EntityResult<ContentItemReadDto>.Failure([.. errors]);
+        }
+
         return await contentItems.UpdateAsync(item, cancellationToken);
     }
 
@@ -41,6 +79,12 @@ public sealed class ContentManagementService(
         Guid contentId,
         CancellationToken cancellationToken)
     {
+        EntityError? structuredError = await FindStructuredMutationErrorAsync(contentId, cancellationToken);
+        if (structuredError is not null)
+        {
+            return EntityResult<ContentItemReadDto>.Failure(structuredError);
+        }
+
         EntityResult<ContentItemReadDto> currentResult = await contentItems.GetAsync(contentId, cancellationToken);
         if (currentResult.IsFailure || currentResult.Value is null)
         {
@@ -70,4 +114,18 @@ public sealed class ContentManagementService(
         Guid contentId,
         CancellationToken cancellationToken) =>
         contentRevisions.GetListAsync(new ContentRevisionDescriptorDto { ContentId = contentId }, cancellationToken);
+
+    private async Task<EntityError?> FindStructuredMutationErrorAsync(Guid contentId, CancellationToken cancellationToken)
+    {
+        string? tenantId = requestContext.TenantId;
+        if (string.IsNullOrWhiteSpace(tenantId))
+        {
+            return null;
+        }
+
+        ContentItem? contentItem = await authoringStore.GetEntryByIdAsync(tenantId, contentId, cancellationToken);
+        return contentItem?.SiteId is not null
+            ? ContentItemRules.StructuredMutationConflict()
+            : null;
+    }
 }

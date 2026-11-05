@@ -41,6 +41,7 @@ public static class AssistantCompositionServiceCollectionExtensions
         _ = services.AddAgentComposition<AssistantCompositionContext>(
             [.. AssistantCapabilityKeys.All.Select(key => (IAgentCapabilityPack<AssistantCompositionContext>)new AssistantCapabilityPack(key))]);
         _ = services.AddTransient<IAssistantCapability, SearchAssistantCapability>();
+        _ = services.AddTransient<IAssistantCapability, ContentsAssistantCapability>();
         _ = services.AddTransient<AssistantExecutionContextFactory>();
         _ = services.AddTransient<AssistantManifestComposer>();
         _ = services.AddTransient<AssistantResultParser>();

@@ -49,6 +49,8 @@ services:
         ipv4_address: ${VITARISH_TEST_INGRESS_IPV4:?VITARISH_TEST_INGRESS_IPV4 is required}
       production-proxy:
         ipv4_address: ${VITARISH_PRODUCTION_INGRESS_IPV4:?VITARISH_PRODUCTION_INGRESS_IPV4 is required}
+        aliases:
+          - ${VITARISH_PRODUCTION_LANDING_HOST:?VITARISH_PRODUCTION_LANDING_HOST is required}
       ingress-egress: {}
 
   caddy-config-validator:

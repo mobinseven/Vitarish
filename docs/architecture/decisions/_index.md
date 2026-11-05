@@ -29,6 +29,7 @@ This index is the authoritative navigation point for global ADRs. Scoped platfor
 | [0016](0016-self-service-clinic-onboarding.md) | Self-service clinic onboarding and the one-time handoff link | Accepted | 2026-10-21 |
 | [0017](0017-conversational-front-door-and-shared-agent-interaction.md) | Conversational front door and the shared agent interaction layer | Accepted | 2026-10-22 |
 | [0018](0018-shared-sign-in-host.md) | Shared sign-in host | Accepted | 2026-10-23 |
+| [0019](0019-tenant-structured-content-and-public-delivery.md) | Tenant-structured content and public delivery | Accepted | 2026-11-05 |
 
 ## Related global architecture documents
 

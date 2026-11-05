@@ -14,5 +14,8 @@
     <ProjectReference Include="..\..\..\Modules\Intelligence\Domain\Intelligence.Domain.csproj" />
     <ProjectReference Include="..\..\..\Modules\Parties\Application\Parties.Application.csproj" />
     <ProjectReference Include="..\..\..\Modules\Parties\Domain\Parties.Domain.csproj" />
+    <ProjectReference Include="..\..\..\Modules\Base\Core\Modules.Base.Core.csproj" />
+    <ProjectReference Include="..\..\..\Modules\Contents\Application\Contents.Application.csproj" />
+    <ProjectReference Include="..\..\..\Modules\Requests\Application\Requests.Application.csproj" />
   </ItemGroup>
 </Project>

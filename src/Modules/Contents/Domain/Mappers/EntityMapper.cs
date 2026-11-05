@@ -9,6 +9,14 @@ namespace Vitarish.Contents.Domain.Mappers;
 public partial class EntityMapper
 {
     public partial ContentItem ToEntity(ContentItemWriteDto src);
+    // The legacy item contract deliberately excludes structured authoring state.
+    [MapperIgnoreSource(nameof(ContentItem.SiteId))]
+    [MapperIgnoreSource(nameof(ContentItem.ContentTypeId))]
+    [MapperIgnoreSource(nameof(ContentItem.SchemaVersion))]
+    [MapperIgnoreSource(nameof(ContentItem.Fields))]
+    [MapperIgnoreSource(nameof(ContentItem.WorkingRevisionId))]
+    [MapperIgnoreSource(nameof(ContentItem.PublishedRevisionId))]
+    [MapperIgnoreSource(nameof(ContentItem.Version))]
     public partial ContentItemReadDto ToRead(ContentItem src);
 
     [MapperIgnoreSource(nameof(EntityDescriptorDto.AdditionalData))]
@@ -45,6 +53,13 @@ public partial class EntityMapper
     public partial ContentAssetDescriptor ToDescriptor(ContentAssetDescriptorDto src);
 
     public partial ContentRevision ToEntity(ContentRevisionWriteDto src);
+    // Structured revision snapshots are exposed by the new authoring contract.
+    [MapperIgnoreSource(nameof(ContentRevision.Fields))]
+    [MapperIgnoreSource(nameof(ContentRevision.Title))]
+    [MapperIgnoreSource(nameof(ContentRevision.Slug))]
+    [MapperIgnoreSource(nameof(ContentRevision.CanonicalPath))]
+    [MapperIgnoreSource(nameof(ContentRevision.Excerpt))]
+    [MapperIgnoreSource(nameof(ContentRevision.SchemaVersion))]
     public partial ContentRevisionReadDto ToRead(ContentRevision src);
 
     [MapperIgnoreSource(nameof(EntityDescriptorDto.AdditionalData))]

@@ -25,6 +25,7 @@ public static class ContentsApi
         group.MapModulePut(ContentsApiRoutes.ItemById, UpdateAsync, "ContentsUpdateItem", typeof(Wire.ContentItemResponse));
         group.MapModulePost(ContentsApiRoutes.ArchiveItem, ArchiveAsync, "ContentsArchiveItem", typeof(Wire.ContentItemResponse));
         group.MapModuleGet(ContentsApiRoutes.Revisions, ListRevisionsAsync, "ContentsListRevisions", typeof(Wire.ContentRevisionResponse[]));
+        StructuredContentsApi.Map(endpoints);
         return endpoints;
     }
 

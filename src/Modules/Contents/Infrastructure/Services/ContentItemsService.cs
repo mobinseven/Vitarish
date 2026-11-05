@@ -12,7 +12,6 @@ namespace Vitarish.Contents.Infrastructure.Services;
 internal sealed class ContentItemsService(
     IMediator mediator,
     ContentsDbContext dbContext,
-    IEntityTimeService timeService,
     IRequestContext requestContext,
     ISearchService? searchService = null)
     : EntityService<ContentItem, ContentItemDescriptor, ContentItemReadDto, ContentItemWriteDto, ContentItemDescriptorDto>(
@@ -22,25 +21,8 @@ internal sealed class ContentItemsService(
         ContentsEntityMapperExtensions.ToDescriptor),
       IContentItemsService
 {
-    private static readonly HashSet<ContentStatus> RevisionStatuses =
-    [
-        ContentStatus.Published,
-        ContentStatus.Archived
-    ];
-
     public new async Task<EntityResult<ContentItemReadDto>> AddAsync(ContentItemWriteDto dto, CancellationToken cancellationToken)
     {
-        EntityResult validation = Validate(dto);
-        if (validation.IsFailure)
-        {
-            return EntityResult<ContentItemReadDto>.Failure([.. validation.Errors]);
-        }
-
-        if (dto.Status == ContentStatus.Published && dto.PublishedAt is null)
-        {
-            dto.PublishedAt = timeService.Now;
-        }
-
         EntityResult<ContentItemReadDto> result = await ExecuteInContentTransactionAsync(
             async () =>
             {
@@ -50,7 +32,7 @@ internal sealed class ContentItemsService(
                     return addResult;
                 }
 
-                if (ShouldCreateRevision(dto.Status))
+                if (ContentItemRules.ShouldCreateRevisionOnCreate(dto.Status))
                 {
                     await CreateRevisionAsync(addResult.Value.Id, dto, cancellationToken);
                 }
@@ -71,22 +53,19 @@ internal sealed class ContentItemsService(
 
     public new async Task<EntityResult<ContentItemReadDto>> UpdateAsync(ContentItemWriteDto dto, CancellationToken cancellationToken)
     {
-        EntityResult validation = Validate(dto);
-        if (validation.IsFailure)
-        {
-            return EntityResult<ContentItemReadDto>.Failure([.. validation.Errors]);
-        }
-
-        ContentStatus? previousStatus = await dbContext.ContentItems
+        var existingItem = await dbContext.ContentItems
             .AsNoTracking()
             .Where(c => c.Id == dto.Id)
-            .Select(c => (ContentStatus?)c.Status)
+            .Select(c => new { c.Status, c.SiteId })
             .FirstOrDefaultAsync(cancellationToken);
 
-        if (dto.Status == ContentStatus.Published && dto.PublishedAt is null)
+        if (existingItem?.SiteId is not null)
         {
-            dto.PublishedAt = timeService.Now;
+            return EntityResult<ContentItemReadDto>.Failure(
+                ContentItemRules.StructuredMutationConflict());
         }
+
+        ContentStatus? previousStatus = existingItem is null ? null : existingItem.Status;
 
         EntityResult<ContentItemReadDto> result = await ExecuteInContentTransactionAsync(
             async () =>
@@ -97,7 +76,7 @@ internal sealed class ContentItemsService(
                     return updateResult;
                 }
 
-                if (previousStatus is not null && previousStatus != dto.Status && ShouldCreateRevision(dto.Status))
+                if (ContentItemRules.ShouldCreateRevisionOnUpdate(previousStatus, dto.Status))
                 {
                     await CreateRevisionAsync(dto.Id, dto, cancellationToken);
                 }
@@ -115,8 +94,6 @@ internal sealed class ContentItemsService(
 
         return result;
     }
-
-    private static bool ShouldCreateRevision(ContentStatus status) => RevisionStatuses.Contains(status);
 
     private async Task<EntityResult<ContentItemReadDto>> ExecuteInContentTransactionAsync(
         Func<Task<EntityResult<ContentItemReadDto>>> operation,
@@ -173,38 +150,6 @@ internal sealed class ContentItemsService(
 
         _ = await dbContext.ContentRevisions.AddAsync(revision, cancellationToken);
         _ = await dbContext.SaveChangesAsync(cancellationToken);
-    }
-
-    private static EntityResult Validate(ContentItemWriteDto dto)
-    {
-        List<EntityError> errors = [];
-
-        if (string.IsNullOrWhiteSpace(dto.Slug))
-        {
-            errors.Add(EntityError.Validation("Slug is required.", nameof(dto.Slug)));
-        }
-
-        if (string.IsNullOrWhiteSpace(dto.CanonicalPath))
-        {
-            errors.Add(EntityError.Validation("Canonical path is required.", nameof(dto.CanonicalPath)));
-        }
-
-        if (string.IsNullOrWhiteSpace(dto.Title))
-        {
-            errors.Add(EntityError.Validation("Title is required.", nameof(dto.Title)));
-        }
-
-        if (string.IsNullOrWhiteSpace(dto.Locale))
-        {
-            errors.Add(EntityError.Validation("Locale is required.", nameof(dto.Locale)));
-        }
-
-        if (dto.Status == ContentStatus.Scheduled && dto.PublishedAt is null)
-        {
-            errors.Add(EntityError.Validation("Scheduled content requires PublishedAt.", nameof(dto.PublishedAt)));
-        }
-
-        return errors.Count == 0 ? EntityResult.Success() : EntityResult.Failure([.. errors]);
     }
 
     private async Task TryIndexContentAsync(Guid contentId, ContentItemWriteDto dto, CancellationToken cancellationToken)
