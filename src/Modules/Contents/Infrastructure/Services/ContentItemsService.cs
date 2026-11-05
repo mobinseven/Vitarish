@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Vitarish.Contents.Domain.Policies;
 using Vitarish.Contents.Infrastructure.SearchProviders;
@@ -104,17 +105,21 @@ internal sealed class ContentItemsService(
             return await operation();
         }
 
-        await using IDbContextTransaction transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
-        EntityResult<ContentItemReadDto> result = await operation();
-
-        if (result.IsFailure)
+        // Retrying execution strategies reject user transactions unless the strategy owns the whole unit.
+        return await dbContext.Database.CreateExecutionStrategy().ExecuteAsync(async () =>
         {
-            await transaction.RollbackAsync(cancellationToken);
-            return result;
-        }
+            await using IDbContextTransaction transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+            EntityResult<ContentItemReadDto> result = await operation();
 
-        await transaction.CommitAsync(cancellationToken);
-        return result;
+            if (result.IsFailure)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                return result;
+            }
+
+            await transaction.CommitAsync(cancellationToken);
+            return result;
+        });
     }
 
     private async Task CreateRevisionAsync(Guid contentId, ContentItemWriteDto dto, CancellationToken cancellationToken)

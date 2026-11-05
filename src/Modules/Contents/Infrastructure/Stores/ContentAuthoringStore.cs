@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
@@ -126,7 +127,14 @@ internal sealed class ContentAuthoringStore(
                 cancellationToken);
     }
 
-    public async Task<EntityResult> AddContentTypeAsync(
+    public Task<EntityResult> AddContentTypeAsync(
+        string tenantId,
+        ContentType contentType,
+        ContentTypeSchema schema,
+        CancellationToken cancellationToken) =>
+        dbContext.Database.CreateExecutionStrategy().ExecuteAsync(() => AddContentTypeInTransactionAsync(tenantId, contentType, schema, cancellationToken));
+
+    private async Task<EntityResult> AddContentTypeInTransactionAsync(
         string tenantId,
         ContentType contentType,
         ContentTypeSchema schema,
@@ -150,7 +158,14 @@ internal sealed class ContentAuthoringStore(
         }
     }
 
-    public async Task<EntityResult> AddContentTypeSchemaAsync(
+    public Task<EntityResult> AddContentTypeSchemaAsync(
+        string tenantId,
+        ContentType contentType,
+        ContentTypeSchema schema,
+        CancellationToken cancellationToken) =>
+        dbContext.Database.CreateExecutionStrategy().ExecuteAsync(() => AddContentTypeSchemaInTransactionAsync(tenantId, contentType, schema, cancellationToken));
+
+    private async Task<EntityResult> AddContentTypeSchemaInTransactionAsync(
         string tenantId,
         ContentType contentType,
         ContentTypeSchema schema,
@@ -339,7 +354,17 @@ internal sealed class ContentAuthoringStore(
             : EntityResult.Failure([.. result.Errors]);
     }
 
-    private async Task<EntityResult<ContentRevision>> SaveRevisionCoreAsync(
+    private Task<EntityResult<ContentRevision>> SaveRevisionCoreAsync(
+        string tenantId,
+        ContentItem contentItem,
+        ContentRevision revision,
+        int? expectedVersion,
+        ContentPublicationOperation? outboxOperation,
+        bool publishSeed,
+        CancellationToken cancellationToken) =>
+        dbContext.Database.CreateExecutionStrategy().ExecuteAsync(() => SaveRevisionCoreInTransactionAsync(tenantId, contentItem, revision, expectedVersion, outboxOperation, publishSeed, cancellationToken));
+
+    private async Task<EntityResult<ContentRevision>> SaveRevisionCoreInTransactionAsync(
         string tenantId,
         ContentItem contentItem,
         ContentRevision revision,
@@ -456,7 +481,16 @@ internal sealed class ContentAuthoringStore(
         }
     }
 
-    public async Task<EntityResult> SaveItemAsync(
+    public Task<EntityResult> SaveItemAsync(
+        string tenantId,
+        ContentItem contentItem,
+        int expectedVersion,
+        ContentPublicationOperation? outboxOperation,
+        Guid? revisionId,
+        CancellationToken cancellationToken) =>
+        dbContext.Database.CreateExecutionStrategy().ExecuteAsync(() => SaveItemInTransactionAsync(tenantId, contentItem, expectedVersion, outboxOperation, revisionId, cancellationToken));
+
+    private async Task<EntityResult> SaveItemInTransactionAsync(
         string tenantId,
         ContentItem contentItem,
         int expectedVersion,

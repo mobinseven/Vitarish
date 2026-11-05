@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using Hangfire;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -50,7 +51,13 @@ public sealed class ContentPublicationOutboxProcessor(
         }
     }
 
-    private async Task<IReadOnlyList<ContentPublicationOutboxRecord>> LeaseBatchAsync(
+    private Task<IReadOnlyList<ContentPublicationOutboxRecord>> LeaseBatchAsync(
+        ContentsDbContext dbContext,
+        string tenantId,
+        CancellationToken cancellationToken) =>
+        dbContext.Database.CreateExecutionStrategy().ExecuteAsync(() => LeaseBatchInTransactionAsync(dbContext, tenantId, cancellationToken));
+
+    private async Task<IReadOnlyList<ContentPublicationOutboxRecord>> LeaseBatchInTransactionAsync(
         ContentsDbContext dbContext,
         string tenantId,
         CancellationToken cancellationToken)
@@ -126,7 +133,17 @@ public sealed class ContentPublicationOutboxProcessor(
         }
     }
 
-    private async Task SynchronizeRecordAsync(
+    private Task SynchronizeRecordAsync(
+        ContentsDbContext dbContext,
+        ISearchService searchService,
+        ContentItemsSearchProvider searchProvider,
+        string tenantId,
+        Guid recordId,
+        int leaseAttempt,
+        CancellationToken cancellationToken) =>
+        dbContext.Database.CreateExecutionStrategy().ExecuteAsync(() => SynchronizeRecordInTransactionAsync(dbContext, searchService, searchProvider, tenantId, recordId, leaseAttempt, cancellationToken));
+
+    private async Task SynchronizeRecordInTransactionAsync(
         ContentsDbContext dbContext,
         ISearchService searchService,
         ContentItemsSearchProvider searchProvider,
@@ -187,7 +204,16 @@ public sealed class ContentPublicationOutboxProcessor(
         await transaction.CommitAsync(cancellationToken);
     }
 
-    private async Task RecordFailureAsync(
+    private Task RecordFailureAsync(
+        ContentsDbContext dbContext,
+        string tenantId,
+        Guid recordId,
+        int leaseAttempt,
+        Exception exception,
+        CancellationToken cancellationToken) =>
+        dbContext.Database.CreateExecutionStrategy().ExecuteAsync(() => RecordFailureInTransactionAsync(dbContext, tenantId, recordId, leaseAttempt, exception, cancellationToken));
+
+    private async Task RecordFailureInTransactionAsync(
         ContentsDbContext dbContext,
         string tenantId,
         Guid recordId,
