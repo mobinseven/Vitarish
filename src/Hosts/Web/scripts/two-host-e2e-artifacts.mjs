@@ -7,6 +7,7 @@ export const twoHostE2eProofScreenshotEnvironmentKey = "VITARISH_E2E_PROOF_SCREE
 export const twoHostE2eSecurityPolicyScreenshotEnvironmentKey = "VITARISH_E2E_SECURITY_POLICY_PROOF_SCREENSHOT";
 export const twoHostE2eProofStorageStateEnvironmentKey = "VITARISH_E2E_PROOF_STORAGE_STATE";
 export const twoHostE2eLocaleEnvironmentKey = "VITARISH_E2E_LOCALE";
+export const twoHostE2eOwnerUsernameEnvironmentKey = "VITARISH_E2E_USERNAME";
 export const twoHostE2ePasswordEnvironmentKey = "VITARISH_E2E_PASSWORD";
 export const twoHostE2eAccountDeletionClientIp = "198.51.100.241";
 export const twoHostE2eForwardedForHeaderName = "X-Forwarded-For";

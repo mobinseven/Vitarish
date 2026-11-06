@@ -1,6 +1,7 @@
 using Moq;
 using Vitarish.Journey.Application;
 using Vitarish.Journey.Application.Abstractions;
+using Vitarish.Journey.Application.Rules;
 using Vitarish.Journey.Domain;
 using Vitarish.Users.Application.ProfileCompletion;
 
@@ -66,7 +67,42 @@ public class JourneyResolverTests
         // Assert
         result.HasBlockingGate.Should().BeTrue();
         result.BlockingGate!.Kind.Should().Be(JourneyGateKind.ProfileCompletion);
-        result.DestinationUrl.Should().Be("/account/profile/complete");
+        result.DestinationUrl.Should().Be(JourneyPolicy.ProfileCompletionUrl);
+        result.BlockingGate.DestinationUrl.Should().Be(JourneyPolicy.ProfileCompletionUrl);
+    }
+
+    [Fact]
+    public async Task ResolveAsync_ProfileIncomplete_PreservesOnlyANormalizedReturnUrl()
+    {
+        var request = new JourneyRequest("user1", "/studio", "/", null, null, true);
+        _profileReaderMock.Setup(x => x.GetSnapshotAsync("user1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new JourneyProfileSnapshot("user1", null, null, null, null, null, true, false));
+        _profileCompletionPolicyMock.Setup(x => x.EvaluateAsync("user1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ProfileCompletionResult.Incomplete(new ProfileCompletionRequirement("FirstName", true)));
+        _returnUrlPolicyMock.Setup(x => x.Normalize("/studio")).Returns("/studio");
+
+        var result = await _sut.ResolveAsync(request);
+
+        var expected = $"{JourneyPolicy.ProfileCompletionUrl}?{JourneyPolicy.ReturnUrlQueryKey}=%2Fstudio";
+        result.BlockingGate!.Kind.Should().Be(JourneyGateKind.ProfileCompletion);
+        result.DestinationUrl.Should().Be(expected);
+        result.BlockingGate.DestinationUrl.Should().Be(expected);
+    }
+
+    [Fact]
+    public async Task ResolveAsync_ProfileIncomplete_DropsAnUnsafeReturnUrl()
+    {
+        var request = new JourneyRequest("user1", "//evil.example", "/", null, null, true);
+        _profileReaderMock.Setup(x => x.GetSnapshotAsync("user1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new JourneyProfileSnapshot("user1", null, null, null, null, null, true, false));
+        _profileCompletionPolicyMock.Setup(x => x.EvaluateAsync("user1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ProfileCompletionResult.Incomplete(new ProfileCompletionRequirement("FirstName", true)));
+        _returnUrlPolicyMock.Setup(x => x.Normalize("//evil.example")).Returns((string?)null);
+
+        var result = await _sut.ResolveAsync(request);
+
+        result.DestinationUrl.Should().Be(JourneyPolicy.ProfileCompletionUrl);
+        result.BlockingGate!.DestinationUrl.Should().Be(JourneyPolicy.ProfileCompletionUrl);
     }
 
     [Fact]

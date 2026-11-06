@@ -32,6 +32,9 @@ public static class JourneyPolicy
     /// <summary>The page where a user chooses which workspace to open.</summary>
     public const string WorkspaceSelectionUrl = "/workspaces/select";
 
+    /// <summary>The page where a user completes the required account profile.</summary>
+    public const string ProfileCompletionUrl = "/account/profile/complete";
+
     /// <summary>The page where a signed-in user continues to their platform home.</summary>
     public const string SignInContinueUrl = "/continue";
 

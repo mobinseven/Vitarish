@@ -60,10 +60,14 @@ public sealed class JourneyResolver(
         if (!completionResult.IsComplete)
         {
             var missingFields = string.Join(", ", completionResult.MissingRequirements.Select(r => r.FieldName));
+            var safeProfileReturnUrl = returnUrlPolicy.Normalize(request.RequestedReturnUrl);
+            var profileCompletionUrl = safeProfileReturnUrl is null
+                ? JourneyPolicy.ProfileCompletionUrl
+                : $"{JourneyPolicy.ProfileCompletionUrl}?{JourneyPolicy.ReturnUrlQueryKey}={Uri.EscapeDataString(safeProfileReturnUrl)}";
             var profileGate = new JourneyGate(
                 JourneyGateKind.ProfileCompletion,
                 IsBlocking: true,
-                DestinationUrl: "/account/profile/complete",
+                DestinationUrl: profileCompletionUrl,
                 Message: $"Missing required profile fields: {missingFields}"
             );
             return new JourneyStep(JourneyDestinationKind.Gate, profileGate.DestinationUrl, profileGate);
