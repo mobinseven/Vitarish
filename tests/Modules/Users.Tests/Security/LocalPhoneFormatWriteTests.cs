@@ -49,7 +49,7 @@ public sealed class LocalPhoneFormatWriteTests
         await using TestUsersDbContext dbContext = CreateDbContext();
         dbContext.Users.Add(new User { Id = "seed-user", UserName = "seed@example.test", Email = "seed@example.test" });
         await dbContext.SaveChangesAsync();
-        SetUserPhoneNumberCommandHandler handler = new(CreateUserManager(dbContext), CreateSender(dbContext), CreateCache(), CreateAudit());
+        SetUserPhoneNumberCommandHandler handler = new(CreateUserManager(dbContext), CreateSender(dbContext), CreateCache(), CreateAudit(), dbContext);
 
         IdentityResult result = await handler.Handle(new SetUserPhoneNumberCommand("seed-user", "9123456789"), CancellationToken.None);
 

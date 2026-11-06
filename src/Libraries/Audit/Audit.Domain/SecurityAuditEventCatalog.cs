@@ -66,6 +66,9 @@ public static class SecurityAuditEventCatalog
     public const string AuthenticationIdentityRecoveryCodeMfaEvent = "authentication.identity.mfa.recovery-code";
     public const string AuthenticationIdentityProviderMfaEvent = "authentication.identity.mfa.provider";
     public const string PasswordChangeOperation = "account.password.change";
+    public const string AuthenticationFirstPasswordSetOperation = "account.password.first-set";
+    public const string AuthenticationTwoStepSignInEnableOperation = "account.two-step-sign-in.enable";
+    public const string AuthenticationTwoStepSignInDisableOperation = "account.two-step-sign-in.disable";
     public const string PasswordLoginOperation = "password.login";
     public const string PasswordLoginOtpOperation = "password.login.otp";
     public const string PhoneLoginOperation = "phone.login";
@@ -152,6 +155,7 @@ public static class SecurityAuditEventCatalog
         new(ConfigurationCategory, AuditConfigurationEvent, AuditConfigurationOperation, Controls: [SecurityAuditControl.SecurityConfigurationChange, SecurityAuditControl.SecurityBehaviorChange]),
         new(SecurityFailureCategory, AuditStorageThresholdEvent, AuditStorageThresholdOperation, Controls: [SecurityAuditControl.AuditStorageThresholdAction]),
         new(AuthenticationCategory, AuthenticationPasswordChangeEvent, PasswordChangeOperation, Controls: [SecurityAuditControl.AuthenticationMechanismUse, SecurityAuditControl.PasswordVerification, SecurityAuditControl.SecurityAttributeChange]),
+        new(AuthenticationCategory, AuthenticationPasswordChangeEvent, AuthenticationFirstPasswordSetOperation, Controls: [SecurityAuditControl.AuthenticationMechanismUse, SecurityAuditControl.PasswordVerification, SecurityAuditControl.SecurityAttributeChange]),
         new(AuthenticationCategory, AuthenticationPasswordLoginEvent, PasswordLoginOperation, Controls: [SecurityAuditControl.AuthenticationMechanismUse, SecurityAuditControl.AuthenticationOutcome, SecurityAuditControl.PasswordVerification]),
         new(AuthenticationCategory, AuthenticationPasswordLoginOtpEvent, PasswordLoginOtpOperation, Controls: [SecurityAuditControl.AuthenticationMechanismUse, SecurityAuditControl.AuthenticationOutcome]),
         new(AuthenticationCategory, AuthenticationPhoneLoginEvent, PhoneLoginOperation, Controls: [SecurityAuditControl.AuthenticationMechanismUse, SecurityAuditControl.AuthenticationOutcome]),
@@ -169,6 +173,8 @@ public static class SecurityAuditEventCatalog
         new(AuthenticationCategory, AuthenticationSourceBlockedEvent, AuthenticationSourceBlockOperation, Controls: [SecurityAuditControl.AuthenticationOutcome]),
         new(AuthenticationCategory, AuthenticationSecurityAccessPolicyEvent, SecurityAccessPolicyOperation, Controls: [SecurityAuditControl.SecurityConfigurationChange, SecurityAuditControl.SecurityBehaviorChange]),
         new(SecurityAttributeCategory, SecurityAttributesChangedEvent, SecurityAttributesChangedOperation, Controls: [SecurityAuditControl.SecurityAttributeAssignment, SecurityAuditControl.SecurityAttributeChange]),
+        new(SecurityAttributeCategory, SecurityAttributesChangedEvent, AuthenticationTwoStepSignInEnableOperation, Controls: [SecurityAuditControl.SecurityAttributeAssignment, SecurityAuditControl.SecurityAttributeChange]),
+        new(SecurityAttributeCategory, SecurityAttributesChangedEvent, AuthenticationTwoStepSignInDisableOperation, Controls: [SecurityAuditControl.SecurityAttributeAssignment, SecurityAuditControl.SecurityAttributeChange]),
         new(ImportExportCategory, ImportEvent, ImportOperation, Controls: [SecurityAuditControl.UserDataImport]),
         new(ImportExportCategory, ExportEvent, ExportOperation, Controls: [SecurityAuditControl.InformationExport]),
         new(ImportExportCategory, IntegrityVerificationEvent, IntegrityVerificationOperation, Controls: [SecurityAuditControl.UserDataIntegrityVerification]),

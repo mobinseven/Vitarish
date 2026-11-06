@@ -4,16 +4,22 @@ using Vitarish.Authentication.Application.Results;
 using Vitarish.Authentication.Application.Validation;
 using Vitarish.Authentication.Domain.Challenges;
 using Vitarish.Authentication.Domain.Security;
+using Vitarish.Requests.Application.Abstractions;
 
 namespace Vitarish.Authentication.Application.Handlers;
 
 public sealed class CompleteChangeEmailHandler(
     IAuthenticationChallengeStore store,
     IAuthenticationCodeVerifier verifier,
-    IUserAccountUpdater accountUpdater)
+    IUserAccountUpdater accountUpdater,
+    IRequestContext requestContext)
 {
     public async Task<AuthenticationResult<bool>> Handle(CompleteChangeEmailCommand command, CancellationToken cancellationToken)
     {
+        if (!AuthenticationInputValidator.HasText(command.UserId) ||
+            !string.Equals(requestContext.UserId, command.UserId, StringComparison.Ordinal))
+            return new AuthenticationResult<bool>.Failure(new(AuthenticationFailureReason.Unauthorized, "The account does not belong to the current authenticated context."));
+
         if (!AuthenticationInputValidator.HasText(command.ChallengeId) || !AuthenticationInputValidator.HasText(command.Code))
             return new AuthenticationResult<bool>.Failure(new(AuthenticationFailureReason.InvalidInput, "Challenge ID and code are required."));
 
@@ -21,6 +27,9 @@ public sealed class CompleteChangeEmailHandler(
         AuthenticationChallenge? challenge = await store.GetAsync(id, cancellationToken);
 
         if (challenge is null)
+            return new AuthenticationResult<bool>.Failure(new(AuthenticationFailureReason.InvalidCredentials, "Invalid verification code."));
+
+        if (!string.Equals(challenge.UserId, command.UserId, StringComparison.Ordinal))
             return new AuthenticationResult<bool>.Failure(new(AuthenticationFailureReason.InvalidCredentials, "Invalid verification code."));
 
         DateTimeOffset now = DateTimeOffset.UtcNow;
@@ -77,7 +86,7 @@ public sealed class CompleteChangeEmailHandler(
         if (challenge.Status == AuthenticationChallengeStatus.Pending)
             challenge.Complete(now);
 
-        bool updated = await accountUpdater.SetEmailAsync(command.UserId, challenge.Destination, cancellationToken);
+        bool updated = await accountUpdater.SetVerifiedEmailAsync(command.UserId, challenge.Destination, cancellationToken);
         return updated
             ? new AuthenticationResult<bool>.Success(true)
             : new AuthenticationResult<bool>.Failure(new(AuthenticationFailureReason.ProviderFailure, "Failed to update email."));

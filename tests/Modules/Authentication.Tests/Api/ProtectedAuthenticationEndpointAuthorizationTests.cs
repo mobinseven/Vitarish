@@ -27,7 +27,17 @@ public class ProtectedAuthenticationEndpointAuthorizationTests
         AuthenticationRoutes.BasePath + AuthenticationRoutes.SessionNoticeAcknowledge,
         AuthenticationRoutes.BasePath + AuthenticationRoutes.SecuritySessionPolicy,
         AuthenticationRoutes.BasePath + AuthenticationRoutes.SecurityUserInactivityPolicy,
-        AuthenticationRoutes.BasePath + AuthenticationRoutes.SecurityUserSessionsRevoke
+        AuthenticationRoutes.BasePath + AuthenticationRoutes.SecurityUserSessionsRevoke,
+        AuthenticationRoutes.ChangePassword,
+        AuthenticationRoutes.SetFirstPassword,
+        AuthenticationRoutes.TwoStepSignIn
+    };
+
+    public static TheoryData<string> AccountSecurityEndpointPatterns => new()
+    {
+        AuthenticationRoutes.ChangePassword,
+        AuthenticationRoutes.SetFirstPassword,
+        AuthenticationRoutes.TwoStepSignIn
     };
 
     [Theory]
@@ -63,6 +73,22 @@ public class ProtectedAuthenticationEndpointAuthorizationTests
         endpoints.Should().AllSatisfy(endpoint => endpoint.Metadata.OfType<AuthorizeAttribute>()
             .Should().Contain(attribute =>
                 attribute.AuthenticationSchemes == ModuleEndpointAuthenticationSchemes.BrowserOrBearer));
+    }
+
+    [Theory]
+    [MemberData(nameof(AccountSecurityEndpointPatterns))]
+    public void Account_security_mutations_are_authenticated_audited_and_rate_limited(string routePattern)
+    {
+        using WebApplication app = CreateAppWithProtectedAuthenticationEndpoints();
+        RouteEndpoint endpoint = FindRouteEndpoint(app, routePattern);
+
+        endpoint.Metadata.OfType<AuthorizeAttribute>().Should().Contain(attribute =>
+            attribute.AuthenticationSchemes == ModuleEndpointAuthenticationSchemes.BrowserOrBearer);
+        endpoint.Metadata.GetMetadata<ProtectedModuleEndpointMetadata>().Should().NotBeNull();
+        endpoint.Metadata.GetMetadata<SecurityAuditHandledByApplicationMetadata>().Should().NotBeNull();
+        endpoint.Metadata.GetOrderedMetadata<Microsoft.AspNetCore.RateLimiting.EnableRateLimitingAttribute>()
+            .Should().ContainSingle()
+            .Which.PolicyName.Should().Be(AuthenticationRateLimitPolicies.AccountSecurityMutation);
     }
 
     [Fact]
@@ -311,6 +337,8 @@ public class ProtectedAuthenticationEndpointAuthorizationTests
         protectedGroup.MapCurrentSessionEndpoints();
         protectedGroup.MapLogoutEndpoints();
         protectedGroup.MapAuthenticationSecurityEndpoints();
+        protectedGroup.MapAccountPasswordChangeEndpoints();
+        protectedGroup.MapAccountSignInSecurityEndpoints();
         return app;
     }
 

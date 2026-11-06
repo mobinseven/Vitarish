@@ -31,6 +31,7 @@ public static class AuthenticationProblemHttpMapper
             AuthenticationFailureReason.InvalidCredential => (StatusCodes.Status400BadRequest, AuthenticationErrorCode.invalid_credential),
             AuthenticationFailureReason.AccountDisabled => (StatusCodes.Status403Forbidden, AuthenticationErrorCode.account_disabled),
             AuthenticationFailureReason.NoAccess => (StatusCodes.Status403Forbidden, AuthenticationErrorCode.no_access),
+            AuthenticationFailureReason.Conflict => (StatusCodes.Status409Conflict, AuthenticationErrorCode.conflict),
             _ => (StatusCodes.Status500InternalServerError, AuthenticationErrorCode.invalid_input)
         };
 

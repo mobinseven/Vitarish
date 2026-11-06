@@ -106,7 +106,7 @@ public sealed class LoginIdentifierUniquenessTests
         await SeedUserAsync(dbContext, "other-user", userName: null, email: null, phoneNumber: "+989123456789");
         Mock<ISecurityAuditWriter> auditWriter = AuditWriter();
         SetUserPhoneNumberCommandHandler handler = new(
-            CreateUserManager(dbContext), CreateSender(dbContext), CreateCache(), CreateAudit(auditWriter));
+            CreateUserManager(dbContext), CreateSender(dbContext), CreateCache(), CreateAudit(auditWriter), dbContext);
 
         IdentityResult result = await handler.Handle(
             new SetUserPhoneNumberCommand(ManagedUserId, "09123456789"), CancellationToken.None);
@@ -135,7 +135,7 @@ public sealed class LoginIdentifierUniquenessTests
         await SeedUserAsync(dbContext, "other-user", userName: null, email: "taken@example.test", phoneNumber: null);
         Mock<ISecurityAuditWriter> auditWriter = AuditWriter();
         SetUserEmailCommandHandler handler = new(
-            CreateUserManager(dbContext), CreateSender(dbContext), CreateCache(), CreateAudit(auditWriter));
+            CreateUserManager(dbContext), CreateSender(dbContext), CreateCache(), CreateAudit(auditWriter), dbContext);
 
         IdentityResult result = await handler.Handle(
             new SetUserEmailCommand(ManagedUserId, "TAKEN@example.test"), CancellationToken.None);

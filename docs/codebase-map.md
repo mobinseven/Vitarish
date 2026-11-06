@@ -175,6 +175,11 @@ to `shared/ui` only when it satisfies the promotion rules in
 | Search | `src/Modules/Search` | owning feature routes/packages | `tests/Modules/Search.Tests` | `docs/platform/modules/search` |
 | Other modules | matching `src/Modules/<Name>` | owning app/feature package when implemented | matching test project when present | matching module docs when present |
 
+Account sign-in settings use `AccountSignInSettings` in `shared/account`;
+the Authentication module owns their endpoints, handlers, and
+`RecentAuthenticationPolicy`. The two-host account setup flow is in
+`src/Hosts/Web/tests/e2e/account-sign-in-security.spec.ts`.
+
 ## 7. Runtime and data flow
 
 - `src/Hosts/Main` exposes module Minimal APIs, authentication/authorization,

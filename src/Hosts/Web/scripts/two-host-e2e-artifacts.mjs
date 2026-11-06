@@ -17,6 +17,7 @@ export const twoHostE2eTenantBClinicOrigin = "http://tenant-b.localhost:3005";
 export const twoHostE2eTenantBOwnerUsernameEnvironmentKey = "VITARISH_E2E_TENANT_B_OWNER_USERNAME";
 export const twoHostE2eTenantBOwnerUsername = "e2e-tenant-b-owner";
 export const twoHostE2ePlatformAdminClientIp = "198.51.100.21";
+export const twoHostE2ePasswordlessPhoneClientIp = "198.51.100.248";
 export const twoHostE2ePlatformAdminOrigin = "http://localhost:3006";
 /**
  * The shared sign-in host: the E2E host binds auth.localhost to the sign-in tenant

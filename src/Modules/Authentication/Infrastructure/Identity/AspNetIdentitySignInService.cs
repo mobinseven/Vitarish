@@ -26,7 +26,8 @@ public sealed class AspNetIdentitySignInService(
     IHttpContextAccessor httpContextAccessor,
     AuthenticationSourceAttemptGuard sourceAttemptGuard,
     IUserSignInGuard accountGuard,
-    IEnumerable<IRoleFreeSessionPolicy>? roleFreeSessions = null) : IAuthenticationSignInService
+    IEnumerable<IRoleFreeSessionPolicy>? roleFreeSessions = null,
+    TimeProvider? timeProvider = null) : IAuthenticationSignInService
 {
     public Task<PasswordSignInResult> PasswordSignInAsync(string login, string password, CancellationToken cancellationToken) =>
         SignInCoreAsync(login, password, cancellationToken, signIn: true);
@@ -34,7 +35,13 @@ public sealed class AspNetIdentitySignInService(
     public Task<PasswordSignInResult> CheckPasswordSignInAsync(string login, string password, CancellationToken cancellationToken) =>
         SignInCoreAsync(login, password, cancellationToken, signIn: false);
 
-    public async Task<AuthenticationSessionSignInResult> SignInAsync(string userId, CancellationToken cancellationToken)
+    public Task<AuthenticationSessionSignInResult> SignInAsync(string userId, CancellationToken cancellationToken) =>
+        SignInCoreAsync(userId, (timeProvider ?? TimeProvider.System).GetUtcNow().UtcDateTime, cancellationToken);
+
+    public Task<AuthenticationSessionSignInResult> SignInFromTenantHandoffAsync(string userId, DateTime? authenticatedAt, CancellationToken cancellationToken) =>
+        SignInCoreAsync(userId, authenticatedAt, cancellationToken);
+
+    private async Task<AuthenticationSessionSignInResult> SignInCoreAsync(string userId, DateTime? authenticatedAt, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(userId))
             return AuthenticationSessionSignInResult.Failed(new(AuthenticationFailureReason.InvalidInput, "User ID cannot be empty."));
@@ -56,7 +63,7 @@ public sealed class AspNetIdentitySignInService(
         }
 
         IAuthenticationSessionPreparation? preparation = null;
-        preparation = await sessionRegistry.PrepareAsync(userId, cancellationToken);
+        preparation = await sessionRegistry.PrepareAsync(userId, authenticatedAt, cancellationToken);
         if (!preparation.Result.Succeeded)
         {
             await preparation.DisposeAsync();

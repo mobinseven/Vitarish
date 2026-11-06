@@ -21,4 +21,6 @@ public sealed record AuthenticationUserDescriptor(
     string? PhoneNumber,
     bool RequiresProfileCompletion,
     bool EmailConfirmed = false,
-    bool PhoneNumberConfirmed = false);
+    bool PhoneNumberConfirmed = false,
+    bool HasPassword = false,
+    bool TwoFactorEnabled = false);

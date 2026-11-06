@@ -29,5 +29,10 @@ public static partial class AuthenticationRoutes
     public const string CompleteChangePhone = BasePath + "/account/phone/complete";
     public const string BeginChangeEmail = BasePath + "/account/email/begin";
     public const string CompleteChangeEmail = BasePath + "/account/email/complete";
-    public const string ChangePassword = BasePath + "/account/password";
+    public const string ChangePasswordPath = "/account/password";
+    public const string ChangePassword = BasePath + ChangePasswordPath;
+    public const string SetFirstPasswordPath = "/account/password/first";
+    public const string SetFirstPassword = BasePath + SetFirstPasswordPath;
+    public const string TwoStepSignInPath = "/account/two-step-sign-in";
+    public const string TwoStepSignIn = BasePath + TwoStepSignInPath;
 }

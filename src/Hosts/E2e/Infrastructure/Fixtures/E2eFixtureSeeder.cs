@@ -51,6 +51,10 @@ internal static class E2eFixtureSeeder
     /// <summary>Has two-step sign-in on with a confirmed email and no confirmed phone.</summary>
     public const string EmailTwoFactorPlatformAdminUserName = "e2e-email-two-factor-platform-admin";
     public const string EmailTwoFactorPlatformAdminEmail = "e2e-email-two-factor-platform-admin@example.test";
+    /// <summary>Passwordless account for the self-service first-password and two-step sign-in flow.</summary>
+    public const string PasswordlessPhoneAccountUserName = "+989130000002";
+    public const string PasswordlessPhoneAccountPhoneNumber = "+989130000002";
+    public const string PasswordlessPhoneAccountEmail = "e2e-passwordless-phone-account@example.test";
     /// <summary>Staff in tenant A only; registers a passkey and signs in with it.</summary>
     public const string PasskeyUserName = "e2e-passkey-user";
     /// <summary>Staff in tenant A and an owner of tenant B, so the landing home lists two workspaces.</summary>
@@ -209,7 +213,7 @@ internal static class E2eFixtureSeeder
             "Passkey User",
             password);
 
-        Console.WriteLine("E2E fixture seeding: ensuring identity 13 of 13.");
+        Console.WriteLine("E2E fixture seeding: ensuring identity 13 of 14.");
         User emailTwoFactorPlatformAdmin = await EnsureUserAsync(
             users,
             EmailTwoFactorPlatformAdminUserName,
@@ -233,6 +237,9 @@ internal static class E2eFixtureSeeder
             if (!emailTwoFactorUpdate.Succeeded)
                 throw new InvalidOperationException("E2E email two-factor platform-admin setup failed.");
         }
+
+        Console.WriteLine("E2E fixture seeding: ensuring identity 14 of 14.");
+        User passwordlessPhoneAccount = await EnsurePasswordlessPhoneAccountAsync(users);
 
         Console.WriteLine("E2E fixture seeding: identity accounts are ready.");
         Guid ownerId = Guid.Parse(user.Id);
@@ -415,6 +422,10 @@ internal static class E2eFixtureSeeder
         IdentityResult tenantUserResult = await usersService.ReplaceTenantRoleAsync(tenantUser.Id, tenant.Id, IdentityDefinitions.TenantUser, cancellationToken);
         if (!tenantUserResult.Succeeded)
             throw new InvalidOperationException("E2E tenant-user role assignment failed.");
+
+        IdentityResult passwordlessPhoneAccountResult = await usersService.ReplaceTenantRoleAsync(passwordlessPhoneAccount.Id, tenant.Id, IdentityDefinitions.TenantUser, cancellationToken);
+        if (!passwordlessPhoneAccountResult.Succeeded)
+            throw new InvalidOperationException("E2E passwordless phone account role assignment failed.");
 
         IdentityResult emailChangeUserResult = await usersService.ReplaceTenantRoleAsync(emailChangeUser.Id, tenant.Id, IdentityDefinitions.TenantUser, cancellationToken);
         if (!emailChangeUserResult.Succeeded)
@@ -672,6 +683,47 @@ internal static class E2eFixtureSeeder
         IdentityResult created = await users.CreateAsync(user, password);
         if (!created.Succeeded)
             throw new InvalidOperationException($"E2E user creation failed: {string.Join(';', created.Errors.Select(error => error.Code))}");
+        return user;
+    }
+
+    private static async Task<User> EnsurePasswordlessPhoneAccountAsync(UserManager<User> users)
+    {
+        User? existing = await users.FindByNameAsync(PasswordlessPhoneAccountUserName);
+        if (existing is not null)
+        {
+            if (await users.HasPasswordAsync(existing))
+            {
+                IdentityResult removedPassword = await users.RemovePasswordAsync(existing);
+                if (!removedPassword.Succeeded)
+                    throw new InvalidOperationException($"E2E passwordless phone account reset failed: {string.Join(';', removedPassword.Errors.Select(error => error.Code))}");
+            }
+
+            if (existing.TwoFactorEnabled)
+            {
+                IdentityResult disabledTwoFactor = await users.SetTwoFactorEnabledAsync(existing, false);
+                if (!disabledTwoFactor.Succeeded)
+                    throw new InvalidOperationException($"E2E passwordless phone account two-factor reset failed: {string.Join(';', disabledTwoFactor.Errors.Select(error => error.Code))}");
+            }
+
+            return existing;
+        }
+
+        User user = new()
+        {
+            Id = Guid.Parse("3bc0e1b2-041f-4e73-bc31-36f3b9c2a0ab").ToString(),
+            UserName = PasswordlessPhoneAccountUserName,
+            NormalizedUserName = PasswordlessPhoneAccountUserName.ToUpperInvariant(),
+            Email = PasswordlessPhoneAccountEmail,
+            NormalizedEmail = PasswordlessPhoneAccountEmail.ToUpperInvariant(),
+            EmailConfirmed = true,
+            PhoneNumber = PasswordlessPhoneAccountPhoneNumber,
+            PhoneNumberConfirmed = true,
+            FirstName = "E2E",
+            LastName = "Passwordless Account"
+        };
+        IdentityResult created = await users.CreateAsync(user);
+        if (!created.Succeeded)
+            throw new InvalidOperationException($"E2E passwordless phone account creation failed: {string.Join(';', created.Errors.Select(error => error.Code))}");
         return user;
     }
 

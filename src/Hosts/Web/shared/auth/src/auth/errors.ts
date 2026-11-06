@@ -1,25 +1,29 @@
 import { ApiError } from "@vitarish/api-client";
 
+export const authenticationErrorCodes = {
+  invalidInput: "invalid_input",
+  invalidCredentials: "invalid_credentials",
+  challengeNotFound: "challenge_not_found",
+  challengeExpired: "challenge_expired",
+  challengeAlreadyUsed: "challenge_already_used",
+  challengeAttemptsExhausted: "challenge_attempts_exhausted",
+  invalidVerificationCode: "invalid_verification_code",
+  invalidChallengePurpose: "invalid_challenge_purpose",
+  lockedOut: "locked_out",
+  notAllowed: "not_allowed",
+  tooManyAttempts: "too_many_attempts",
+  additionalStepRequired: "additional_step_required",
+  unauthorized: "unauthorized",
+  providerFailure: "provider_failure",
+  unknownCredential: "unknown_credential",
+  invalidCredential: "invalid_credential",
+  accountDisabled: "account_disabled",
+  noAccess: "no_access",
+  logoutContextUnavailable: "logout_context_unavailable",
+} as const;
+
 export type AuthenticationErrorCode =
-  | "invalid_input"
-  | "invalid_credentials"
-  | "challenge_not_found"
-  | "challenge_expired"
-  | "challenge_already_used"
-  | "challenge_attempts_exhausted"
-  | "invalid_verification_code"
-  | "invalid_challenge_purpose"
-  | "locked_out"
-  | "not_allowed"
-  | "too_many_attempts"
-  | "additional_step_required"
-  | "unauthorized"
-  | "provider_failure"
-  | "unknown_credential"
-  | "invalid_credential"
-  | "account_disabled"
-  | "no_access"
-  | "logout_context_unavailable";
+  (typeof authenticationErrorCodes)[keyof typeof authenticationErrorCodes];
 
 export interface AuthError {
   code: AuthenticationErrorCode;
@@ -34,11 +38,16 @@ export interface AuthError {
 
 /** The entered verification code was rejected; the message belongs on the code field. */
 export function isVerificationCodeError(code: AuthenticationErrorCode | null | undefined): boolean {
-  return code === "invalid_verification_code";
+  return code === authenticationErrorCodes.invalidVerificationCode;
+}
+
+export function isInvalidCredentialsError(error: unknown): boolean {
+  return error instanceof ApiError && error.code === authenticationErrorCodes.invalidCredentials;
 }
 
 export function isExpiredOrExhaustedChallenge(code: AuthenticationErrorCode | null | undefined): boolean {
-  return code === "challenge_expired" || code === "challenge_attempts_exhausted";
+  return code === authenticationErrorCodes.challengeExpired ||
+    code === authenticationErrorCodes.challengeAttemptsExhausted;
 }
 
 /**
@@ -46,13 +55,15 @@ export function isExpiredOrExhaustedChallenge(code: AuthenticationErrorCode | nu
  * succeed; a sign-in surface ends the code step and offers another identity instead.
  */
 export function isAccountAccessError(code: AuthenticationErrorCode | null | undefined): boolean {
-  return code === "no_access" || code === "account_disabled" || code === "locked_out";
+  return code === authenticationErrorCodes.noAccess ||
+    code === authenticationErrorCodes.accountDisabled ||
+    code === authenticationErrorCodes.lockedOut;
 }
 
 export function parseAuthError(error: unknown): AuthError {
   if (error instanceof ApiError) {
     return {
-      code: (error.code as AuthenticationErrorCode) ?? "invalid_input",
+      code: (error.code as AuthenticationErrorCode) ?? authenticationErrorCodes.invalidInput,
       message: error.message,
       status: error.status,
       challengeId: error.problem.challengeId,
@@ -78,14 +89,14 @@ export function parseAuthError(error: unknown): AuthError {
 
   if (error instanceof Error) {
     return {
-      code: "invalid_input",
+      code: authenticationErrorCodes.invalidInput,
       message: error.message,
       status: 500,
     };
   }
 
   return {
-    code: "invalid_input",
+    code: authenticationErrorCodes.invalidInput,
     message: "An unexpected error occurred",
     status: 500,
   };
@@ -93,20 +104,20 @@ export function parseAuthError(error: unknown): AuthError {
 
 export function getErrorMessage(error: AuthError): string {
   const messages: Record<string, string> = {
-    invalid_credentials: "Invalid username or password",
-    locked_out: "Account is locked. Please try again later",
-    challenge_expired: "Code has expired. Please request a new one",
-    challenge_attempts_exhausted: "Too many failed attempts. Please start over",
-    invalid_verification_code: "Invalid verification code",
-    too_many_attempts: "Too many attempts. Please wait before trying again",
-    provider_failure: "Service temporarily unavailable. Please try again",
-    not_allowed: "You do not have permission to perform this action",
-    unauthorized: "Please sign in to continue",
-    unknown_credential: "Passkey not recognized",
-    invalid_credential: "Passkey verification failed",
-    account_disabled: "This account is disabled. Contact a platform administrator.",
-    no_access: "This account has no access level. Contact a platform administrator.",
-    logout_context_unavailable: "Session context unavailable",
+    [authenticationErrorCodes.invalidCredentials]: "Invalid username or password",
+    [authenticationErrorCodes.lockedOut]: "Account is locked. Please try again later",
+    [authenticationErrorCodes.challengeExpired]: "Code has expired. Please request a new one",
+    [authenticationErrorCodes.challengeAttemptsExhausted]: "Too many failed attempts. Please start over",
+    [authenticationErrorCodes.invalidVerificationCode]: "Invalid verification code",
+    [authenticationErrorCodes.tooManyAttempts]: "Too many attempts. Please wait before trying again",
+    [authenticationErrorCodes.providerFailure]: "Service temporarily unavailable. Please try again",
+    [authenticationErrorCodes.notAllowed]: "You do not have permission to perform this action",
+    [authenticationErrorCodes.unauthorized]: "Please sign in to continue",
+    [authenticationErrorCodes.unknownCredential]: "Passkey not recognized",
+    [authenticationErrorCodes.invalidCredential]: "Passkey verification failed",
+    [authenticationErrorCodes.accountDisabled]: "This account is disabled. Contact a platform administrator.",
+    [authenticationErrorCodes.noAccess]: "This account has no access level. Contact a platform administrator.",
+    [authenticationErrorCodes.logoutContextUnavailable]: "Session context unavailable",
   };
 
   return messages[error.code] ?? error.message;

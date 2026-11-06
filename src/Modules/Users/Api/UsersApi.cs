@@ -141,7 +141,9 @@ public static class UsersApi
         if (HasFailure(result, UsersCommandFailureCode.UserNotFound))
             return Results.NotFound(UsersCommandResponse.Failed(errors));
         // A contact another account uses is a conflict, as it is when creating a user.
-        if (HasFailure(result, UsersCommandFailureCode.ConcurrencyFailure) || HasFailure(result, UsersCommandFailureCode.ContactIdentifierInUse))
+        if (HasFailure(result, UsersCommandFailureCode.ConcurrencyFailure) ||
+            HasFailure(result, UsersCommandFailureCode.ContactIdentifierInUse) ||
+            HasFailure(result, UsersCommandFailureCode.ConfirmedContactRequiredForTwoStepSignIn))
             return Results.Conflict(UsersCommandResponse.Failed(errors));
         if (HasFailure(result, UsersCommandFailureCode.Unauthorized))
             return Results.Forbid();
@@ -186,9 +188,11 @@ public static class UsersApi
             UsersCommandFailureCode.ActiveSessionConflict => new(UsersCommandErrorCodes.ActiveSessionConflict, UsersCommandErrorCodes.ActiveSessionConflictDescription, UsersCommandErrorKind.ActiveSessionConflict),
             UsersCommandFailureCode.InvalidContact => new(UsersCommandErrorCodes.InvalidContact, UsersCommandErrorCodes.InvalidContactDescription, UsersCommandErrorKind.InvalidContact),
             UsersCommandFailureCode.ContactIdentifierInUse => new(UsersCommandErrorCodes.ContactIdentifierInUse, UsersCommandErrorCodes.ContactIdentifierInUseDescription, UsersCommandErrorKind.ContactIdentifierInUse),
+            UsersCommandFailureCode.ConfirmedContactRequiredForTwoStepSignIn => new(UsersCommandErrorCodes.ConfirmedContactRequiredForTwoStepSignIn, UsersCommandErrorCodes.ConfirmedContactRequiredForTwoStepSignInDescription, UsersCommandErrorKind.ConfirmedContactRequiredForTwoStepSignIn),
             UsersCommandFailureCode.UserNotFound => new(UsersCommandErrorCodes.UserNotFound, UsersCommandErrorCodes.UserNotFoundDescription, UsersCommandErrorKind.UserNotFound),
             UsersCommandFailureCode.ConcurrencyFailure => new(UsersCommandErrorCodes.ConcurrencyFailure, UsersCommandErrorCodes.ConcurrencyFailureDescription, UsersCommandErrorKind.ConcurrencyFailure),
-            UsersCommandFailureCode.Unauthorized => new(UsersCommandErrorCodes.Unauthorized, UsersCommandErrorCodes.UnauthorizedDescription, UsersCommandErrorKind.Unauthorized)
+            UsersCommandFailureCode.Unauthorized => new(UsersCommandErrorCodes.Unauthorized, UsersCommandErrorCodes.UnauthorizedDescription, UsersCommandErrorKind.Unauthorized),
+            _ => UsersCommandErrorKinds.ForCode(error.Code, error.Description)
         };
     }
 
@@ -320,7 +324,7 @@ public static class UsersApi
 
     private static bool IsAllowedTenantRole(string roleSuffix) =>
         TenantRoleDefinitions.IsPermittedRoleSuffix(roleSuffix);
-    private static IResult ToCommandResult(IdentityResult result) => result.Succeeded ? Results.Ok(UsersCommandResponse.Success()) : result.Errors.Any(error => error.Code == UsersCommandErrorCodes.ActiveSessionConflict) ? Results.Conflict(UsersCommandResponse.Failed(result.Errors.Select(e => UsersCommandErrorKinds.ForCode(e.Code, e.Description)).ToArray())) : Results.BadRequest(UsersCommandResponse.Failed(result.Errors.Select(e => UsersCommandErrorKinds.ForCode(e.Code, e.Description)).ToArray()));
+    private static IResult ToCommandResult(IdentityResult result) => result.Succeeded ? Results.Ok(UsersCommandResponse.Success()) : result.Errors.Any(error => error.Code is UsersCommandErrorCodes.ActiveSessionConflict or UsersCommandErrorCodes.ConfirmedContactRequiredForTwoStepSignIn) ? Results.Conflict(UsersCommandResponse.Failed(result.Errors.Select(e => UsersCommandErrorKinds.ForCode(e.Code, e.Description)).ToArray())) : Results.BadRequest(UsersCommandResponse.Failed(result.Errors.Select(e => UsersCommandErrorKinds.ForCode(e.Code, e.Description)).ToArray()));
     private static IResult ToRoleCommandResult(IdentityResult result) => result.Succeeded ? Results.Ok(UsersCommandResponse.Success()) : Results.Conflict(UsersCommandResponse.Failed(result.Errors.Select(e => UsersCommandErrorKinds.ForCode(e.Code, e.Description)).ToArray()));
     private static UserSummaryResponse ToSummary(User user) => new(user.Id, user.UserName, user.FirstName, user.LastName, user.Email, user.PhoneNumber, user.IdentificationCode, user.DateOfBirth, user.BirthCountryCode, user.BirthCity, user.FullName);
     private static UserSummaryResponse ToSafeSummary(User user) => new(user.Id, user.UserName, user.FirstName, user.LastName, user.Email, user.PhoneNumber, null, null, null, null, user.FullName);

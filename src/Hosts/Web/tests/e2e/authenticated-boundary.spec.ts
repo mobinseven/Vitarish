@@ -1,5 +1,5 @@
 import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
-import { existsSync, mkdirSync, readFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { usersGetProfile } from "../../shared/auth/src/api/generated/users/users";
 import {
@@ -877,6 +877,37 @@ test("UsersGetProfile denies a different authenticated subject", async ({ page }
   expect(otherUserProfile.status).toBe(403);
 });
 
+function resolveSourceOwnedOperationId(matrixValue: string): string {
+  const qualifiedName = /^([A-Za-z_][A-Za-z0-9_]*)\.([A-Za-z_][A-Za-z0-9_]*)$/.exec(matrixValue);
+  if (!qualifiedName)
+    return matrixValue;
+
+  const [, ownerName, memberName] = qualifiedName;
+  const routeContractDirectories = [
+    join(process.cwd(), "../../../src/Modules/Users/Contracts/Routes"),
+    join(process.cwd(), "../../../src/Modules/Authentication/Contracts/Routes"),
+  ];
+  const sourceValues: string[] = [];
+
+  for (const directory of routeContractDirectories) {
+    for (const fileName of readdirSync(directory).filter(name => name.endsWith(".cs"))) {
+      const source = readFileSync(join(directory, fileName), "utf8");
+      const ownerClass = new RegExp(`public\\s+static\\s+class\\s+${ownerName}\\s*\\{([^{}]*)\\}`).exec(source)?.[1];
+      if (!ownerClass)
+        continue;
+
+      const memberValue = new RegExp(`public\\s+const\\s+string\\s+${memberName}\\s*=\\s*"([^"]+)"\\s*;`).exec(ownerClass)?.[1];
+      if (memberValue)
+        sourceValues.push(memberValue);
+    }
+  }
+
+  if (sourceValues.length !== 1)
+    throw new Error(`Expected one source-owned operation ID for ${matrixValue}, found ${sourceValues.length}.`);
+
+  return sourceValues[0];
+}
+
 test("User-auth matrix denies out-of-scope operation access per operation", async ({ page }) => {
   await login(page, tenantUserUsername, "", e2ePassword, "198.51.100.28");
 
@@ -897,10 +928,11 @@ test("User-auth matrix denies out-of-scope operation access per operation", asyn
 
   for (const row of matrixRows) {
     const operationId = row[1];
+    const resolvedOperationId = resolveSourceOwnedOperationId(operationId);
     const selfScoped = row[4] === "Self only" && row[5] === "Self only" && row[6] === "Self only";
     const tenantUserDenied = row[6] === "Deny";
     if (!selfScoped && !tenantUserDenied) continue;
-    const operation = operations.find(candidate => candidate.operationId === operationId);
+    const operation = operations.find(candidate => candidate.operationId === resolvedOperationId);
     expect(operation, `${operationId} exists in a Users or Authentication OpenAPI contract`).toBeDefined();
     if (!operation) continue;
 

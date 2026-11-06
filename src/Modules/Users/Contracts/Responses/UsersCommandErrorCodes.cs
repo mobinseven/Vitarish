@@ -18,6 +18,8 @@ public static class UsersCommandErrorCodes
     public const string InvalidContactDescription = "At least one valid email address or E.164 phone number is required.";
     public const string ContactIdentifierInUse = "ContactIdentifierInUse";
     public const string ContactIdentifierInUseDescription = "Another account already uses this email address or phone number.";
+    public const string ConfirmedContactRequiredForTwoStepSignIn = nameof(UsersCommandErrorKind.ConfirmedContactRequiredForTwoStepSignIn);
+    public const string ConfirmedContactRequiredForTwoStepSignInDescription = "Keep a confirmed email address or phone number while two-step sign-in is enabled.";
     public const string ConcurrencyFailure = "ConcurrencyFailure";
     public const string ConcurrencyFailureDescription = "The user changed concurrently; reload the account and retry the edit.";
     public const string TenantRoleConflict = "TenantRoleConflict";

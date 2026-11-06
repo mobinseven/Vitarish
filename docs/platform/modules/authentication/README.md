@@ -9,6 +9,19 @@ This folder contains app-agnostic module documentation. App-specific usage belon
 
 ## Password sign-in with an additional code
 
+From account settings, a signed-in person without a password can set their
+first password. Existing passwords are changed using the current password. The
+first password uses the same effective password policy as other password
+writes. Setting it requires a recent sign-in; it cannot be used to set another
+person's password.
+
+Account settings also let the person turn two-step sign-in on or off. Enabling
+it requires a password, a confirmed delivery contact, and an effective policy
+that permits the selected password-and-code action. Both changes require a
+recent sign-in. Authentication records the original sign-in time in its
+server-side session and carries it through a tenant handoff without refreshing
+it. The current limit is ten minutes. Sign in again when the limit expires.
+
 When a password account has two-factor enabled, sign-in requires a one-time
 code after the password. Authentication prefers a confirmed phone and sends an
 SMS; if there is no confirmed phone, it uses the confirmed email address. If
@@ -25,6 +38,22 @@ updated node after deployment. Rolling back removes email-code support, so an
 affected account needs a confirmed phone or the updated release. This is a
 password followed by a code delivered to a contact: whether it provides
 independent factors depends on how that contact is protected.
+
+The account setting and authentication policy are stored separately. If the
+policy changes while the setting is being enabled, the flag can remain on
+even though its selected channel is no longer allowed. Sign-in and code
+verification check the current policy again and refuse that sign-in; they do
+not fall back to password alone. After a policy change, the person can retry
+or turn the setting off after a recent sign-in.
+
+The authentication-time columns are nullable for existing sessions and
+handoff tickets. Those records cannot satisfy the recent-sign-in check until a
+new sign-in establishes a session with an authentication time. Apply the
+forward migration before starting the updated server; mixed versions do not
+provide the new setting consistently. Rolling back the application removes the
+new settings controls and first-password path; existing password and two-step
+state remain stored. Follow the database rollback procedure before removing
+schema columns.
 
 ## Tenant handoff
 

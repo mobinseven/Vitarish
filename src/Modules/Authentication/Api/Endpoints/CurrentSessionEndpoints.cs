@@ -4,6 +4,9 @@ using Vitarish.Authentication.Application.Handlers;
 using Vitarish.Authentication.Application.Queries;
 using Vitarish.Authentication.Application.Results;
 using Vitarish.Authentication.Contracts.Responses;
+using Vitarish.Authentication.Contracts.Enums;
+using Vitarish.Authentication.Application.Security;
+using Vitarish.Authentication.Domain.Methods;
 using Vitarish.Modules.Base.Core.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Vitarish.Modules.Base.Core.Endpoints;
@@ -21,7 +24,7 @@ public static class CurrentSessionEndpoints
             var accessDto = new TenantAccessDto(access.CanAccessTenantOwner, access.CanAccessTenantUser);
             bool canAccessPlatformAdmin = (await authorization.AuthorizeAsync(httpContext.User, IdentityDefinitions.PlatformAdmin)).Succeeded;
             return result is AuthenticationResult<Vitarish.Authentication.Application.Abstractions.AuthenticationUserDescriptor?>.Success s
-                ? Results.Ok(new AuthenticationSessionDto(s.Value is not null, s.Value is null ? null : new CurrentAuthenticationUserDto(s.Value.UserId, s.Value.DisplayName, s.Value.GivenName, s.Value.FamilyName, s.Value.Email, s.Value.PhoneNumber), accessDto, canAccessPlatformAdmin))
+                ? Results.Ok(new AuthenticationSessionDto(s.Value is not null, s.Value is null ? null : ToCurrentUserDto(s.Value), accessDto, canAccessPlatformAdmin))
                 : Results.Unauthorized();
         }, "Authentication_Session_Get", typeof(AuthenticationSessionDto))
         .Produces<AuthenticationSessionDto>(StatusCodes.Status200OK)
@@ -32,7 +35,7 @@ public static class CurrentSessionEndpoints
         {
             var result = await handler.Handle(new GetCurrentAuthenticationSessionQuery(), ct);
             return result is AuthenticationResult<Vitarish.Authentication.Application.Abstractions.AuthenticationUserDescriptor?>.Success s && s.Value is not null
-                ? Results.Ok(new CurrentAuthenticationUserDto(s.Value.UserId, s.Value.DisplayName, s.Value.GivenName, s.Value.FamilyName, s.Value.Email, s.Value.PhoneNumber))
+                ? Results.Ok(ToCurrentUserDto(s.Value))
                 : Results.NotFound();
         }, "Authentication_Me_Get", typeof(CurrentAuthenticationUserDto))
         .Produces<CurrentAuthenticationUserDto>(StatusCodes.Status200OK)
@@ -41,5 +44,26 @@ public static class CurrentSessionEndpoints
         .WithSummary("Gets the current authentication user.");
 
         return group;
+    }
+
+    private static CurrentAuthenticationUserDto ToCurrentUserDto(Vitarish.Authentication.Application.Abstractions.AuthenticationUserDescriptor user)
+    {
+        TwoStepSignInChannelDto? channel = PasswordLoginSecondFactorChannel.Select(user)?.Method switch
+        {
+            AuthenticationMethod.Phone => TwoStepSignInChannelDto.Phone,
+            AuthenticationMethod.Email => TwoStepSignInChannelDto.Email,
+            _ => null
+        };
+
+        return new CurrentAuthenticationUserDto(
+            user.UserId,
+            user.DisplayName,
+            user.GivenName,
+            user.FamilyName,
+            user.Email,
+            user.PhoneNumber,
+            user.HasPassword,
+            user.TwoFactorEnabled,
+            channel);
     }
 }

@@ -93,6 +93,20 @@ internal sealed class UpdateManagedUserCommandHandler(
             });
         }
 
+        bool proposedEmailConfirmed = !emailChanged && user.EmailConfirmed;
+        bool proposedPhoneConfirmed = !phoneChanged && user.PhoneNumberConfirmed;
+        if (contactIdentifierChanged && user.TwoFactorEnabled &&
+            !UserContactIdentifierPolicy.HasConfirmedContact(email, proposedEmailConfirmed, phoneNumber, proposedPhoneConfirmed))
+        {
+            await managementAudit.AccountEditFailedAsync(user.Id, SecurityAuditReasonCatalog.MutationRejected, cancellationToken);
+            await managementAudit.SecurityAttributeChangedAsync(user.Id, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.MutationRejected, cancellationToken);
+            return IdentityResult.Failed(new IdentityError
+            {
+                Code = nameof(UsersCommandFailureCode.ConfirmedContactRequiredForTwoStepSignIn),
+                Description = UsersCommandErrorCodes.ConfirmedContactRequiredForTwoStepSignInDescription
+            });
+        }
+
         bool emailOwnedByAnotherAccount = emailChanged && email is not null &&
             await sender.Send(new CheckLoginIdentifierInUseQuery(email, LoginIdentifierKind.Email, user.Id), cancellationToken);
         bool phoneOwnedByAnotherAccount = phoneChanged && phoneNumber is not null &&

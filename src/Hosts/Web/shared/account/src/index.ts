@@ -1,8 +1,11 @@
 // Hooks
+export { AccountSignInSettings } from "./components/AccountSignInSettings";
+export type { AccountSignInSettingsProps } from "./components/AccountSignInSettings";
 export { useAccountNameUpdate } from "./hooks/useAccountNameUpdate";
 export { useAccountEmailChange } from "./hooks/useAccountEmailChange";
 export { useAccountPhoneChange } from "./hooks/useAccountPhoneChange";
 export { useAccountPasswordChange } from "./hooks/useAccountPasswordChange";
+export { useAccountSignInSecurityActions } from "./hooks/useAccountSignInSecurityActions";
 export { useAccountCulture } from "./hooks/useAccountCulture";
 export { useAccountPasskeys } from "./hooks/useAccountPasskeys";
 export { accountKeys } from "./hooks/accountKeys";

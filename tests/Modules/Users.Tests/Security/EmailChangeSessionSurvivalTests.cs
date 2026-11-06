@@ -42,6 +42,8 @@ public sealed class EmailChangeSessionSurvivalTests
             NormalizedUserName = "OLD@EXAMPLE.TEST",
             Email = "old@example.test",
             NormalizedEmail = "OLD@EXAMPLE.TEST",
+            EmailConfirmed = true,
+            TwoFactorEnabled = true,
             FirstName = "First",
             LastName = "Last",
             SecurityStamp = "security-session-user",
@@ -61,7 +63,7 @@ public sealed class EmailChangeSessionSurvivalTests
         verifier.Setup(value => value.VerifyAsync("session-user", challenge.TokenPurpose, "123456", It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
         UserAccountUpdater updater = new(CreateUserManager(usersDb), CreateSender(usersDb));
-        CompleteChangeEmailHandler handler = new(store, verifier.Object, updater);
+        CompleteChangeEmailHandler handler = new(store, verifier.Object, updater, RequestContext("session-user"));
 
         AuthenticationResult<bool> result = await handler.Handle(
             new CompleteChangeEmailCommand("session-user", challenge.Id.Value, "123456"),
@@ -70,6 +72,11 @@ public sealed class EmailChangeSessionSurvivalTests
         result.Should().BeOfType<AuthenticationResult<bool>.Success>();
         User updated = await usersDb.Users.AsNoTracking().SingleAsync(user => user.Id == "session-user");
         updated.Email.Should().Be("new@example.test");
+        updated.NormalizedEmail.Should().Be("NEW@EXAMPLE.TEST");
+        updated.EmailConfirmed.Should().BeTrue();
+        updated.TwoFactorEnabled.Should().BeTrue();
+        updated.SecurityStamp.Should().NotBe("security-session-user");
+        updated.SecurityStamp.Should().NotBeNullOrWhiteSpace();
 
         AuthenticationSessionValidationResult validation = await registry.ValidateAndTouchAsync(
             session.SessionId!, "session-user", "tenant-1", CancellationToken.None);
@@ -103,14 +110,14 @@ public sealed class EmailChangeSessionSurvivalTests
         return new UsersDbContext(options);
     }
 
-    private static IRequestContext RequestContext()
+    private static IRequestContext RequestContext(string userId = "platform-admin")
     {
         Mock<IRequestContext> context = new();
         context.SetupGet(value => value.TenantId).Returns("tenant-1");
         context.SetupGet(value => value.User).Returns(new ClaimsPrincipal(new ClaimsIdentity(
             [new Claim(ClaimTypes.Role, IdentityDefinitions.PlatformAdmin)],
             "test")));
-        context.SetupGet(value => value.UserId).Returns("platform-admin");
+        context.SetupGet(value => value.UserId).Returns(userId);
         context.SetupGet(value => value.RequestId).Returns("request-id");
         context.SetupGet(value => value.TraceId).Returns("trace-id");
         return context.Object;

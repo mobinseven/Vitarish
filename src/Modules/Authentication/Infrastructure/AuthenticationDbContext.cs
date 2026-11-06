@@ -37,6 +37,7 @@ public sealed class AuthenticationDbContext(DbContextOptions<AuthenticationDbCon
             _ = entity.HasKey(session => session.Id);
             _ = entity.Property(session => session.UserId).IsRequired().HasMaxLength(450);
             _ = entity.Property(session => session.TenantId).IsRequired().HasMaxLength(64);
+            _ = entity.Property(session => session.AuthenticatedAt);
             _ = entity.Property(session => session.ClientIpAddress).HasMaxLength(45);
             _ = entity.HasIndex(session => new { session.UserId, session.TerminatedAt });
             _ = entity.HasIndex(session => session.LastActivityAt);
@@ -48,6 +49,7 @@ public sealed class AuthenticationDbContext(DbContextOptions<AuthenticationDbCon
             _ = entity.Property(ticket => ticket.UserId).IsRequired().HasMaxLength(450);
             _ = entity.Property(ticket => ticket.TargetHost).IsRequired().HasMaxLength(TenantHandoffTicket.TargetHostMaximumLength);
             _ = entity.Property(ticket => ticket.RedeemedAt).IsConcurrencyToken();
+            _ = entity.Property(ticket => ticket.AuthenticatedAt);
             _ = entity.HasIndex(ticket => ticket.TokenHash).IsUnique();
             _ = entity.HasIndex(ticket => new { ticket.UserId, ticket.ExpiresAt });
         });
