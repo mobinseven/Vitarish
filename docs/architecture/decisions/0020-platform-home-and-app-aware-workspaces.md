@@ -1,7 +1,7 @@
 # ADR-0020: Platform home and app-aware workspaces
 
 Date: 2026-11-06
-Status: Proposed
+Status: Accepted
 Scope: Platform home, app catalog, workspace directory, sign-in and onboarding journeys
 Owner: Architecture
 Supersedes:
@@ -30,11 +30,16 @@ that model.
    ADR-0016's zero-tenant flow: the Journey leads to a continue step on the
    sign-in host, which obtains a server-chosen handoff to the home host. A
    validated return intent may instead lead to its requested path. The sign-in
-   host keeps no session after handoff, preserving ADR-0018 decision 8.
+   host keeps no session after handoff, preserving ADR-0018 decision 8. The
+   former sign-in host workspace picker is removed; the clinic sign-in API
+   endpoints remain available for compatibility.
 4. **Host isolation.** Cookies remain host-only; no cookie domain is widened.
    Handoff targets are chosen by the server. Return paths are relative and
-   validated for the destination host. Leaving home for a workspace retains the
-   home session; workspace sign-out does not sign out home. Creating a workspace
+   validated for the destination host. Workspace handoff issuance does not end
+   the home session, but redemption follows the existing concurrent-session
+   policy: under the default single-session policy, the workspace session
+   replaces the home session; where parallel sessions are allowed, home remains
+   signed in and workspace sign-out does not sign it out. Creating a workspace
    retains the existing onboarding creation and session-ending behavior.
 5. **Home agent memory.** The home agent has no memory. ADR-0017 section 6 is
    unchanged.
@@ -46,8 +51,9 @@ that model.
 - The catalog and directory become the source for app-aware workspace choices.
   Existing clinic list contracts need additive app information; generated
   clients must be regenerated from their source. No schema migration is expected.
-- Existing handoff limits and target authorization remain in force. The home
-  session and workspace session are separate host-only sessions.
+- Existing handoff limits and target authorization remain in force. Home and
+  workspace sessions use host-only cookies and remain subject to the
+  concurrent-session policy.
 - Rollback restores the previous sign-in journey; existing tenants and data
   remain. Changes to handoff and journey behavior must be rolled back together.
 
@@ -69,7 +75,7 @@ Rejected by the owner: entering an app requires a person's intent.
 
 - Verify the catalog and workspace filter, server-chosen handoffs and relative
   return-path validation with focused tests.
-- Verify zero and one workspace journeys, retained home session, sign-in root,
+- Verify zero and one workspace journeys, session-policy behavior, sign-in root,
   return intent and platform-tenant exclusion in two-host E2E.
 - Verify sign-in and password recovery on the deployed hosts after release.
 

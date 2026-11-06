@@ -36,7 +36,7 @@ public static class LandingApiEndpointMapping
         _ = group.MapModulePost(
                 LandingApiRoutes.Conversations,
                 (SubmitLandingMessageRequest request, HttpContext context, IOptions<LandingPlatformOptions> options, IPartiesService parties, IDataProtectionProvider protection, [FromServices] IRequestContext requestContext, ISender sender, CancellationToken ct) => SubmitAsync(request, context, options, parties, protection, requestContext, sender, ct),
-                "LandingSubmitConversation",
+                LandingApiOperations.SubmitConversation,
                 typeof(LandingConversationResponse),
                 profile: ModuleEndpointProfile.AnonymousJson,
                 anonymousJustification: AnonymousJustification)
@@ -59,31 +59,31 @@ public static class LandingApiEndpointMapping
                 ListWorkspacesAsync,
                 LandingApiOperations.ListWorkspaces,
                 typeof(LandingWorkspacesResponse))
-            .RequireRateLimiting(LandingRateLimitPolicies.PublicConversation);
+            .RequireRateLimiting(LandingRateLimitPolicies.AuthenticatedVisitor);
         _ = visitors.MapModulePost(
                 LandingApiRoutes.WorkspaceHandoff,
                 IssueWorkspaceHandoffAsync,
                 LandingApiOperations.IssueWorkspaceHandoff,
                 typeof(LandingWorkspaceHandoffResponse))
-            .RequireRateLimiting(LandingRateLimitPolicies.PublicConversation);
+            .RequireRateLimiting(LandingRateLimitPolicies.AuthenticatedVisitor);
         _ = visitors.MapModulePost(
                 LandingApiRoutes.OnboardingHandoff,
                 IssueOnboardingHandoffAsync,
                 LandingApiOperations.IssueOnboardingHandoff,
                 typeof(LandingOnboardingHandoffResponse))
-            .RequireRateLimiting(LandingRateLimitPolicies.PublicConversation);
+            .RequireRateLimiting(LandingRateLimitPolicies.AuthenticatedVisitor);
         _ = visitors.MapModulePost(
                 LandingApiRoutes.HomeConversations,
                 RunHomeConversationAsync,
                 LandingApiOperations.RunHomeConversation,
                 typeof(LandingHomeConversationResponse))
-            .RequireRateLimiting(LandingRateLimitPolicies.PublicConversation);
+            .RequireRateLimiting(LandingRateLimitPolicies.AuthenticatedVisitor);
         _ = visitors.MapModuleDelete(
                 LandingApiRoutes.HomeConversationById,
                 DeleteHomeConversationAsync,
                 LandingApiOperations.DeleteHomeConversation,
                 profile: ModuleEndpointProfile.ProtectedJson)
-            .RequireRateLimiting(LandingRateLimitPolicies.PublicConversation);
+            .RequireRateLimiting(LandingRateLimitPolicies.AuthenticatedVisitor);
         RouteGroupBuilder administration = endpoints.MapProtectedModuleGroup($"{LandingApiRoutes.Base}{LandingApiRoutes.Administration}");
         administration.WithGroupName(LandingApiRoutes.DocumentTag).WithTags(LandingApiRoutes.DocumentTag);
         administration.RequireAuthorization(new AuthorizeAttribute { Policy = "PlatformAdmin" });

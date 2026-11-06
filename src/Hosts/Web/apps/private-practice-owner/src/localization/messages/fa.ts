@@ -287,25 +287,6 @@ export const faMessages = {
         lastNameRequired: "نام خانوادگی خود را وارد کنید.",
         saveFailed: "نام شما ذخیره نشد. دوباره تلاش کنید.",
       },
-      workspace: {
-        eyebrow: "ورود",
-        title: "مطب را انتخاب کنید",
-        description: "با همین ورود به یکی از مطب‌های خود بروید.",
-        continueAction: "ورود",
-        openAction: "ورود به {name}",
-        openHint: "بدون ورود دوباره به این مطب بروید",
-        opening: "در حال باز کردن {name}…",
-        openingNewClinic: "در حال رفتن به ساخت مطب…",
-        openFailed: "مطب باز نشد. دوباره تلاش کنید.",
-        loadFailed: "مطب‌های شما بارگیری نشدند. صفحه را دوباره بارگیری کنید.",
-        noClinics: "هنوز به هیچ مطبی دسترسی ندارید. از مالک مطب بخواهید شما را اضافه کند.",
-        createAction: "ساخت مطب جدید",
-        createHint: "مطب دیگری با نشانی خودش بسازید",
-        roles: {
-          owner: "مالک",
-          staff: "کارمند",
-        },
-      },
     },
     setup: {
       eyebrow: "مطب جدید",
@@ -404,6 +385,7 @@ export const faMessages = {
       failedTitle: "خانه شما باز نشد",
       failedDescription: "در مسیر رسیدن به خانه شما مشکلی پیش آمد. دوباره تلاش کنید.",
       retry: "تلاش دوباره",
+      signInAgain: "دوباره وارد شوید",
     },
     handoff: {
       title: "در حال باز کردن مطب شما",

@@ -87,11 +87,11 @@ public static class HostingComposition
         _ = app.UseClientOriginTrust();
         _ = app.UseCors("WebHostCors");
         app.UseHostWebSockets();
-        _ = app.UseRateLimiter();
         _ = app.UseSession();
         _ = app.UseIdentityServer();
         _ = app.UseAuthentication();
         _ = app.UseAuthorization();
+        _ = app.UseRateLimiter();
         _ = app.UseModuleEndpointAntiforgery();
         return app;
     }

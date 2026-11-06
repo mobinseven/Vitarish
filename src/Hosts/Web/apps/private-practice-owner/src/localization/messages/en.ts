@@ -287,25 +287,6 @@ export const enMessages = {
         lastNameRequired: "Enter your last name.",
         saveFailed: "Your name could not be saved. Try again.",
       },
-      workspace: {
-        eyebrow: "Sign in",
-        title: "Choose a clinic",
-        description: "Continue, signed in, to one of your clinics.",
-        continueAction: "Open",
-        openAction: "Open {name}",
-        openHint: "Continue to this clinic, already signed in",
-        opening: "Opening {name}…",
-        openingNewClinic: "Taking you to create your clinic…",
-        openFailed: "The clinic could not be opened. Try again.",
-        loadFailed: "Your clinics could not be loaded. Refresh the page to try again.",
-        noClinics: "You don't have access to a clinic yet. Ask the clinic owner to add you.",
-        createAction: "Create a new clinic",
-        createHint: "Set up another clinic at its own address",
-        roles: {
-          owner: "Owner",
-          staff: "Staff",
-        },
-      },
     },
     setup: {
       eyebrow: "New clinic",
@@ -404,6 +385,7 @@ export const enMessages = {
       failedTitle: "Your home did not open",
       failedDescription: "Something went wrong on the way to your home. Try again.",
       retry: "Try again",
+      signInAgain: "Sign in again",
     },
     handoff: {
       title: "Opening your clinic",

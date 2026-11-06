@@ -7,6 +7,7 @@ export interface JourneyGate {
     | "ContactConfirmation"
     | "ProfileCompletion"
     | "RequiredConsent"
+    | "SignInContinue"
     | "WorkspaceSelection"
     | "AccountRecovery"
     | "SuspiciousLogin"

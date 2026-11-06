@@ -1,51 +1,41 @@
 import { expect, test, type Page } from "@playwright/test";
 import crypto from "node:crypto";
-import { existsSync, mkdirSync } from "node:fs";
-import { dirname } from "node:path";
 import { Routes } from "../../apps/private-practice-owner/src/app/routes";
-import { enMessages } from "../../apps/private-practice-owner/src/localization/messages/en";
-import { faMessages } from "../../apps/private-practice-owner/src/localization/messages/fa";
+import { LandingRoutes } from "../../apps/vitarish-landing/src/app/routes";
 import {
-  twoHostE2eLocaleEnvironmentKey,
   twoHostE2eApiOriginEnvironmentKey,
-  twoHostE2eProofScreenshotEnvironmentKey,
+  twoHostE2eClinicOrigin,
+  twoHostE2eLandingOrigin,
+  twoHostE2eLocaleEnvironmentKey,
+  twoHostE2ePasswordEnvironmentKey,
   twoHostE2eSignInOrigin as signInOrigin,
 } from "../../scripts/two-host-e2e-artifacts.mjs";
-import { authenticationLogoutPost, getAuthenticationSessionGetQueryKey } from "../../shared/auth/src/api/generated/authentication/authentication";
-import { generatedOperationPath } from "./generatedOperationPath";
-import { REQUEST_ID_HEADER, TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
+import { authenticationAntiforgeryGet, authenticationLogoutPost, authenticationLoginPassword, getAuthenticationSessionGetQueryKey } from "../../shared/auth/src/api/generated/authentication/authentication";
+import {
+  partiesGetSignInClinics,
+  partiesIssueSignInClinicHandoff,
+  partiesIssueSignInHomeHandoff,
+} from "../../shared/journey/src/api/generated/parties/parties";
 import { localeCookieName } from "../../shared/localization/src/localeCookie";
 import type { SupportedLocale } from "../../shared/localization/src/locales";
+import { REQUEST_ID_HEADER, TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
+import { generatedOperationPath } from "./generatedOperationPath";
 import { forwardedForHeaderName } from "./signInHost";
 
 const locale: SupportedLocale = process.env[twoHostE2eLocaleEnvironmentKey] === "fa" ? "fa" : "en";
-const workspaceMessages = { en: enMessages, fa: faMessages }[locale].journey.gates.workspace;
-
-const e2ePassword = process.env.VITARISH_E2E_PASSWORD;
-const tenantAOrigin = "http://localhost:3005";
-const tenantBHostname = "tenant-b.localhost";
-const tenantBOrigin = `http://${tenantBHostname}:3005`;
-// E2eFixtureSeeder.SignInUserName: staff in tenant A ("E2E Clinic"), owner of tenant B ("E2E Clinic B", with a logo).
+const password = process.env[twoHostE2ePasswordEnvironmentKey];
+// E2eFixtureSeeder.SignInUserName: the account used for shared sign-in host coverage.
 const signInUsername = "e2e-sign-in-user";
-const tenantAName = "E2E Clinic";
-const tenantBName = "E2E Clinic B";
-// The seeded logo is an 8x8 PNG.
-const tenantBLogoWidth = 8;
 const signInClientIp = "198.51.100.91";
-// The sign-in host's own endpoints, which answer nowhere else.
-const signInClinicsPath = "/api/modules/parties/sign-in/clinics";
-const signInClinicHandoffPath = (tenantId: string) => `/api/modules/parties/sign-in/clinics/${tenantId}/handoff`;
+// These legacy Parties endpoints remain available on the sign-in host for API compatibility.
+const signInClinicsPath = generatedOperationPath(partiesGetSignInClinics);
+const signInClinicHandoffPathTemplate = generatedOperationPath(partiesIssueSignInClinicHandoff);
+const signInClinicHandoffPath = (tenantId: string) => signInClinicHandoffPathTemplate.replace(/\$\{[^}]+\}/, tenantId);
 const pageCompileTimeoutMilliseconds = 120_000;
 const sessionPath = getAuthenticationSessionGetQueryKey()[0];
-
-async function capture(page: Page, name: string) {
-  const screenshot = process.env[twoHostE2eProofScreenshotEnvironmentKey]?.replace(/\.png$/i, `-${name}.png`);
-  if (!screenshot) return;
-  mkdirSync(dirname(screenshot), { recursive: true });
-  expect(existsSync(screenshot), `refusing to overwrite retained evidence at ${screenshot}`).toBe(false);
-  await page.mouse.move(0, 0);
-  await page.screenshot({ path: screenshot, fullPage: true, animations: "disabled" });
-}
+const antiforgeryPath = generatedOperationPath(authenticationAntiforgeryGet);
+const passwordLoginPath = generatedOperationPath(authenticationLoginPassword);
+const signInHomeHandoffPath = generatedOperationPath(partiesIssueSignInHomeHandoff);
 
 async function getStatus(page: Page, path: string): Promise<number> {
   return page.evaluate(
@@ -57,10 +47,10 @@ async function getStatus(page: Page, path: string): Promise<number> {
 
 async function postStatus(page: Page, path: string, body?: unknown): Promise<number> {
   return page.evaluate(
-    async ({ tenantHostHeader, requestIdHeader, target, requestId, body }) => {
+    async ({ tenantHostHeader, requestIdHeader, antiforgeryRequestPath, target, requestId, body }) => {
       const headers = { [tenantHostHeader]: window.location.host };
       const antiforgery = (await (
-        await fetch("/api/modules/authentication/antiforgery", { credentials: "include", headers })
+        await fetch(antiforgeryRequestPath, { credentials: "include", headers })
       ).json()) as { headerName: string; requestToken: string };
       const response = await fetch(target, {
         method: "POST",
@@ -70,111 +60,81 @@ async function postStatus(page: Page, path: string, body?: unknown): Promise<num
       });
       return response.status;
     },
-    // The id is made here: inside the page, `crypto` would name this file's Node import.
-    { tenantHostHeader: TENANT_HOST_HEADER, requestIdHeader: REQUEST_ID_HEADER, target: path, requestId: `e2e-sign-in-host-${crypto.randomUUID()}`, body },
+    { tenantHostHeader: TENANT_HOST_HEADER, requestIdHeader: REQUEST_ID_HEADER, antiforgeryRequestPath: antiforgeryPath, target: path, requestId: `e2e-sign-in-host-${crypto.randomUUID()}`, body },
   );
 }
 
-test("signing in on the shared sign-in host lists the person's clinics and lands signed in on the one chosen", async ({ browser }) => {
+test("sign-in host forwards clinic-local visitors to platform home", async ({ browser }) => {
   test.setTimeout(600_000);
-  expect(e2ePassword, "VITARISH_E2E_PASSWORD must be supplied by the two-host runner").toBeTruthy();
+  expect(password, `${twoHostE2ePasswordEnvironmentKey} must be supplied by the two-host runner`).toBeTruthy();
 
-  // Its own account and client IP keep this scenario out of other specs' sessions and sign-in limits.
   const context = await browser.newContext({ extraHTTPHeaders: { [forwardedForHeaderName]: signInClientIp } });
   try {
     await context.addCookies(
-      [signInOrigin, tenantAOrigin, tenantBOrigin].map((url) => ({ name: localeCookieName, value: locale, url })),
+      [signInOrigin, twoHostE2eClinicOrigin, twoHostE2eLandingOrigin].map((url) => ({ name: localeCookieName, value: locale, url })),
     );
     const page = await context.newPage();
 
     // Clinic-local entry pages lead to the shared sign-in host before collecting credentials.
-    await page.goto(`${tenantAOrigin}${Routes.Login.Password}`, { waitUntil: "domcontentloaded" });
+    await page.goto(`${twoHostE2eClinicOrigin}${Routes.Login.Password}`, { waitUntil: "domcontentloaded" });
     await expect(page).toHaveURL(`${signInOrigin}${Routes.Login.Index}`, { timeout: pageCompileTimeoutMilliseconds });
 
-    // 1. Sign in with a password on the sign-in host, which belongs to no clinic.
     await page.goto(`${signInOrigin}${Routes.Login.Password}`, { waitUntil: "domcontentloaded" });
     await expect(page.locator("form")).toHaveAttribute("method", "post", { timeout: pageCompileTimeoutMilliseconds });
     await expect(page.locator('button[type="submit"]')).toBeEnabled({ timeout: pageCompileTimeoutMilliseconds });
     await page.locator('input[name="username"]').fill(signInUsername);
-    await page.locator('input[name="password"]').fill(e2ePassword!);
+    await page.locator('input[name="password"]').fill(password!);
+
+    let issuingCookieHeader = "";
+    await page.route(
+      (url) => {
+        try {
+          return new URL(url.href).pathname === signInHomeHandoffPath;
+        } catch {
+          return false;
+        }
+      },
+      async (route) => {
+        issuingCookieHeader = (await route.request().allHeaders()).cookie ?? "";
+        await route.continue();
+      },
+    );
+
+    const continueUrl = page.waitForURL((url) => url.origin === signInOrigin && url.pathname === Routes.SignInContinue, {
+      waitUntil: "commit",
+      timeout: pageCompileTimeoutMilliseconds,
+    });
     const [loginResponse] = await Promise.all([
-      page.waitForResponse((response) => response.url().endsWith("/api/modules/authentication/login/password")),
+      page.waitForResponse((response) => response.url().endsWith(passwordLoginPath)),
       page.locator('button[type="submit"]').click(),
     ]);
     expect(loginResponse.status()).toBe(200);
-
-    // 2. With two clinics the journey stops at the picker; each row shows the clinic's own address.
-    await expect(page).toHaveURL(new RegExp(`^${signInOrigin}${Routes.Workspaces.Select}(?:[/?#]|$)`), {
+    await continueUrl;
+    await page.waitForURL((url) => url.origin === twoHostE2eLandingOrigin && url.pathname === LandingRoutes.PlatformHome, {
+      waitUntil: "domcontentloaded",
       timeout: pageCompileTimeoutMilliseconds,
     });
-    const clinicList = page.getByRole("list", { name: workspaceMessages.title });
-    await expect(clinicList).toBeVisible({ timeout: pageCompileTimeoutMilliseconds });
-    const clinicRow = (name: string) =>
-      clinicList.getByRole("listitem").filter({ has: page.getByText(name, { exact: true }) });
-    await expect(clinicList.getByRole("listitem")).toHaveCount(2);
-    await expect(clinicRow(tenantAName).getByText("localhost", { exact: true })).toBeVisible();
-    await expect(clinicRow(tenantBName).getByText(tenantBHostname, { exact: true })).toBeVisible();
-    await expect(clinicRow(tenantAName).getByText(workspaceMessages.roles.staff, { exact: true })).toBeVisible();
-    await expect(clinicRow(tenantBName).getByText(workspaceMessages.roles.owner, { exact: true })).toBeVisible();
+    await expect.poll(() => getStatus(page, sessionPath), { timeout: pageCompileTimeoutMilliseconds }).toBe(200);
 
-    // 3. Tenant B's logo loads from tenant B's own host; tenant A has none and keeps its initials.
-    const tenantBLogo = clinicRow(tenantBName).locator("img");
-    await expect(tenantBLogo).toHaveAttribute("src", new RegExp(`^${tenantBOrigin}/`));
-    await expect
-      .poll(() => tenantBLogo.evaluate((image: HTMLImageElement) => (image.complete ? image.naturalWidth : 0)), {
-        timeout: pageCompileTimeoutMilliseconds,
-      })
-      .toBe(tenantBLogoWidth);
-    await expect(clinicRow(tenantAName).locator("img")).toHaveCount(0);
-    await capture(page, "sign-in-host-clinic-list");
-
-    // 4. No handoff link is issued for a clinic that is not the person's.
+    // The clinic directory and clinic handoffs stay mapped only on the sign-in host.
+    expect(await getStatus(page, signInClinicsPath)).toBe(404);
     expect(await postStatus(page, signInClinicHandoffPath(crypto.randomUUID()))).toBe(404);
 
-    // 4b. The sign-in host has no clinic dashboard: a signed-in visitor who opens it is sent back to the list.
-    await page.goto(`${signInOrigin}${Routes.Home}`, { waitUntil: "domcontentloaded" });
-    await expect(page).toHaveURL(new RegExp(`^${signInOrigin}${Routes.Workspaces.Select}(?:[/?#]|$)`), {
-      timeout: pageCompileTimeoutMilliseconds,
-    });
-    await expect(clinicList.getByRole("listitem")).toHaveCount(2, { timeout: pageCompileTimeoutMilliseconds });
-
-    // Keep the source session's cookie to prove revocation, even if a caller replays it
-    // after the browser receives the sign-out cookie on handoff.
-    const issuingCookieHeader = (await context.cookies(signInOrigin)).map(cookie => `${cookie.name}=${cookie.value}`).join("; ");
-
-    // 5. Choosing tenant B continues through a one-time handoff link and lands signed in on its host.
-    const handoffUrlPromise = page
-      .waitForURL(new RegExp(`${Routes.Handoff}#.+`), { waitUntil: "commit", timeout: pageCompileTimeoutMilliseconds })
-      .then(() => page.url());
-    await clinicRow(tenantBName)
-      .getByRole("button", { name: workspaceMessages.openAction.replace("{name}", tenantBName) })
-      .click();
-    expect(await handoffUrlPromise).toMatch(new RegExp(`^${tenantBOrigin}${Routes.Handoff}#.+$`));
-    await expect(page).toHaveURL(new RegExp(`^${tenantBOrigin}${Routes.Home}(?:[/?#]|$)`), {
-      timeout: pageCompileTimeoutMilliseconds,
-    });
-    expect(await getStatus(page, sessionPath)).toBe(200);
-
     const apiOrigin = process.env[twoHostE2eApiOriginEnvironmentKey];
-    expect(apiOrigin, "the two-host runner supplies the real API origin").toBeTruthy();
+    expect(apiOrigin, `${twoHostE2eApiOriginEnvironmentKey} must be supplied by the two-host runner`).toBeTruthy();
+    expect(issuingCookieHeader, "the sign-in host cookie is captured before home handoff").toBeTruthy();
     const sourceSession = await context.request.get(new URL(sessionPath, apiOrigin!).href, {
-      headers: { Cookie: issuingCookieHeader, [TENANT_HOST_HEADER]: new URL(signInOrigin).host, [forwardedForHeaderName]: signInClientIp },
+      headers: {
+        Cookie: issuingCookieHeader,
+        [TENANT_HOST_HEADER]: new URL(signInOrigin).host,
+        [forwardedForHeaderName]: signInClientIp,
+      },
       ignoreHTTPSErrors: true,
     });
     expect(sourceSession.status()).toBe(401);
 
-    // 6. The sign-in host's clinic list answers only on the sign-in host, not on a clinic host.
-    expect(await getStatus(page, signInClinicsPath)).toBe(404);
-    await page.waitForLoadState("networkidle");
-    await capture(page, "sign-in-host-tenant-b-home");
-
-    // Signing out on the clinic leaves no authenticated source session to reopen it.
     expect(await postStatus(page, generatedOperationPath(authenticationLogoutPost), { logoutId: null, returnUrl: null })).toBe(200);
     expect(await getStatus(page, sessionPath)).toBe(401);
-    await page.goto(`${signInOrigin}${Routes.Login.Password}`, { waitUntil: "domcontentloaded" });
-    await expect(page.locator("form")).toHaveAttribute("method", "post", { timeout: pageCompileTimeoutMilliseconds });
-    expect(await getStatus(page, sessionPath)).toBe(401);
-    await capture(page, "sign-in-host-signed-out");
   } finally {
     await context.close();
   }

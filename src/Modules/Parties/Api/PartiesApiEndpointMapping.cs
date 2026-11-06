@@ -93,17 +93,20 @@ public static class PartiesApiEndpointMapping
             PartiesApiRoutes.SignInClinicHandoff,
             IssueSignInClinicHandoffAsync,
             PartiesApiOperations.IssueSignInClinicHandoff,
-            typeof(C.SignInHandoffResponse));
+            typeof(C.SignInHandoffResponse))
+            .RequireRateLimiting(PartiesRateLimitPolicies.SignInHandoff);
         _ = signInGroup.MapModulePost(
             PartiesApiRoutes.SignInOnboardingHandoff,
             IssueSignInOnboardingHandoffAsync,
             PartiesApiOperations.IssueSignInOnboardingHandoff,
-            typeof(C.SignInHandoffResponse));
+            typeof(C.SignInHandoffResponse))
+            .RequireRateLimiting(PartiesRateLimitPolicies.SignInHandoff);
         _ = signInGroup.MapModulePost(
             PartiesApiRoutes.SignInHomeHandoff,
             IssueSignInHomeHandoffAsync,
             PartiesApiOperations.IssueSignInHomeHandoff,
-            typeof(C.SignInHomeHandoffResponse));
+            typeof(C.SignInHomeHandoffResponse))
+            .RequireRateLimiting(PartiesRateLimitPolicies.SignInHandoff);
         RouteGroupBuilder publicGroup = endpoints
             .MapAnonymousModuleGroup($"{PartiesApiRoutes.Base}{PartiesApiRoutes.Public}", PublicLogoJustification)
             .WithGroupName(PartiesApiRoutes.DocumentTag)

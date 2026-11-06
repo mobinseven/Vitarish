@@ -50,7 +50,7 @@ it does not: a platform-owned tenant with no practice data can hold the session.
    several the person picks one; with none, or on **Create a new clinic**, it
    continues to the onboarding host.
    Amended by [ADR-0020](0020-platform-home-and-app-aware-workspaces.md)
-   (proposed): continue to the platform home instead of selecting or creating
+   (accepted): continue to the platform home instead of selecting or creating
    a workspace automatically.
 6. **Public clinic logos.** The list shows each clinic's logo, loaded from the
    clinic's own host at `/api/modules/parties/public/logo`, an anonymous,

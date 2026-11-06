@@ -12,6 +12,7 @@ export const twoHostE2ePasswordEnvironmentKey = "VITARISH_E2E_PASSWORD";
 export const twoHostE2eAccountDeletionClientIp = "198.51.100.241";
 export const twoHostE2eForwardedForHeaderName = "X-Forwarded-For";
 export const twoHostE2eClinicOrigin = "http://localhost:3005";
+export const twoHostE2eLandingOrigin = "http://landing.localhost:3005";
 export const twoHostE2eTenantBClinicOrigin = "http://tenant-b.localhost:3005";
 export const twoHostE2eTenantBOwnerUsernameEnvironmentKey = "VITARISH_E2E_TENANT_B_OWNER_USERNAME";
 export const twoHostE2eTenantBOwnerUsername = "e2e-tenant-b-owner";

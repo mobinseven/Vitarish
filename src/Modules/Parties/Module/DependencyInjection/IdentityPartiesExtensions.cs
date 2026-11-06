@@ -20,6 +20,7 @@ using Vitarish.Parties.Infrastructure.Services;
 using Vitarish.Entities.Server.Extensions;
 using Vitarish.Parties.Module.BackgroundJobs;
 using Vitarish.Modules.Base.Core.BackgroundJobs;
+using Vitarish.Modules.Base.Core.Identity;
 
 namespace Vitarish.Parties.Module.DependencyInjection;
 
@@ -57,6 +58,16 @@ public static class IdentityPartiesExtensions
                 _ => new SlidingWindowRateLimiterOptions
                 {
                     Window = TimeSpan.FromMinutes(1), PermitLimit = 60, SegmentsPerWindow = 6,
+                    QueueLimit = 0, QueueProcessingOrder = QueueProcessingOrder.OldestFirst
+                })));
+        _ = builder.Services.AddRateLimiter(options => options.AddPolicy(PartiesRateLimitPolicies.SignInHandoff, context =>
+            RateLimitPartition.GetSlidingWindowLimiter(
+                AuthenticatedUserIdResolver.Resolve(context.User) is AuthenticatedUserIdResolution.Success user
+                    ? user.UserId.Value
+                    : context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                _ => new SlidingWindowRateLimiterOptions
+                {
+                    Window = TimeSpan.FromMinutes(1), PermitLimit = 10, SegmentsPerWindow = 6,
                     QueueLimit = 0, QueueProcessingOrder = QueueProcessingOrder.OldestFirst
                 })));
 

@@ -46,5 +46,20 @@ public sealed class JourneyReturnUrlPolicy : IJourneyReturnUrlPolicy
         && !value.StartsWith("/logout/", StringComparison.Ordinal)
         && !value.Contains('\\')
         && !value.Contains('?')
-        && !value.Contains('#');
+        && !value.Contains('#')
+        && !value.Any(static character => IsForbiddenCharacter(character));
+
+    private static bool IsForbiddenCharacter(char character) =>
+        character <= '\u001F'
+        || character is '\u007F'
+            or '\u0020'
+            or '\u00A0'
+            or '\u1680'
+            or (>= '\u2000' and <= '\u200A')
+            or '\u2028'
+            or '\u2029'
+            or '\u202F'
+            or '\u205F'
+            or '\u3000'
+            or '\uFEFF';
 }

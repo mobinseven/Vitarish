@@ -116,10 +116,10 @@ Run npm workspace commands from `src/Hosts/Web`.
 
 | Path | Responsibility |
 | --- | --- |
-| `apps/private-practice-owner` | Private-practice owner application. |
+| `apps/private-practice-owner` | Private-practice owner application and sign-in host, including `/continue`. |
 | `apps/patients` | Patient-facing application. |
 | `apps/knowledge-qa-demo` | Knowledge QA demonstration application. |
-| `apps/vitarish-landing` | Public landing application. |
+| `apps/vitarish-landing` | Public front door and signed-in platform home (`/home`), including handoff redemption (`/handoff`). |
 | `apps/vitarish-pm` | Dedicated tenant-scoped project-management application backed by SEA. |
 | `apps/agent-runtime` | Server-only OpenAI Agents SDK runtime; not a browser UI. |
 | `apps/personal-site` | Owner's personal website at `farzadm.ir`; independent of the product, but released through the same production workflow and ingress. |

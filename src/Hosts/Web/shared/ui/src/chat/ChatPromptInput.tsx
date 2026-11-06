@@ -1,6 +1,7 @@
 "use client";
 
 import type { CSSProperties, ReactNode } from "react";
+import { Tooltip } from "@heroui/react";
 import { PromptInput } from "@heroui-pro/react/prompt-input";
 import type { ChatTextDirection } from "./types";
 
@@ -77,10 +78,13 @@ export function ChatPromptInput({
           </PromptInput.ToolbarStart>
           <PromptInput.ToolbarEnd style={toolbarEndStyle}>
             {actions}
-            <PromptInput.Send
-              aria-label={submitLabel}
-              isDisabled={isPending || isSendDisabled || !canSend}
-            />
+            <Tooltip>
+              <PromptInput.Send
+                aria-label={submitLabel}
+                isDisabled={isPending || isSendDisabled || !canSend}
+              />
+              <Tooltip.Content>{submitLabel}</Tooltip.Content>
+            </Tooltip>
           </PromptInput.ToolbarEnd>
         </PromptInput.Toolbar>
       </PromptInput.Shell>

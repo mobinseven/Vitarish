@@ -17,7 +17,6 @@ export { ContactConfirmationPanel } from "./components/ContactConfirmationPanel"
 export { ConsentReviewPanel } from "./components/ConsentReviewPanel";
 
 // Pages
-export { WorkspaceSelectionPage } from "./pages/WorkspaceSelectionPage";
 export { ProfileCompletionPage } from "./pages/ProfileCompletionPage";
 export { ContactConfirmationPage } from "./pages/ContactConfirmationPage";
 export { ConsentReviewPage } from "./pages/ConsentReviewPage";

@@ -52,6 +52,17 @@ describe("isSafeRelativeReturnTo", () => {
   it("accepts only same-host paths without query, fragment or host tricks", () => {
     expect(isSafeRelativeReturnTo("/studio")).toBe(true);
     expect(isSafeRelativeReturnTo("/%2F%2Fevil.example.test")).toBe(false);
+    for (const unsafe of [
+      "/studio\tsettings",
+      "/studio\nsettings",
+      "/studio\rsettings",
+      "/studio%09settings",
+      "/studio%0Asettings",
+      "/studio%0Dsettings",
+      "%2F%09%2Fevil.example.test",
+    ]) {
+      expect(isSafeRelativeReturnTo(unsafe), unsafe).toBe(false);
+    }
     expect(isSafeRelativeReturnTo("%")).toBe(false);
     expect(isSafeRelativeReturnTo(null)).toBe(false);
   });

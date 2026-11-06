@@ -2,24 +2,22 @@
 
 How the shared sign-in host is configured in production, how to check it, and
 how to switch it off. The design is in
-[ADR-0018](../architecture/decisions/0018-shared-sign-in-host.md).
+[ADR-0018](../architecture/decisions/0018-shared-sign-in-host.md), amended by
+[ADR-0020](../architecture/decisions/0020-platform-home-and-app-aware-workspaces.md).
 
 ## What it needs
 
-People sign in at one address, `auth.vitarish.com`, and continue signed in to
-one of their clinics at `<subdomain>.darman.vitarish.com`. The ingress serves
-that address:
+People sign in at `auth.vitarish.com` and continue to platform home, where
+they can explicitly open a workspace or create one. The ingress serves the
+sign-in address:
 
 - DNS: the `*.vitarish.com` A record
   ([Ingress and DNS](../hosts/server-deployment-bundles.md#ingress-and-dns)).
 - Proxy: the `PRODUCTION_SIGN_IN_HOST` site in `src/Hosts/deployment/Caddyfile`
   sends it to the owner Web app, and `/api/*` to Main. Every other
   `*.vitarish.com` host redirects to the landing page.
-- CSP: `img-src` allows the clinic wildcard hosts, where the clinic list loads
-  each clinic's public logo (`src/Hosts/deployment/docker-compose.ingress.yml`).
-- Clinic creation from the sign-in host also needs onboarding on; see the
-  [clinic onboarding runbook](clinic-onboarding.md). Without it the list offers
-  no **Create a new clinic**.
+- Workspace creation from home needs onboarding on; see the
+  [clinic onboarding runbook](clinic-onboarding.md).
 
 ## Settings
 
@@ -37,16 +35,16 @@ One value in the server's `/opt/vitarish/deployment/.env.shared`:
 1. Run the production workflow (`workflow_dispatch` on `main`) with Main
    selected after changing the value, so it restarts with it, and Caddy when
    the Caddyfile changed.
-2. Check it with an account that has two clinics:
-   - Sign in on the sign-in host; **Choose a clinic** lists both, each with its
-     address and its logo, or its initials when it has none.
-   - **Open** on one lands signed in on that clinic's `/home`.
-   - With one clinic, sign-in continues to it by itself.
+2. Check it with accounts that have zero, one, and two clinics:
+   - Sign in on the sign-in host. Each account reaches platform home without
+     automatically opening a clinic or starting onboarding.
+   - Home lists the available workspaces; **Open** enters the selected clinic.
+   - The sign-in host is signed out after its handoff. Under the default
+     single-session policy, opening a clinic replaces the home session; a
+     policy permitting parallel sessions can retain it.
    - `https://<clinic host>/api/modules/parties/sign-in/clinics` answers 404:
-     the list exists only on the sign-in host.
+     the compatibility endpoint exists only on the sign-in host.
    - `https://<clinic host>/login` redirects to the sign-in host's `/login`.
-   - After a clinic opens, the sign-in host is signed out: opening it again
-     asks for sign-in.
 
 ## Switch it off
 

@@ -49,7 +49,8 @@ export function isSafeRelativeReturnTo(value: string | null | undefined): value 
     return false;
   }
 
-  return decoded.startsWith("/")
+  return !/[\u0000-\u001F\u007F\s]/u.test(decoded)
+    && decoded.startsWith("/")
     && !decoded.startsWith("//")
     && !decoded.startsWith("/\\")
     && !decoded.includes("\\")

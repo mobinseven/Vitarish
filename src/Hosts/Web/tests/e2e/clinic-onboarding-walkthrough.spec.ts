@@ -4,21 +4,28 @@ import crypto from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, statSync } from "node:fs";
 import { dirname } from "node:path";
 import { Routes } from "../../apps/private-practice-owner/src/app/routes";
+import { LandingRoutes } from "../../apps/vitarish-landing/src/app/routes";
 import { enMessages } from "../../apps/private-practice-owner/src/localization/messages/en";
 import { faMessages } from "../../apps/private-practice-owner/src/localization/messages/fa";
 import {
   twoHostE2eLocaleEnvironmentKey,
+  twoHostE2eLandingOrigin,
   twoHostE2eProofScreenshotEnvironmentKey,
   twoHostE2eSignInOrigin,
   twoHostE2eSmsCapturePathEnvironmentKey,
 } from "../../scripts/two-host-e2e-artifacts.mjs";
-import { TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
+import { REQUEST_ID_HEADER, TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
+import { authenticationAntiforgeryGet } from "../../shared/auth/src/api/generated/authentication/authentication";
 import { clinicMessageCatalogs } from "../../shared/clinic/src/localization/catalogs";
+import { onboardingHandoffUrl, tenantHandoffPath } from "../../shared/journey/src/onboardingHost";
 import { getDateCalendar } from "../../shared/localization/src/dateLocale";
 import { formatTimeOfDay } from "../../shared/localization/src/format";
 import { localeCookieName } from "../../shared/localization/src/localeCookie";
 import type { SupportedLocale } from "../../shared/localization/src/locales";
+import { landingIssueOnboardingHandoff } from "../../shared/platform/src/api/generated/landing/landing";
+import type { LandingOnboardingHandoffRequest, LandingOnboardingHandoffResponse } from "../../shared/platform/src/api/generated/landing/model";
 import { forwardedForHeaderName } from "./signInHost";
+import { generatedOperationPath } from "./generatedOperationPath";
 
 const locale: SupportedLocale = process.env[twoHostE2eLocaleEnvironmentKey] === "fa" ? "fa" : "en";
 const ownerMessageCatalogs = { en: enMessages, fa: faMessages } as const;
@@ -30,6 +37,7 @@ const clinicMessages = clinicMessageCatalogs[locale].clinic;
 const surgeryMessages = clinicMessages.surgeries;
 
 const smsCapturePath = process.env[twoHostE2eSmsCapturePathEnvironmentKey];
+const landingOrigin = twoHostE2eLandingOrigin;
 const onboardingOrigin = "http://start.localhost:3005";
 const tenantBHost = "tenant-b.localhost:3005";
 const tenantBOrigin = `http://${tenantBHost}`;
@@ -54,6 +62,9 @@ const logoPngBytes = [
 ];
 // Three hosts compile pages on their first visit during the walkthrough.
 const pageCompileTimeoutMilliseconds = 120_000;
+const onboardingHandoffPath = generatedOperationPath(landingIssueOnboardingHandoff);
+const antiforgeryPath = generatedOperationPath(authenticationAntiforgeryGet);
+const onboardingHandoffRequest = { category: null, answers: [] } satisfies LandingOnboardingHandoffRequest;
 
 type CapturedSms = {
   Recipient: string;
@@ -179,6 +190,37 @@ async function postPatientsCount(page: Page, tenantHost: string): Promise<number
   );
 }
 
+async function requestOnboardingHandoff(page: Page): Promise<LandingOnboardingHandoffResponse> {
+  const result = await page.evaluate(async ({ tenantHostHeader, requestIdHeader, tokenPath, handoffPath, requestId, requestBody }) => {
+    const headers = { [tenantHostHeader]: window.location.host, [requestIdHeader]: requestId };
+    const antiforgeryResponse = await fetch(tokenPath, { credentials: "include", headers });
+    if (!antiforgeryResponse.ok) return { status: antiforgeryResponse.status, body: null };
+
+    const antiforgery = (await antiforgeryResponse.json()) as { headerName: string; requestToken: string };
+    const response = await fetch(handoffPath, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        ...headers,
+        "Content-Type": "application/json",
+        [antiforgery.headerName]: antiforgery.requestToken,
+      },
+      body: JSON.stringify(requestBody),
+    });
+    const text = await response.text();
+    return { status: response.status, body: text ? JSON.parse(text) : null };
+  }, {
+    tenantHostHeader: TENANT_HOST_HEADER,
+    requestIdHeader: REQUEST_ID_HEADER,
+    tokenPath: antiforgeryPath,
+    handoffPath: onboardingHandoffPath,
+    requestId: `e2e-onboarding-handoff-${crypto.randomUUID()}`,
+    requestBody: onboardingHandoffRequest,
+  });
+  expect(result.status, "the signed-in landing host must issue the onboarding handoff").toBe(200);
+  return result.body as LandingOnboardingHandoffResponse;
+}
+
 test("a new phone number signs up, creates a clinic, lands signed in on it, and sets it up", async ({ browser, context, page }) => {
   test.setTimeout(1_200_000);
   expect(smsCapturePath, `${twoHostE2eSmsCapturePathEnvironmentKey} must be supplied by the two-host runner`).toBeTruthy();
@@ -216,13 +258,14 @@ test("a new phone number signs up, creates a clinic, lands signed in on it, and 
     route.continue({ headers: { ...route.request().headers(), [forwardedForHeaderName]: walkthroughClientIp } }),
   );
   await context.addCookies([
+    { name: localeCookieName, value: locale, url: landingOrigin },
     { name: localeCookieName, value: locale, url: onboardingOrigin },
     { name: localeCookieName, value: locale, url: clinicOrigin },
     { name: localeCookieName, value: locale, url: tenantBOrigin },
   ]);
 
-  // 1. Sign up on the shared sign-in host by phone OTP, complete the profile gate, and continue,
-  // with no clinic yet, to clinic setup on the onboarding host.
+  // 1. Sign up on the shared sign-in host by phone OTP and complete the profile gate. The signed-in
+  // person lands on platform home, where this walkthrough explicitly requests clinic setup.
   await page.goto(`${twoHostE2eSignInOrigin}${Routes.Login.Phone}`, { waitUntil: "domcontentloaded" });
   await expect(page.getByRole("heading", { name: authMessages.otp.phoneTitle, exact: true })).toBeVisible({
     timeout: pageCompileTimeoutMilliseconds,
@@ -257,6 +300,20 @@ test("a new phone number signs up, creates a clinic, lands signed in on it, and 
   await expect(saveProfileButton).toBeEnabled({ timeout: pageCompileTimeoutMilliseconds });
   await saveProfileButton.click();
 
+  await page.waitForURL((url) => url.origin === landingOrigin && url.pathname === LandingRoutes.PlatformHome, {
+    waitUntil: "domcontentloaded",
+    timeout: pageCompileTimeoutMilliseconds,
+  });
+  const onboardingHandoff = await requestOnboardingHandoff(page);
+  expect(onboardingHandoff.hostname).toBe(new URL(onboardingOrigin).hostname);
+  expect(onboardingHandoff.token).toMatch(/\S{16,}/);
+  await page.goto(onboardingHandoffUrl(onboardingOrigin, onboardingHandoff.token), {
+    waitUntil: "domcontentloaded",
+    timeout: pageCompileTimeoutMilliseconds,
+  });
+  await page.waitForURL((url) => url.host === new URL(onboardingOrigin).host && !url.pathname.startsWith(tenantHandoffPath), {
+    timeout: pageCompileTimeoutMilliseconds,
+  });
   await expect(page).toHaveURL(new RegExp(`^${onboardingOrigin}${Routes.Setup}(?:[/?#]|$)`), {
     timeout: pageCompileTimeoutMilliseconds,
   });

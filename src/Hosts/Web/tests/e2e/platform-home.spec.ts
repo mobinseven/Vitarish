@@ -8,6 +8,7 @@ import { faMessages } from "../../apps/private-practice-owner/src/localization/m
 import {
   twoHostE2eApiOriginEnvironmentKey,
   twoHostE2eLocaleEnvironmentKey,
+  twoHostE2eLandingOrigin,
   twoHostE2eOwnerUsernameEnvironmentKey,
   twoHostE2ePasswordEnvironmentKey,
   twoHostE2eProofScreenshotEnvironmentKey,
@@ -20,8 +21,11 @@ import {
   authenticationLoginPassword,
   authenticationLoginPhoneBegin,
   authenticationLoginPhoneComplete,
+  authenticationLogoutPost,
   authenticationSessionGet,
 } from "../../shared/auth/src/api/generated/authentication/authentication";
+import { clinicEnMessages } from "../../shared/clinic/src/localization/en";
+import { clinicFaMessages } from "../../shared/clinic/src/localization/fa";
 import { LandingAppAvailability } from "../../shared/platform/src/api/generated/landing/model";
 import { partiesIssueSignInHomeHandoff } from "../../shared/journey/src/api/generated/parties/parties";
 import {
@@ -39,11 +43,12 @@ const locale: SupportedLocale = process.env[twoHostE2eLocaleEnvironmentKey] === 
 const messages = { en: enMessages, fa: faMessages }[locale];
 const authMessages = messages.auth;
 const journeyMessages = messages.journey;
+const clinicMessages = { en: clinicEnMessages, fa: clinicFaMessages }[locale].clinic;
 const smsCapturePath = process.env[twoHostE2eSmsCapturePathEnvironmentKey];
 const ownerUsername = process.env[twoHostE2eOwnerUsernameEnvironmentKey];
 const password = process.env[twoHostE2ePasswordEnvironmentKey];
 const signInOrigin = twoHostE2eSignInOrigin;
-const landingOrigin = "http://landing.localhost:3005";
+const landingOrigin = twoHostE2eLandingOrigin;
 const landingHost = new URL(landingOrigin).host;
 const onboardingHostname = "start.localhost";
 // ClinicTenant.AppId in src/Apps/Clinic/Application/ClinicTenant.cs.
@@ -53,6 +58,7 @@ const emptyHomeClientIp = "198.51.100.125";
 const clinicHomeClientIp = "198.51.100.126";
 const safeReturnClientIp = "198.51.100.127";
 const unsafeReturnClientIp = "198.51.100.128";
+const authenticatedLoginClientIp = "198.51.100.129";
 const pageCompileTimeoutMilliseconds = 120_000;
 const returnIntent = "/studio";
 const unsafeReturnIntent = "//evil.example";
@@ -281,7 +287,8 @@ async function expectSourceSessionRevoked(context: BrowserContext, issuingCookie
 }
 
 async function captureProofScreenshot(page: Page): Promise<void> {
-  const screenshotPath = process.env[twoHostE2eProofScreenshotEnvironmentKey] ?? "artifacts/two-host-e2e/platform-home.png";
+  const configuredPath = process.env[twoHostE2eProofScreenshotEnvironmentKey] ?? "artifacts/two-host-e2e/platform-home.png";
+  const screenshotPath = existsSync(configuredPath) ? configuredPath.replace(/\.png$/i, "-platform-home.png") : configuredPath;
   mkdirSync(dirname(screenshotPath), { recursive: true });
   expect(existsSync(screenshotPath), `refusing to overwrite retained evidence at ${screenshotPath}`).toBe(false);
   await page.mouse.move(0, 0);
@@ -297,6 +304,36 @@ test("an anonymous visitor to the sign-in host root lands on login", async ({ br
     await page.goto(`${signInOrigin}${Routes.Root}`, { waitUntil: "domcontentloaded", timeout: pageCompileTimeoutMilliseconds });
     await expect(page).toHaveURL(`${signInOrigin}${Routes.Login.Index}`, { timeout: pageCompileTimeoutMilliseconds });
   } finally {
+    await context.close();
+  }
+});
+
+test("an authenticated sign-in host visitor continues with the safe return intent", async ({ browser }) => {
+  test.setTimeout(180_000);
+  expect(ownerUsername).toBeTruthy();
+  expect(password).toBeTruthy();
+  const context = await browser.newContext({ extraHTTPHeaders: { [forwardedForHeaderName]: authenticatedLoginClientIp } });
+  const page = await context.newPage();
+  let signedIn = false;
+  try {
+    await configureContext(context);
+    await page.goto(`${signInOrigin}${Routes.Login.Index}`, { waitUntil: "domcontentloaded", timeout: pageCompileTimeoutMilliseconds });
+    const login = await callApi(page, "POST", passwordLoginPath, {
+      userNameOrEmail: ownerUsername,
+      password,
+      returnUrl: null,
+    });
+    expect(login.status).toBe(200);
+    signedIn = true;
+    await page.route((url) => url.pathname === signInHomeHandoffPath, (route) => route.abort());
+    const loginUrl = new URL(Routes.Login.Index, signInOrigin);
+    loginUrl.searchParams.set(signInReturnUrlQueryKey, returnIntent);
+    await page.goto(loginUrl.toString(), { waitUntil: "domcontentloaded", timeout: pageCompileTimeoutMilliseconds });
+    await expect(page).toHaveURL((url) => url.origin === signInOrigin
+      && url.pathname === Routes.SignInContinue
+      && url.searchParams.get(signInReturnUrlQueryKey) === returnIntent, { timeout: pageCompileTimeoutMilliseconds });
+  } finally {
+    if (signedIn) await callApi(page, "POST", generatedPath(authenticationLogoutPost), { logoutId: null, returnUrl: null });
     await context.close();
   }
 });
@@ -386,7 +423,11 @@ test("a person with one clinic reaches platform home before choosing and opening
     });
     const clinicSession = await callApi(clinicPage, "GET", sessionPath);
     expect(clinicSession).toMatchObject({ status: 200, body: { isAuthenticated: true } });
-    expect(await callApi(homePage, "GET", sessionPath)).toMatchObject({ status: 200, body: { isAuthenticated: true } });
+    // Owner decision: the default single-session policy replaces home on workspace redemption.
+    expect(await callApi(homePage, "GET", sessionPath)).toMatchObject({ status: 401 });
+    await clinicPage.waitForLoadState("networkidle");
+    await expect(clinicPage.getByText(messages.home.dashboard.loadingSurgeries)).toBeHidden();
+    await expect(clinicPage.getByText(clinicMessages.appointments.visits.loading)).toBeHidden();
     await captureProofScreenshot(clinicPage);
     await expectSourceSessionRevoked(context, signedIn.issuingCookieHeader, clinicHomeClientIp);
   } finally {

@@ -66,6 +66,21 @@ public sealed class TenantBusinessProfileEndpointTests
         endpoint.RoutePattern.RawText.Should().Be(PartiesApiRoutes.PublicLogoPath);
     }
 
+    [Theory]
+    [InlineData(PartiesApiOperations.IssueSignInClinicHandoff)]
+    [InlineData(PartiesApiOperations.IssueSignInOnboardingHandoff)]
+    [InlineData(PartiesApiOperations.IssueSignInHomeHandoff)]
+    public void Sign_in_handoffs_are_rate_limited_for_the_authenticated_user(string operationId)
+    {
+        using WebApplication app = CreateApp(Mock.Of<ISender>());
+        RouteEndpoint endpoint = FindEndpoint(app, operationId);
+
+        endpoint.Metadata.GetOrderedMetadata<IAuthorizeData>()
+            .Should().Contain(metadata => metadata.AuthenticationSchemes == ModuleEndpointAuthenticationSchemes.BrowserOrBearer);
+        endpoint.Metadata.GetMetadata<EnableRateLimitingAttribute>()!.PolicyName
+            .Should().Be(PartiesRateLimitPolicies.SignInHandoff);
+    }
+
     [Fact]
     public async Task Serves_the_logo_as_its_image_type_and_answers_not_found_without_one()
     {
@@ -215,6 +230,7 @@ public sealed class TenantBusinessProfileEndpointTests
         {
             options.AddPolicy(PartiesRateLimitPolicies.SelfServiceTenantCreation, _ => RateLimitPartition.GetNoLimiter("x"));
             options.AddPolicy(PartiesRateLimitPolicies.PublicLogo, _ => RateLimitPartition.GetNoLimiter("x"));
+            options.AddPolicy(PartiesRateLimitPolicies.SignInHandoff, _ => RateLimitPartition.GetNoLimiter("x"));
         });
         builder.Services.AddSingleton(Mock.Of<IPartiesService>());
         builder.Services.AddSingleton(Mock.Of<ISecurityAuditWriter>());

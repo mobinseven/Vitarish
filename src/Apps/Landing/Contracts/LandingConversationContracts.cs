@@ -20,6 +20,7 @@ public static class LandingApiRoutes
 
 public static class LandingApiOperations
 {
+    public const string SubmitConversation = "LandingSubmitConversation";
     public const string ListWorkspaces = "LandingListWorkspaces";
     public const string IssueWorkspaceHandoff = "LandingIssueWorkspaceHandoff";
     public const string IssueOnboardingHandoff = "LandingIssueOnboardingHandoff";

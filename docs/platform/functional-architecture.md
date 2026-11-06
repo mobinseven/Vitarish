@@ -1,7 +1,7 @@
 # Platform functional architecture
 
 This document owns the platform's functional model. The home, app catalog and
-journey described below are proposed by [ADR-0020](../architecture/decisions/0020-platform-home-and-app-aware-workspaces.md); they are not all implemented yet.
+journey described below follow [ADR-0020](../architecture/decisions/0020-platform-home-and-app-aware-workspaces.md); they are not all implemented yet.
 
 ## Platform and apps
 
@@ -15,6 +15,10 @@ identified by `Tenant.AppId`. A person may have workspaces in different apps.
   at `/home`.
 - The sign-in host (`auth.vitarish.com`) handles sign-in only. After handoff it
   keeps no session; platform administration retains its own sign-in.
+- Workspace handoff does not itself end the home session. Redemption follows
+  the concurrent-session policy: the default single-session policy replaces
+  home with the workspace session; a policy allowing parallel sessions retains
+  home.
 - The onboarding host creates a workspace through the existing setup.
 - The administration host is for platform administration.
 
