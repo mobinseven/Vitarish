@@ -4,6 +4,7 @@ import { dirname, join } from "node:path";
 import { usersGetProfile } from "../../shared/auth/src/api/generated/users/users";
 import {
   authenticationAccessHistoryGet,
+  authenticationLoginPasswordOtpResend,
   authenticationLogoutPost,
   authenticationSessionGet,
   authenticationSessionNoticesGet,
@@ -11,11 +12,12 @@ import {
 import { auditPlatformSecurityEventsList, auditSecurityEventsList, getAuditPlatformSecurityEventCatalogGetQueryKey, getAuditPlatformSecurityEventsExportQueryKey } from "../../shared/security/src/api/generated/audit/audit";
 import type { AuditPlatformSecurityEventsListParams, SecurityAuditPageReadDto } from "../../shared/security/src/api/generated/audit/model";
 import { auditSortFields } from "../../shared/security/src/api/securityAuditSortFields";
-import { ApiError, ANTIFORGERY_VALIDATION_FAILED_CODE, TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
+import { ApiError, ANTIFORGERY_VALIDATION_FAILED_CODE, REQUEST_ID_HEADER, TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
 import { localizePlatformAuditCategory, localizePlatformAuditEvent, localizePlatformAuditOperation } from "../../shared/security/src/localization";
 import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
 import { twoHostE2eApiOriginEnvironmentKey, twoHostE2ePlatformAdminClientIp, twoHostE2eProofScreenshotEnvironmentKey, twoHostE2eTenantBClinicOrigin, twoHostE2eTenantBOwnerUsername, twoHostE2eTenantBOwnerUsernameEnvironmentKey } from "../../scripts/two-host-e2e-artifacts.mjs";
 import { agentEnvelopeCanonical, base64UrlHmac } from "./agentCallback";
+import { generatedOperationPath } from "./generatedOperationPath";
 import { forwardedForHeaderName, signInToClinic } from "./signInHost";
 
 // Main itself, for API-boundary checks made without the browser.
@@ -752,6 +754,17 @@ test("allows intentional anonymous operations to reach their owning boundary", a
     ignoreHTTPSErrors: true,
   });
   expect(emailLoginBegin.status()).toBe(400);
+
+  const passwordOtpResend = await request.post(`${apiOrigin}${generatedOperationPath(authenticationLoginPasswordOtpResend)}`, {
+    data: { challengeId: "ffffffffffffffffffffffffffffffff" },
+    headers: {
+      [TENANT_HOST_HEADER]: "localhost",
+      [REQUEST_ID_HEADER]: "authorization-matrix-password-otp-resend",
+    },
+    ignoreHTTPSErrors: true,
+  });
+  expect(passwordOtpResend.status()).toBe(401);
+  await expect(passwordOtpResend.json()).resolves.toMatchObject({ code: "invalid_credentials" });
 
   const challenge = "authorization-matrix-proof";
   const social = await request.get(`${apiOrigin}/webhooks/social/instagram?hub.challenge=${challenge}`, {

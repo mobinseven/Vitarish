@@ -12,9 +12,9 @@ public sealed class SecurityAccessPolicyRecordTests
     {
         SecurityAccessPolicy policy = SecurityAccessPolicy.Default;
 
-        SecurityAccessPolicy result = SecurityAccessPolicyRecord.FromDomain(policy).ToDomain();
+        SecurityAccessPolicy result = SecurityAccessPolicyRecord.FromDomain(policy).ToDomain().ReconcileProfile(AuthenticationProfilePolicy.Default);
 
-        result.Should().BeEquivalentTo(policy);
+        result.Should().BeEquivalentTo(policy.ReconcileProfile(AuthenticationProfilePolicy.Default));
     }
 
     [Fact]
@@ -26,6 +26,17 @@ public sealed class SecurityAccessPolicyRecordTests
 
         result.SourceFailedAttemptThreshold.Should().Be(7);
         result.EquivalentTo(SecurityAccessPolicy.Default).Should().BeFalse("a threshold change is a policy change");
+    }
+
+    [Fact]
+    public void Email_second_factor_action_is_profile_derived_and_not_written_as_an_unknown_enum_value()
+    {
+        SecurityAccessPolicyRecord record = SecurityAccessPolicyRecord.FromDomain(SecurityAccessPolicy.Default);
+
+        record.PermittedPreAuthenticationActions.Should().NotContain(nameof(PreAuthenticationAction.PasswordPlusEmailOtp));
+        record.ToDomain().PermittedPreAuthenticationActions.Should().NotContain(PreAuthenticationAction.PasswordPlusEmailOtp);
+        record.ToDomain().ReconcileProfile(AuthenticationProfilePolicy.Default)
+            .PermittedPreAuthenticationActions.Should().Contain(PreAuthenticationAction.PasswordPlusEmailOtp);
     }
 
     [Fact]
@@ -67,7 +78,8 @@ public sealed class SecurityAccessPolicyRecordTests
 
         SecurityAccessPolicyState state = record.ToState();
         state.Version.Should().Be(1);
-        state.Policy.Should().BeEquivalentTo(SecurityAccessPolicy.Default);
+        state.Policy.ReconcileProfile(AuthenticationProfilePolicy.Default)
+            .Should().BeEquivalentTo(SecurityAccessPolicy.Default.ReconcileProfile(AuthenticationProfilePolicy.Default));
     }
 
 }

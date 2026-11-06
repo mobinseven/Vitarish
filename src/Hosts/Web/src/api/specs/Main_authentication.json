@@ -204,6 +204,16 @@
                 }
               }
             }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         }
       }
@@ -941,7 +951,7 @@
         "tags": [
           "Authentication"
         ],
-        "summary": "Completes password plus phone OTP authentication.",
+        "summary": "Completes password sign-in with a one-time code.",
         "operationId": "Authentication_Login_PasswordOtp_Complete",
         "requestBody": {
           "content": {
@@ -1004,6 +1014,16 @@
               }
             }
           },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
           "410": {
             "description": "Gone",
             "content": {
@@ -1016,6 +1036,127 @@
           },
           "429": {
             "description": "Too Many Requests",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/modules/authentication/login/password/otp/resend": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Resends the password sign-in second-factor code.",
+        "operationId": "Authentication_Login_PasswordOtp_Resend",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResendPasswordLoginOtpRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthenticationChallengeDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Gone",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -3391,6 +3532,17 @@
         "type": "object",
         "properties": {
           "token": {
+            "type": "string"
+          }
+        }
+      },
+      "ResendPasswordLoginOtpRequest": {
+        "required": [
+          "challengeId"
+        ],
+        "type": "object",
+        "properties": {
+          "challengeId": {
             "type": "string"
           }
         }

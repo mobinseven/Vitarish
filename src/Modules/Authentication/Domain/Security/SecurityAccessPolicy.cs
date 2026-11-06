@@ -113,5 +113,6 @@ public enum PreAuthenticationAction
     PasskeyLogin,
     PasswordPlusPhoneOtp,
     /// <summary>Continue on a just-created tenant's own host with a one-time handoff ticket.</summary>
-    TenantHandoff
+    TenantHandoff,
+    PasswordPlusEmailOtp
 }

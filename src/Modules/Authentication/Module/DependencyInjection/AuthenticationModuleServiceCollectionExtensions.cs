@@ -31,6 +31,7 @@ public static class AuthenticationModuleServiceCollectionExtensions
         services.AddScoped<BeginPasskeyLoginHandler>();
         services.AddScoped<CompletePasskeyLoginHandler>();
         services.AddScoped<CompletePasswordLoginOtpHandler>();
+        services.AddScoped<ResendPasswordLoginOtpHandler>();
         services.AddScoped<AuthenticationOtpDeliveryService>();
         services.AddScoped<AuthenticationAttemptAuditor>();
         services.AddScoped<BeginPasswordRecoveryHandler>();

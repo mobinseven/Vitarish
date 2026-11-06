@@ -19,4 +19,6 @@ public sealed record AuthenticationUserDescriptor(
     string? FamilyName,
     string? Email,
     string? PhoneNumber,
-    bool RequiresProfileCompletion);
+    bool RequiresProfileCompletion,
+    bool EmailConfirmed = false,
+    bool PhoneNumberConfirmed = false);

@@ -45,6 +45,7 @@ export {
   getAuthenticationSessionGetQueryKey,
   useAuthenticationProfileGet as useAuthenticationProfile,
   useAuthenticationLoginPassword,
+  useAuthenticationLoginPasswordOtpResend,
   useAuthenticationLoginPhoneBegin,
   useAuthenticationLoginPhoneComplete,
   useAuthenticationLoginEmailBegin,

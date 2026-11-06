@@ -8,6 +8,10 @@ public static partial class AuthenticationRoutes
     public const string ProfilePath = "/profile";
     public const string Profile = BasePath + ProfilePath;
     public const string PasswordLogin = BasePath + "/login/password";
+    public const string PasswordLoginOtpCompletePath = "/login/password/otp/complete";
+    public const string PasswordLoginOtpResendPath = "/login/password/otp/resend";
+    public const string PasswordLoginOtpComplete = BasePath + PasswordLoginOtpCompletePath;
+    public const string PasswordLoginOtpResend = BasePath + PasswordLoginOtpResendPath;
     public const string BeginPhoneLogin = BasePath + "/login/phone/begin";
     public const string CompletePhoneLogin = BasePath + "/login/phone/complete";
     public const string BeginEmailLogin = BasePath + "/login/email/begin";

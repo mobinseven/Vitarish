@@ -283,10 +283,11 @@ public sealed class SecurityAccessPolicyHandlerTests
         SecurityAuthenticationPolicyManagementState result = await handler.Handle(CancellationToken.None);
 
         result.State.Version.Should().Be(9);
-        result.State.Policy.EnabledAuthenticationMechanisms.Should().BeEquivalentTo([AuthenticationMethod.Password, AuthenticationMethod.Phone]);
-        result.AvailableMechanisms.Should().BeEquivalentTo([AuthenticationMethod.Password, AuthenticationMethod.Phone]);
+        result.State.Policy.EnabledAuthenticationMechanisms.Should().BeEquivalentTo([AuthenticationMethod.Password, AuthenticationMethod.Phone, AuthenticationMethod.Email]);
+        result.AvailableMechanisms.Should().BeEquivalentTo([AuthenticationMethod.Password, AuthenticationMethod.Phone, AuthenticationMethod.Email]);
         result.RequiredMechanisms.Should().Contain(AuthenticationMethod.Password);
         result.RequiredActions.Should().Contain(PreAuthenticationAction.PasswordPlusPhoneOtp);
+        result.RequiredActions.Should().Contain(PreAuthenticationAction.PasswordPlusEmailOtp);
         store.Verify(item => item.GetStateAsync(It.IsAny<CancellationToken>()), Times.Once);
         store.Verify(item => item.SaveAsync(It.IsAny<SecurityAccessPolicy>(), It.IsAny<long>(), It.IsAny<CancellationToken>()), Times.Never);
     }
@@ -341,7 +342,7 @@ public sealed class SecurityAccessPolicyHandlerTests
             FailedAttemptDenialDuration = TimeSpan.FromMinutes(20),
             FailedAttemptResponse = FailedAttemptResponse.Deny,
             EnabledAuthenticationMechanisms = new HashSet<AuthenticationMethod> { AuthenticationMethod.Password, AuthenticationMethod.Phone, AuthenticationMethod.Email },
-            PermittedPreAuthenticationActions = new HashSet<PreAuthenticationAction> { PreAuthenticationAction.AuthenticationProfile, PreAuthenticationAction.PasswordLogin, PreAuthenticationAction.PasswordPlusPhoneOtp, PreAuthenticationAction.EmailLogin }
+            PermittedPreAuthenticationActions = new HashSet<PreAuthenticationAction> { PreAuthenticationAction.AuthenticationProfile, PreAuthenticationAction.PasswordLogin, PreAuthenticationAction.PasswordPlusPhoneOtp, PreAuthenticationAction.PasswordPlusEmailOtp, PreAuthenticationAction.EmailLogin }
         };
         Mock<IAuthenticationSecurityPolicyStore> store = new();
         store.Setup(item => item.GetStateAsync(It.IsAny<CancellationToken>())).ReturnsAsync(new SecurityAccessPolicyState(current, 6));
@@ -352,7 +353,7 @@ public sealed class SecurityAccessPolicyHandlerTests
 
         SecurityAccessPolicyState result = await handler.Handle(new ChangeSecurityAuthenticationPolicyCommand(
             12, true, true, true, true, 8, 1200, "Deny",
-            ["Password", "Phone", "Email"], ["AuthenticationProfile", "PasswordLogin", "PasswordPlusPhoneOtp", "EmailLogin"], 6), CancellationToken.None);
+            ["Password", "Phone", "Email"], ["AuthenticationProfile", "PasswordLogin", "PasswordPlusPhoneOtp", "PasswordPlusEmailOtp", "EmailLogin"], 6), CancellationToken.None);
 
         result.Policy.Should().BeEquivalentTo(expected);
         audit.Events.Select(item => item.Outcome).Should().ContainInOrder(SecurityAuditOutcome.Started, SecurityAuditOutcome.Succeeded);

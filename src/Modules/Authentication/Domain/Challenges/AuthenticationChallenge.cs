@@ -67,7 +67,7 @@ public sealed class AuthenticationChallenge
     /// The second step of a sign-in. One wrong code ends it, and the user restarts
     /// from the first factor (NSMAIL-1 FIA_UAU.5).
     /// </summary>
-    public bool IsSecondFactor => Purpose is AuthenticationChallengePurpose.PasswordLoginOtp;
+    public bool IsSecondFactor => Purpose is AuthenticationChallengePurpose.PasswordLoginOtp or AuthenticationChallengePurpose.PasswordLoginEmailOtp;
 
     public static AuthenticationChallenge Restore(
         AuthenticationChallengeId id,

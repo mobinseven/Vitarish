@@ -115,7 +115,7 @@ export const enMessages = {
       codeSentLabel: "We sent a verification code to",
       codeSentToPrefix: "Code sent to ",
       codeSentToSuffix: ".",
-      attemptsRemaining: "{count} attempts remaining",
+      attemptsRemaining: "Attempts remaining: {count}",
       codeExpired: "Code expired; request a new code",
       differentEmailAction: "Use a different email",
       differentPhoneAction: "Use a different number",

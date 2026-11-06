@@ -5,19 +5,28 @@ import { useQueryClient } from "@tanstack/react-query";
 import {
   useAuthenticationLoginPassword,
   useAuthenticationLoginPasswordOtpComplete,
+  useAuthenticationLoginPasswordOtpResend,
   getAuthenticationSessionGetQueryKey,
 } from "../api/generated/authentication/authentication";
-import type { PasswordLoginRequest } from "../api/generated/authentication/model";
-import { parseAuthError, getErrorMessage, type AuthError } from "../auth/errors";
+import type { AuthenticationChallengeDto, PasswordLoginRequest } from "../api/generated/authentication/model";
+import { isExpiredOrExhaustedChallenge, parseAuthError, getErrorMessage, type AuthError } from "../auth/errors";
 import { getRequestedReturnUrl } from "./requestedReturnUrl";
 import { ignoreAuthNavigation, type AuthNavigationOptions } from "./navigation";
 
 export function usePasswordLogin({ navigate = ignoreAuthNavigation, returnUrlSearchParams }: AuthNavigationOptions = {}) {
   const mutation = useAuthenticationLoginPassword();
   const otpMutation = useAuthenticationLoginPasswordOtpComplete();
+  const resendOtpMutation = useAuthenticationLoginPasswordOtpResend();
   const queryClient = useQueryClient();
   const [error, setError] = useState<AuthError | null>(null);
-  const [otpChallengeId, setOtpChallengeId] = useState<string | null>(null);
+  const [challenge, setChallenge] = useState<{
+    challengeId: string;
+    usesEmailSecondFactor?: boolean;
+    maskedDestination?: string;
+    expiresAt?: string;
+    remainingAttempts?: AuthenticationChallengeDto["remainingAttempts"];
+  } | null>(null);
+  const [statusCode, setStatusCode] = useState<string | null>(null);
   const [pendingReturnUrl, setPendingReturnUrl] = useState<string | undefined>(undefined);
 
   const login = useCallback(
@@ -27,6 +36,7 @@ export function usePasswordLogin({ navigate = ignoreAuthNavigation, returnUrlSea
       returnUrl?: string
     ) => {
       setError(null);
+      setStatusCode(null);
       const finalReturnUrl = getRequestedReturnUrl(returnUrlSearchParams, returnUrl);
       try {
         const data: Omit<PasswordLoginRequest, "returnUrl"> & Partial<Pick<PasswordLoginRequest, "returnUrl">> = {
@@ -47,7 +57,13 @@ export function usePasswordLogin({ navigate = ignoreAuthNavigation, returnUrlSea
       } catch (err) {
         const authError = parseAuthError(err);
         if (authError.code === "additional_step_required" && authError.challengeId) {
-          setOtpChallengeId(authError.challengeId);
+          setChallenge({
+            challengeId: authError.challengeId,
+            usesEmailSecondFactor: authError.usesEmailSecondFactor,
+            maskedDestination: authError.maskedDestination,
+            expiresAt: authError.challengeExpiresAt,
+            remainingAttempts: authError.remainingAttempts,
+          });
           setPendingReturnUrl(finalReturnUrl);
           return;
         }
@@ -58,12 +74,13 @@ export function usePasswordLogin({ navigate = ignoreAuthNavigation, returnUrlSea
   );
 
   const completeOtp = useCallback(async (code: string) => {
-    if (!otpChallengeId) return;
+    if (!challenge) return;
     setError(null);
+    setStatusCode(null);
     try {
       const result = await otpMutation.mutateAsync({
         data: {
-          challengeId: otpChallengeId,
+          challengeId: challenge.challengeId,
           code,
           returnUrl: pendingReturnUrl ?? getRequestedReturnUrl(returnUrlSearchParams) ?? null,
         },
@@ -74,22 +91,57 @@ export function usePasswordLogin({ navigate = ignoreAuthNavigation, returnUrlSea
       const authError = parseAuthError(err);
       setError(authError);
       if (
-        authError.code === "challenge_expired" ||
-        authError.code === "challenge_attempts_exhausted" ||
+        isExpiredOrExhaustedChallenge(authError.code) ||
         authError.code === "challenge_already_used"
       ) {
-        setOtpChallengeId(null);
+        setChallenge(null);
         setPendingReturnUrl(undefined);
       }
     }
-  }, [navigate, otpChallengeId, otpMutation, pendingReturnUrl, queryClient, returnUrlSearchParams]);
+  }, [navigate, challenge, otpMutation, pendingReturnUrl, queryClient, returnUrlSearchParams]);
+
+  const resendOtp = useCallback(async () => {
+    if (!challenge) return;
+    setError(null);
+    setStatusCode(null);
+    try {
+      const result = await resendOtpMutation.mutateAsync({
+        data: { challengeId: challenge.challengeId },
+      });
+      setChallenge((current) => current ? {
+        ...current,
+        expiresAt: result.expiresAt,
+        remainingAttempts: result.remainingAttempts,
+      } : current);
+      setStatusCode("auth.passwordLoginOtp.codeResent");
+    } catch (err) {
+      const authError = parseAuthError(err);
+      setStatusCode(null);
+      setError(authError);
+      if (isExpiredOrExhaustedChallenge(authError.code)) {
+        setChallenge(null);
+        setPendingReturnUrl(undefined);
+      }
+    }
+  }, [challenge, resendOtpMutation]);
+
+  const resetOtp = useCallback(() => {
+    setChallenge(null);
+    setError(null);
+    setStatusCode(null);
+    setPendingReturnUrl(undefined);
+  }, []);
 
   return {
     login,
     completeOtp,
-    requiresOtp: otpChallengeId !== null,
-    isLoading: mutation.isPending || otpMutation.isPending,
+    resendOtp,
+    resetOtp,
+    challenge,
+    requiresOtp: challenge !== null,
+    isLoading: mutation.isPending || otpMutation.isPending || resendOtpMutation.isPending,
     error,
     errorMessage: error ? getErrorMessage(error) : null,
+    statusCode,
   };
 }

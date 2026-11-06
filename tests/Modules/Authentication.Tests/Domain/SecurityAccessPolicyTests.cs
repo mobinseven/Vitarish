@@ -49,14 +49,15 @@ public sealed class SecurityAccessPolicyTests
     }
 
     [Fact]
-    public void Default_policy_offers_every_sign_in_method_and_a_phone_second_factor_for_two_factor_accounts()
+    public void Default_policy_offers_every_sign_in_method_and_both_password_second_factor_channels()
     {
         SecurityAccessPolicy.Default.EnabledAuthenticationMechanisms
             .Should().BeEquivalentTo([AuthenticationMethod.Password, AuthenticationMethod.Phone, AuthenticationMethod.Email, AuthenticationMethod.Passkey]);
         SecurityAccessPolicy.Default.PermittedPreAuthenticationActions
-            .Should().Contain([PreAuthenticationAction.PasskeyLogin, PreAuthenticationAction.PasswordPlusPhoneOtp]);
+            .Should().Contain([PreAuthenticationAction.PasskeyLogin, PreAuthenticationAction.PasswordPlusPhoneOtp, PreAuthenticationAction.PasswordPlusEmailOtp]);
         AuthenticationProfilePolicy.Default.RequiredPreAuthenticationActions
-            .Should().Contain(PreAuthenticationAction.PasswordPlusPhoneOtp);
+            .Should().Contain([PreAuthenticationAction.PasswordPlusPhoneOtp, PreAuthenticationAction.PasswordPlusEmailOtp]);
+        AuthenticationProfilePolicy.Default.RequiredAuthenticationMechanisms.Should().Contain(AuthenticationMethod.Email);
     }
 
     [Fact]

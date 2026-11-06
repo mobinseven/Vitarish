@@ -3,6 +3,7 @@ import { TENANT_HOST_HEADER } from "./tenantHostHeader";
 export { TENANT_HOST_HEADER };
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
+export const ACCEPT_LANGUAGE_HEADER = "Accept-Language";
 export const ANTIFORGERY_VALIDATION_FAILED_CODE = "AntiforgeryValidationFailed";
 export const REQUEST_ID_HEADER = "X-Request-Id";
 
@@ -15,6 +16,10 @@ export interface ProblemDetails {
   code?: string;
   errors?: Record<string, string[]>;
   challengeId?: string;
+  usesEmailSecondFactor?: boolean;
+  maskedDestination?: string;
+  challengeExpiresAt?: string;
+  remainingAttempts?: number;
 }
 
 export class ApiError extends Error {
@@ -47,6 +52,13 @@ function applyTenantHostHeader(headers: Headers): void {
 
   const host = getCurrentTenantHost();
   if (host) headers.set(TENANT_HOST_HEADER, host);
+}
+
+function applyDocumentLanguageHeader(headers: Headers): void {
+  if (headers.has(ACCEPT_LANGUAGE_HEADER) || typeof document === "undefined") return;
+
+  const locale = document.documentElement.lang.trim();
+  if (locale) headers.set(ACCEPT_LANGUAGE_HEADER, locale);
 }
 
 function applyRequestIdHeader(headers: Headers): void {
@@ -286,6 +298,7 @@ export async function apiFetch<T>(urlOrConfig: string | OrvalConfig, options: Ap
   }
   if (!baseHeaders.has("Content-Type") && body && !(body instanceof FormData)) baseHeaders.set("Content-Type", "application/json");
   applyTenantHostHeader(baseHeaders);
+  applyDocumentLanguageHeader(baseHeaders);
   if (isUnsafeMethod(method)) applyRequestIdHeader(baseHeaders);
 
   const buildHeaders = async () => {

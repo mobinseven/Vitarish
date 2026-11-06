@@ -26,11 +26,19 @@ export interface AuthError {
   message: string;
   status: number;
   challengeId?: string;
+  usesEmailSecondFactor?: boolean;
+  maskedDestination?: string;
+  challengeExpiresAt?: string;
+  remainingAttempts?: number;
 }
 
 /** The entered verification code was rejected; the message belongs on the code field. */
 export function isVerificationCodeError(code: AuthenticationErrorCode | null | undefined): boolean {
   return code === "invalid_verification_code";
+}
+
+export function isExpiredOrExhaustedChallenge(code: AuthenticationErrorCode | null | undefined): boolean {
+  return code === "challenge_expired" || code === "challenge_attempts_exhausted";
 }
 
 /**
@@ -48,6 +56,23 @@ export function parseAuthError(error: unknown): AuthError {
       message: error.message,
       status: error.status,
       challengeId: error.problem.challengeId,
+      usesEmailSecondFactor:
+        typeof error.problem.usesEmailSecondFactor === "boolean"
+          ? error.problem.usesEmailSecondFactor
+          : undefined,
+      maskedDestination:
+        typeof error.problem.maskedDestination === "string"
+          ? error.problem.maskedDestination
+          : undefined,
+      challengeExpiresAt:
+        typeof error.problem.challengeExpiresAt === "string"
+          ? error.problem.challengeExpiresAt
+          : undefined,
+      remainingAttempts:
+        Number.isSafeInteger(error.problem.remainingAttempts) &&
+        (error.problem.remainingAttempts ?? -1) >= 0
+          ? error.problem.remainingAttempts
+          : undefined,
     };
   }
 

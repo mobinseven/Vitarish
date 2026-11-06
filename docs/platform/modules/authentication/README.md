@@ -7,6 +7,25 @@ Last reviewed: 2026-07-09
 
 This folder contains app-agnostic module documentation. App-specific usage belongs in the owning app's flat collections under `docs/apps/<app>/`.
 
+## Password sign-in with an additional code
+
+When a password account has two-factor enabled, sign-in requires a one-time
+code after the password. Authentication prefers a confirmed phone and sends an
+SMS; if there is no confirmed phone, it uses the confirmed email address. If
+neither contact is confirmed, sign-in is refused. The code has the existing
+challenge lifetime and failed-attempt controls, and successful verification
+starts the normal browser session. Codes are not included in audit records.
+
+The profile requires the corresponding phone and email password-code actions
+and mechanisms when this behavior is enabled. Existing stored policies are
+reconciled with those requirements at read time; no per-user setting or data
+migration is needed. During a mixed-version rollout, an email challenge issued
+by an updated node cannot be completed on an older node; restart sign-in on an
+updated node after deployment. Rolling back removes email-code support, so an
+affected account needs a confirmed phone or the updated release. This is a
+password followed by a code delivered to a contact: whether it provides
+independent factors depends on how that contact is protected.
+
 ## Tenant handoff
 
 When a signed-in user creates their own clinic, the creation response carries a
