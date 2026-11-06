@@ -50,11 +50,13 @@ internal static class E2eFixtureSeeder
     public const string TwoFactorPlatformAdminPhoneNumber = "+989130000001";
     /// <summary>Staff in tenant A only; registers a passkey and signs in with it.</summary>
     public const string PasskeyUserName = "e2e-passkey-user";
-    /// <summary>Staff in tenant A and an owner of tenant B, so the shared sign-in host lists two clinics to choose from.</summary>
+    /// <summary>Staff in tenant A and an owner of tenant B, so the landing home lists two workspaces.</summary>
     public const string SignInUserName = "e2e-sign-in-user";
     public const string PatientName = "E2E Patient";
     public const string PatientFirstName = "E2E";
     public const string PatientLastName = "Patient";
+    private static readonly Guid TenantAId = Guid.Parse("9c8b6b3a-7d6e-4f75-a88d-7d3f5b1b0f92");
+    private static readonly Guid TenantBId = Guid.Parse("b2d2e4a1-2fd8-4781-8d9f-6c96f2a5e7b4");
     private const string TenantAFileChecksum = "720B672F1CF84CDE6F1788EECF15D8FA940BBEE7D6610D1B2E2546E85969A726";
     private const string TenantBFileChecksum = "C869566813A0DFFB02AB1863035E73FC9F29E569B795BEF12E4EB7F6D80DFDA7";
     // An 8x8 solid teal PNG: tenant B's public logo, which the sign-in clinic list shows.
@@ -209,12 +211,12 @@ internal static class E2eFixtureSeeder
         PartiesDbContext parties = scope.ServiceProvider.GetRequiredService<PartiesDbContext>();
         IRequestContextWriter requestContext = scope.ServiceProvider.GetRequiredService<IRequestContextWriter>();
         Console.WriteLine("E2E fixture seeding: preparing tenant A.");
-        Tenant? tenant = await parties.Tenants.SingleOrDefaultAsync(item => item.AppId == Vitarish.Clinic.Application.ClinicTenant.AppId, cancellationToken);
+        Tenant? tenant = await parties.Tenants.SingleOrDefaultAsync(item => item.Id == TenantAId, cancellationToken);
         if (tenant is null)
         {
             tenant = new Tenant
             {
-                Id = Guid.Parse("9c8b6b3a-7d6e-4f75-a88d-7d3f5b1b0f92"),
+                Id = TenantAId,
                 OwnerId = ownerId,
                 Name = "E2E Clinic",
                 AppId = Vitarish.Clinic.Application.ClinicTenant.AppId
@@ -233,20 +235,21 @@ internal static class E2eFixtureSeeder
             requestContext.SetContext("e2e", null, ownerId.ToString(), tenant.Id.ToString(), user.Id);
             _ = await parties.SaveChangesAsync(cancellationToken);
         }
+        tenant.AppId = Vitarish.Clinic.Application.ClinicTenant.AppId;
 
         requestContext.SetContext("e2e", null, ownerId.ToString(), tenant.Id.ToString(), user.Id);
 
         Guid tenantBOwnerId = Guid.Parse(tenantBOwner.Id);
         Console.WriteLine("E2E fixture seeding: preparing tenant B.");
-        Tenant? tenantB = await parties.Tenants.SingleOrDefaultAsync(item => item.AppId == "private-practice-owner-tenant-b", cancellationToken);
+        Tenant? tenantB = await parties.Tenants.SingleOrDefaultAsync(item => item.Id == TenantBId, cancellationToken);
         if (tenantB is null)
         {
             tenantB = new Tenant
             {
-                Id = Guid.Parse("b2d2e4a1-2fd8-4781-8d9f-6c96f2a5e7b4"),
+                Id = TenantBId,
                 OwnerId = tenantBOwnerId,
                 Name = "E2E Clinic B",
-                AppId = "private-practice-owner-tenant-b"
+                AppId = Vitarish.Clinic.Application.ClinicTenant.AppId
             };
             _ = parties.Tenants.Add(tenantB);
             _ = parties.TenantIndicators.Add(new TenantIndicator
@@ -259,6 +262,7 @@ internal static class E2eFixtureSeeder
                 IsPrimary = true
             });
         }
+        tenantB.AppId = Vitarish.Clinic.Application.ClinicTenant.AppId;
 
         if (!await parties.Owners.AnyAsync(owner => owner.Id == tenantBOwnerId, cancellationToken))
             _ = parties.Owners.Add(new Owner { Id = tenantBOwnerId, Name = "E2E Tenant B Owner" });

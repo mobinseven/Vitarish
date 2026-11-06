@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { ItemCard } from "@heroui-pro/react";
 import {
   FaIcon,
@@ -10,6 +11,7 @@ import {
   type SignInMethod,
 } from "@vitarish/ui";
 import { useAuthenticationProfile } from "@vitarish/auth";
+import { isSafeRelativeReturnTo, signInReturnUrlQueryKey } from "@vitarish/journey/sign-in-host";
 import { useLocalizedText, type MessageKey } from "@/localization";
 import { Routes } from "@/app/routes";
 import { useCreateClinicHref } from "@/features/onboarding/useCreateClinicHref";
@@ -59,6 +61,11 @@ interface LoginMethodsPageProps {
 export function LoginMethodsPage({ onboardingUrl }: LoginMethodsPageProps) {
   const { t } = useLocalizedText();
   const { data: profile } = useAuthenticationProfile();
+  const searchParams = useSearchParams();
+  const requestedReturnUrl = searchParams.get(signInReturnUrlQueryKey);
+  const safeReturnUrl = isSafeRelativeReturnTo(requestedReturnUrl)
+    ? requestedReturnUrl
+    : undefined;
   const createClinicHref = useCreateClinicHref(onboardingUrl);
   const enabledMethods = authMethods.filter((method) =>
     method.id === "password" ||
@@ -77,7 +84,16 @@ export function LoginMethodsPage({ onboardingUrl }: LoginMethodsPageProps) {
             key={method.id}
             variant="secondary"
             className={`w-full cursor-pointer transition-colors ${signInMethodClassName(method.id)}`}
-            render={(props) => <Link href={method.href} {...props} />}
+            render={(props) => (
+              <Link
+                href={safeReturnUrl
+                  ? `${method.href}?${new URLSearchParams({
+                    [signInReturnUrlQueryKey]: safeReturnUrl,
+                  })}`
+                  : method.href}
+                {...props}
+              />
+            )}
           >
             <ItemCard.Icon
               className={`size-12 shrink-0 rounded-xl ${signInMethodTileClassName}`}

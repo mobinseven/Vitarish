@@ -19,6 +19,20 @@ export { getPartiesAdministrationGetTenantsQueryKey, getPartiesAdministrationGet
 export { useLandingAdministrationGetHostBinding, useLandingAdministrationSetHostBinding, getLandingAdministrationGetHostBindingQueryKey } from "./api/generated/landing/landing";
 export { getLandingGetCatalogQueryOptions, landingDeleteConversation, landingIssueOnboardingHandoff, landingSubmitConversation } from "./api/generated/landing/landing";
 export { LandingFeatureAvailability, LandingProofKind } from "./api/generated/landing/model";
+export {
+  landingDeleteHomeConversation,
+  landingIssueWorkspaceHandoff,
+  landingRunHomeConversation,
+  useLandingListWorkspaces,
+} from "./api/generated/landing/landing";
+export { LandingAppAvailability } from "./api/generated/landing/model";
+export type {
+  LandingAppResponse,
+  LandingHomeActionKeysResponse,
+  LandingHomeConversationResponse,
+  LandingWorkspaceResponse,
+  LandingWorkspacesResponse,
+} from "./api/generated/landing/model";
 export type {
   LandingCatalogResponse,
   LandingConsultationResponse,

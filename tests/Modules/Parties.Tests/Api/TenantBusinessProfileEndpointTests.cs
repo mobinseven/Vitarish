@@ -66,6 +66,21 @@ public sealed class TenantBusinessProfileEndpointTests
         endpoint.RoutePattern.RawText.Should().Be(PartiesApiRoutes.PublicLogoPath);
     }
 
+    [Theory]
+    [InlineData(PartiesApiOperations.IssueSignInClinicHandoff)]
+    [InlineData(PartiesApiOperations.IssueSignInOnboardingHandoff)]
+    [InlineData(PartiesApiOperations.IssueSignInHomeHandoff)]
+    public void Sign_in_handoffs_are_rate_limited_for_the_authenticated_user(string operationId)
+    {
+        using WebApplication app = CreateApp(Mock.Of<ISender>());
+        RouteEndpoint endpoint = FindEndpoint(app, operationId);
+
+        endpoint.Metadata.GetOrderedMetadata<IAuthorizeData>()
+            .Should().Contain(metadata => metadata.AuthenticationSchemes == ModuleEndpointAuthenticationSchemes.BrowserOrBearer);
+        endpoint.Metadata.GetMetadata<EnableRateLimitingAttribute>()!.PolicyName
+            .Should().Be(PartiesRateLimitPolicies.SignInHandoff);
+    }
+
     [Fact]
     public async Task Serves_the_logo_as_its_image_type_and_answers_not_found_without_one()
     {
@@ -93,16 +108,16 @@ public sealed class TenantBusinessProfileEndpointTests
         sender.Setup(item => item.Send(It.IsAny<IsSignInHostQuery>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);
         sender.Setup(item => item.Send(It.IsAny<ListSignInClinicsQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync([
-                new SignInClinic(withLogo, "A", "a.clinic.example.test", IdentityDefinitions.TenantOwner, HasLogo: true),
-                new SignInClinic(withoutLogo, "B", "b.clinic.example.test", IdentityDefinitions.TenantUser, HasLogo: false)]);
+                new WorkspaceDirectoryEntry(withLogo, "clinic", "A", "a.clinic.example.test", IdentityDefinitions.TenantOwner, HasLogo: true),
+                new WorkspaceDirectoryEntry(withoutLogo, "clinic", "B", "b.clinic.example.test", IdentityDefinitions.TenantUser, HasLogo: false)]);
         using WebApplication app = CreateApp(sender.Object);
 
         HttpContext context = await InvokeAsync(app, PartiesApiOperations.GetSignInClinics, HttpMethods.Get);
 
         context.Response.StatusCode.Should().Be(StatusCodes.Status200OK);
         (await ReadBodyAsync(context)).Should().Be(
-            $"{{\"clinics\":[{{\"tenantId\":\"{withLogo}\",\"name\":\"A\",\"hostname\":\"a.clinic.example.test\",\"role\":\"{IdentityDefinitions.TenantOwner}\",\"logoPath\":\"{PartiesApiRoutes.PublicLogoPath}\"}},"
-            + $"{{\"tenantId\":\"{withoutLogo}\",\"name\":\"B\",\"hostname\":\"b.clinic.example.test\",\"role\":\"{IdentityDefinitions.TenantUser}\",\"logoPath\":null}}]}}");
+            $"{{\"clinics\":[{{\"tenantId\":\"{withLogo}\",\"appId\":\"clinic\",\"name\":\"A\",\"hostname\":\"a.clinic.example.test\",\"role\":\"{IdentityDefinitions.TenantOwner}\",\"logoPath\":\"{PartiesApiRoutes.PublicLogoPath}\"}},"
+            + $"{{\"tenantId\":\"{withoutLogo}\",\"appId\":\"clinic\",\"name\":\"B\",\"hostname\":\"b.clinic.example.test\",\"role\":\"{IdentityDefinitions.TenantUser}\",\"logoPath\":null}}]}}");
     }
 
     [Fact]
@@ -215,6 +230,7 @@ public sealed class TenantBusinessProfileEndpointTests
         {
             options.AddPolicy(PartiesRateLimitPolicies.SelfServiceTenantCreation, _ => RateLimitPartition.GetNoLimiter("x"));
             options.AddPolicy(PartiesRateLimitPolicies.PublicLogo, _ => RateLimitPartition.GetNoLimiter("x"));
+            options.AddPolicy(PartiesRateLimitPolicies.SignInHandoff, _ => RateLimitPartition.GetNoLimiter("x"));
         });
         builder.Services.AddSingleton(Mock.Of<IPartiesService>());
         builder.Services.AddSingleton(Mock.Of<ISecurityAuditWriter>());

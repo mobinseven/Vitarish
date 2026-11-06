@@ -58,10 +58,8 @@ export const Routes = {
     Index: "/contents",
   },
 
-  /** Workspace routes */
-  Workspaces: {
-    Select: "/workspaces/select",
-  },
+  /** Shared sign-in host: continues a signed-in person to their platform home */
+  SignInContinue: "/continue",
 
   /** Private-practice clinic owner routes */
   Clinic: {

@@ -93,12 +93,20 @@ public static class PartiesApiEndpointMapping
             PartiesApiRoutes.SignInClinicHandoff,
             IssueSignInClinicHandoffAsync,
             PartiesApiOperations.IssueSignInClinicHandoff,
-            typeof(C.SignInHandoffResponse));
+            typeof(C.SignInHandoffResponse))
+            .RequireRateLimiting(PartiesRateLimitPolicies.SignInHandoff);
         _ = signInGroup.MapModulePost(
             PartiesApiRoutes.SignInOnboardingHandoff,
             IssueSignInOnboardingHandoffAsync,
             PartiesApiOperations.IssueSignInOnboardingHandoff,
-            typeof(C.SignInHandoffResponse));
+            typeof(C.SignInHandoffResponse))
+            .RequireRateLimiting(PartiesRateLimitPolicies.SignInHandoff);
+        _ = signInGroup.MapModulePost(
+            PartiesApiRoutes.SignInHomeHandoff,
+            IssueSignInHomeHandoffAsync,
+            PartiesApiOperations.IssueSignInHomeHandoff,
+            typeof(C.SignInHomeHandoffResponse))
+            .RequireRateLimiting(PartiesRateLimitPolicies.SignInHandoff);
         RouteGroupBuilder publicGroup = endpoints
             .MapAnonymousModuleGroup($"{PartiesApiRoutes.Base}{PartiesApiRoutes.Public}", PublicLogoJustification)
             .WithGroupName(PartiesApiRoutes.DocumentTag)
@@ -165,7 +173,7 @@ public static class PartiesApiEndpointMapping
 
     private static async Task<IResult> GetSignInClinicsAsync([FromServices] ISender sender, CancellationToken cancellationToken) =>
         await sender.Send(new ListSignInClinicsQuery(), cancellationToken) is { } clinics
-            ? Results.Ok(new C.SignInClinicsResponse([.. clinics.Select(clinic => new C.SignInClinicDto(clinic.TenantId, clinic.Name, clinic.Hostname, clinic.Role, clinic.HasLogo ? PartiesApiRoutes.PublicLogoPath : null))]))
+            ? Results.Ok(new C.SignInClinicsResponse([.. clinics.Select(clinic => new C.SignInClinicDto(clinic.TenantId, clinic.AppId, clinic.Name, clinic.Hostname, clinic.Role, clinic.HasLogo ? PartiesApiRoutes.PublicLogoPath : null))]))
             : Results.Unauthorized();
 
     // A clinic that is not the user's answers the same as one that does not exist.
@@ -174,6 +182,11 @@ public static class PartiesApiEndpointMapping
 
     private static async Task<IResult> IssueSignInOnboardingHandoffAsync([FromServices] ISender sender, CancellationToken cancellationToken) =>
         ToHandoffResult(await sender.Send(new IssueSignInHandoffCommand(null), cancellationToken), "Clinic creation is not available.");
+
+    private static async Task<IResult> IssueSignInHomeHandoffAsync(C.SignInHomeHandoffRequest request, [FromServices] ISender sender, CancellationToken cancellationToken) =>
+        await sender.Send(new IssueSignInHandoffCommand(null, SignInHandoffTarget.Home, request.ReturnTo), cancellationToken) is { } handoff
+            ? Results.Ok(new C.SignInHomeHandoffResponse(handoff.Hostname, handoff.Token, handoff.ReturnTo))
+            : NotFound("Platform home is not available.");
 
     private static IResult ToHandoffResult(SignInHandoff? handoff, string notFound) =>
         handoff is null ? NotFound(notFound) : Results.Ok(new C.SignInHandoffResponse(handoff.Hostname, handoff.Token));

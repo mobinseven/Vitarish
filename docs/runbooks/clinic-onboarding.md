@@ -18,8 +18,7 @@ create clinics on one onboarding host under the same domain, for example
   `src/Hosts/deployment/Caddyfile` sends every clinic host, including the
   onboarding host, to the owner Web app, and `/api/*` to Main.
 - CSP: `connect-src` allows `https://tiles.openfreemap.org`, where the setup
-  page's map loads its styles and tiles, and `img-src` allows the clinic
-  wildcard hosts, where the sign-in page loads each clinic's public logo
+  page's map loads its styles and tiles
   (`src/Hosts/deployment/docker-compose.ingress.yml`).
 - SMS: sign-up sends a verification code through the production SMS provider,
   so its key, line and verification template must work.
@@ -50,7 +49,7 @@ All three live in the server's `/opt/vitarish/deployment/.env.shared`:
 2. Run the production workflow (`workflow_dispatch` on `main`) with Main and the
    owner Web and landing apps selected, so the containers restart with the new values.
 3. Check it:
-   - The sign-in page on the public host shows the link to create a clinic.
+   - After sign-in, platform home offers the explicit workspace creation action.
    - Opening the onboarding host goes straight to `/setup`, which asks a
      signed-out visitor to sign in first, in the language chosen on the
      public host.

@@ -131,7 +131,8 @@
           "SuspiciousLogin",
           "PasskeyEnrollmentPrompt",
           "MfaEnrollmentPrompt",
-          "TenantCreation"
+          "TenantCreation",
+          "SignInContinue"
         ]
       },
       "JourneyStepDto": {

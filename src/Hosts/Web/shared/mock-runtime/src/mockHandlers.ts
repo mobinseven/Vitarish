@@ -7,7 +7,7 @@ import { createMemoryMockHandlers } from "./mockMemoryHandlers";
 import { createOnboardingMockHandlers } from "./mockOnboardingHandlers";
 import { createSeaMockHandlers } from "./mockSeaHandlers";
 import { createSurgeryMockHandlers } from "./mockSurgeryHandlers";
-import { landingCatalog } from "./mockLandingCatalog";
+import { landingCatalog, landingHomeDirectory } from "./mockLandingCatalog";
 
 export type MockScenario = "ready" | "empty" | "loading" | "error";
 export type MockHandlerFactory = (scenario: MockScenario) => readonly RequestHandler[];
@@ -461,6 +461,37 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
       const index = store.conversations.findIndex((item) => item.id === id);
       if (index < 0) return notFound("Conversation does not exist in the mock store.");
       store.conversations.splice(index, 1);
+      return new HttpResponse(null, { status: 204 });
+    }),
+    http.get(/\/api\/apps\/landing\/workspaces(?:\?|$)/, async () => {
+      await withDelay();
+      if (activeScenario === "error") return unavailable();
+      return HttpResponse.json(landingHomeDirectory(activeScenario === "empty"));
+    }),
+    http.post(/\/api\/apps\/landing\/workspaces\/[^/]+\/handoff(?:\?|$)/, async () => {
+      await withDelay();
+      if (activeScenario === "error") return unavailable();
+      return HttpResponse.json({ hostname: "app.localhost", token: "mock-handoff-token" });
+    }),
+    http.post(/\/api\/apps\/landing\/home-conversations(?:\?|$)/, async ({ request }) => {
+      await withDelay();
+      if (activeScenario === "error") return unavailable();
+      const body = await request.json().catch(() => null) as { message?: unknown; conversationId?: unknown } | null;
+      const message = typeof body?.message === "string" ? body.message.trim() : "";
+      if (!message) return HttpResponse.json({ status: 400, code: "InvalidRequest", title: "Invalid mock request" }, { status: 400 });
+      const directory = landingHomeDirectory(false);
+      const workspace = directory.workspaces[0];
+      const text = `Mock home reply for: ${message}`;
+      return HttpResponse.json({
+        conversationId: typeof body?.conversationId === "string" ? body.conversationId : store.nextId("mock-home-conversation"),
+        message: text,
+        reply: { text, question: null, references: [workspace.tenantId], nextAction: directory.actionKeys.openWorkspace },
+        actionTarget: { key: directory.actionKeys.openWorkspace, tenantId: workspace.tenantId },
+      });
+    }),
+    http.delete(/\/api\/apps\/landing\/home-conversations\/[^/]+(?:\?|$)/, async () => {
+      await withDelay();
+      if (activeScenario === "error") return unavailable();
       return new HttpResponse(null, { status: 204 });
     }),
     http.post(/\/api\/modules\/appointments\/(reservations|shifts|service-types|services|service-providers)(?:\?|$)/, async ({ request }) => {

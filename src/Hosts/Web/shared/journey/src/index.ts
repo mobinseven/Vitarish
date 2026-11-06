@@ -17,12 +17,15 @@ export { ContactConfirmationPanel } from "./components/ContactConfirmationPanel"
 export { ConsentReviewPanel } from "./components/ConsentReviewPanel";
 
 // Pages
-export { WorkspaceSelectionPage } from "./pages/WorkspaceSelectionPage";
 export { ProfileCompletionPage } from "./pages/ProfileCompletionPage";
 export { ContactConfirmationPage } from "./pages/ContactConfirmationPage";
 export { ConsentReviewPage } from "./pages/ConsentReviewPage";
 export { TenantSetupPage } from "./pages/TenantSetupPage";
 export { TenantHandoffPage } from "./pages/TenantHandoffPage";
+export { SignInContinuePage } from "./pages/SignInContinuePage";
+
+// Cross-host handoff
+export { handoffUrl } from "./features/handoff/hostUrl";
 
 // Clinic home
 export { TenantLogoPrompt } from "./features/tenantLogo/TenantLogoPrompt";

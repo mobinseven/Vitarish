@@ -7,6 +7,7 @@ import { supportedLocales, useLocalizedText, useSetLocaleCookie } from "@vitaris
 import { FaIcon, FeatureItemCard, MarketingActionLink, RevealHeader, ViewportReveal } from "@vitarish/ui";
 import { chromaChipClassName } from "@vitarish/ui/chroma";
 import { LandingRoutes } from "../../app/routes";
+import { WelcomeBackPill } from "./welcome-back-pill";
 import { whatsappChatUrl } from "./whatsapp";
 import styles from "./front-door.module.css";
 
@@ -94,6 +95,7 @@ export function FrontDoorPage({ onboardingUrl, whatsappNumber }: FrontDoorPagePr
             onPress={changeLocale}
           />
         )}
+        <WelcomeBackPill />
       </header>
       <RevealHeader
         compactContent={(

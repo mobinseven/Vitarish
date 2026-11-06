@@ -3,7 +3,7 @@ import { execFile } from "node:child_process";
 import { existsSync } from "node:fs";
 import { rm } from "node:fs/promises";
 import { promisify } from "node:util";
-import { resolve } from "node:path";
+import { dirname, extname, join, parse, resolve } from "node:path";
 import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
 import { Routes as PlatformRoutes } from "../../apps/platform-admin/src/app/routes";
 import { forwardedForHeaderName, signInToClinic, submitPasswordOnSignInHost } from "./signInHost";
@@ -628,8 +628,13 @@ test("platform administrator creates, edits, assigns access, and reviews a user'
   await expect(authenticationMethods.getByRole("list", { name: userMessages.enabledMethods }).getByText(userMessages.password, { exact: true })).toBeVisible();
   await expect(authenticationMethods.getByText("No passkey is registered.", { exact: true })).toBeVisible();
 
-  const proofScreenshot = process.env[twoHostE2eProofScreenshotEnvironmentKey];
-  if (proofScreenshot) await captureAuthenticatedScreenshot(page, proofScreenshot);
+  const configuredProofScreenshot = process.env[twoHostE2eProofScreenshotEnvironmentKey];
+  if (configuredProofScreenshot) {
+    const proofScreenshot = existsSync(configuredProofScreenshot)
+      ? join(dirname(configuredProofScreenshot), `${parse(configuredProofScreenshot).name}-user-management${extname(configuredProofScreenshot)}`)
+      : configuredProofScreenshot;
+    await captureAuthenticatedScreenshot(page, proofScreenshot);
+  }
 
   // The security history pages on its own: the request moves only its page, and the
   // sign-in history stays on its first page.

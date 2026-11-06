@@ -7,6 +7,7 @@
     <PackageReference Include="Moq" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="../../../src/Apps/Landing/App/Landing.App.csproj" />
     <ProjectReference Include="../../../src/Apps/Landing/Application/Landing.Application.csproj" />
     <ProjectReference Include="../../../src/Apps/Landing/Api/Landing.Api.csproj" />
   </ItemGroup>

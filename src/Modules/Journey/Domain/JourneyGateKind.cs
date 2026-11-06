@@ -30,5 +30,8 @@ public enum JourneyGateKind
     MfaEnrollmentPrompt = 8,
 
     /// <summary>The user is on the sign-up host, whose only purpose is creating their own tenant.</summary>
-    TenantCreation = 9
+    TenantCreation = 9,
+
+    /// <summary>The signed-in user continues from the sign-in host to their platform home.</summary>
+    SignInContinue = 10
 }

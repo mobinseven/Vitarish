@@ -12,6 +12,8 @@ import { JourneyGateLayout } from "../components/JourneyGateLayout";
 interface TenantHandoffPageProps {
   /** Where to sign in normally when the link cannot be used. */
   signInPath: string;
+  /** Where to go once signed in; when omitted, the server's journey decides. */
+  destination?: string;
 }
 
 /** Takes the one-time token from the URL fragment, removes it from the address bar, and redeems it. */
@@ -22,7 +24,7 @@ function takeTokenFromFragment(): string | null {
 }
 
 /** Signs a new clinic's creator in on its own address with the one-time link from setup. */
-export function TenantHandoffPage({ signInPath }: TenantHandoffPageProps) {
+export function TenantHandoffPage({ signInPath, destination }: TenantHandoffPageProps) {
   const { t } = useLocalizedText();
   const [failed, setFailed] = useState(false);
   const started = useRef(false);
@@ -38,9 +40,9 @@ export function TenantHandoffPage({ signInPath }: TenantHandoffPageProps) {
     }
     authenticationTenantHandoffRedeem({ token })
       // A full load picks up the new session everywhere in the app.
-      .then((result) => window.location.assign(result.returnUrl))
+      .then((result) => window.location.assign(destination ?? result.returnUrl))
       .catch(() => setFailed(true));
-  }, []);
+  }, [destination]);
 
   return (
     <JourneyGateLayout>

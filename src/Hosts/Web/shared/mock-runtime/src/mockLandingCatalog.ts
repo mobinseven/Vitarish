@@ -48,3 +48,14 @@ export const landingCatalog = {
   },
   nextActions: { openClinic: "open-clinic", talkToTeam: "talk-to-team", tryVoice: "try-voice" },
 } as const;
+
+/** The signed-in platform home's directory: workspaces by app and the app catalog's create choices. */
+export function landingHomeDirectory(empty: boolean) {
+  return {
+    workspaces: empty
+      ? []
+      : [{ tenantId: "6f1c2a4e-1b7d-4f0a-9c3e-2d5b8a7e9f10", appId: "private-practice-owner", name: "Iran Height Center", hostname: "app.localhost", hasLogo: false }],
+    apps: [{ appId: "private-practice-owner", name: "Darman", availability: "Live", canCreate: true }],
+    actionKeys: { createWorkspace: "create-workspace", openWorkspace: "open-workspace" },
+  };
+}
