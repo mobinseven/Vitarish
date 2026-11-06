@@ -12,7 +12,12 @@ export { useOtpExpiry } from "./hooks/useOtpExpiry";
 export { getRequestedReturnUrl } from "./hooks/requestedReturnUrl";
 
 // Auth utilities
-export { parseAuthError, getErrorMessage } from "./auth/errors";
+export {
+  parseAuthError,
+  getErrorMessage,
+  isInvalidCredentialsError,
+  authenticationErrorCodes,
+} from "./auth/errors";
 export type { AuthError, AuthenticationErrorCode } from "./auth/errors";
 export { normalizeOtpCode } from "./auth/otpCode";
 export { getOtpExpiryPresentation } from "./auth/otpExpiry";
@@ -45,6 +50,7 @@ export {
   getAuthenticationSessionGetQueryKey,
   useAuthenticationProfileGet as useAuthenticationProfile,
   useAuthenticationLoginPassword,
+  useAuthenticationLoginPasswordOtpResend,
   useAuthenticationLoginPhoneBegin,
   useAuthenticationLoginPhoneComplete,
   useAuthenticationLoginEmailBegin,
@@ -53,6 +59,8 @@ export {
   useAuthenticationLoginPasskeyComplete,
   useAuthenticationPasswordRecoveryBegin,
   useAuthenticationPasswordRecoveryComplete,
+  useAuthenticationAccountPasswordFirstSet,
+  useAuthenticationAccountTwoStepSignInChange,
   useAuthenticationLogoutPost,
   useAuthenticationLogoutContext,
   useAuthenticationAccessHistoryGet as useAuthenticationAccessHistory,
@@ -71,6 +79,7 @@ export type {
   UserSessionsRevocationDto,
 } from "./api/generated/authentication/model";
 export { AuthenticationSessionNoticeType } from "./api/generated/authentication/model";
+export { TwoStepSignInChannelDto } from "./api/generated/authentication/model";
 
 // Generated users hooks
 export {

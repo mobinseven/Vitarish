@@ -19,5 +19,6 @@ public enum AuthenticationFailureReason
     UnknownCredential,
     InvalidCredential,
     AccountDisabled,
-    NoAccess
+    NoAccess,
+    Conflict
 }

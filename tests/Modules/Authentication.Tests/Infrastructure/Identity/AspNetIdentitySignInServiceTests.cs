@@ -72,7 +72,7 @@ public sealed class AspNetIdentitySignInServiceTests
         preparation.Setup(item => item.DisposeAsync()).Returns(ValueTask.CompletedTask);
 
         Mock<IAuthenticationSessionRegistry> sessionRegistry = new();
-        sessionRegistry.Setup(registry => registry.PrepareAsync(user.Id, It.IsAny<CancellationToken>())).ReturnsAsync(preparation.Object);
+        sessionRegistry.Setup(registry => registry.PrepareAsync(user.Id, It.IsAny<DateTime?>(), It.IsAny<CancellationToken>())).ReturnsAsync(preparation.Object);
 
         AspNetIdentitySignInService service = new(
             userManager.Object,
@@ -117,7 +117,7 @@ public sealed class AspNetIdentitySignInServiceTests
             result.Succeeded.Should().BeFalse();
             result.Failure!.Reason.Should().Be(AuthenticationFailureReason.InvalidCredentials);
         }
-        sessions.Verify(value => value.PrepareAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+        sessions.Verify(value => value.PrepareAsync(It.IsAny<string>(), It.IsAny<DateTime?>(), It.IsAny<CancellationToken>()), Times.Never);
         manager.Verify(value => value.FindByIdAsync(It.IsAny<string>()), Times.Never);
     }
 
@@ -142,7 +142,7 @@ public sealed class AspNetIdentitySignInServiceTests
         result.Succeeded.Should().BeFalse();
         result.Failure!.Reason.Should().Be(AuthenticationFailureReason.AccountDisabled);
         sessionRegistry.Verify(
-            registry => registry.PrepareAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
+            registry => registry.PrepareAsync(It.IsAny<string>(), It.IsAny<DateTime?>(), It.IsAny<CancellationToken>()),
             Times.Never);
         sessionRegistry.Verify(
             registry => registry.RecordFailedAttemptAsync(user.Id, It.IsAny<CancellationToken>()),
@@ -269,7 +269,7 @@ public sealed class AspNetIdentitySignInServiceTests
         result.Status.Should().Be(PasswordSignInStatus.AccountDisabled);
         result.UserId.Should().Be(user.Id);
         sessionRegistry.Verify(
-            registry => registry.PrepareAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
+            registry => registry.PrepareAsync(It.IsAny<string>(), It.IsAny<DateTime?>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
@@ -354,7 +354,7 @@ public sealed class AspNetIdentitySignInServiceTests
         Mock<IAuthenticationSessionPreparation> preparation = new();
         preparation.SetupGet(value => value.Result).Returns(new AuthenticationSessionEstablishmentResult(true, "session-1", null, null, 30));
         Mock<IAuthenticationSessionRegistry> sessionRegistry = new();
-        sessionRegistry.Setup(registry => registry.PrepareAsync(staleEnabledUser.Id, It.IsAny<CancellationToken>())).ReturnsAsync(preparation.Object);
+        sessionRegistry.Setup(registry => registry.PrepareAsync(staleEnabledUser.Id, It.IsAny<DateTime?>(), It.IsAny<CancellationToken>())).ReturnsAsync(preparation.Object);
         Mock<IAuthenticationService> authentication = new();
         DefaultHttpContext httpContext = new()
         {
@@ -404,7 +404,7 @@ public sealed class AspNetIdentitySignInServiceTests
         result.Succeeded.Should().BeFalse();
         result.Failure!.Reason.Should().Be(AuthenticationFailureReason.NoAccess);
         sessionRegistry.Verify(
-            registry => registry.PrepareAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
+            registry => registry.PrepareAsync(It.IsAny<string>(), It.IsAny<DateTime?>(), It.IsAny<CancellationToken>()),
             Times.Never);
         sessionRegistry.Verify(
             registry => registry.RecordFailedAttemptAsync(user.Id, It.IsAny<CancellationToken>()),
@@ -440,7 +440,7 @@ public sealed class AspNetIdentitySignInServiceTests
         result.Status.Should().Be(PasswordSignInStatus.NoAccess);
         result.UserId.Should().Be(user.Id);
         sessionRegistry.Verify(
-            registry => registry.PrepareAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
+            registry => registry.PrepareAsync(It.IsAny<string>(), It.IsAny<DateTime?>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
@@ -501,7 +501,7 @@ public sealed class AspNetIdentitySignInServiceTests
         Mock<IAuthenticationSessionPreparation> preparation = new();
         preparation.SetupGet(value => value.Result).Returns(new AuthenticationSessionEstablishmentResult(true, "session-1", null, null, 30));
         Mock<IAuthenticationSessionRegistry> sessionRegistry = new();
-        sessionRegistry.Setup(registry => registry.PrepareAsync(staleAccessUser.Id, It.IsAny<CancellationToken>())).ReturnsAsync(preparation.Object);
+        sessionRegistry.Setup(registry => registry.PrepareAsync(staleAccessUser.Id, It.IsAny<DateTime?>(), It.IsAny<CancellationToken>())).ReturnsAsync(preparation.Object);
         Mock<IAuthenticationService> authentication = new();
         DefaultHttpContext httpContext = new()
         {
@@ -546,7 +546,7 @@ public sealed class AspNetIdentitySignInServiceTests
         Mock<IAuthenticationSessionPreparation> preparation = new();
         preparation.SetupGet(value => value.Result).Returns(new AuthenticationSessionEstablishmentResult(true, "session-1", null, null, 30));
         Mock<IAuthenticationSessionRegistry> sessionRegistry = new();
-        sessionRegistry.Setup(registry => registry.PrepareAsync(user.Id, It.IsAny<CancellationToken>())).ReturnsAsync(preparation.Object);
+        sessionRegistry.Setup(registry => registry.PrepareAsync(user.Id, It.IsAny<DateTime?>(), It.IsAny<CancellationToken>())).ReturnsAsync(preparation.Object);
         DefaultHttpContext httpContext = new()
         {
             RequestServices = new ServiceCollection().AddSingleton(Mock.Of<IAuthenticationService>()).BuildServiceProvider()
@@ -594,7 +594,7 @@ public sealed class AspNetIdentitySignInServiceTests
         AuthenticationSessionSignInResult result = await service.SignInAsync(user.Id, CancellationToken.None);
 
         result.Failure!.Reason.Should().Be(AuthenticationFailureReason.NoAccess);
-        sessionRegistry.Verify(registry => registry.PrepareAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+        sessionRegistry.Verify(registry => registry.PrepareAsync(It.IsAny<string>(), It.IsAny<DateTime?>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -614,7 +614,7 @@ public sealed class AspNetIdentitySignInServiceTests
         Mock<IAuthenticationSessionPreparation> preparation = new();
         preparation.SetupGet(value => value.Result).Returns(new AuthenticationSessionEstablishmentResult(true, "session-1", null, null, 30));
         Mock<IAuthenticationSessionRegistry> sessionRegistry = new();
-        sessionRegistry.Setup(registry => registry.PrepareAsync(user.Id, It.IsAny<CancellationToken>())).ReturnsAsync(preparation.Object);
+        sessionRegistry.Setup(registry => registry.PrepareAsync(user.Id, It.IsAny<DateTime?>(), It.IsAny<CancellationToken>())).ReturnsAsync(preparation.Object);
         Mock<IRoleFreeSessionPolicy> refusing = new();
         refusing.Setup(policy => policy.AllowsRoleFreeSessionAsync(It.IsAny<CancellationToken>())).ReturnsAsync(false);
         Mock<IRoleFreeSessionPolicy> admitting = new();

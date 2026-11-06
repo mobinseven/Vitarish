@@ -18,7 +18,7 @@ public sealed class AuthenticationOtpDeliveryService(
         Func<Task> send) =>
         SendAndAuditAsync(
             send,
-            MaskPhoneNumber(phoneNumber),
+            AuthenticationDestinationMasking.Phone(phoneNumber),
             AuthenticationSecurityAuditEvents.OtpSmsSend,
             AuthenticationSecurityAuditEvents.OtpSmsSendOperation);
 
@@ -27,7 +27,7 @@ public sealed class AuthenticationOtpDeliveryService(
         Func<Task> send) =>
         SendAndAuditAsync(
             send,
-            MaskEmail(email),
+            AuthenticationDestinationMasking.Email(email),
             AuthenticationSecurityAuditEvents.OtpEmailSend,
             AuthenticationSecurityAuditEvents.OtpEmailSendOperation);
 
@@ -47,7 +47,7 @@ public sealed class AuthenticationOtpDeliveryService(
         {
             // The caller answers with a generic provider failure, so this is the
             // operator's only record of why delivery failed. Never log the code.
-            logger.LogError(exception, "Sign-in code delivery {Operation} to {Recipient} failed", operation, maskedRecipient);
+            logger.LogError("Sign-in code delivery {Operation} to {Recipient} failed with {FailureType}", operation, maskedRecipient, exception.GetType().Name);
             await WriteAuditAsync(
                 tenantId,
                 maskedRecipient,
@@ -101,20 +101,4 @@ public sealed class AuthenticationOtpDeliveryService(
         }
     }
 
-    private static string MaskPhoneNumber(string phoneNumber)
-    {
-        string lastDigits = new(phoneNumber.Where(char.IsDigit).TakeLast(4).ToArray());
-        return $"*******{lastDigits}";
-    }
-
-    private static string MaskEmail(string email)
-    {
-        int atIndex = email.IndexOf('@');
-        if (atIndex <= 0)
-            return "***";
-
-        string localPart = email[..atIndex];
-        string suffix = new(localPart.Where(char.IsLetterOrDigit).TakeLast(2).ToArray());
-        return suffix.Length == 0 ? "***@***" : $"***{suffix}@***";
-    }
 }

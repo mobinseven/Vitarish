@@ -24,11 +24,14 @@ public sealed class AuthenticationSessionRegistry(
     ISecurityAuditWriter auditWriter,
     TimeProvider timeProvider) : IAuthenticationSessionRegistry, IAuthenticationActiveSessionQuery
 {
-    public async Task<IAuthenticationSessionPreparation> PrepareAsync(string userId, CancellationToken cancellationToken)
+    public Task<IAuthenticationSessionPreparation> PrepareAsync(string userId, CancellationToken cancellationToken) =>
+        PrepareAsync(userId, authenticatedAt: null, cancellationToken);
+
+    public async Task<IAuthenticationSessionPreparation> PrepareAsync(string userId, DateTime? authenticatedAt, CancellationToken cancellationToken)
     {
         IExecutionStrategy strategy = dbContext.Database.CreateExecutionStrategy();
         if (!dbContext.Database.IsRelational())
-            return await strategy.ExecuteAsync(async ct => await PrepareCoreAsync(userId, ct), cancellationToken);
+            return await strategy.ExecuteAsync(async ct => await PrepareCoreAsync(userId, authenticatedAt, ct), cancellationToken);
 
         TaskCompletionSource<IAuthenticationSessionPreparation> prepared = new(TaskCreationOptions.RunContinuationsAsynchronously);
         TaskCompletionSource<bool> completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -39,7 +42,7 @@ public sealed class AuthenticationSessionRegistry(
             AuthenticationSessionPreparation operation;
             try
             {
-                operation = (AuthenticationSessionPreparation)await PrepareCoreAsync(userId, ct);
+                operation = (AuthenticationSessionPreparation)await PrepareCoreAsync(userId, authenticatedAt, ct);
             }
             catch
             {
@@ -93,6 +96,27 @@ public sealed class AuthenticationSessionRegistry(
         }
     }
 
+    public async Task<DateTime?> GetCurrentAuthenticationAtAsync(string userId, CancellationToken cancellationToken)
+    {
+        ClaimsPrincipal? principal = requestContext.User;
+        if (principal?.Identity?.IsAuthenticated != true ||
+            !string.Equals(requestContext.UserId, userId, StringComparison.Ordinal) ||
+            string.IsNullOrWhiteSpace(requestContext.TenantId) ||
+            !Guid.TryParse(principal.FindFirstValue(AuthenticationSessionClaimTypes.SessionId), out Guid sessionId))
+        {
+            return null;
+        }
+
+        return await dbContext.AuthenticationSessions
+            .AsNoTracking()
+            .Where(session => session.Id == sessionId &&
+                session.UserId == userId &&
+                session.TenantId == requestContext.TenantId &&
+                session.TerminatedAt == null)
+            .Select(session => session.AuthenticatedAt)
+            .SingleOrDefaultAsync(cancellationToken);
+    }
+
     public async Task<AuthenticationSessionEstablishmentResult> EstablishAsync(string userId, CancellationToken cancellationToken)
     {
         await using IAuthenticationSessionPreparation preparation = await PrepareAsync(userId, cancellationToken);
@@ -102,11 +126,11 @@ public sealed class AuthenticationSessionRegistry(
         return preparation.Result;
     }
 
-    private async Task<IAuthenticationSessionPreparation> PrepareCoreAsync(string userId, CancellationToken cancellationToken)
+    private async Task<IAuthenticationSessionPreparation> PrepareCoreAsync(string userId, DateTime? authenticatedAt, CancellationToken cancellationToken)
     {
         try
         {
-            return await PrepareCoreUnsafeAsync(userId, cancellationToken);
+            return await PrepareCoreUnsafeAsync(userId, authenticatedAt, cancellationToken);
         }
         catch
         {
@@ -121,7 +145,7 @@ public sealed class AuthenticationSessionRegistry(
         }
     }
 
-    private async Task<IAuthenticationSessionPreparation> PrepareCoreUnsafeAsync(string userId, CancellationToken cancellationToken)
+    private async Task<IAuthenticationSessionPreparation> PrepareCoreUnsafeAsync(string userId, DateTime? authenticatedAt, CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(userId);
         string? tenantId = requestContext.TenantId;
@@ -192,6 +216,7 @@ public sealed class AuthenticationSessionRegistry(
             UserId = userId,
             TenantId = tenantId,
             CreatedAt = now,
+            AuthenticatedAt = authenticatedAt is { Kind: DateTimeKind.Utc } ? authenticatedAt : null,
             LastActivityAt = now,
             ClientIpAddress = address
         };

@@ -16,6 +16,7 @@ internal static partial class AuthorizationMatrixCheck
     private const string EndMarker = "<!-- main-module-authorization-matrix:end -->";
     private const string UserAuthStartMarker = "<!-- user-auth-role-object-matrix:start -->";
     private const string UserAuthEndMarker = "<!-- user-auth-role-object-matrix:end -->";
+    internal const string AuthorizationMatrixOperationSymbolUnresolvedKind = "AuthorizationMatrixOperationSymbolUnresolved";
     private const string AllowDisposition = "Allow";
     private const string DenyDisposition = "Deny";
     private const string SelfOnlyDisposition = "Self only";
@@ -41,8 +42,9 @@ internal static partial class AuthorizationMatrixCheck
     {
         List<ArchitectureViolation> violations = [];
         IReadOnlyList<ModuleOperation> operations = ExtractOperations(index);
-        IReadOnlyList<MatrixRow> rows = ParseRows(matrixText, violations);
-        ValidateUserAuthRoleObjectMatrix(index, matrixText, operations, violations);
+        HashSet<string> operationIds = operations.Select(operation => operation.OperationId).ToHashSet(StringComparer.Ordinal);
+        IReadOnlyList<MatrixRow> rows = ParseRows(index, matrixText, operationIds, violations);
+        ValidateUserAuthRoleObjectMatrix(index, matrixText, operations, operationIds, violations);
 
         foreach (IGrouping<string, MatrixRow> duplicate in rows.GroupBy(row => row.OperationId, StringComparer.Ordinal).Where(group => group.Count() > 1))
         {
@@ -89,6 +91,7 @@ internal static partial class AuthorizationMatrixCheck
         SourceIndex index,
         string text,
         IReadOnlyList<ModuleOperation> operations,
+        IReadOnlySet<string> operationIds,
         List<ArchitectureViolation> violations)
     {
         int start = text.IndexOf(UserAuthStartMarker, StringComparison.Ordinal);
@@ -116,7 +119,9 @@ internal static partial class AuthorizationMatrixCheck
                 continue;
             }
 
-            rows.Add(new(cells[0], cells[1], cells[2], cells[3], cells[4], cells[5], cells[6], cells[7], startLine + lineIndex + 1));
+            int rowLine = startLine + lineIndex + 1;
+            string operationId = ResolveMatrixOperationId(index, cells[0], operationIds, rowLine, violations);
+            rows.Add(new(operationId, cells[1], cells[2], cells[3], cells[4], cells[5], cells[6], cells[7], rowLine));
         }
 
         foreach (IGrouping<string, UserAuthRow> duplicate in rows.GroupBy(row => row.OperationId, StringComparer.Ordinal).Where(group => group.Count() > 1))
@@ -299,18 +304,42 @@ internal static partial class AuthorizationMatrixCheck
 
     private static string? ResolveNamedConstant(SourceIndex index, string qualifiedName)
     {
-        string typeName = qualifiedName.Split('.')[0];
-        string memberName = qualifiedName.Split('.')[1];
+        string[] symbolParts = qualifiedName.Split('.');
+        if (symbolParts.Length != 2) return null;
+
+        string typeName = symbolParts[0];
+        string memberName = symbolParts[1];
+        List<string> values = [];
         foreach (SourceFile file in index.Files)
         foreach (VariableDeclaratorSyntax variable in file.Tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>())
         {
             if (variable.Initializer is null || variable.Identifier.ValueText != memberName ||
-                variable.FirstAncestorOrSelf<ClassDeclarationSyntax>()?.Identifier.ValueText != typeName) continue;
+                variable.FirstAncestorOrSelf<ClassDeclarationSyntax>()?.Identifier.ValueText != typeName ||
+                variable.FirstAncestorOrSelf<FieldDeclarationSyntax>()?.Modifiers.Any(SyntaxKind.ConstKeyword) != true) continue;
             string? value = RoslynSyntax.ResolveString(file, variable.Initializer.Value);
-            if (value is not null) return value;
+            if (value is not null) values.Add(value);
         }
 
-        return null;
+        return values.Count == 1 ? values[0] : null;
+    }
+
+    private static string ResolveMatrixOperationId(
+        SourceIndex index,
+        string operationId,
+        IReadOnlySet<string> executableOperationIds,
+        int line,
+        List<ArchitectureViolation> violations)
+    {
+        if (executableOperationIds.Contains(operationId) || !operationId.Contains('.'))
+            return operationId;
+
+        string? resolved = ResolveNamedConstant(index, operationId);
+        if (resolved is not null)
+            return resolved;
+
+        violations.Add(new(MatrixPath, line, AuthorizationMatrixOperationSymbolUnresolvedKind, operationId,
+            "Resolve the operation symbol to one unambiguous source-owned string constant or use the executable operation ID."));
+        return operationId;
     }
 
     private static void RequireDispositions(UserAuthRow row, string[] expected, List<ArchitectureViolation> violations)
@@ -438,7 +467,11 @@ internal static partial class AuthorizationMatrixCheck
             : "BrowserOrBearer";
     }
 
-    private static IReadOnlyList<MatrixRow> ParseRows(string text, List<ArchitectureViolation> violations)
+    private static IReadOnlyList<MatrixRow> ParseRows(
+        SourceIndex index,
+        string text,
+        IReadOnlySet<string> executableOperationIds,
+        List<ArchitectureViolation> violations)
     {
         int start = text.IndexOf(StartMarker, StringComparison.Ordinal);
         int end = text.IndexOf(EndMarker, StringComparison.Ordinal);
@@ -453,19 +486,21 @@ internal static partial class AuthorizationMatrixCheck
         int startLine = text[..start].Count(character => character == '\n') + 1;
         List<MatrixRow> rows = [];
         string[] lines = section.Replace("\r", string.Empty, StringComparison.Ordinal).Split('\n');
-        for (int index = 0; index < lines.Length; index++)
+        for (int lineIndex = 0; lineIndex < lines.Length; lineIndex++)
         {
-            string line = lines[index].Trim();
+            string line = lines[lineIndex].Trim();
             if (!line.StartsWith('|') || line.Contains("Operation ID", StringComparison.Ordinal) || line.Contains("---", StringComparison.Ordinal)) continue;
             string[] cells = line.Trim('|').Split('|').Select(cell => cell.Trim().Trim('`')).ToArray();
             if (cells.Length != 9)
             {
-                violations.Add(new(MatrixPath, startLine + index + 1, "AuthorizationMatrixRowMalformed", line,
+                violations.Add(new(MatrixPath, startLine + lineIndex + 1, "AuthorizationMatrixRowMalformed", line,
                     "Use exactly nine matrix columns and do not place a pipe character inside a cell."));
                 continue;
             }
 
-            rows.Add(new(cells[0], cells[1], cells[2], cells[3], cells[4], cells[5], cells[6], cells[7], cells[8], startLine + index + 1));
+            int rowLine = startLine + lineIndex + 1;
+            string operationId = ResolveMatrixOperationId(index, cells[0], executableOperationIds, rowLine, violations);
+            rows.Add(new(operationId, cells[1], cells[2], cells[3], cells[4], cells[5], cells[6], cells[7], cells[8], rowLine));
         }
 
         return rows;

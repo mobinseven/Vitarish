@@ -8,6 +8,9 @@ namespace Vitarish.Authentication.Application.Security;
 public static class AuthenticationSecurityAuditEvents
 {
     public const string PasswordChange = SecurityAuditEventCatalog.AuthenticationPasswordChangeEvent;
+    public const string FirstPasswordSetOperation = SecurityAuditEventCatalog.AuthenticationFirstPasswordSetOperation;
+    public const string TwoStepSignInEnableOperation = SecurityAuditEventCatalog.AuthenticationTwoStepSignInEnableOperation;
+    public const string TwoStepSignInDisableOperation = SecurityAuditEventCatalog.AuthenticationTwoStepSignInDisableOperation;
     public const string PasswordLogin = SecurityAuditEventCatalog.AuthenticationPasswordLoginEvent;
     public const string PasswordLoginOtp = SecurityAuditEventCatalog.AuthenticationPasswordLoginOtpEvent;
     public const string PhoneLogin = SecurityAuditEventCatalog.AuthenticationPhoneLoginEvent;

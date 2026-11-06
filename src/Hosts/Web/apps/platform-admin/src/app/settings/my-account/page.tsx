@@ -3,9 +3,16 @@
 import { useState, type FormEvent } from "react";
 import { Surface } from "@heroui/react";
 import { useAuthSession } from "@vitarish/auth";
-import { useAccountEmailChange, useAccountPasswordChange, useAccountPhoneChange } from "@vitarish/account";
+import {
+  AccountSignInSettings,
+  useAccountEmailChange,
+  useAccountPasswordChange,
+  useAccountPhoneChange,
+  useAccountSignInSecurityActions,
+} from "@vitarish/account";
 import { usePlatformAuthorization } from "@vitarish/auth";
 import { useLocalizedText } from "@vitarish/localization";
+import { HeaderIcon } from "@vitarish/ui";
 
 export default function MyAccountPage() {
   const { hasAccess, isLoading: accessLoading } = usePlatformAuthorization();
@@ -13,20 +20,14 @@ export default function MyAccountPage() {
   const { t } = useLocalizedText();
   const userId = user?.userId ?? "";
   const password = useAccountPasswordChange();
+  const signInSecurity = useAccountSignInSecurityActions();
   const email = useAccountEmailChange(userId);
   const phone = useAccountPhoneChange(userId);
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
   const [notice, setNotice] = useState("");
 
   if (accessLoading) return <main className="mx-auto max-w-3xl p-6"><p aria-live="polite">{t("admin.myAccount.loading")}</p></main>;
   if (!hasAccess || !isAuthenticated || !userId) return <main className="mx-auto max-w-3xl p-6"><p role="alert">{t("admin.myAccount.forbidden")}</p></main>;
 
-  const submitPassword = async (event: FormEvent) => {
-    event.preventDefault(); setNotice("");
-    try { await password.changePassword(currentPassword, newPassword); setCurrentPassword(""); setNewPassword(""); setNotice(t("admin.myAccount.passwordSaved")); }
-    catch { setNotice(t("admin.myAccount.changeFailed")); }
-  };
   const submitEmail = async (event: FormEvent) => {
     event.preventDefault(); setNotice("");
     try {
@@ -43,21 +44,21 @@ export default function MyAccountPage() {
   };
 
   return <main className="mx-auto max-w-3xl space-y-6 p-6">
-    <header><h1 className="text-2xl font-semibold">{t("admin.myAccount.title")}</h1><p className="mt-2 text-muted">{t("admin.myAccount.description")}</p></header>
-    <Surface className="flex flex-col gap-6 rounded-3xl p-6">
-      <div className="flex flex-col items-start gap-1">
-        <h2 className="text-lg font-semibold text-foreground">{t("admin.myAccount.passwordTitle")}</h2>
+    <header>
+      <div className="flex items-center gap-3">
+        <HeaderIcon icon="user-gear" level="page" />
+        <h1 className="text-2xl font-semibold">{t("admin.myAccount.title")}</h1>
       </div>
-      <div className="space-y-3">
-        <form className="space-y-3" onSubmit={submitPassword}>
-          <label className="block">{t("admin.myAccount.currentPassword")}<input className="mt-1 w-full rounded border p-2" required type="password" autoComplete="current-password" value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} /></label>
-          <label className="block">{t("admin.myAccount.newPassword")}<input className="mt-1 w-full rounded border p-2" required type="password" autoComplete="new-password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} /></label>
-          <button className="inline-flex items-center gap-2 rounded bg-primary px-4 py-2 text-primary-foreground" disabled={password.isLoading} title={t("admin.myAccount.savePassword")}><i aria-hidden="true" className="fa-light fa-key" />{t("admin.myAccount.savePassword")}</button>
-        </form>
-      </div>
-    </Surface>
+      <p className="mt-2 text-muted">{t("admin.myAccount.description")}</p>
+    </header>
+    <AccountSignInSettings
+      changePassword={password.changePassword}
+      setFirstPassword={signInSecurity.setFirstPassword}
+      setTwoFactorEnabled={signInSecurity.setTwoFactorEnabled}
+    />
     <Surface className="flex flex-col gap-6 rounded-3xl p-6">
-      <div className="flex flex-col items-start gap-1">
+      <div className="flex items-center gap-3">
+        <HeaderIcon icon="envelope" />
         <h2 className="text-lg font-semibold text-foreground">{t("admin.myAccount.emailTitle")}</h2>
       </div>
       <div className="space-y-3">
@@ -69,7 +70,8 @@ export default function MyAccountPage() {
       </div>
     </Surface>
     <Surface className="flex flex-col gap-6 rounded-3xl p-6">
-      <div className="flex flex-col items-start gap-1">
+      <div className="flex items-center gap-3">
+        <HeaderIcon icon="phone" />
         <h2 className="text-lg font-semibold text-foreground">{t("admin.myAccount.phoneTitle")}</h2>
       </div>
       <div className="space-y-3">

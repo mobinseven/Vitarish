@@ -8,6 +8,10 @@ public static partial class AuthenticationRoutes
     public const string ProfilePath = "/profile";
     public const string Profile = BasePath + ProfilePath;
     public const string PasswordLogin = BasePath + "/login/password";
+    public const string PasswordLoginOtpCompletePath = "/login/password/otp/complete";
+    public const string PasswordLoginOtpResendPath = "/login/password/otp/resend";
+    public const string PasswordLoginOtpComplete = BasePath + PasswordLoginOtpCompletePath;
+    public const string PasswordLoginOtpResend = BasePath + PasswordLoginOtpResendPath;
     public const string BeginPhoneLogin = BasePath + "/login/phone/begin";
     public const string CompletePhoneLogin = BasePath + "/login/phone/complete";
     public const string BeginEmailLogin = BasePath + "/login/email/begin";
@@ -25,5 +29,10 @@ public static partial class AuthenticationRoutes
     public const string CompleteChangePhone = BasePath + "/account/phone/complete";
     public const string BeginChangeEmail = BasePath + "/account/email/begin";
     public const string CompleteChangeEmail = BasePath + "/account/email/complete";
-    public const string ChangePassword = BasePath + "/account/password";
+    public const string ChangePasswordPath = "/account/password";
+    public const string ChangePassword = BasePath + ChangePasswordPath;
+    public const string SetFirstPasswordPath = "/account/password/first";
+    public const string SetFirstPassword = BasePath + SetFirstPasswordPath;
+    public const string TwoStepSignInPath = "/account/two-step-sign-in";
+    public const string TwoStepSignIn = BasePath + TwoStepSignInPath;
 }

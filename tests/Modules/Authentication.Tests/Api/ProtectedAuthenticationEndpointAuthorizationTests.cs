@@ -27,7 +27,17 @@ public class ProtectedAuthenticationEndpointAuthorizationTests
         AuthenticationRoutes.BasePath + AuthenticationRoutes.SessionNoticeAcknowledge,
         AuthenticationRoutes.BasePath + AuthenticationRoutes.SecuritySessionPolicy,
         AuthenticationRoutes.BasePath + AuthenticationRoutes.SecurityUserInactivityPolicy,
-        AuthenticationRoutes.BasePath + AuthenticationRoutes.SecurityUserSessionsRevoke
+        AuthenticationRoutes.BasePath + AuthenticationRoutes.SecurityUserSessionsRevoke,
+        AuthenticationRoutes.ChangePassword,
+        AuthenticationRoutes.SetFirstPassword,
+        AuthenticationRoutes.TwoStepSignIn
+    };
+
+    public static TheoryData<string> AccountSecurityEndpointPatterns => new()
+    {
+        AuthenticationRoutes.ChangePassword,
+        AuthenticationRoutes.SetFirstPassword,
+        AuthenticationRoutes.TwoStepSignIn
     };
 
     [Theory]
@@ -65,6 +75,22 @@ public class ProtectedAuthenticationEndpointAuthorizationTests
                 attribute.AuthenticationSchemes == ModuleEndpointAuthenticationSchemes.BrowserOrBearer));
     }
 
+    [Theory]
+    [MemberData(nameof(AccountSecurityEndpointPatterns))]
+    public void Account_security_mutations_are_authenticated_audited_and_rate_limited(string routePattern)
+    {
+        using WebApplication app = CreateAppWithProtectedAuthenticationEndpoints();
+        RouteEndpoint endpoint = FindRouteEndpoint(app, routePattern);
+
+        endpoint.Metadata.OfType<AuthorizeAttribute>().Should().Contain(attribute =>
+            attribute.AuthenticationSchemes == ModuleEndpointAuthenticationSchemes.BrowserOrBearer);
+        endpoint.Metadata.GetMetadata<ProtectedModuleEndpointMetadata>().Should().NotBeNull();
+        endpoint.Metadata.GetMetadata<SecurityAuditHandledByApplicationMetadata>().Should().NotBeNull();
+        endpoint.Metadata.GetOrderedMetadata<Microsoft.AspNetCore.RateLimiting.EnableRateLimitingAttribute>()
+            .Should().ContainSingle()
+            .Which.PolicyName.Should().Be(AuthenticationRateLimitPolicies.AccountSecurityMutation);
+    }
+
     [Fact]
     public void Antiforgery_bootstrap_has_explicit_anonymous_operation_metadata()
     {
@@ -97,6 +123,7 @@ public class ProtectedAuthenticationEndpointAuthorizationTests
         anonymous.MapPhoneLoginEndpoints();
         anonymous.MapEmailLoginEndpoints();
         anonymous.MapPasskeyLoginEndpoints();
+        anonymous.MapPasswordLoginOtpEndpoints();
         anonymous.MapPasswordRecoveryEndpoints();
         anonymous.MapAntiforgeryEndpoints();
 
@@ -118,6 +145,8 @@ public class ProtectedAuthenticationEndpointAuthorizationTests
             "Authentication_Login_Passkey_Begin",
             "Authentication_Login_Passkey_Complete",
             "Authentication_Login_Password",
+            AuthenticationPasswordLoginOtpOperationIds.Complete,
+            AuthenticationPasswordLoginOtpOperationIds.Resend,
             "Authentication_Login_Phone_Begin",
             "Authentication_Login_Phone_Complete",
             AuthenticationPasswordRecoveryOperationIds.Begin,
@@ -146,6 +175,7 @@ public class ProtectedAuthenticationEndpointAuthorizationTests
         anonymous.MapPhoneLoginEndpoints();
         anonymous.MapEmailLoginEndpoints();
         anonymous.MapPasskeyLoginEndpoints();
+        anonymous.MapPasswordLoginOtpEndpoints();
         anonymous.MapPasswordRecoveryEndpoints();
 
         RouteEndpoint[] endpoints = ((IEndpointRouteBuilder)app).DataSources
@@ -159,11 +189,13 @@ public class ProtectedAuthenticationEndpointAuthorizationTests
                 "Authentication_Login_Phone_Begin" or
                 "Authentication_Login_Phone_Complete" or
                 "Authentication_Login_Password" or
+                AuthenticationPasswordLoginOtpOperationIds.Complete or
+                AuthenticationPasswordLoginOtpOperationIds.Resend or
                 AuthenticationPasswordRecoveryOperationIds.Begin or
                 AuthenticationPasswordRecoveryOperationIds.Complete)
             .ToArray();
 
-        endpoints.Should().HaveCount(9);
+        endpoints.Should().HaveCount(11);
         endpoints.Where(endpoint => endpoint.Metadata.GetMetadata<IEndpointNameMetadata>()?.EndpointName != "Authentication_Login_Password")
             .Should().AllSatisfy(endpoint => endpoint.Metadata.GetMetadata<SecurityAuditRequiredMetadata>().Should().NotBeNull());
         endpoints.Single(endpoint => endpoint.Metadata.GetMetadata<IEndpointNameMetadata>()?.EndpointName == "Authentication_Login_Password")
@@ -217,7 +249,8 @@ public class ProtectedAuthenticationEndpointAuthorizationTests
 
         operationIds.Should().Equal(
             "Authentication_Login_Password",
-            "Authentication_Login_PasswordOtp_Complete");
+            AuthenticationPasswordLoginOtpOperationIds.Complete,
+            AuthenticationPasswordLoginOtpOperationIds.Resend);
 
         string[] recoveryOperations = ((IEndpointRouteBuilder)app).DataSources
             .SelectMany(source => source.Endpoints)
@@ -260,6 +293,30 @@ public class ProtectedAuthenticationEndpointAuthorizationTests
     }
 
     [Fact]
+    public void Password_factor_resend_is_anonymous_justified_audited_and_rate_limited()
+    {
+        WebApplicationBuilder builder = WebApplication.CreateBuilder();
+        builder.Services.AddAntiforgery();
+        using WebApplication app = builder.Build();
+        RouteGroupBuilder anonymous = app.MapAnonymousModuleGroup(
+            AuthenticationRoutes.BasePath,
+            "Authentication second-factor endpoints are intentionally public before a session exists.");
+        anonymous.MapPasswordLoginOtpEndpoints();
+
+        RouteEndpoint endpoint = FindRouteEndpoint(app, AuthenticationRoutes.PasswordLoginOtpResend);
+
+        endpoint.Metadata.GetMetadata<IEndpointNameMetadata>()?.EndpointName.Should().Be(AuthenticationPasswordLoginOtpOperationIds.Resend);
+        endpoint.Metadata.GetMetadata<IAllowAnonymous>().Should().NotBeNull();
+        endpoint.Metadata.GetMetadata<AnonymousModuleEndpointMetadata>()?.Justification
+            .Should().Be(AuthenticationAnonymousEndpointJustifications.PasswordLoginOtpResend);
+        endpoint.Metadata.GetMetadata<SecurityAuditRequiredMetadata>().Should().NotBeNull();
+        endpoint.Metadata.GetMetadata<ProtectedModuleEndpointMetadata>().Should().BeNull();
+        endpoint.Metadata.GetOrderedMetadata<Microsoft.AspNetCore.RateLimiting.EnableRateLimitingAttribute>()
+            .Should().ContainSingle()
+            .Which.PolicyName.Should().Be(AuthenticationRateLimitPolicies.OtpBegin);
+    }
+
+    [Fact]
     public void Profile_policies_include_tenant_handoff_only_when_allowed()
     {
         AuthenticationProfilePolicy.Default.AllowTenantHandoff.Should().BeTrue();
@@ -280,6 +337,8 @@ public class ProtectedAuthenticationEndpointAuthorizationTests
         protectedGroup.MapCurrentSessionEndpoints();
         protectedGroup.MapLogoutEndpoints();
         protectedGroup.MapAuthenticationSecurityEndpoints();
+        protectedGroup.MapAccountPasswordChangeEndpoints();
+        protectedGroup.MapAccountSignInSecurityEndpoints();
         return app;
     }
 

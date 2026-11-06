@@ -27,10 +27,10 @@ const state = vi.hoisted(() => ({
     failedAttemptDenialDurationSeconds: 900,
     failedAttemptResponse: "Deny",
     enabledAuthenticationMechanisms: ["Password", "Phone"],
-    permittedPreAuthenticationActions: ["PasswordLogin", "PasswordPlusPhoneOtp"],
+    permittedPreAuthenticationActions: ["PasswordLogin", "PasswordPlusPhoneOtp", "PasswordPlusEmailOtp"],
     availableAuthenticationMechanisms: ["Password", "Phone"],
     requiredAuthenticationMechanisms: ["Password"],
-    availablePreAuthenticationActions: ["PasswordLogin", "PasswordPlusPhoneOtp"],
+    availablePreAuthenticationActions: ["PasswordLogin", "PasswordPlusPhoneOtp", "PasswordPlusEmailOtp"],
     requiredPreAuthenticationActions: ["PasswordLogin"],
     availableFailedAttemptResponses: ["Deny", "Lockout"],
     mandatoryPasswordMinimumLength: 8,
@@ -140,6 +140,7 @@ describe("SecuritySettingsPage", () => {
 
     expect(screen.getByText("Phone code")).toBeInTheDocument();
     expect(screen.getByText("Password + phone code")).toBeInTheDocument();
+    expect(screen.getByText("Password + email code")).toBeInTheDocument();
     expect(screen.queryByText("Phone")).toBeNull();
     expect(screen.queryByText("PasswordPlusPhoneOtp")).toBeNull();
   });
@@ -149,6 +150,7 @@ describe("SecuritySettingsPage", () => {
 
     expect(screen.getByText("کد تلفن")).toBeInTheDocument();
     expect(screen.getByText("گذرواژه + کد یکبارمصرف تلفن")).toBeInTheDocument();
+    expect(screen.getByText("گذرواژه + کد یکبارمصرف ایمیل")).toBeInTheDocument();
     expect(screen.queryByText("PasswordPlusPhoneOtp")).toBeNull();
   });
 });

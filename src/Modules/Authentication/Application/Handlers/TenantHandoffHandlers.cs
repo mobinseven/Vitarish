@@ -41,7 +41,8 @@ public sealed class IssueTenantHandoffHandler(
     IRequestContext requestContext,
     IAuthenticationUtcClock clock,
     AuthenticationAttemptAuditor auditor,
-    IAuthenticationSignInService signInService)
+    IAuthenticationSignInService signInService,
+    IAuthenticationSessionRegistry sessionRegistry)
 {
     /// <returns>The raw token, shown once, or null when the handoff is not allowed.</returns>
     public async Task<string?> Handle(IssueTenantHandoffCommand command, CancellationToken cancellationToken)
@@ -62,7 +63,8 @@ public sealed class IssueTenantHandoffHandler(
 
         string token = TenantHandoffTokens.Create();
         DateTime now = clock.UtcNow;
-        await tickets.AddAsync(TenantHandoffTicket.Issue(TenantHandoffTokens.Hash(token), command.UserId, command.TargetHost, now), now, cancellationToken);
+        DateTime? authenticatedAt = await sessionRegistry.GetCurrentAuthenticationAtAsync(command.UserId, cancellationToken);
+        await tickets.AddAsync(TenantHandoffTicket.Issue(TenantHandoffTokens.Hash(token), command.UserId, command.TargetHost, now, authenticatedAt), now, cancellationToken);
         await auditor.RecordAsync(AuthenticationSecurityAuditEvents.TenantHandoffIssue, AuthenticationSecurityAuditEvents.TenantHandoffIssueOperation, command.UserId, null, cancellationToken);
         // A failed sign-out throws, so the caller never follows a ticket that left this session open.
         if (command.EndsIssuingSession)
@@ -118,7 +120,7 @@ public sealed class RedeemTenantHandoffHandler(
         if (!await tickets.TryMarkRedeemedAsync(ticket, now, cancellationToken))
             return await RefuseAsync(ticket.UserId, AuthenticationFailureReason.InvalidCredential, RefusalMessage, SecurityAuditReasonCatalog.AuthenticationFailed, cancellationToken);
 
-        AuthenticationSessionSignInResult session = await signInService.SignInAsync(ticket.UserId, cancellationToken);
+        AuthenticationSessionSignInResult session = await signInService.SignInFromTenantHandoffAsync(ticket.UserId, ticket.AuthenticatedAt, cancellationToken);
         if (!session.Succeeded)
             return await RefuseAsync(ticket.UserId, session.Failure!.Reason, session.Failure.Message, SecurityAuditReasonCatalog.AuthenticationFailed, cancellationToken);
 

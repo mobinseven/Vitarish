@@ -30,6 +30,16 @@ One value in the server's `/opt/vitarish/deployment/.env.shared`:
 - The setting is required. Use a subdomain no platform app already uses. On
   start, Main binds that host to the platform-owned sign-in tenant.
 
+## Password and contact code
+
+A password account with two-factor enabled receives its sign-in code by SMS to
+its confirmed phone, or by email to its confirmed email when no confirmed phone
+is available. Both the password and code are required. Protect the destination
+inbox or phone independently, and verify email delivery before relying on an
+email-only account for a production smoke check. If neither contact is
+confirmed, the account cannot complete this sign-in. See the
+[Authentication documentation](../platform/modules/authentication/README.md#password-sign-in-with-an-additional-code).
+
 ## Check it
 
 1. Run the production workflow (`workflow_dispatch` on `main`) with Main

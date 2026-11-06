@@ -4,6 +4,7 @@ using Vitarish.Authentication.Application.Abstractions;
 using Vitarish.Authentication.Application.Commands;
 using Vitarish.Authentication.Application.Results;
 using Vitarish.Authentication.Application.Security;
+using Vitarish.Authentication.Application.Services;
 using Vitarish.Authentication.Application.Validation;
 using Vitarish.Authentication.Domain.Challenges;
 using Vitarish.Authentication.Domain.Methods;
@@ -23,6 +24,7 @@ public sealed class LoginWithPasswordHandler(
     IAuthenticationUserDirectory userDirectory,
     IAuthenticationCodeGenerator codeGenerator,
     IPhoneAuthenticationCodeSender phoneSender,
+    IEmailAuthenticationCodeSender emailSender,
     IAuthenticationAttemptTracker attemptTracker,
     IAuthenticationSecurityPolicyProvider securityPolicyProvider,
     IAuthenticationAttemptKeyFactory attemptKeyFactory)
@@ -81,9 +83,9 @@ public sealed class LoginWithPasswordHandler(
         AuthenticationResult<LoginResult> result = signInResult.Status switch
         {
             PasswordSignInStatus.Succeeded when profilePolicy.UsePhoneOtpForTwoFactorAccounts && signInResult.RequiresTwoFactor =>
-                await IssuePhoneOtpChallengeAsync(signInResult, cancellationToken),
+                await IssueSecondFactorChallengeAsync(signInResult, cancellationToken),
             PasswordSignInStatus.RequiresTwoFactor when profilePolicy.UsePhoneOtpForTwoFactorAccounts =>
-                await IssuePhoneOtpChallengeAsync(signInResult, cancellationToken),
+                await IssueSecondFactorChallengeAsync(signInResult, cancellationToken),
             PasswordSignInStatus.Succeeded when profilePolicy.UsePhoneOtpForTwoFactorAccounts =>
                 await CompletePasswordOnlyLoginAsync(signInResult, command, cancellationToken),
             PasswordSignInStatus.Succeeded =>
@@ -143,36 +145,46 @@ public sealed class LoginWithPasswordHandler(
             await challengeStore.TryConsumeAsync(challenge, CancellationToken.None);
     }
 
-    private async Task<AuthenticationResult<LoginResult>> IssuePhoneOtpChallengeAsync(
+    private async Task<AuthenticationResult<LoginResult>> IssueSecondFactorChallengeAsync(
         PasswordSignInResult signInResult,
         CancellationToken cancellationToken)
     {
         AuthenticationUserDescriptor? user = await userDirectory.FindByIdAsync(signInResult.UserId!, cancellationToken);
-        if (user is null || string.IsNullOrWhiteSpace(user.PhoneNumber))
+        if (user is null)
+            return new AuthenticationResult<LoginResult>.Failure(new(AuthenticationFailureReason.NotAllowed, "Additional authentication is not configured."));
+
+        PasswordLoginSecondFactorChannel? channel = PasswordLoginSecondFactorChannel.Select(user);
+        if (channel?.Destination is not { } destination)
             return new AuthenticationResult<LoginResult>.Failure(new(AuthenticationFailureReason.NotAllowed, "Additional authentication is not configured."));
 
         DateTimeOffset now = DateTimeOffset.UtcNow;
         SecurityAccessPolicy securityPolicy = await securityPolicyProvider.GetAsync(cancellationToken);
-        if (!securityPolicy.Allows(AuthenticationMethod.Phone, PreAuthenticationAction.PasswordPlusPhoneOtp))
+        if (!securityPolicy.Allows(channel.Method, channel.PolicyAction))
             return new AuthenticationResult<LoginResult>.Failure(new(AuthenticationFailureReason.NotAllowed, "Additional authentication is not enabled."));
-        IReadOnlyList<string> attemptKeys = attemptKeyFactory.SubjectCandidates(AuthenticationMethod.Phone, user.UserId);
+        IReadOnlyList<string> attemptKeys = attemptKeyFactory.SubjectCandidates(channel.Method, user.UserId);
         foreach (string attemptKey in attemptKeys)
         {
             if (!await attemptTracker.IsDeniedAsync(attemptKey, cancellationToken))
                 continue;
             return new AuthenticationResult<LoginResult>.Failure(AttemptDenied(securityPolicy));
         }
-        AuthenticationChallenge challenge = challengePolicy.CreatePasswordLoginOtpChallenge(
-            user.UserId,
-            user.PhoneNumber,
-            now,
-            signInResult.RequiresProfileCompletion);
+        AuthenticationChallenge challenge = channel.ChallengePurpose switch
+        {
+            AuthenticationChallengePurpose.PasswordLoginOtp => challengePolicy.CreatePasswordLoginOtpChallenge(
+                user.UserId, destination, now, signInResult.RequiresProfileCompletion),
+            AuthenticationChallengePurpose.PasswordLoginEmailOtp => challengePolicy.CreatePasswordLoginEmailOtpChallenge(
+                user.UserId, destination, now, signInResult.RequiresProfileCompletion),
+            _ => throw new InvalidOperationException("The selected password second-factor purpose is unsupported.")
+        };
         string code = await codeGenerator.GenerateAsync(user.UserId, challenge.TokenPurpose, cancellationToken);
         await challengeStore.SaveAsync(challenge, cancellationToken);
 
         try
         {
-            await phoneSender.SendAsync(user.PhoneNumber, code, AuthenticationChallengePurpose.PasswordLoginOtp, cancellationToken);
+            if (channel.Method is AuthenticationMethod.Phone)
+                await phoneSender.SendAsync(destination, code, channel.ChallengePurpose, cancellationToken);
+            else
+                await emailSender.SendAsync(destination, code, channel.ChallengePurpose, cancellationToken);
         }
         catch (OperationCanceledException)
         {
@@ -190,7 +202,13 @@ public sealed class LoginWithPasswordHandler(
         return new AuthenticationResult<LoginResult>.Failure(new(
             AuthenticationFailureReason.AdditionalStepRequired,
             "Additional authentication required.",
-            challenge.Id.Value));
+            challenge.Id.Value,
+            challenge.Purpose,
+            channel.Method is AuthenticationMethod.Phone
+                ? AuthenticationDestinationMasking.Phone(destination)
+                : AuthenticationDestinationMasking.Email(destination),
+            challenge.ExpiresAt,
+            challenge.RemainingAttempts));
     }
 
     private static AuthenticationFailure AttemptDenied(SecurityAccessPolicy policy) =>

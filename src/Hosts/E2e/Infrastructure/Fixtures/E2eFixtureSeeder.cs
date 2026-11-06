@@ -48,6 +48,13 @@ internal static class E2eFixtureSeeder
     /// <summary>Has two-step sign-in on, so a correct password is followed by a text-message code.</summary>
     public const string TwoFactorPlatformAdminUserName = "e2e-two-factor-platform-admin";
     public const string TwoFactorPlatformAdminPhoneNumber = "+989130000001";
+    /// <summary>Has two-step sign-in on with a confirmed email and no confirmed phone.</summary>
+    public const string EmailTwoFactorPlatformAdminUserName = "e2e-email-two-factor-platform-admin";
+    public const string EmailTwoFactorPlatformAdminEmail = "e2e-email-two-factor-platform-admin@example.test";
+    /// <summary>Passwordless account for the self-service first-password and two-step sign-in flow.</summary>
+    public const string PasswordlessPhoneAccountUserName = "+989130000002";
+    public const string PasswordlessPhoneAccountPhoneNumber = "+989130000002";
+    public const string PasswordlessPhoneAccountEmail = "e2e-passwordless-phone-account@example.test";
     /// <summary>Staff in tenant A only; registers a passkey and signs in with it.</summary>
     public const string PasskeyUserName = "e2e-passkey-user";
     /// <summary>Staff in tenant A and an owner of tenant B, so the landing home lists two workspaces.</summary>
@@ -78,7 +85,7 @@ internal static class E2eFixtureSeeder
                 "e2e-fixture"))
         };
 
-        Console.WriteLine("E2E fixture seeding: ensuring identity 1 of 12.");
+        Console.WriteLine("E2E fixture seeding: ensuring identity 1 of 13.");
         User user = await EnsureUserAsync(
             users,
             UserName,
@@ -87,7 +94,7 @@ internal static class E2eFixtureSeeder
             "E2E",
             "Owner",
             password);
-        Console.WriteLine("E2E fixture seeding: ensuring identity 2 of 12.");
+        Console.WriteLine("E2E fixture seeding: ensuring identity 2 of 13.");
         User tenantUser = await EnsureUserAsync(
             users,
             TenantUserName,
@@ -96,7 +103,7 @@ internal static class E2eFixtureSeeder
             "E2E",
             "Tenant User",
             password);
-        Console.WriteLine("E2E fixture seeding: ensuring identity 3 of 12.");
+        Console.WriteLine("E2E fixture seeding: ensuring identity 3 of 13.");
         User emailChangeUser = await EnsureUserAsync(
             users,
             EmailChangeUserName,
@@ -105,7 +112,7 @@ internal static class E2eFixtureSeeder
             "E2E",
             "Email Change User",
             password);
-        Console.WriteLine("E2E fixture seeding: ensuring identity 4 of 12.");
+        Console.WriteLine("E2E fixture seeding: ensuring identity 4 of 13.");
         User tenantBOwner = await EnsureUserAsync(
             users,
             TenantBOwnerUserName,
@@ -114,7 +121,7 @@ internal static class E2eFixtureSeeder
             "E2E",
             "Tenant B Owner",
             password);
-        Console.WriteLine("E2E fixture seeding: ensuring identity 5 of 12.");
+        Console.WriteLine("E2E fixture seeding: ensuring identity 5 of 13.");
         User platformAdmin = await EnsureUserAsync(
             users,
             PlatformAdminUserName,
@@ -123,7 +130,7 @@ internal static class E2eFixtureSeeder
             "E2E",
             "Platform Admin",
             password);
-        Console.WriteLine("E2E fixture seeding: ensuring identity 6 of 12.");
+        Console.WriteLine("E2E fixture seeding: ensuring identity 6 of 13.");
         User userManagementPlatformAdmin = await EnsureUserAsync(
             users,
             UserManagementPlatformAdminUserName,
@@ -132,7 +139,7 @@ internal static class E2eFixtureSeeder
             "E2E",
             "User Management Admin",
             password);
-        Console.WriteLine("E2E fixture seeding: ensuring identity 7 of 12.");
+        Console.WriteLine("E2E fixture seeding: ensuring identity 7 of 13.");
         User lockoutPlatformAdmin = await EnsureUserAsync(
             users,
             LockoutPlatformAdminUserName,
@@ -147,7 +154,7 @@ internal static class E2eFixtureSeeder
         IdentityResult lockoutReset = await users.SetLockoutEndDateAsync(lockoutPlatformAdmin, null);
         if (!lockoutReset.Succeeded)
             throw new InvalidOperationException("E2E lockout platform-admin lockout reset failed.");
-        Console.WriteLine("E2E fixture seeding: ensuring identity 8 of 12.");
+        Console.WriteLine("E2E fixture seeding: ensuring identity 8 of 13.");
         User emailSignInPlatformAdmin = await EnsureUserAsync(
             users,
             EmailSignInPlatformAdminUserName,
@@ -159,7 +166,7 @@ internal static class E2eFixtureSeeder
             // Like production's first admin, whose address is never confirmed
             // before the first email-code sign-in.
             emailConfirmed: false);
-        Console.WriteLine("E2E fixture seeding: ensuring identity 9 of 12.");
+        Console.WriteLine("E2E fixture seeding: ensuring identity 9 of 13.");
         User phoneChangeUser = await EnsureUserAsync(
             users,
             PhoneChangeUserName,
@@ -168,7 +175,7 @@ internal static class E2eFixtureSeeder
             "E2E",
             "Phone Change User",
             password);
-        Console.WriteLine("E2E fixture seeding: ensuring identity 10 of 12.");
+        Console.WriteLine("E2E fixture seeding: ensuring identity 10 of 13.");
         User signInUser = await EnsureUserAsync(
             users,
             SignInUserName,
@@ -178,7 +185,7 @@ internal static class E2eFixtureSeeder
             "Sign-In User",
             password);
 
-        Console.WriteLine("E2E fixture seeding: ensuring identity 11 of 12.");
+        Console.WriteLine("E2E fixture seeding: ensuring identity 11 of 13.");
         User twoFactorPlatformAdmin = await EnsureUserAsync(
             users,
             TwoFactorPlatformAdminUserName,
@@ -196,7 +203,7 @@ internal static class E2eFixtureSeeder
             if (!twoFactorUpdate.Succeeded)
                 throw new InvalidOperationException("E2E two-factor platform-admin setup failed.");
         }
-        Console.WriteLine("E2E fixture seeding: ensuring identity 12 of 12.");
+        Console.WriteLine("E2E fixture seeding: ensuring identity 12 of 13.");
         User passkeyUser = await EnsureUserAsync(
             users,
             PasskeyUserName,
@@ -205,6 +212,34 @@ internal static class E2eFixtureSeeder
             "E2E",
             "Passkey User",
             password);
+
+        Console.WriteLine("E2E fixture seeding: ensuring identity 13 of 14.");
+        User emailTwoFactorPlatformAdmin = await EnsureUserAsync(
+            users,
+            EmailTwoFactorPlatformAdminUserName,
+            Guid.Parse("c4e7b1a2-9f0d-4c33-a816-2d4b5e6f7081"),
+            EmailTwoFactorPlatformAdminEmail,
+            "E2E",
+            "Email Two-Factor Platform Admin",
+            password);
+        if (!emailTwoFactorPlatformAdmin.EmailConfirmed
+            || emailTwoFactorPlatformAdmin.Email != EmailTwoFactorPlatformAdminEmail
+            || emailTwoFactorPlatformAdmin.PhoneNumber is not null
+            || emailTwoFactorPlatformAdmin.PhoneNumberConfirmed
+            || !emailTwoFactorPlatformAdmin.TwoFactorEnabled)
+        {
+            emailTwoFactorPlatformAdmin.Email = EmailTwoFactorPlatformAdminEmail;
+            emailTwoFactorPlatformAdmin.EmailConfirmed = true;
+            emailTwoFactorPlatformAdmin.PhoneNumber = null;
+            emailTwoFactorPlatformAdmin.PhoneNumberConfirmed = false;
+            emailTwoFactorPlatformAdmin.TwoFactorEnabled = true;
+            IdentityResult emailTwoFactorUpdate = await users.UpdateAsync(emailTwoFactorPlatformAdmin);
+            if (!emailTwoFactorUpdate.Succeeded)
+                throw new InvalidOperationException("E2E email two-factor platform-admin setup failed.");
+        }
+
+        Console.WriteLine("E2E fixture seeding: ensuring identity 14 of 14.");
+        User passwordlessPhoneAccount = await EnsurePasswordlessPhoneAccountAsync(users);
 
         Console.WriteLine("E2E fixture seeding: identity accounts are ready.");
         Guid ownerId = Guid.Parse(user.Id);
@@ -387,6 +422,10 @@ internal static class E2eFixtureSeeder
         IdentityResult tenantUserResult = await usersService.ReplaceTenantRoleAsync(tenantUser.Id, tenant.Id, IdentityDefinitions.TenantUser, cancellationToken);
         if (!tenantUserResult.Succeeded)
             throw new InvalidOperationException("E2E tenant-user role assignment failed.");
+
+        IdentityResult passwordlessPhoneAccountResult = await usersService.ReplaceTenantRoleAsync(passwordlessPhoneAccount.Id, tenant.Id, IdentityDefinitions.TenantUser, cancellationToken);
+        if (!passwordlessPhoneAccountResult.Succeeded)
+            throw new InvalidOperationException("E2E passwordless phone account role assignment failed.");
 
         IdentityResult emailChangeUserResult = await usersService.ReplaceTenantRoleAsync(emailChangeUser.Id, tenant.Id, IdentityDefinitions.TenantUser, cancellationToken);
         if (!emailChangeUserResult.Succeeded)
@@ -607,6 +646,12 @@ internal static class E2eFixtureSeeder
             if (!result.Succeeded)
                 throw new InvalidOperationException("E2E two-factor platform-admin role assignment failed.");
         }
+        if (!await users.IsInRoleAsync(emailTwoFactorPlatformAdmin, IdentityDefinitions.PlatformAdmin))
+        {
+            IdentityResult result = await usersService.AddUserToRoleAsync(emailTwoFactorPlatformAdmin, IdentityDefinitions.PlatformAdmin, cancellationToken);
+            if (!result.Succeeded)
+                throw new InvalidOperationException("E2E email two-factor platform-admin role assignment failed.");
+        }
 
     }
 
@@ -638,6 +683,47 @@ internal static class E2eFixtureSeeder
         IdentityResult created = await users.CreateAsync(user, password);
         if (!created.Succeeded)
             throw new InvalidOperationException($"E2E user creation failed: {string.Join(';', created.Errors.Select(error => error.Code))}");
+        return user;
+    }
+
+    private static async Task<User> EnsurePasswordlessPhoneAccountAsync(UserManager<User> users)
+    {
+        User? existing = await users.FindByNameAsync(PasswordlessPhoneAccountUserName);
+        if (existing is not null)
+        {
+            if (await users.HasPasswordAsync(existing))
+            {
+                IdentityResult removedPassword = await users.RemovePasswordAsync(existing);
+                if (!removedPassword.Succeeded)
+                    throw new InvalidOperationException($"E2E passwordless phone account reset failed: {string.Join(';', removedPassword.Errors.Select(error => error.Code))}");
+            }
+
+            if (existing.TwoFactorEnabled)
+            {
+                IdentityResult disabledTwoFactor = await users.SetTwoFactorEnabledAsync(existing, false);
+                if (!disabledTwoFactor.Succeeded)
+                    throw new InvalidOperationException($"E2E passwordless phone account two-factor reset failed: {string.Join(';', disabledTwoFactor.Errors.Select(error => error.Code))}");
+            }
+
+            return existing;
+        }
+
+        User user = new()
+        {
+            Id = Guid.Parse("3bc0e1b2-041f-4e73-bc31-36f3b9c2a0ab").ToString(),
+            UserName = PasswordlessPhoneAccountUserName,
+            NormalizedUserName = PasswordlessPhoneAccountUserName.ToUpperInvariant(),
+            Email = PasswordlessPhoneAccountEmail,
+            NormalizedEmail = PasswordlessPhoneAccountEmail.ToUpperInvariant(),
+            EmailConfirmed = true,
+            PhoneNumber = PasswordlessPhoneAccountPhoneNumber,
+            PhoneNumberConfirmed = true,
+            FirstName = "E2E",
+            LastName = "Passwordless Account"
+        };
+        IdentityResult created = await users.CreateAsync(user);
+        if (!created.Succeeded)
+            throw new InvalidOperationException($"E2E passwordless phone account creation failed: {string.Join(';', created.Errors.Select(error => error.Code))}");
         return user;
     }
 

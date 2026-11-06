@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Vitarish.Authentication.Application.Results;
 using Vitarish.Authentication.Contracts.Errors;
+using Vitarish.Authentication.Domain.Challenges;
 using Vitarish.Authentication.Domain.Security;
 
 namespace Vitarish.Authentication.Api.Mapping;
@@ -30,6 +31,7 @@ public static class AuthenticationProblemHttpMapper
             AuthenticationFailureReason.InvalidCredential => (StatusCodes.Status400BadRequest, AuthenticationErrorCode.invalid_credential),
             AuthenticationFailureReason.AccountDisabled => (StatusCodes.Status403Forbidden, AuthenticationErrorCode.account_disabled),
             AuthenticationFailureReason.NoAccess => (StatusCodes.Status403Forbidden, AuthenticationErrorCode.no_access),
+            AuthenticationFailureReason.Conflict => (StatusCodes.Status409Conflict, AuthenticationErrorCode.conflict),
             _ => (StatusCodes.Status500InternalServerError, AuthenticationErrorCode.invalid_input)
         };
 
@@ -38,10 +40,18 @@ public static class AuthenticationProblemHttpMapper
             Status = status,
             Title = failure.Reason.ToString(),
             Detail = failure.Message,
-            Extensions = { ["code"] = code.ToString() }
+            Extensions = { [AuthenticationProblemExtensionNames.Code] = code.ToString() }
         };
         if (!string.IsNullOrWhiteSpace(failure.ChallengeId))
-            details.Extensions["challengeId"] = failure.ChallengeId;
+            details.Extensions[AuthenticationProblemExtensionNames.ChallengeId] = failure.ChallengeId;
+        if (failure.ChallengePurpose is { } challengePurpose)
+            details.Extensions[AuthenticationProblemExtensionNames.UsesEmailSecondFactor] = challengePurpose is AuthenticationChallengePurpose.PasswordLoginEmailOtp;
+        if (!string.IsNullOrWhiteSpace(failure.MaskedDestination))
+            details.Extensions[AuthenticationProblemExtensionNames.MaskedDestination] = failure.MaskedDestination;
+        if (failure.ChallengeExpiresAt is { } challengeExpiresAt)
+            details.Extensions[AuthenticationProblemExtensionNames.ChallengeExpiresAt] = challengeExpiresAt;
+        if (failure.RemainingAttempts is { } remainingAttempts)
+            details.Extensions[AuthenticationProblemExtensionNames.RemainingAttempts] = remainingAttempts;
         return Results.Problem(details);
     }
 }

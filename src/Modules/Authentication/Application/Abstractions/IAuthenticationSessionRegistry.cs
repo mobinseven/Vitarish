@@ -7,7 +7,9 @@ namespace Vitarish.Authentication.Application.Abstractions;
 public interface IAuthenticationSessionRegistry
 {
     Task<IAuthenticationSessionPreparation> PrepareAsync(string userId, CancellationToken cancellationToken);
+    Task<IAuthenticationSessionPreparation> PrepareAsync(string userId, DateTime? authenticatedAt, CancellationToken cancellationToken);
     Task<AuthenticationSessionEstablishmentResult> EstablishAsync(string userId, CancellationToken cancellationToken);
+    Task<DateTime?> GetCurrentAuthenticationAtAsync(string userId, CancellationToken cancellationToken);
     Task RecordFailedAttemptAsync(string? userId, CancellationToken cancellationToken);
     Task<AuthenticationSessionValidationResult> ValidateAndTouchAsync(string sessionId, string userId, string? tenantId, CancellationToken cancellationToken);
     Task RevokeAsync(string sessionId, AuthenticationSessionTerminationReason reason, CancellationToken cancellationToken);

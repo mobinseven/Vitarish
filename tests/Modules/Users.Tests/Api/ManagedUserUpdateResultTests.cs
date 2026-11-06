@@ -10,6 +10,7 @@ public sealed class ManagedUserUpdateResultTests
 {
     [Theory]
     [InlineData(UsersCommandFailureCode.ContactIdentifierInUse, StatusCodes.Status409Conflict)]
+    [InlineData(UsersCommandFailureCode.ConfirmedContactRequiredForTwoStepSignIn, StatusCodes.Status409Conflict)]
     [InlineData(UsersCommandFailureCode.ConcurrencyFailure, StatusCodes.Status409Conflict)]
     [InlineData(UsersCommandFailureCode.UserNotFound, StatusCodes.Status404NotFound)]
     [InlineData(UsersCommandFailureCode.InvalidContact, StatusCodes.Status400BadRequest)]

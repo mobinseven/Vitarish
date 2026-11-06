@@ -31,6 +31,7 @@ public static class AuthenticationApiEndpointRouteBuilderExtensions
         _ = protectedGroup.MapAccountPhoneChangeEndpoints();
         _ = protectedGroup.MapAccountEmailChangeEndpoints();
         _ = protectedGroup.MapAccountPasswordChangeEndpoints();
+        _ = protectedGroup.MapAccountSignInSecurityEndpoints();
         return endpoints;
     }
 }

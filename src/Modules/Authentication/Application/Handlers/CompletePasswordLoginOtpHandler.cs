@@ -4,8 +4,8 @@ using Vitarish.Authentication.Application.Abstractions;
 using Vitarish.Authentication.Application.Commands;
 using Vitarish.Authentication.Application.Results;
 using Vitarish.Authentication.Application.Security;
+using Vitarish.Authentication.Application.Validation;
 using Vitarish.Authentication.Domain.Challenges;
-using Vitarish.Authentication.Domain.Methods;
 using Vitarish.Authentication.Domain.Security;
 using Vitarish.Requests.Application.Abstractions;
 
@@ -23,7 +23,8 @@ public sealed class CompletePasswordLoginOtpHandler(
     IAuthenticationAttemptKeyFactory attemptKeyFactory,
     AuthenticationSourceAttemptGuard sourceAttemptGuard,
     IAuthenticationUtcClock clock,
-    IAuthenticationSessionRegistry sessionRegistry)
+    IAuthenticationSessionRegistry sessionRegistry,
+    IAuthenticationUserDirectory userDirectory)
 {
     public async Task<AuthenticationResult<LoginResult>> Handle(
         CompletePasswordLoginOtpCommand command,
@@ -33,8 +34,15 @@ public sealed class CompletePasswordLoginOtpHandler(
             return new AuthenticationResult<LoginResult>.Failure(new(AuthenticationFailureReason.ProviderFailure, "A tenant context is required for security auditing."));
 
         SecurityAccessPolicy securityPolicy = await securityPolicyProvider.GetAsync(cancellationToken);
-        if (!securityPolicy.Allows(AuthenticationMethod.Phone, PreAuthenticationAction.PasswordPlusPhoneOtp))
-            return new AuthenticationResult<LoginResult>.Failure(new(AuthenticationFailureReason.NotAllowed, "Additional authentication is not enabled."));
+
+        string? knownUserId = null;
+        AuthenticationChallenge? challenge = AuthenticationInputValidator.HasText(command.ChallengeId)
+            ? await store.GetAsync(AuthenticationChallengeId.Create(command.ChallengeId), cancellationToken)
+            : null;
+        knownUserId = challenge?.UserId;
+        PasswordLoginSecondFactorChannel? channel = challenge is null
+            ? PasswordLoginSecondFactorChannel.ForPurpose(AuthenticationChallengePurpose.PasswordLoginOtp)
+            : PasswordLoginSecondFactorChannel.FromChallenge(challenge);
 
         string operationKey = requestContext.RequestId ?? Guid.NewGuid().ToString("N");
         string startedKey = operationKey + AuthenticationSecurityAuditEvents.StartedKeySuffix;
@@ -54,23 +62,42 @@ public sealed class CompletePasswordLoginOtpHandler(
             // AU-8 preserves the OTP authentication flow when its audit record cannot be stored.
         }
 
-        string? knownUserId = null;
-        AuthenticationResult<LoginResult> result = await ChallengeCompletionHelper.CompleteChallengeAsync(
-            command.ChallengeId,
-            command.Code,
-            command.ReturnUrl,
-            AuthenticationChallengePurpose.PasswordLoginOtp,
-            store,
-            verifier,
-            signInService,
-            redirects,
-            cancellationToken,
-            attemptTracker,
-            securityPolicy,
-            attemptKeyFactory,
-            sessionRegistry,
-            sourceAttemptGuard,
-            onChallengeLoaded: userId => knownUserId = userId);
+        AuthenticationResult<LoginResult> result;
+        if (channel is null)
+        {
+            result = new AuthenticationResult<LoginResult>.Failure(new(AuthenticationFailureReason.InvalidChallengePurpose, "The challenge is not a password sign-in second factor."));
+        }
+        else if (!securityPolicy.Allows(channel.Method, channel.PolicyAction))
+        {
+            result = new AuthenticationResult<LoginResult>.Failure(new(AuthenticationFailureReason.NotAllowed, "Additional authentication is not enabled."));
+        }
+        else if (channel.Method is Vitarish.Authentication.Domain.Methods.AuthenticationMethod.Email &&
+                 challenge is not null &&
+                 challenge.ValidateAttempt(clock.UtcNow, channel.ChallengePurpose) is null &&
+                 !channel.DestinationIsCurrentAndConfirmed(await userDirectory.FindByIdAsync(challenge.UserId, cancellationToken)))
+        {
+            _ = await store.TryConsumeAsync(challenge, CancellationToken.None);
+            result = new AuthenticationResult<LoginResult>.Failure(new(AuthenticationFailureReason.NotAllowed, "Additional authentication is no longer configured."));
+        }
+        else
+        {
+            result = await ChallengeCompletionHelper.CompleteChallengeAsync(
+                command.ChallengeId,
+                command.Code,
+                command.ReturnUrl,
+                channel.ChallengePurpose,
+                store,
+                verifier,
+                signInService,
+                redirects,
+                cancellationToken,
+                attemptTracker,
+                securityPolicy,
+                attemptKeyFactory,
+                sessionRegistry,
+                sourceAttemptGuard,
+                onChallengeLoaded: userId => knownUserId = userId);
+        }
 
         try
         {

@@ -130,12 +130,14 @@ public sealed class PostgresSecurityAccessPolicyStoreTests
             IAuthenticationSecurityPolicyProvider provider = store;
             SecurityAccessPolicy effective = await provider.GetAsync(CancellationToken.None);
             effective.Allows(AuthenticationMethod.Phone, PreAuthenticationAction.PasswordPlusPhoneOtp).Should().BeTrue();
+            effective.Allows(AuthenticationMethod.Email, PreAuthenticationAction.PasswordPlusEmailOtp).Should().BeTrue();
             effective.Allows(AuthenticationMethod.Passkey, PreAuthenticationAction.PasskeyLogin).Should().BeFalse();
         }
 
         await using AuthenticationDbContext verification = new(options);
         SecurityAccessPolicy persisted = (await verification.SecurityAccessPolicies.SingleAsync()).ToDomain();
         persisted.Allows(AuthenticationMethod.Phone, PreAuthenticationAction.PasswordPlusPhoneOtp).Should().BeFalse();
+        persisted.Allows(AuthenticationMethod.Email, PreAuthenticationAction.PasswordPlusEmailOtp).Should().BeFalse();
         persisted.Allows(AuthenticationMethod.Passkey, PreAuthenticationAction.PasskeyLogin).Should().BeTrue();
     }
 

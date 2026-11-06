@@ -2,7 +2,12 @@ import { expect, test, type Page } from "@playwright/test";
 import { existsSync, mkdirSync, readFileSync, rmSync, statSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
-import { twoHostE2eApiOriginEnvironmentKey, twoHostE2eSignInOrigin } from "../../scripts/two-host-e2e-artifacts.mjs";
+import { LandingRoutes } from "../../apps/vitarish-landing/src/app/routes";
+import {
+  twoHostE2eApiOriginEnvironmentKey,
+  twoHostE2eLandingOrigin,
+  twoHostE2eSignInOrigin,
+} from "../../scripts/two-host-e2e-artifacts.mjs";
 import { continueToClinic } from "./signInHost";
 
 const privatePracticeOrigin = process.env.VITARISH_E2E_WEB_ORIGIN ?? "http://localhost:3005";
@@ -95,12 +100,15 @@ test("changing the account email moves sign-in to the new address", async ({ pag
   await expect(page).toHaveURL(/\/login/, { timeout: 30_000 });
 
   expect(await signIn(page, oldEmail)).toBe(401);
-  // The changed address must be confirmed on the sign-in host before any clinic handoff.
+  // The verification code already proved the new address, so it stays confirmed and
+  // sign-in reaches the platform home without another contact confirmation step.
   expect(await signIn(page, newEmail, false)).toBe(200);
   expect(await readOwnProfileEmail(page)).toBe(newEmail);
 
-  await expect(page).toHaveURL(`${twoHostE2eSignInOrigin}${ClinicRoutes.Account.ContactConfirm}`, { timeout: 30_000 });
-  await expect(page.getByRole("heading", { name: "Confirm your contact details", exact: true })).toBeVisible({ timeout: 30_000 });
+  await page.waitForURL((url) => url.origin === twoHostE2eLandingOrigin && url.pathname === LandingRoutes.PlatformHome, {
+    timeout: 30_000,
+  });
+  expect(page.url()).not.toContain(ClinicRoutes.Account.ContactConfirm);
 
   const screenshotPath = resolve("artifacts/two-host-e2e/email-change-sign-in.png");
   rmSync(screenshotPath, { force: true });

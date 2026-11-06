@@ -76,6 +76,8 @@ public sealed class AuthenticationSecurityDependencyCompositionTests
         services.Replace(ServiceDescriptor.Singleton<IAuthenticationAttemptTracker, InMemoryAuthenticationAttemptTracker>());
         services.Replace(ServiceDescriptor.Scoped<IAuthenticationSecurityPolicyStore>(_ => Mock.Of<IAuthenticationSecurityPolicyStore>()));
         services.Replace(ServiceDescriptor.Scoped<IAuthenticationSecurityPolicyProvider>(_ => new TestSecurityPolicyProvider()));
+        services.Replace(ServiceDescriptor.Scoped<IAuthenticationSessionRegistry>(_ => Mock.Of<IAuthenticationSessionRegistry>()));
+        services.Replace(ServiceDescriptor.Scoped<IAuthenticationUtcClock>(_ => Mock.Of<IAuthenticationUtcClock>()));
         services.Replace(ServiceDescriptor.Scoped<IAuthenticationChallengeStore>(_ => Mock.Of<IAuthenticationChallengeStore>()));
         services.Replace(ServiceDescriptor.Scoped<IAuthenticationUserDirectory>(_ => Mock.Of<IAuthenticationUserDirectory>()));
         services.Replace(ServiceDescriptor.Scoped<IInitialPlatformAdministratorGrant>(_ => Mock.Of<IInitialPlatformAdministratorGrant>()));
@@ -94,7 +96,7 @@ public sealed class AuthenticationSecurityDependencyCompositionTests
         using IServiceScope scope = provider.CreateScope();
 
         foreach (Type handlerType in AuthenticationHandlers().Select(item => (Type)item[0])
-            .Concat([typeof(GetSecurityAccessPolicyHandler), typeof(ChangeSecurityAccessPolicyHandler)]))
+            .Concat([typeof(GetSecurityAccessPolicyHandler), typeof(ChangeSecurityAccessPolicyHandler), typeof(SetFirstPasswordHandler), typeof(ChangeTwoStepSignInHandler)]))
             scope.ServiceProvider.GetRequiredService(handlerType).Should().NotBeNull();
 
         scope.ServiceProvider.GetRequiredService<IPasswordRecoveryCodeDispatcher>()

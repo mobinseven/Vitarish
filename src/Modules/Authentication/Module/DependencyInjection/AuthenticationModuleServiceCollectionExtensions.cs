@@ -18,6 +18,8 @@ public static class AuthenticationModuleServiceCollectionExtensions
         services.AddScoped<AuthenticationSourceAttemptGuard>();
         services.AddScoped<LoginWithPasswordHandler>();
         services.AddScoped<ChangePasswordHandler>();
+        services.AddScoped<SetFirstPasswordHandler>();
+        services.AddScoped<ChangeTwoStepSignInHandler>();
         services.AddScoped<BeginChangeEmailHandler>();
         services.AddScoped<CompleteChangeEmailHandler>();
         services.AddScoped<BeginChangePhoneHandler>();
@@ -31,6 +33,7 @@ public static class AuthenticationModuleServiceCollectionExtensions
         services.AddScoped<BeginPasskeyLoginHandler>();
         services.AddScoped<CompletePasskeyLoginHandler>();
         services.AddScoped<CompletePasswordLoginOtpHandler>();
+        services.AddScoped<ResendPasswordLoginOtpHandler>();
         services.AddScoped<AuthenticationOtpDeliveryService>();
         services.AddScoped<AuthenticationAttemptAuditor>();
         services.AddScoped<BeginPasswordRecoveryHandler>();

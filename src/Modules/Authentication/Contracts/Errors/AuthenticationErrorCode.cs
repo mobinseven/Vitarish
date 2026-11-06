@@ -20,5 +20,6 @@ public enum AuthenticationErrorCode
     invalid_credential,
     account_disabled,
     no_access,
-    logout_context_unavailable
+    logout_context_unavailable,
+    conflict
 }

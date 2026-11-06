@@ -264,7 +264,9 @@ public sealed class ChangeSecurityAccessPolicyHandler(
     {
         try
         {
-            return current.EquivalentTo(applyChanges(current));
+            AuthenticationProfilePolicy effectiveProfile = profilePolicy ?? AuthenticationProfilePolicy.Default;
+            return current.ReconcileProfile(effectiveProfile)
+                .EquivalentTo(applyChanges(current).ReconcileProfile(effectiveProfile));
         }
         catch (ArgumentException)
         {

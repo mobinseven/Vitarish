@@ -27,8 +27,10 @@ public static class PasswordLoginEndpoints
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status401Unauthorized)
         .ProducesProblem(StatusCodes.Status403Forbidden)
+        .ProducesProblem(StatusCodes.Status409Conflict)
         .ProducesProblem(StatusCodes.Status423Locked)
         .ProducesProblem(StatusCodes.Status429TooManyRequests)
+        .ProducesProblem(StatusCodes.Status503ServiceUnavailable)
         .WithSummary("Signs in with a password.");
 
         return group;

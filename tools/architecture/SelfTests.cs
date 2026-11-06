@@ -369,6 +369,70 @@ internal static class SelfTests
                 .Any(violation => violation.Kind == "AnonymousRationaleMismatch"),
             "source-owned anonymous rationale mismatch was not detected");
 
+        SourceIndex accountSecurityOperationIndex = SourceIndex.FromSources(
+            ("src/Modules/Authentication/Contracts/Routes/AuthenticationAccountSecurityOperationIds.cs", """
+                namespace Vitarish.Authentication.Contracts.Routes;
+                public static class AuthenticationAccountSecurityOperationIds
+                {
+                    public const string FirstPasswordSet = "Authentication_Account_Password_First_Set";
+                }
+                """),
+            ("src/Modules/Authentication/Api/AccountEndpoints.cs", """
+                using Vitarish.Authentication.Contracts.Routes;
+                static class AccountEndpoints
+                {
+                    static void Map(object group) => group.MapModulePost("/first", SetFirstPasswordAsync, AuthenticationAccountSecurityOperationIds.FirstPasswordSet);
+                    static void SetFirstPasswordAsync() { }
+                }
+                """));
+        string accountSecurityOperationSymbolMatrix = """
+            <!-- main-module-authorization-matrix:start -->
+            | Operation ID | Module owner | Route owner | Classification | Authentication | Authority | Reauthentication | Public rationale | Regression test |
+            | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+            | AuthenticationAccountSecurityOperationIds.FirstPasswordSet | Authentication | src/Modules/Authentication/Api/AccountEndpoints.cs | protected | BrowserOrBearer | Authenticated account subject; Authentication Application checks the passwordless account precondition | Required | — | tools/architecture/SelfTests.cs#AuthorizationMatrixCheckSelfTest |
+            <!-- main-module-authorization-matrix:end -->
+            <!-- user-auth-role-object-matrix:start -->
+            | Operation ID | Data category | Operation | PlatformAdmin | TenantOwner | TenantUser | Authorization owner | Regression test |
+            | --- | --- | --- | --- | --- | --- | --- | --- |
+            | AuthenticationAccountSecurityOperationIds.FirstPasswordSet | Authentication credential | Create | Self only | Self only | Self only | Authenticated subject and passwordless account precondition | tools/architecture/SelfTests.cs#AuthorizationMatrixCheckSelfTest |
+            <!-- user-auth-role-object-matrix:end -->
+            """;
+        Require(AuthorizationMatrixCheck.Run(accountSecurityOperationIndex, accountSecurityOperationSymbolMatrix).Count == 0,
+            "source-owned account security operation symbol did not resolve in both authorization tables");
+        string unknownAccountSecurityOperationSymbol = accountSecurityOperationSymbolMatrix.Replace(
+            "AuthenticationAccountSecurityOperationIds.FirstPasswordSet",
+            "AuthenticationAccountSecurityOperationIds.Missing",
+            StringComparison.Ordinal);
+        Require(AuthorizationMatrixCheck.Run(accountSecurityOperationIndex, unknownAccountSecurityOperationSymbol)
+                .Any(violation => violation.Kind == AuthorizationMatrixCheck.AuthorizationMatrixOperationSymbolUnresolvedKind),
+            "unknown account security operation symbol was not rejected");
+        SourceIndex ambiguousAccountSecurityOperationIndex = SourceIndex.FromSources(
+            ("src/Modules/Authentication/Contracts/Routes/AuthenticationAccountSecurityOperationIds.cs", """
+                namespace Vitarish.Authentication.Contracts.Routes;
+                public static class AuthenticationAccountSecurityOperationIds
+                {
+                    public const string FirstPasswordSet = "Authentication_Account_Password_First_Set";
+                }
+                """),
+            ("src/Modules/Foo/Contracts/AuthenticationAccountSecurityOperationIds.cs", """
+                namespace Foo.Contracts;
+                public static class AuthenticationAccountSecurityOperationIds
+                {
+                    public const string FirstPasswordSet = "Authentication_Account_Password_First_Set";
+                }
+                """),
+            ("src/Modules/Authentication/Api/AccountEndpoints.cs", """
+                using Vitarish.Authentication.Contracts.Routes;
+                static class AccountEndpoints
+                {
+                    static void Map(object group) => group.MapModulePost("/first", SetFirstPasswordAsync, AuthenticationAccountSecurityOperationIds.FirstPasswordSet);
+                    static void SetFirstPasswordAsync() { }
+                }
+                """));
+        Require(AuthorizationMatrixCheck.Run(ambiguousAccountSecurityOperationIndex, accountSecurityOperationSymbolMatrix)
+                .Any(violation => violation.Kind == AuthorizationMatrixCheck.AuthorizationMatrixOperationSymbolUnresolvedKind),
+            "ambiguous operation symbol was not rejected");
+
         string duplicate = valid.Replace(
             "<!-- main-module-authorization-matrix:end -->",
             "| FooGetItems | Foo | src/Modules/Foo/Api/FooApi.cs | protected | BrowserOrBearer | Foo application boundary | Not required | — | tools/architecture/SelfTests.cs#AuthorizationMatrixCheckSelfTest |\n<!-- main-module-authorization-matrix:end -->",

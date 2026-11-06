@@ -161,7 +161,7 @@ public sealed class SecurityAccessPolicyRecord
         SourceFailedAttemptThreshold = policy.SourceFailedAttemptThreshold,
         FailedAttemptResponse = policy.FailedAttemptResponse,
         EnabledAuthenticationMechanisms = Serialize(policy.EnabledAuthenticationMechanisms),
-        PermittedPreAuthenticationActions = Serialize(policy.PermittedPreAuthenticationActions),
+        PermittedPreAuthenticationActions = Serialize(StoredActions(policy.PermittedPreAuthenticationActions)),
         MaximumConcurrentSessions = policy.MaximumConcurrentSessions,
         ConcurrentSessionsFunctionallyRequired = policy.ConcurrentSessionsFunctionallyRequired,
         DefaultInactivityTimeoutMinutes = policy.DefaultInactivityTimeoutMinutes,
@@ -183,7 +183,7 @@ public sealed class SecurityAccessPolicyRecord
         SourceFailedAttemptThreshold = policy.SourceFailedAttemptThreshold;
         FailedAttemptResponse = policy.FailedAttemptResponse;
         EnabledAuthenticationMechanisms = Serialize(policy.EnabledAuthenticationMechanisms);
-        PermittedPreAuthenticationActions = Serialize(policy.PermittedPreAuthenticationActions);
+        PermittedPreAuthenticationActions = Serialize(StoredActions(policy.PermittedPreAuthenticationActions));
         MaximumConcurrentSessions = policy.MaximumConcurrentSessions;
         ConcurrentSessionsFunctionallyRequired = policy.ConcurrentSessionsFunctionallyRequired;
         DefaultInactivityTimeoutMinutes = policy.DefaultInactivityTimeoutMinutes;
@@ -208,6 +208,11 @@ public sealed class SecurityAccessPolicyRecord
         SourceFailedAttemptThreshold);
 
     private static string Serialize<T>(IEnumerable<T> values) where T : notnull => string.Join(',', values.OrderBy(value => value).Select(value => value.ToString()));
+
+    // Email second-factor availability is derived from the active profile. Keep it
+    // out of the persisted enum string so older nodes can still read the policy.
+    private static IEnumerable<PreAuthenticationAction> StoredActions(IEnumerable<PreAuthenticationAction> actions) =>
+        actions.Where(action => action is not PreAuthenticationAction.PasswordPlusEmailOtp);
 
     private static IReadOnlySet<T> Deserialize<T>(string value) where T : struct, Enum
     {

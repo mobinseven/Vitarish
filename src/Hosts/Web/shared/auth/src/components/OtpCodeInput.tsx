@@ -12,6 +12,7 @@ interface OtpCodeInputProps {
   errorMessage?: string;
   isDisabled?: boolean;
   expectedLength?: number;
+  label?: string;
 }
 
 export function OtpCodeInput({
@@ -21,6 +22,7 @@ export function OtpCodeInput({
   errorMessage,
   isDisabled,
   expectedLength = 6,
+  label,
 }: OtpCodeInputProps) {
   const { t } = useLocalizedText();
   const handleChange = useCallback(
@@ -32,7 +34,7 @@ export function OtpCodeInput({
 
   return (
     <TextField name="otp" isInvalid={isInvalid} isDisabled={isDisabled}>
-      <Label>{t("auth.otp.codeLabel")}</Label>
+      <Label>{label ?? t("auth.otp.codeLabel")}</Label>
       <Input
         placeholder={t("auth.otp.codePlaceholder", { length: expectedLength })}
         value={value}

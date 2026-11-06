@@ -7,5 +7,6 @@ public enum UsersCommandFailureCode
     ConcurrencyFailure,
     Unauthorized,
     ContactIdentifierInUse,
-    ActiveSessionConflict
+    ActiveSessionConflict,
+    ConfirmedContactRequiredForTwoStepSignIn
 }
