@@ -17,13 +17,16 @@ interface AgentToolDefinition {
   parametersJsonSchema: string;
 }
 
+const agentSubjectKinds = ["patient", "practice", "event", "landing-page", "platform-home"] as const;
+type AgentSubjectKind = (typeof agentSubjectKinds)[number];
+
 interface AgentRuntimeExecutionEnvelope {
   version: number;
   executionId: string;
   agentKey: string;
   tenantId: string;
   practiceId: string;
-  subjectKind: "patient" | "practice" | "event" | "landing-page";
+  subjectKind: AgentSubjectKind;
   subjectId: string;
   authenticatedUserId: string;
   conversationId: string;
@@ -100,7 +103,7 @@ function isValidExecutionEnvelope(value: unknown): value is AgentRuntimeExecutio
   const expiresAt = Date.parse(typedEnvelope.expiresAt);
   if (!Number.isFinite(expiresAt) || expiresAt <= Date.now() || expiresAt > Date.now() + 15 * 60 * 1000) return false;
   if (!Number.isFinite(Date.parse(typedEnvelope.currentUtc)) || !Number.isFinite(Date.parse(typedEnvelope.currentLocal))) return false;
-  if (!["patient", "practice", "event", "landing-page"].includes(typedEnvelope.subjectKind)) return false;
+  if (!agentSubjectKinds.includes(typedEnvelope.subjectKind)) return false;
   if (typedEnvelope.subjectKind === "patient" && !isGuid(typedEnvelope.subjectId)) return false;
   if (typedEnvelope.subjectKind === "event" && !isGuid(typedEnvelope.subjectId)) return false;
   if (typedEnvelope.subjectKind === "practice" && (typedEnvelope.subjectId !== typedEnvelope.practiceId || typedEnvelope.tenantId !== typedEnvelope.practiceId)) return false;
@@ -229,7 +232,7 @@ export async function POST(request: NextRequest) {
       !isValidExecutionEnvelope(input.executionEnvelope) ||
       !input.callbackUrl || !input.callbackCredential ||
       !Array.isArray(input.tools) || input.limits?.maxIterations < 1 ||
-      input.limits?.maxToolCalls < 1 || input.limits?.maxTokens < 1) {
+      input.limits?.maxToolCalls < 0 || input.limits?.maxTokens < 1) {
     return Response.json({ error: "The agent runtime request is invalid." }, { status: 400 });
   }
 

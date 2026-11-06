@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import {
   partiesIssueSignInClinicHandoff,
   partiesIssueSignInOnboardingHandoff,
@@ -26,8 +26,7 @@ export interface ClinicSelection {
 }
 
 /**
- * The shared sign-in host's clinic choice. One clinic opens by itself, and a person with none
- * goes straight on to create one; several are listed for the person to choose.
+ * The shared sign-in host's workspace choice. A handoff starts only after an explicit choice.
  */
 export function useClinicSelection(handoffPath: string): ClinicSelection {
   const query = usePartiesGetSignInClinics();
@@ -35,7 +34,6 @@ export function useClinicSelection(handoffPath: string): ClinicSelection {
   const [opening, setOpening] = useState<ClinicSelectionTarget | null>(null);
   const [openFailed, setOpenFailed] = useState(false);
   const [newClinicUnavailable, setNewClinicUnavailable] = useState(false);
-  const autoOpened = useRef(false);
 
   const open = useCallback(
     (target: ClinicSelectionTarget) => {
@@ -54,13 +52,6 @@ export function useClinicSelection(handoffPath: string): ClinicSelection {
     },
     [handoffPath],
   );
-
-  useEffect(() => {
-    if (autoOpened.current || query.isLoading || !query.data) return;
-    autoOpened.current = true;
-    if (query.data.clinics.length === 1) open({ kind: "clinic", tenantId: query.data.clinics[0].tenantId });
-    else if (query.data.clinics.length === 0) open({ kind: "newClinic" });
-  }, [open, query.data, query.isLoading]);
 
   return {
     clinics,

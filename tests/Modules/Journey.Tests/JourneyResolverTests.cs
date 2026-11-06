@@ -136,7 +136,7 @@ public class JourneyResolverTests
     }
 
     [Fact]
-    public async Task ResolveAsync_OnTheSignInHost_SendsACompleteAccountToClinicSelectionBeforeAnyReturnUrl()
+    public async Task ResolveAsync_OnTheSignInHost_ReturnsSignInContinueGateBeforeAnyReturnUrl()
     {
         var request = new JourneyRequest("user1", "/patients", "/", null, null, true);
         SetUpCompleteAccount();
@@ -146,8 +146,25 @@ public class JourneyResolverTests
         var result = await _sut.ResolveAsync(request);
 
         result.HasBlockingGate.Should().BeTrue();
-        result.BlockingGate!.Kind.Should().Be(JourneyGateKind.WorkspaceSelection);
-        result.DestinationUrl.Should().Be("/workspaces/select");
+        result.BlockingGate!.Kind.Should().Be(JourneyGateKind.SignInContinue);
+        result.DestinationUrl.Should().Be("/continue?returnUrl=%2Fpatients");
+    }
+
+    [Fact]
+    public async Task ResolveAsync_OffTheSignInHost_ReturnsNoSignInContinueGate()
+    {
+        var request = new JourneyRequest("user1", "/patients", "/", null, null, true);
+        SetUpCompleteAccount();
+        _hostReaderMock.Setup(x => x.IsSignInHostAsync(It.IsAny<CancellationToken>())).ReturnsAsync(false);
+        _workspaceReaderMock.Setup(x => x.GetSnapshotAsync("user1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new JourneyWorkspaceSnapshot("workspace1", "app1", null, null, false));
+        _returnUrlPolicyMock.Setup(x => x.Normalize("/patients")).Returns("/patients");
+
+        var result = await _sut.ResolveAsync(request);
+
+        result.HasBlockingGate.Should().BeFalse();
+        result.DestinationKind.Should().Be(JourneyDestinationKind.ReturnUrl);
+        result.DestinationUrl.Should().Be("/patients");
     }
 
     [Fact]

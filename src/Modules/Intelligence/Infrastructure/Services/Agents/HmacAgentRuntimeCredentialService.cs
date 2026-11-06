@@ -115,7 +115,7 @@ public sealed class HmacAgentRuntimeCredentialService(
             envelope.ExpiresAt <= DateTimeOffset.UnixEpoch ||
             requireToolCall && (string.IsNullOrWhiteSpace(envelope.ToolCallId) || string.IsNullOrWhiteSpace(envelope.ToolName)))
             throw new InvalidOperationException("The agent runtime execution envelope is incomplete.");
-        if (envelope.SubjectKind is not ("patient" or "practice" or "event" or "landing-page"))
+        if (envelope.SubjectKind is not ("patient" or "practice" or "event" or "landing-page" or AgentRuntimeSubjectKinds.PlatformHome))
             throw new InvalidOperationException("The agent runtime subject kind is invalid.");
         if (envelope.SubjectKind == "patient")
         {

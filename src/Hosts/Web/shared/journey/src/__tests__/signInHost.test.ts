@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { readSignInUrl, signInHostRedirectUrl, signInUrlEnvironmentKey } from "../signInHost";
+import { isSafeRelativeReturnTo, isSignInHost, readSignInUrl, signInHostRedirectUrl, signInUrlEnvironmentKey } from "../signInHost";
+import { handoffUrl } from "../features/handoff/hostUrl";
 
 const signInUrl = "https://auth.example.test";
 
@@ -27,5 +28,40 @@ describe("signInHostRedirectUrl", () => {
   it("stays on the sign-in host even for a path that looks like another host", () => {
     expect(new URL(signInHostRedirectUrl(signInUrl, "rezaei.clinic.example.test", "//other.example.test/login")!).host)
       .toBe("auth.example.test");
+  });
+
+  it("carries a safe relative return path to the sign-in host and drops anything else", () => {
+    expect(signInHostRedirectUrl(signInUrl, "vitarish.example.test", "/login?returnUrl=%2Fstudio"))
+      .toBe("https://auth.example.test/login?returnUrl=%2Fstudio");
+    for (const unsafe of ["https://evil.example.test/", "//evil.example.test", "/\\evil.example.test", "/studio?x=1", "studio"]) {
+      expect(signInHostRedirectUrl(signInUrl, "vitarish.example.test", `/login?returnUrl=${encodeURIComponent(unsafe)}`))
+        .toBe("https://auth.example.test/login");
+    }
+  });
+});
+
+describe("isSignInHost", () => {
+  it("matches only the sign-in host and port, whatever the case", () => {
+    expect(isSignInHost(signInUrl, "AUTH.example.test")).toBe(true);
+    expect(isSignInHost("http://auth.localhost:3005", "auth.localhost:3006")).toBe(false);
+    expect(isSignInHost(signInUrl, null)).toBe(false);
+  });
+});
+
+describe("isSafeRelativeReturnTo", () => {
+  it("accepts only same-host paths without query, fragment or host tricks", () => {
+    expect(isSafeRelativeReturnTo("/studio")).toBe(true);
+    expect(isSafeRelativeReturnTo("/%2F%2Fevil.example.test")).toBe(false);
+    expect(isSafeRelativeReturnTo("%")).toBe(false);
+    expect(isSafeRelativeReturnTo(null)).toBe(false);
+  });
+});
+
+describe("handoffUrl", () => {
+  it("puts the token in the fragment and a return path in the query, on the target host", () => {
+    Object.defineProperty(window, "location", { configurable: true, value: { href: "https://auth.example.test/continue?returnUrl=%2Fstudio" } });
+    expect(handoffUrl("vitarish.example.test", "/handoff", "token-1", "/studio"))
+      .toBe("https://vitarish.example.test/handoff?returnUrl=%2Fstudio#token-1");
+    expect(handoffUrl("vitarish.example.test", "/handoff", "token-2")).toBe("https://vitarish.example.test/handoff#token-2");
   });
 });

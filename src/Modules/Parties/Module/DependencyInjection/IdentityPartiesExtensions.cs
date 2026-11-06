@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Parties.Application;
+using Vitarish.Parties.Application.Apps;
 using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Application.Addresses;
 using Vitarish.Parties.Application.Onboarding;
@@ -34,6 +35,7 @@ public static class IdentityPartiesExtensions
         _ = builder.Services.AddTransientDbContext<PartiesDbContext>((_, options) => dbContextOptionsBuilder(options));
 
         _ = builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(typeof(AssemblyMarker).Assembly, typeof(PlatformAdminTenant).Assembly));
+        _ = builder.Services.AddSingleton<IPlatformAppCatalog, PlatformAppCatalog>();
         _ = builder.Services.AddOptions<PlatformAdminHostOptions>().BindConfiguration(Modules.Base.Core.Module.ApplicationSection);
         _ = builder.Services.AddOptions<TenantAddressOptions>().BindConfiguration(Modules.Base.Core.Module.ApplicationSection);
         _ = builder.Services.AddOptions<OnboardingHostOptions>()
@@ -71,7 +73,7 @@ public static class IdentityPartiesExtensions
         _ = builder.Services.AddTransient<ISelfServiceTenantStore, SelfServiceTenantStore>();
         _ = builder.Services.AddTransient<ITenantHandoffIssuer, AuthenticationTenantHandoffIssuer>();
         _ = builder.Services.AddTransient<Vitarish.Authentication.Application.Abstractions.IRoleFreeSessionPolicy, PlatformHostRoleFreeSessionPolicy>();
-        _ = builder.Services.AddTransient<ISignInClinicDirectory, SignInClinicDirectory>();
+        _ = builder.Services.AddTransient<IWorkspaceDirectory, WorkspaceDirectory>();
         _ = builder.Services.AddTransient<IAppTenantDirectory, AppTenantDirectory>();
         _ = builder.Services.AddTransient<ITenantBusinessProfileStore, TenantBusinessProfileStore>();
         _ = builder.Services.AddTransient<ITenantImageFiles, FilesTenantImageFiles>();

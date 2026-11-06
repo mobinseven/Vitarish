@@ -18,6 +18,7 @@ using Vitarish.Landing.Application;
 using Vitarish.Modules.Base.Core;
 using Vitarish.Modules.Base.Core.Endpoints;
 using Vitarish.Parties.Domain.Entities;
+using Vitarish.Parties.Application.SignIn;
 
 namespace Vitarish.Hosting;
 
@@ -40,6 +41,7 @@ public static class HostingComposition
         _ = builder.Services.AddSecureHttpClientDefaults();
         builder.AddApplicationOptions();
         _ = builder.Services.AddOptions<LandingPlatformOptions>().Configure<IOptions<ApplicationOptions>>((landing, platform) => landing.LandingUrl = platform.Value.LandingUrl);
+        _ = builder.Services.AddOptions<SignInHomeOptions>().Configure<IOptions<ApplicationOptions>>((home, platform) => home.LandingUrl = platform.Value.LandingUrl);
         builder.AddHostIdentityServer(options.ConfigureDbContext, options.IdentityServerSigningCertificate);
         builder.AddHostAuthentication(options.SecurityConfiguration);
         builder.AddHostAuthorization();

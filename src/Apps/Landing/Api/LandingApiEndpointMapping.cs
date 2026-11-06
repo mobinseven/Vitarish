@@ -16,6 +16,7 @@ using Vitarish.Landing.Application;
 using Vitarish.Landing.Contracts;
 using Vitarish.Modules.Base.Core.Endpoints;
 using Vitarish.Parties.Application.Abstractions;
+using Vitarish.Parties.Application.Apps;
 using Vitarish.Parties.Application.Onboarding;
 using Vitarish.Parties.Application.SignIn;
 using Vitarish.Intelligence.Domain.Options;
@@ -53,11 +54,35 @@ public static class LandingApiEndpointMapping
         // Signed-in visitors on the landing host, who need not have a clinic (role-free sessions, ADR-0017).
         RouteGroupBuilder visitors = endpoints.MapProtectedModuleGroup(LandingApiRoutes.Base, requireTenantAccess: false);
         visitors.WithGroupName(LandingApiRoutes.DocumentTag).WithTags(LandingApiRoutes.DocumentTag);
+        _ = visitors.MapModuleGet(
+                LandingApiRoutes.Workspaces,
+                ListWorkspacesAsync,
+                LandingApiOperations.ListWorkspaces,
+                typeof(LandingWorkspacesResponse))
+            .RequireRateLimiting(LandingRateLimitPolicies.PublicConversation);
+        _ = visitors.MapModulePost(
+                LandingApiRoutes.WorkspaceHandoff,
+                IssueWorkspaceHandoffAsync,
+                LandingApiOperations.IssueWorkspaceHandoff,
+                typeof(LandingWorkspaceHandoffResponse))
+            .RequireRateLimiting(LandingRateLimitPolicies.PublicConversation);
         _ = visitors.MapModulePost(
                 LandingApiRoutes.OnboardingHandoff,
                 IssueOnboardingHandoffAsync,
-                "LandingIssueOnboardingHandoff",
+                LandingApiOperations.IssueOnboardingHandoff,
                 typeof(LandingOnboardingHandoffResponse))
+            .RequireRateLimiting(LandingRateLimitPolicies.PublicConversation);
+        _ = visitors.MapModulePost(
+                LandingApiRoutes.HomeConversations,
+                RunHomeConversationAsync,
+                LandingApiOperations.RunHomeConversation,
+                typeof(LandingHomeConversationResponse))
+            .RequireRateLimiting(LandingRateLimitPolicies.PublicConversation);
+        _ = visitors.MapModuleDelete(
+                LandingApiRoutes.HomeConversationById,
+                DeleteHomeConversationAsync,
+                LandingApiOperations.DeleteHomeConversation,
+                profile: ModuleEndpointProfile.ProtectedJson)
             .RequireRateLimiting(LandingRateLimitPolicies.PublicConversation);
         RouteGroupBuilder administration = endpoints.MapProtectedModuleGroup($"{LandingApiRoutes.Base}{LandingApiRoutes.Administration}");
         administration.WithGroupName(LandingApiRoutes.DocumentTag).WithTags(LandingApiRoutes.DocumentTag);
@@ -134,6 +159,38 @@ public static class LandingApiEndpointMapping
             reply.NextAction,
             remembered.Select(item => new AgentRememberedResponse(item.Id, item.Text)).ToArray());
 
+    private static async Task<IResult> ListWorkspacesAsync(HttpContext context, IOptions<LandingPlatformOptions> options, IPartiesService parties, ISender sender, CancellationToken ct)
+    {
+        if (await ResolveBoundTenantAsync(context, options, parties, ct) is null)
+            return Results.NotFound();
+        LandingHomeDirectory? directory = await sender.Send(new ListLandingWorkspacesQuery(), ct);
+        return directory is null
+            ? Results.NotFound()
+            : Results.Ok(new LandingWorkspacesResponse(
+                directory.Workspaces.Select(workspace => new LandingWorkspaceResponse(workspace.TenantId, workspace.AppId, workspace.Name, workspace.Hostname, workspace.HasLogo)).ToArray(),
+                directory.Apps.Select(app => new LandingAppResponse(
+                    app.AppId,
+                    app.Name,
+                    app.Availability switch
+                    {
+                        PlatformAppAvailability.Live => LandingAppAvailability.Live,
+                        PlatformAppAvailability.Soon => LandingAppAvailability.Soon,
+                        _ => throw new InvalidOperationException("The app availability is invalid.")
+                    },
+                    app.CanCreate)).ToArray(),
+                new LandingHomeActionKeysResponse(LandingHomeAgentValues.CreateWorkspaceActionKey, LandingHomeAgentValues.OpenWorkspaceActionKey)));
+    }
+
+    private static async Task<IResult> IssueWorkspaceHandoffAsync(Guid tenantId, HttpContext context, IOptions<LandingPlatformOptions> options, IPartiesService parties, ISender sender, CancellationToken ct)
+    {
+        if (await ResolveBoundTenantAsync(context, options, parties, ct) is null)
+            return Results.NotFound();
+        LandingWorkspaceHandoff? handoff = await sender.Send(new IssueLandingWorkspaceHandoffCommand(tenantId), ct);
+        return handoff is null
+            ? Results.NotFound()
+            : Results.Ok(new LandingWorkspaceHandoffResponse(handoff.Hostname, handoff.Token));
+    }
+
     private static async Task<IResult> IssueOnboardingHandoffAsync(LandingOnboardingHandoffRequest request, HttpContext context, IOptions<LandingPlatformOptions> options, IPartiesService parties, ISender sender, CancellationToken ct)
     {
         IReadOnlyList<string> answers = request.Answers ?? [];
@@ -141,6 +198,8 @@ public static class LandingApiEndpointMapping
             return Invalid("Only the consultation's own answers can be carried into sign-up.");
         if (await ResolveBoundTenantAsync(context, options, parties, ct) is null)
             return Results.NotFound();
+        if (request.AppId is { } appId && !await sender.Send(new IsLandingWorkspaceCreationAvailableQuery(appId), ct))
+            return Invalid("The selected app is not available for self-service workspace creation.");
         if (!string.IsNullOrWhiteSpace(request.Category))
         {
             // The draft only pre-fills sign-up, so failing to save it never blocks the handoff;
@@ -153,6 +212,50 @@ public static class LandingApiEndpointMapping
         return handoff is null
             ? Results.NotFound(new LandingError(LandingErrorCodes.NotFound, "Clinic creation is not available."))
             : Results.Ok(new LandingOnboardingHandoffResponse(handoff.Hostname, handoff.Token));
+    }
+
+    private static async Task<IResult> RunHomeConversationAsync(LandingHomeConversationRequest request, HttpContext context, IOptions<LandingPlatformOptions> options, IPartiesService parties, ISender sender, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(request.Message) || request.Message.Trim().Length > 2_000
+            || (request.ConversationId is not null && (!Guid.TryParse(request.ConversationId, out Guid conversationId) || conversationId == Guid.Empty)))
+            return Invalid("A message of at most 2,000 characters and an optional valid conversation id are required.");
+
+        Guid? landingTenantId = await ResolveBoundTenantAsync(context, options, parties, ct);
+        if (landingTenantId is null)
+            return Results.NotFound();
+        Guid? conversationIdValue = request.ConversationId is null ? null : Guid.Parse(request.ConversationId);
+        LandingHomeConversationResult result = await sender.Send(new RunLandingHomeConversationCommand(landingTenantId.Value.ToString("D"), request.Message.Trim(), conversationIdValue), ct);
+        return ToHomeConversationHttpResult(result);
+    }
+
+    private static IResult ToHomeConversationHttpResult(LandingHomeConversationResult result) => result.Outcome switch
+    {
+        AgentConversationOutcome.Succeeded when result.ConversationId.HasValue && result.Reply is { } reply => Results.Ok(new LandingHomeConversationResponse(
+            result.ConversationId.Value.ToString("N"),
+            reply.Text,
+            ToResponse(reply, []),
+            result.Action is { } action ? new LandingHomeActionTarget(action.Key, action.AppId, action.TenantId) : null)),
+        AgentConversationOutcome.NotFound => Results.NotFound(new LandingError(LandingErrorCodes.NotFound, "The conversation was not found.")),
+        AgentConversationOutcome.Busy => Results.Conflict(new LandingError(LandingErrorCodes.Busy, "The conversation is already processing a message.")),
+        AgentConversationOutcome.HistoryLimitExceeded => Results.Conflict(new LandingError(LandingErrorCodes.InvalidHistory, "The conversation history has reached its supported limit; start a new conversation.")),
+        AgentConversationOutcome.InvalidHistory => Results.Conflict(new LandingError(LandingErrorCodes.InvalidHistory, "The conversation history is invalid.")),
+        AgentConversationOutcome.ProfileChanged => Results.Conflict(new LandingError(LandingErrorCodes.Conflict, "The assistant configuration changed; start a new conversation.")),
+        _ => Results.Json(new LandingError(LandingErrorCodes.Unavailable, "The assistant is temporarily unavailable."), statusCode: StatusCodes.Status503ServiceUnavailable)
+    };
+
+    private static async Task<IResult> DeleteHomeConversationAsync(Guid conversationId, HttpContext context, IOptions<LandingPlatformOptions> options, IPartiesService parties, ISender sender, CancellationToken ct)
+    {
+        Guid? landingTenantId = await ResolveBoundTenantAsync(context, options, parties, ct);
+        if (landingTenantId is null || conversationId == Guid.Empty)
+            return Results.NotFound();
+        AgentConversationOutcome result = await sender.Send(new DeleteLandingHomeConversationCommand(landingTenantId.Value.ToString("D"), conversationId), ct);
+        return result switch
+        {
+            AgentConversationOutcome.Succeeded => Results.NoContent(),
+            AgentConversationOutcome.Busy => Results.Conflict(new LandingError(LandingErrorCodes.Busy, "The conversation is already processing a message.")),
+            AgentConversationOutcome.NotFound => Results.NotFound(),
+            _ => Results.Json(new LandingError(LandingErrorCodes.Unavailable, "The assistant is temporarily unavailable."), statusCode: StatusCodes.Status503ServiceUnavailable)
+        };
     }
 
     private static async Task<IResult> DeleteAsync(Guid conversationId, string ownerKey, HttpContext context, IOptions<LandingPlatformOptions> options, IPartiesService parties, IDataProtectionProvider protection, ISender sender, CancellationToken ct)

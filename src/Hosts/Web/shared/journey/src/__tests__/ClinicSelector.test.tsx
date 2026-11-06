@@ -43,11 +43,16 @@ afterEach(() => {
 });
 
 describe("ClinicSelector", () => {
-  it("opens the only clinic by itself through a handoff link to its own host", async () => {
+  it("never opens the only clinic by itself, and opens it once chosen (ADR-0020)", async () => {
     loaded([clinic("t1", "Rezaei Clinic", "rezaei.localhost")]);
     mocks.clinicHandoff.mockResolvedValue({ hostname: "rezaei.localhost", token: "token-1" });
 
     render(<ClinicSelector handoffPath={handoffPath} />);
+    expect(await screen.findByText("Rezaei Clinic")).toBeTruthy();
+    expect(mocks.clinicHandoff).not.toHaveBeenCalled();
+    expect(mocks.assign).not.toHaveBeenCalled();
+
+    await userEvent.click(screen.getByRole("button", { name: openButton }));
 
     await waitFor(() => expect(mocks.assign).toHaveBeenCalledWith("http://rezaei.localhost:3005/handoff#token-1"));
     expect(mocks.clinicHandoff).toHaveBeenCalledWith("t1");
@@ -69,23 +74,29 @@ describe("ClinicSelector", () => {
     expect(mocks.clinicHandoff).toHaveBeenCalledWith("t2");
   });
 
-  it("sends a person with no clinic on to create one", async () => {
+  it("never sends a person with no clinic to create one by itself, only when they choose to (ADR-0020)", async () => {
     loaded([]);
     mocks.onboardingHandoff.mockResolvedValue({ hostname: "start.localhost", token: "token-3" });
 
     render(<ClinicSelector handoffPath={handoffPath} />);
+    expect(await screen.findByText("journey.gates.workspace.noClinics")).toBeTruthy();
+    expect(mocks.onboardingHandoff).not.toHaveBeenCalled();
+    expect(mocks.assign).not.toHaveBeenCalled();
+
+    await userEvent.click(screen.getByRole("button", { name: createButton }));
 
     await waitFor(() => expect(mocks.assign).toHaveBeenCalledWith("http://start.localhost:3005/handoff#token-3"));
   });
 
-  it("says there is no clinic and offers no creation when this deployment cannot create one", async () => {
+  it("says there is no clinic and withdraws creation when this deployment cannot create one", async () => {
     loaded([]);
     mocks.onboardingHandoff.mockRejectedValue(new Error("404"));
 
     render(<ClinicSelector handoffPath={handoffPath} />);
+    await userEvent.click(await screen.findByRole("button", { name: createButton }));
 
     expect(await screen.findByText("journey.gates.workspace.noClinics")).toBeTruthy();
-    expect(screen.queryByRole("button", { name: createButton })).toBeNull();
+    await waitFor(() => expect(screen.queryByRole("button", { name: createButton })).toBeNull());
     expect(mocks.assign).not.toHaveBeenCalled();
   });
 

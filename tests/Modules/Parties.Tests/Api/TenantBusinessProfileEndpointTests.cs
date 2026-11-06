@@ -93,16 +93,16 @@ public sealed class TenantBusinessProfileEndpointTests
         sender.Setup(item => item.Send(It.IsAny<IsSignInHostQuery>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);
         sender.Setup(item => item.Send(It.IsAny<ListSignInClinicsQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync([
-                new SignInClinic(withLogo, "A", "a.clinic.example.test", IdentityDefinitions.TenantOwner, HasLogo: true),
-                new SignInClinic(withoutLogo, "B", "b.clinic.example.test", IdentityDefinitions.TenantUser, HasLogo: false)]);
+                new WorkspaceDirectoryEntry(withLogo, "clinic", "A", "a.clinic.example.test", IdentityDefinitions.TenantOwner, HasLogo: true),
+                new WorkspaceDirectoryEntry(withoutLogo, "clinic", "B", "b.clinic.example.test", IdentityDefinitions.TenantUser, HasLogo: false)]);
         using WebApplication app = CreateApp(sender.Object);
 
         HttpContext context = await InvokeAsync(app, PartiesApiOperations.GetSignInClinics, HttpMethods.Get);
 
         context.Response.StatusCode.Should().Be(StatusCodes.Status200OK);
         (await ReadBodyAsync(context)).Should().Be(
-            $"{{\"clinics\":[{{\"tenantId\":\"{withLogo}\",\"name\":\"A\",\"hostname\":\"a.clinic.example.test\",\"role\":\"{IdentityDefinitions.TenantOwner}\",\"logoPath\":\"{PartiesApiRoutes.PublicLogoPath}\"}},"
-            + $"{{\"tenantId\":\"{withoutLogo}\",\"name\":\"B\",\"hostname\":\"b.clinic.example.test\",\"role\":\"{IdentityDefinitions.TenantUser}\",\"logoPath\":null}}]}}");
+            $"{{\"clinics\":[{{\"tenantId\":\"{withLogo}\",\"appId\":\"clinic\",\"name\":\"A\",\"hostname\":\"a.clinic.example.test\",\"role\":\"{IdentityDefinitions.TenantOwner}\",\"logoPath\":\"{PartiesApiRoutes.PublicLogoPath}\"}},"
+            + $"{{\"tenantId\":\"{withoutLogo}\",\"appId\":\"clinic\",\"name\":\"B\",\"hostname\":\"b.clinic.example.test\",\"role\":\"{IdentityDefinitions.TenantUser}\",\"logoPath\":null}}]}}");
     }
 
     [Fact]

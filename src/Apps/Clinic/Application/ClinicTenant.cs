@@ -4,4 +4,5 @@ namespace Vitarish.Clinic.Application;
 public static class ClinicTenant
 {
     public const string AppId = "private-practice-owner";
+    public const string Name = "Darman";
 }

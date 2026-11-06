@@ -58,6 +58,9 @@ export const Routes = {
     Index: "/contents",
   },
 
+  /** Shared sign-in host: continues a signed-in person to their platform home */
+  SignInContinue: "/continue",
+
   /** Workspace routes */
   Workspaces: {
     Select: "/workspaces/select",

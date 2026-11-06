@@ -2612,6 +2612,72 @@
         }
       }
     },
+    "/api/modules/parties/sign-in/home-handoff": {
+      "post": {
+        "tags": [
+          "Parties"
+        ],
+        "operationId": "PartiesIssueSignInHomeHandoff",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignInHomeHandoffRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignInHomeHandoffResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/modules/parties/public/logo": {
       "get": {
         "tags": [
@@ -2956,6 +3022,7 @@
       "SignInClinicDto": {
         "required": [
           "tenantId",
+          "appId",
           "name",
           "hostname",
           "role",
@@ -2966,6 +3033,9 @@
           "tenantId": {
             "type": "string",
             "format": "uuid"
+          },
+          "appId": {
+            "type": "string"
           },
           "name": {
             "type": "string"
@@ -3010,6 +3080,42 @@
           },
           "token": {
             "type": "string"
+          }
+        }
+      },
+      "SignInHomeHandoffRequest": {
+        "required": [
+          "returnTo"
+        ],
+        "type": "object",
+        "properties": {
+          "returnTo": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "SignInHomeHandoffResponse": {
+        "required": [
+          "hostname",
+          "token",
+          "returnTo"
+        ],
+        "type": "object",
+        "properties": {
+          "hostname": {
+            "type": "string"
+          },
+          "token": {
+            "type": "string"
+          },
+          "returnTo": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },

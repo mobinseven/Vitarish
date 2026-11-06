@@ -397,6 +397,14 @@ export const enMessages = {
         goToClinicHint: "Open your clinic, already signed in",
       },
     },
+    continue: {
+      title: "Opening your home",
+      description: "Taking you to your Vitarish home.",
+      opening: "Opening your home…",
+      failedTitle: "Your home did not open",
+      failedDescription: "Something went wrong on the way to your home. Try again.",
+      retry: "Try again",
+    },
     handoff: {
       title: "Opening your clinic",
       description: "Signing you in to your new clinic.",
