@@ -36,7 +36,7 @@ export function HomeWorkspaces({ directory, isLoading, loadFailed, onRetry, pend
   const appName = (appId: string) => directory.apps.find((app) => app.appId === appId)?.name ?? appId;
 
   return (
-    <Card className="w-full" variant="secondary">
+    <Card className="w-full min-w-0" variant="secondary">
       <Card.Header>
         <Card.Title className="text-base">{t("home.workspaces.title")}</Card.Title>
       </Card.Header>
@@ -51,8 +51,8 @@ export function HomeWorkspaces({ directory, isLoading, loadFailed, onRetry, pend
               return (
                 <li key={workspace.tenantId} className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-surface px-4 py-3">
                   <div className="flex min-w-0 flex-col gap-1">
-                    <span className="truncate text-base font-medium text-foreground">{workspace.name}</span>
-                    <Chip size="sm" variant="soft">{appName(workspace.appId)}</Chip>
+                    <span className="break-words text-base font-medium text-foreground">{workspace.name}</span>
+                    <Chip className="self-start" size="sm" variant="soft">{appName(workspace.appId)}</Chip>
                     {openFailed ? <span className="text-sm text-danger" role="alert">{t("home.workspaces.openFailed")}</span> : null}
                   </div>
                   <Button
@@ -74,6 +74,7 @@ export function HomeWorkspaces({ directory, isLoading, loadFailed, onRetry, pend
           app.canCreate ? (
             <Button
               key={app.appId}
+              className="h-auto min-h-10 w-full whitespace-normal py-2 sm:w-auto"
               variant="secondary"
               isDisabled={busy && !(pending?.kind === "create" && pending.appId === app.appId)}
               isPending={pending?.kind === "create" && pending.appId === app.appId}

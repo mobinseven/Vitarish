@@ -23,7 +23,7 @@ export const homeMessageCatalogs = {
       },
       composer: {
         label: "Message Vitarish",
-        placeholder: "Ask anything about your workspaces…",
+        placeholder: "Ask Vitarish…",
         send: "Send",
       },
       thinking: "Thinking…",
@@ -69,7 +69,7 @@ export const homeMessageCatalogs = {
       },
       composer: {
         label: "پیام به ویتاریش",
-        placeholder: "هر سؤالی درباره فضاهای کاری‌تان دارید بپرسید…",
+        placeholder: "از ویتاریش بپرسید…",
         send: "ارسال",
       },
       thinking: "در حال فکر کردن…",

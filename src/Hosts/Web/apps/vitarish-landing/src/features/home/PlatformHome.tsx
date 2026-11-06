@@ -104,7 +104,7 @@ export function PlatformHome({ signInHref }: { signInHref: string }) {
     <main className="flex h-dvh flex-col">
       <ChatConversation>
         <header className="flex flex-col gap-2 pt-6">
-          <h1 className="text-3xl font-semibold text-foreground">
+          <h1 className="text-2xl font-semibold text-foreground sm:text-3xl">
             {givenName ? t("home.greeting", { name: givenName }) : t("home.greetingAnonymous")}
           </h1>
           <p className="text-lg text-muted">{t("home.prompt")}</p>
