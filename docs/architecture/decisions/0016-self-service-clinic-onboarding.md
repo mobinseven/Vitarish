@@ -41,6 +41,9 @@ Several existing boundaries are involved:
    account endpoints and clinic creation; every tenant endpoint still refuses it.
 4. **Journey gates.** The profile gate comes first, then a `TenantCreation` gate
    that sends a signed-in user on the onboarding host to `/setup`.
+   Amended by [ADR-0020](0020-platform-home-and-app-aware-workspaces.md)
+   (proposed): onboarding is reached by an explicit create action; the
+   onboarding host gate remains.
 5. **Creation.** `POST /api/modules/parties/onboarding/tenants` with an
    `Idempotency-Key`. The creator comes from the session, never the request
    body, and needs a verified phone. Limits are 3 clinics per creator per day

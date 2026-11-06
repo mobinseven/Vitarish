@@ -2,6 +2,8 @@
 
 Consult [`AGENTS.md`](../AGENTS.md) for non-negotiable repository rules. Consult this file when a change requires deciding which layer owns new code, which dependency direction is allowed, or which architectural pattern to copy or avoid. Consult the codebase map in [`docs/README.md`](README.md) when deciding where files physically live.
 
+For the platform functional model, see [Platform functional architecture](platform/functional-architecture.md).
+
 ## 1. Architecture style
 
 Vitarish follows a modular, layered architecture with clean dependency boundaries. Modules keep business behavior in their core, expose use cases through application commands and queries, adapt transport through API/client contracts, and compose infrastructure only at the outer edges.

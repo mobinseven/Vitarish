@@ -9,6 +9,7 @@ Platform docs describe reusable module behavior, contracts, decisions, roadmaps,
 
 ## Key areas
 
+- [Platform functional architecture](functional-architecture.md) for apps, hosts, and user destinations.
 - [Shared design system](design-system/) for platform-wide reusable design-system decisions and tests.
 - [Modules](modules/) for app-agnostic module documentation.
 - [Global architecture decisions](../architecture/decisions/_index.md) for cross-cutting governance.

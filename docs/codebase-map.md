@@ -387,6 +387,7 @@ also modifies executable or generated behavior.
 
 - Repository operating contract: [`AGENTS.md`](../AGENTS.md)
 - Architecture boundaries: [`docs/architecture.md`](architecture.md)
+- Platform functional model: [`docs/platform/functional-architecture.md`](platform/functional-architecture.md)
 - Architecture decisions: [`docs/architecture/decisions/_index.md`](architecture/decisions/_index.md)
 - Documentation index: [`docs/README.md`](README.md)
 - Platform/module docs: [`docs/platform`](platform)
