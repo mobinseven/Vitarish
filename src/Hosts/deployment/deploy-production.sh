@@ -13,6 +13,7 @@ state="$deployment/.workflow-deployed.json"
 plan="$incoming/plan.json"
 tracked=(Caddyfile docker-compose.ingress.yml docker-compose.test.yml docker-compose.production.yml)
 dependencies=(postgres redis aistor elasticsearch)
+image_prune_units=(vitarish-image-prune.service vitarish-image-prune.timer)
 
 command -v python3 >/dev/null && command -v docker >/dev/null && command -v curl >/dev/null || {
   printf 'Python, Docker, and curl are required on the production host.\n' >&2; exit 1;
@@ -27,7 +28,7 @@ for file in .env.shared .env.production .env.test minio.license; do
   (( (8#$mode & 077) == 0 )) || { printf 'Restrict protected server file: %s\n' "$file" >&2; exit 1; }
 done
 [[ -f $plan && -f $incoming/release.env ]] || { printf 'Release plan or image references are missing.\n' >&2; exit 1; }
-for file in "${tracked[@]}"; do [[ -f $incoming/$file && ! -L $incoming/$file ]] || { printf 'Tracked deployment file is missing: %s\n' "$file" >&2; exit 1; }; done
+for file in "${tracked[@]}" "${image_prune_units[@]}"; do [[ -f $incoming/$file && ! -L $incoming/$file ]] || { printf 'Tracked deployment file is missing: %s\n' "$file" >&2; exit 1; }; done
 
 python3 - "$plan" "$incoming/release.env" "$commit" "$run_id" <<'PY'
 import json, re, sys
@@ -255,6 +256,18 @@ os.replace(temporary, sys.argv[2])
 PY
 
 trap - ERR
+install_image_prune_timer() {
+  local unit changed=false
+  for unit in "${image_prune_units[@]}"; do
+    if ! cmp -s "$incoming/$unit" "/etc/systemd/system/$unit"; then
+      install -m 0644 "$incoming/$unit" "/etc/systemd/system/$unit" || return 1
+      changed=true
+    fi
+  done
+  if [[ $changed == true ]]; then systemctl daemon-reload || return 1; fi
+  systemctl enable --now "${image_prune_units[1]}" >/dev/null || return 1
+}
+install_image_prune_timer || { printf 'Production is healthy, but the image prune timer could not be installed.\n' >&2; exit 1; }
 rm -f -- "$release" || printf 'Temporary release file cleanup needs attention.\n' >&2
 rm -rf -- "$backup" "$incoming" || printf 'Release staging cleanup needs attention.\n' >&2
 printf 'Production commit %s passed Compose health, readiness, and HTTPS route probes.\n' "$commit"
