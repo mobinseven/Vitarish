@@ -214,7 +214,9 @@ for bootstrap, secrets, health checks, and recovery, and
 [`docs/runbooks/clinic-onboarding.md`](runbooks/clinic-onboarding.md) to switch
 self-service clinic onboarding (ADR-0016) on or off, and
 [`docs/runbooks/sign-in-host.md`](runbooks/sign-in-host.md) for the shared
-sign-in host (ADR-0018). Use
+sign-in host (ADR-0018), and
+[`docs/runbooks/production-smoke-accounts.md`](runbooks/production-smoke-accounts.md)
+for the production smoke logins checked after each deploy. Use
 `src/Hosts/scripts/Install-UbuntuServer.ps1` once to provision Docker/Compose
 and the server's GHCR read login. Run local Web development through the npm
 workspace and a separately started Main host.
