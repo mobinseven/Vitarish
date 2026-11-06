@@ -184,6 +184,12 @@ architecture check or Compose render is not deployment evidence. Keep the
 workflow run URL, release-plan artifact, commit SHA, changed service set, and
 resulting container health as release evidence.
 
+Each successful deploy also installs or updates the
+`vitarish-image-prune` systemd timer from the tracked unit files. It runs
+daily and removes Docker images that no container uses and that are older than
+24 hours, so per-commit digest images cannot fill the disk. A rollback to a
+pruned image pulls it again from GHCR, so the host keeps its registry login.
+
 The same command captures transport and hardening evidence for every configured
 production hostname in the run directory and records it in `manifest.json`:
 the TLS protocol and cipher scan (`tls-scan.png`), the certificate presented by

@@ -517,7 +517,7 @@ jobs:
           cleanup_incoming() { ssh "${ssh_options[@]}" "$destination" "rm -rf -- '$incoming'" || true; }
           trap cleanup_incoming ERR
           ssh "${ssh_options[@]}" "$destination" "install -d -m 0700 '$incoming'"
-          scp "${ssh_options[@]}" src/Hosts/deployment/Caddyfile src/Hosts/deployment/docker-compose.ingress.yml src/Hosts/deployment/docker-compose.test.yml src/Hosts/deployment/docker-compose.production.yml "$RUNNER_TEMP/deployment/release.env" "$RUNNER_TEMP/deployment/plan.json" "$destination:$incoming/"
+          scp "${ssh_options[@]}" src/Hosts/deployment/Caddyfile src/Hosts/deployment/docker-compose.ingress.yml src/Hosts/deployment/docker-compose.test.yml src/Hosts/deployment/docker-compose.production.yml src/Hosts/deployment/vitarish-image-prune.service src/Hosts/deployment/vitarish-image-prune.timer "$RUNNER_TEMP/deployment/release.env" "$RUNNER_TEMP/deployment/plan.json" "$destination:$incoming/"
           ssh "${ssh_options[@]}" "$destination" "bash -s -- '$COMMIT_SHA' '$GITHUB_RUN_ID'" < src/Hosts/deployment/deploy-production.sh
           trap - ERR
       - uses: actions/upload-artifact@v4
