@@ -45,6 +45,9 @@ internal static class E2eFixtureSeeder
     public const string LockoutPlatformAdminUserName = "e2e-lockout-platform-admin";
     public const string EmailSignInPlatformAdminUserName = "e2e-email-sign-in-platform-admin";
     public const string EmailSignInPlatformAdminEmail = "e2e-email-sign-in-platform-admin@example.test";
+    /// <summary>Has a confirmed email and no phone and no role, so it can create a clinic only by its email.</summary>
+    public const string EmailOnlyClinicCreatorUserName = "e2e-email-only-clinic-creator";
+    public const string EmailOnlyClinicCreatorEmail = "e2e-email-only-clinic-creator@example.test";
     /// <summary>Has two-step sign-in on, so a correct password is followed by a text-message code.</summary>
     public const string TwoFactorPlatformAdminUserName = "e2e-two-factor-platform-admin";
     public const string TwoFactorPlatformAdminPhoneNumber = "+989130000001";
@@ -238,8 +241,18 @@ internal static class E2eFixtureSeeder
                 throw new InvalidOperationException("E2E email two-factor platform-admin setup failed.");
         }
 
-        Console.WriteLine("E2E fixture seeding: ensuring identity 14 of 14.");
+        Console.WriteLine("E2E fixture seeding: ensuring identity 14 of 15.");
         User passwordlessPhoneAccount = await EnsurePasswordlessPhoneAccountAsync(users);
+
+        Console.WriteLine("E2E fixture seeding: ensuring identity 15 of 15.");
+        _ = await EnsureUserAsync(
+            users,
+            EmailOnlyClinicCreatorUserName,
+            Guid.Parse("7a1f9c3e-5b2d-4e68-8c4a-0d9e1b2f3a45"),
+            EmailOnlyClinicCreatorEmail,
+            "E2E",
+            "Email Only Clinic Creator",
+            password);
 
         Console.WriteLine("E2E fixture seeding: identity accounts are ready.");
         Guid ownerId = Guid.Parse(user.Id);

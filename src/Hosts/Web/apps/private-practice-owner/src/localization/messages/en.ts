@@ -350,7 +350,7 @@ export const enMessages = {
       failure: {
         invalid: "Some details are not valid. Check the fields and try again.",
         addressTaken: "This address was taken a moment ago. Choose another one.",
-        notPermitted: "This account cannot create a clinic. A verified phone number is required, and a platform administrator account cannot own a clinic.",
+        notPermitted: "This account cannot create a clinic. A verified phone number or email address is required, and a platform administrator account cannot own a clinic.",
         limitReached: "Too many clinics were created recently. Try again later.",
         unavailable: "The clinic could not be created right now. Try again in a moment.",
       },

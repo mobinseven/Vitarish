@@ -18,7 +18,7 @@ public sealed class UsersTenantCreatorDirectory(ISender sender) : ITenantCreator
         IEnumerable<IdentityRole> roles = await sender.Send(new GetUserRolesQuery(user.Id), cancellationToken);
         return new TenantCreator(
             user.Id,
-            user.PhoneNumberConfirmed,
+            user.PhoneNumberConfirmed || user.EmailConfirmed,
             RoleScopeSeparationPolicy.CanGrantTenantRole(roles.Select(role => role.Name ?? string.Empty)));
     }
 }

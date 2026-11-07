@@ -241,8 +241,8 @@ public static class PartiesApiEndpointMapping
             CreateOwnTenantStatus.AddressReserved => BadRequest("This subdomain is reserved."),
             CreateOwnTenantStatus.AddressTaken => Conflict("This subdomain is already taken."),
             CreateOwnTenantStatus.IdempotencyConflict => Conflict($"This {PartiesApiRoutes.IdempotencyKeyHeader} was already used for a different request."),
-            CreateOwnTenantStatus.CreatorNotFound or CreateOwnTenantStatus.PhoneNotVerified =>
-                Results.Json(new PartiesError(PartiesErrorCode.Forbidden, "A verified phone number is required to create a clinic."), statusCode: StatusCodes.Status403Forbidden),
+            CreateOwnTenantStatus.CreatorNotFound or CreateOwnTenantStatus.ContactNotVerified =>
+                Results.Json(new PartiesError(PartiesErrorCode.Forbidden, "A verified phone number or email address is required to create a clinic."), statusCode: StatusCodes.Status403Forbidden),
             CreateOwnTenantStatus.RoleScopeConflict =>
                 Results.Json(new PartiesError(PartiesErrorCode.Forbidden, "A platform administrator account cannot own a clinic."), statusCode: StatusCodes.Status403Forbidden),
             CreateOwnTenantStatus.LimitReached =>
