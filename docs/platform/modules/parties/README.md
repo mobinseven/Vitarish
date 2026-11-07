@@ -32,7 +32,7 @@ for its hostnames on that instance.
 
 `POST /api/modules/parties/onboarding/tenants` lets a signed-in user create their
 own tenant and become its owner. The creator comes from the session, never the
-body, and needs a verified phone number. The registered
+body, and needs a verified phone number or email address. The registered
 `SelfServiceTenantProfile` fixes the app id (the Clinic app registers
 `ClinicTenant`; like existing clinics, a new one has no active-module metadata), the address is always an active primary subdomain
 indicator, and the request carries an `Idempotency-Key` header: the same creator

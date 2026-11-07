@@ -15,9 +15,10 @@ a real code, and roles are granted only by a platform administrator.
 | `smoke-admin` | `smoke-admin@vitarish.com` | Platform administrator, two-step sign-in by email code | Platform admin, after the emailed code |
 
 - The mailboxes are real and controlled by the owner. Only one phone number is
-  available, so only `smoke-one-clinic` has a phone. Clinic creation needs a
-  confirmed phone, so that account creates both clinics and clinic B is then
-  handed to `smoke-two-clinics`.
+  available, so at most `smoke-one-clinic` has a phone. Clinic creation needs a
+  confirmed phone number or email address, so signing in with the email code
+  is enough: that account creates both clinics and clinic B is then handed to
+  `smoke-two-clinics`.
 - The smoke clinics are ordinary clinics with clear names. They are not hidden.
 - Each password lives only in a GitHub Actions secret and the owner's password
   manager. Never paste it in chat, an issue, a commit, or a log.
@@ -68,8 +69,9 @@ and repeat the step.
      tried in production; if it does not load, stop and report it rather than
      giving the account a clinic.
    - `smoke-admin`: do this in step 7.
-4. **Confirm the phone.** As `smoke-one-clinic`, open account settings, then
-   Phone, and confirm the owner's phone with the SMS code.
+4. **Confirm the phone (optional).** As `smoke-one-clinic`, open account
+   settings, then Phone, and confirm the owner's phone with the SMS code.
+   Clinic creation no longer needs it; skip it when SMS is not available.
 5. **Create the clinics.** As `smoke-one-clinic`, create "Vitarish Smoke
    Clinic" and then "Vitarish Smoke Clinic B" from platform home ("create
    workspace"). Each opens on its own clinic host.

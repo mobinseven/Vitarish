@@ -22,7 +22,7 @@ public enum CreateOwnTenantStatus
     AddressReserved = 5,
     AddressTaken = 6,
     CreatorNotFound = 7,
-    PhoneNotVerified = 8,
+    ContactNotVerified = 8,
     LimitReached = 9,
     /// <summary>The idempotency key was already used for a different request.</summary>
     IdempotencyConflict = 10,
@@ -96,8 +96,8 @@ public sealed partial class CreateOwnTenantCommandHandler(
         TenantCreator? creator = await creators.FindAsync(request.CreatorUserId, cancellationToken);
         if (creator is null)
             return await DeniedAsync(CreateOwnTenantStatus.CreatorNotFound, request, tenantId, SecurityAuditReasonCatalog.UserNotFound, cancellationToken);
-        if (!creator.HasVerifiedPhone)
-            return await DeniedAsync(CreateOwnTenantStatus.PhoneNotVerified, request, tenantId, SecurityAuditReasonCatalog.Unauthorized, cancellationToken);
+        if (!creator.HasVerifiedContact)
+            return await DeniedAsync(CreateOwnTenantStatus.ContactNotVerified, request, tenantId, SecurityAuditReasonCatalog.Unauthorized, cancellationToken);
         // Refused before anything is written or the creator's sessions are replaced.
         if (!creator.CanOwnTenant)
             return await DeniedAsync(CreateOwnTenantStatus.RoleScopeConflict, request, tenantId, SecurityAuditReasonCatalog.RoleScopeConflict, cancellationToken);
