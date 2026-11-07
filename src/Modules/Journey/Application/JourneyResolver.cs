@@ -75,7 +75,12 @@ public sealed class JourneyResolver(
             return new JourneyStep(JourneyDestinationKind.Gate, consentGate.DestinationUrl, consentGate);
 
         // Priority 6: Clinic selection on the shared sign-in host
-        var clinicSelectionGate = JourneyPolicy.EvaluateClinicSelection(await hostReader.IsSignInHostAsync(cancellationToken));
+        bool isSignInHost = await hostReader.IsSignInHostAsync(cancellationToken);
+        // A safe destination on Auth (account security or an app continuation)
+        // follows mandatory personal gates and precedes choosing a clinic.
+        if (isSignInHost && returnUrlPolicy.Normalize(request.RequestedReturnUrl) is { } centralReturnUrl && hostReader.IsCentralDestination(centralReturnUrl))
+            return new JourneyStep(JourneyDestinationKind.ReturnUrl, centralReturnUrl);
+        var clinicSelectionGate = JourneyPolicy.EvaluateClinicSelection(isSignInHost);
         if (clinicSelectionGate is not null)
             return new JourneyStep(JourneyDestinationKind.Gate, clinicSelectionGate.DestinationUrl, clinicSelectionGate);
 

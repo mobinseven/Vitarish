@@ -30,7 +30,7 @@ public sealed class ListSignInClinicsQueryHandler(ISignInClinicDirectory clinics
 }
 
 /// <summary>A one-time link target: continue signed in at <paramref name="Hostname"/> with <paramref name="Token"/>.</summary>
-public sealed record SignInHandoff(string Hostname, string Token);
+public sealed record SignInHandoff(string Hostname, string Token, string? HandoffUrl = null);
 
 /// <summary>
 /// Issues a handoff link from the sign-in host to one of the user's clinics, or to the
@@ -45,7 +45,8 @@ public sealed class IssueSignInHandoffCommandHandler(
     ISignInClinicDirectory clinics,
     ITenantHandoffIssuer handoffs,
     IOptions<OnboardingHostOptions> onboarding,
-    IRequestContext requestContext)
+    IRequestContext requestContext,
+    IOptions<SignInHostOptions>? signIn = null)
     : IRequestHandler<IssueSignInHandoffCommand, SignInHandoff?>
 {
     /// <returns>Null when there is no signed-in user, the clinic is not theirs, onboarding is off or has no host, or no ticket could be issued.</returns>
@@ -55,6 +56,13 @@ public sealed class IssueSignInHandoffCommandHandler(
         if (string.IsNullOrWhiteSpace(userId))
             return null;
 
+        if (signIn?.Value.SignInUrl is not null)
+        {
+            if (command.TenantId is not null || !onboarding.Value.TenantOnboardingEnabled ||
+                !Uri.TryCreate(onboarding.Value.OnboardingUrl, UriKind.Absolute, out Uri? target)) return null;
+            return new SignInHandoff(target.Host, string.Empty,
+                new Uri(target, Vitarish.Authentication.Domain.ReturnUrls.AuthenticationBrowserPaths.Login).ToString());
+        }
         string? hostname = command.TenantId is { } tenantId
             ? (await clinics.ListAsync(userId, cancellationToken)).FirstOrDefault(clinic => clinic.TenantId == tenantId)?.Hostname
             : onboarding.Value.TenantOnboardingEnabled ? OnboardingHostname(onboarding.Value.OnboardingUrl) : null;

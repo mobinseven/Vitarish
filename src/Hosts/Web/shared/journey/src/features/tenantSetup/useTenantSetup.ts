@@ -33,6 +33,7 @@ export interface TenantSetupValues {
 export interface CreatedTenant {
   hostname: string;
   handoffToken: string | null;
+  handoffUrl?: string | null;
 }
 
 function failureFor(error: unknown): TenantSetupFailure {
@@ -118,7 +119,7 @@ export function useTenantSetup(locale: string) {
         },
         { headers: { [idempotencyKeyHeader]: idempotencyKey.current } },
       );
-      setCreated({ hostname: response.hostname, handoffToken: response.handoffToken ?? null });
+      setCreated({ hostname: response.hostname, handoffToken: response.handoffToken ?? null, handoffUrl: response.handoffUrl ?? null });
     } catch (error) {
       const nextFailure = failureFor(error);
       setFailure(nextFailure);

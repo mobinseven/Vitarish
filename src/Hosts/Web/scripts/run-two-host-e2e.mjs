@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
 import { createWriteStream, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import { dirname, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import http from "node:http";
 import https from "node:https";
@@ -16,6 +16,12 @@ import {
   twoHostE2eFileTransferAuditKeyEnvironmentKey,
   twoHostE2eNextDistDirectoryEnvironmentKey,
   twoHostE2ePlatformAdminOrigin,
+  twoHostE2ePatientsOrigin,
+  twoHostE2ePatientsHostConfigurationKey,
+  twoHostE2eProjectManagementHostConfigurationKey,
+  twoHostE2eKnowledgeHostConfigurationKey,
+  twoHostE2eProjectManagementOrigin,
+  twoHostE2eKnowledgeOrigin,
   twoHostE2eProofScreenshotEnvironmentKey,
   twoHostE2eProofStorageStateEnvironmentKey,
   twoHostE2eSignInOrigin,
@@ -45,6 +51,17 @@ const originalAppTsconfig = readFileSync(appTsconfigPath, "utf8");
 const originalAppNextEnv = readFileSync(appNextEnvPath, "utf8");
 const originalPlatformAdminTsconfig = readFileSync(platformAdminTsconfigPath, "utf8");
 const originalPlatformAdminNextEnv = readFileSync(platformAdminNextEnvPath, "utf8");
+const additionalApps = [
+  { name: "patients", origin: twoHostE2ePatientsOrigin, folder: "patients" },
+  { name: "project-management", origin: twoHostE2eProjectManagementOrigin, folder: "vitarish-pm" },
+  { name: "knowledge", origin: twoHostE2eKnowledgeOrigin, folder: "knowledge-qa-demo" },
+].map(app => {
+  const root = resolve(webRoot, "apps", app.folder);
+  const tsconfig = resolve(root, "tsconfig.json");
+  const nextEnv = resolve(root, "next-env.d.ts");
+  return { ...app, root, tsconfig, nextEnv, originalTsconfig: readFileSync(tsconfig, "utf8"),
+    originalNextEnv: readFileSync(nextEnv, "utf8"), nextDist: resolve(root, appNextDistDirectory) };
+});
 const mainOrigin = "https://localhost:7272";
 const webOrigin = twoHostE2eClinicOrigin;
 const platformAdminOrigin = twoHostE2ePlatformAdminOrigin;
@@ -183,7 +200,10 @@ function startProcess(label, command, args, cwd, environment) {
 function probe(url) {
   return new Promise((resolveProbe) => {
     const client = url.startsWith("https:") ? https : http;
-    const request = client.get(url, { rejectUnauthorized: false }, (response) => {
+    const requested = new URL(url);
+    const connect = new URL(url);
+    if (connect.hostname.endsWith(".localhost")) connect.hostname = "localhost";
+    const request = client.get(connect, { rejectUnauthorized: false, headers: { Host: requested.host } }, (response) => {
       response.resume();
       resolveProbe(response.statusCode ?? 0);
     });
@@ -281,6 +301,8 @@ function restoreNextGeneratedFiles(nextEnvPath, originalNextEnv, nextDistPath) {
     writeFileSync(nextEnvPath, originalNextEnv);
   }
 
+  if (!resolve(nextDistPath).startsWith(resolve(dirname(nextEnvPath)) + sep))
+    throw new Error("The generated Next output escaped its owning app.");
   if (existsSync(nextDistPath)) {
     rmSync(nextDistPath, { recursive: true, force: true });
   }
@@ -311,11 +333,15 @@ async function run() {
   const mainEnvironment = createEnvironment({
     ASPNETCORE_ENVIRONMENT: "E2E",
     ASPNETCORE_URLS: mainOrigin,
+    [twoHostE2ePatientsHostConfigurationKey]: twoHostE2ePatientsOrigin,
+    [twoHostE2eProjectManagementHostConfigurationKey]: twoHostE2eProjectManagementOrigin,
+    [twoHostE2eKnowledgeHostConfigurationKey]: twoHostE2eKnowledgeOrigin,
     // `dotnet run` builds first; reused MSBuild workers would otherwise stay
     // resident (one per core) and compete with the Web servers for memory.
     MSBUILDDISABLENODEREUSE: "1",
     WebAuthn__Origins__0: webOrigin,
     WebAuthn__Origins__1: platformAdminOrigin,
+    WebAuthn__Origins__2: twoHostE2eSignInOrigin,
     [twoHostE2eApiOriginEnvironmentKey]: mainOrigin,
     VITARISH_E2E_WEB_ORIGIN: webOrigin,
     VITARISH_E2E_PLATFORM_ADMIN_ORIGIN: platformAdminOrigin,
@@ -365,9 +391,11 @@ async function run() {
   await ensurePortAvailable("E2e", mainOrigin);
   await ensurePortAvailable("Private Practice Owner", webOrigin);
   await ensurePortAvailable("Platform Admin", platformAdminOrigin);
+  for (const app of additionalApps) await ensurePortAvailable(app.name, app.origin);
 
   await buildNextApp("web", appRoot, buildEnvironment);
   await buildNextApp("platform-admin", platformAdminAppRoot, buildEnvironment);
+  for (const app of additionalApps) await buildNextApp(app.name, app.root, buildEnvironment);
 
   const main = startProcess(
     "e2e",
@@ -391,9 +419,13 @@ async function run() {
     nextEnvironment,
   );
 
+  const additionalHosts = additionalApps.map(app => ({ ...app, process: startProcess(app.name,
+    process.execPath, [nextCli, "start", "--port", new URL(app.origin).port], app.root, nextEnvironment) }));
+
   await waitForHttp("E2e", main, `${mainOrigin}/api/modules/authentication/antiforgery`);
   await waitForHttp("Private Practice Owner", web, `${webOrigin}/`, nextReadinessTimeoutMs);
   await waitForHttp("Platform Admin", platformAdmin, `${platformAdminOrigin}/`, nextReadinessTimeoutMs);
+  for (const host of additionalHosts) await waitForHttp(host.name, host.process, `${host.origin}/`, nextReadinessTimeoutMs);
 
   webEnvironment.PLAYWRIGHT_PLATFORM_ADMIN_ORIGIN = platformAdminOrigin;
 
@@ -410,6 +442,7 @@ async function run() {
     waitForPrematureHostExit(main),
     waitForPrematureHostExit(web),
     waitForPrematureHostExit(platformAdmin),
+    ...additionalHosts.map(host => waitForPrematureHostExit(host.process)),
   ]);
 
   if (result.code !== 0 || result.signal !== null) {
@@ -438,6 +471,10 @@ try {
   restoreNextTsconfig(platformAdminTsconfigPath, originalPlatformAdminTsconfig);
   restoreNextGeneratedFiles(appNextEnvPath, originalAppNextEnv, appNextDistPath);
   restoreNextGeneratedFiles(platformAdminNextEnvPath, originalPlatformAdminNextEnv, platformAdminNextDistPath);
+  for (const app of additionalApps) {
+    restoreNextTsconfig(app.tsconfig, app.originalTsconfig);
+    restoreNextGeneratedFiles(app.nextEnv, app.originalNextEnv, app.nextDist);
+  }
   if (existsSync(proofStorageStatePath)) {
     rmSync(proofStorageStatePath, { force: true });
   }

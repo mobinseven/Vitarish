@@ -64,6 +64,13 @@ describe("LoginForm", () => {
     );
   });
 
+  it("preserves the app continuation when opening password recovery", () => {
+    render(<LoginForm forgotPasswordHref="/login/forgot-password" returnUrlSearchParams={new URLSearchParams({ returnUrl: "/continue?request=opaque" })} />, { wrapper });
+    const destination = new URL(screen.getByRole("link", { name: /forgot password/i }).getAttribute("href")!, "https://auth.example.test");
+    expect(destination.pathname).toBe("/login/forgot-password");
+    expect(destination.searchParams.get("returnUrl")).toBe("/continue?request=opaque");
+  });
+
   it("should render with correct input types", () => {
     render(<LoginForm />, { wrapper });
 
@@ -97,6 +104,7 @@ describe("LoginForm", () => {
 
     fireEvent.change(screen.getByLabelText(/username or email/i), { target: { value: "disabled@test.com" } });
     fireEvent.change(screen.getByLabelText(/password/i), { target: { value: "password123" } });
+    await waitFor(() => expect(screen.getByRole("button", { name: /sign in/i })).toBeEnabled());
     fireEvent.click(screen.getByRole("button", { name: /sign in/i }));
 
     await waitFor(() => {
@@ -124,6 +132,7 @@ describe("LoginForm", () => {
 
     fireEvent.change(screen.getByLabelText(/username or email/i), { target: { value: "noaccess@test.com" } });
     fireEvent.change(screen.getByLabelText(/password/i), { target: { value: "password123" } });
+    await waitFor(() => expect(screen.getByRole("button", { name: /sign in/i })).toBeEnabled());
     fireEvent.click(screen.getByRole("button", { name: /sign in/i }));
 
     await waitFor(() => {

@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { AuthenticationSearchParams } from "@vitarish/auth/routes";
 import { ItemCard } from "@heroui-pro/react";
 import {
   FaIcon,
@@ -59,6 +61,7 @@ interface LoginMethodsPageProps {
 export function LoginMethodsPage({ onboardingUrl }: LoginMethodsPageProps) {
   const { t } = useLocalizedText();
   const { data: profile } = useAuthenticationProfile();
+  const returnUrl = useSearchParams().get(AuthenticationSearchParams.ReturnUrl);
   const createClinicHref = useCreateClinicHref(onboardingUrl);
   const enabledMethods = authMethods.filter((method) =>
     method.id === "password" ||
@@ -77,7 +80,7 @@ export function LoginMethodsPage({ onboardingUrl }: LoginMethodsPageProps) {
             key={method.id}
             variant="secondary"
             className={`w-full cursor-pointer transition-colors ${signInMethodClassName(method.id)}`}
-            render={(props) => <Link href={method.href} {...props} />}
+            render={(props) => <Link href={returnUrl ? `${method.href}?${AuthenticationSearchParams.ReturnUrl}=${encodeURIComponent(returnUrl)}` : method.href} {...props} />}
           >
             <ItemCard.Icon
               className={`size-12 shrink-0 rounded-xl ${signInMethodTileClassName}`}

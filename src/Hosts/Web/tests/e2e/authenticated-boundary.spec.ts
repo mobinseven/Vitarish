@@ -1,3 +1,4 @@
+import { twoHostE2eSignInOrigin } from "../../scripts/two-host-e2e-artifacts.mjs";
 import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -238,7 +239,7 @@ async function generatedAuthenticationRequest<T>(
 async function login(page: Page, username: string, origin = "", password = e2ePassword, clientIp = "198.51.100.10") {
   expect(password).toBeTruthy();
   await page.setExtraHTTPHeaders({ [forwardedForHeaderName]: clientIp });
-  // Clinic hosts sign in only on the shared sign-in host; platform administration has its own sign-in.
+  // Clinic hosts sign in only on the shared sign-in host; platform administration follows central Auth too.
   if (origin !== platformAdminOrigin) {
     await signInToClinic(page, username, password!, origin || webOrigin);
     return;
@@ -253,6 +254,7 @@ async function login(page: Page, username: string, origin = "", password = e2ePa
     page.locator('button[type="submit"]').click(),
   ]);
   expect(loginResponse.status()).toBe(200);
+  await expect(page).toHaveURL(url => url.origin === platformAdminOrigin && !url.pathname.startsWith("/login") && url.pathname !== "/handoff", { timeout: 120_000 });
 }
 
 test("uses the real Web and Main hosts for an authenticated tenant-scoped request", async ({ page, request }) => {
@@ -392,6 +394,8 @@ test("uses the real Web and Main hosts for an authenticated tenant-scoped reques
 test("requires reauthentication after a security attribute change", async ({ page }) => {
   await login(page, e2eUsername, "", e2ePassword, "198.51.100.10");
 
+  await page.goto(twoHostE2eSignInOrigin + ClinicRoutes.Account.Password);
+  await expect(page.getByRole("main")).toBeVisible();
   const temporaryPassword = "E2E-Temporary-Password-774!";
   const rejectedPasswordChange = await postJson(page, "/api/modules/authentication/account/password", {
     currentPassword: "E2E-Wrong-Current-Password",
@@ -539,7 +543,7 @@ test("rejects invalid password authentication without creating a session", async
       password: "wrong-password-not-a-secret",
       returnUrl: null,
     },
-    headers: { "X-Vitarish-Tenant-Host": "localhost" },
+    headers: { [TENANT_HOST_HEADER]: new URL(twoHostE2eSignInOrigin).host },
     ignoreHTTPSErrors: true,
   });
   expect(response.status()).toBe(401);
@@ -547,7 +551,7 @@ test("rejects invalid password authentication without creating a session", async
   expect(errorBody).not.toContain("wrong-password-not-a-secret");
 
   const session = await request.get(`${apiOrigin}/api/modules/authentication/session`, {
-    headers: { "X-Vitarish-Tenant-Host": "localhost" },
+    headers: { [TENANT_HOST_HEADER]: new URL(twoHostE2eSignInOrigin).host },
     ignoreHTTPSErrors: true,
   });
   expect(session.status()).toBe(401);
@@ -571,14 +575,14 @@ test("normalizes unsafe authentication return URLs at the real API boundary", as
         returnUrl,
       },
       headers: {
-        "X-Vitarish-Tenant-Host": "localhost",
+        [TENANT_HOST_HEADER]: new URL(twoHostE2eSignInOrigin).host,
         [forwardedForHeaderName]: `198.51.100.${120 + index}`,
       },
       ignoreHTTPSErrors: true,
     });
 
     expect(response.status(), returnUrl).toBe(200);
-    await expect(response.json(), returnUrl).resolves.toMatchObject({ returnUrl: "/home" });
+    await expect(response.json(), returnUrl).resolves.toMatchObject({ returnUrl: ClinicRoutes.Workspaces.Select });
   }
 });
 
@@ -590,7 +594,7 @@ test("rejects invalid OTP and passkey completions at the real API boundary", asy
       returnUrl: null,
     },
     headers: {
-      "X-Vitarish-Tenant-Host": "localhost",
+      [TENANT_HOST_HEADER]: new URL(twoHostE2eSignInOrigin).host,
       "X-Request-Id": "e2e-missing-email-challenge",
     },
     ignoreHTTPSErrors: true,
@@ -604,7 +608,7 @@ test("rejects invalid OTP and passkey completions at the real API boundary", asy
       returnUrl: null,
     },
     headers: {
-      "X-Vitarish-Tenant-Host": "localhost",
+      [TENANT_HOST_HEADER]: new URL(twoHostE2eSignInOrigin).host,
       "X-Request-Id": "e2e-empty-passkey-completion",
     },
     ignoreHTTPSErrors: true,
@@ -618,7 +622,7 @@ test("completes a real email OTP once and rejects its replay", async ({ request 
   const begin = await request.post(`${apiOrigin}/api/modules/authentication/login/email/begin`, {
     data: { email: "e2e-owner@example.test", returnUrl: "/home" },
     headers: {
-      "X-Vitarish-Tenant-Host": "localhost",
+      [TENANT_HOST_HEADER]: new URL(twoHostE2eSignInOrigin).host,
       [forwardedForHeaderName]: "198.51.100.141",
       "X-Request-Id": "e2e-email-otp-begin",
     },
@@ -636,17 +640,17 @@ test("completes a real email OTP once and rejects its replay", async ({ request 
   const completed = await request.post(`${apiOrigin}/api/modules/authentication/login/email/complete`, {
     data: { challengeId: challenge.challengeId, code, returnUrl: "/home" },
     headers: {
-      "X-Vitarish-Tenant-Host": "localhost",
+      [TENANT_HOST_HEADER]: new URL(twoHostE2eSignInOrigin).host,
       [forwardedForHeaderName]: "198.51.100.141",
       "X-Request-Id": "e2e-email-otp-complete",
     },
     ignoreHTTPSErrors: true,
   });
   expect(completed.status()).toBe(200);
-  await expect(completed.json()).resolves.toMatchObject({ returnUrl: "/home" });
+  await expect(completed.json()).resolves.toMatchObject({ returnUrl: ClinicRoutes.Workspaces.Select });
 
   const session = await request.get(`${apiOrigin}/api/modules/authentication/session`, {
-    headers: { "X-Vitarish-Tenant-Host": "localhost" },
+    headers: { [TENANT_HOST_HEADER]: new URL(twoHostE2eSignInOrigin).host },
     ignoreHTTPSErrors: true,
   });
   expect(session.status()).toBe(200);
@@ -655,7 +659,7 @@ test("completes a real email OTP once and rejects its replay", async ({ request 
   const replay = await request.post(`${apiOrigin}/api/modules/authentication/login/email/complete`, {
     data: { challengeId: challenge.challengeId, code, returnUrl: "/home" },
     headers: {
-      "X-Vitarish-Tenant-Host": "localhost",
+      [TENANT_HOST_HEADER]: new URL(twoHostE2eSignInOrigin).host,
       [forwardedForHeaderName]: "198.51.100.141",
       "X-Request-Id": "e2e-email-otp-replay",
     },
@@ -1634,7 +1638,7 @@ test("locks the disposable platform-admin account after repeated real password f
       },
       headers: {
         [forwardedForHeaderName]: lockoutClientIp,
-        "X-Vitarish-Tenant-Host": "localhost",
+        [TENANT_HOST_HEADER]: new URL(twoHostE2eSignInOrigin).host,
         "X-Request-Id": `e2e-lockout-attempt-${attempt}`,
       },
       ignoreHTTPSErrors: true,
@@ -1653,7 +1657,7 @@ test("rate-limits repeated passkey authentication attempts at the real API bound
     const response = await request.post(`${apiOrigin}/api/modules/authentication/login/passkey/begin`, {
       data: { userNameOrEmail: null, returnUrl: null },
       headers: {
-        "X-Vitarish-Tenant-Host": "localhost",
+        [TENANT_HOST_HEADER]: new URL(twoHostE2eSignInOrigin).host,
         "X-Request-Id": `e2e-passkey-rate-limit-${attempt}`,
       },
       ignoreHTTPSErrors: true,

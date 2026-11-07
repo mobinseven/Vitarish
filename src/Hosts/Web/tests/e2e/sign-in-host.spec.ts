@@ -89,7 +89,7 @@ test("signing in on the shared sign-in host lists the person's clinics and lands
 
     // Clinic-local entry pages lead to the shared sign-in host before collecting credentials.
     await page.goto(`${tenantAOrigin}${Routes.Login.Password}`, { waitUntil: "domcontentloaded" });
-    await expect(page).toHaveURL(`${signInOrigin}${Routes.Login.Index}`, { timeout: pageCompileTimeoutMilliseconds });
+    await expect(page).toHaveURL(url => url.origin === signInOrigin && url.pathname === Routes.Login.Password, { timeout: pageCompileTimeoutMilliseconds });
 
     // 1. Sign in with a password on the sign-in host, which belongs to no clinic.
     await page.goto(`${signInOrigin}${Routes.Login.Password}`, { waitUntil: "domcontentloaded" });
@@ -139,7 +139,7 @@ test("signing in on the shared sign-in host lists the person's clinics and lands
     await expect(clinicList.getByRole("listitem")).toHaveCount(2, { timeout: pageCompileTimeoutMilliseconds });
 
     // Keep the source session's cookie to prove revocation, even if a caller replays it
-    // after the browser receives the sign-out cookie on handoff.
+    // after handoff, and later after platform-wide sign-out.
     const issuingCookieHeader = (await context.cookies(signInOrigin)).map(cookie => `${cookie.name}=${cookie.value}`).join("; ");
 
     // 5. Choosing tenant B continues through a one-time handoff link and lands signed in on its host.
@@ -161,7 +161,7 @@ test("signing in on the shared sign-in host lists the person's clinics and lands
       headers: { Cookie: issuingCookieHeader, [TENANT_HOST_HEADER]: new URL(signInOrigin).host, [forwardedForHeaderName]: signInClientIp },
       ignoreHTTPSErrors: true,
     });
-    expect(sourceSession.status()).toBe(401);
+    expect(sourceSession.status()).toBe(200);
 
     // 6. The sign-in host's clinic list answers only on the sign-in host, not on a clinic host.
     expect(await getStatus(page, signInClinicsPath)).toBe(404);

@@ -166,6 +166,10 @@ public static class SecurityConfigurationValidator
             $"{Module.ApplicationSection}:{nameof(Vitarish.Main.Infrastructure.Options.ApplicationOptions.LandingUrl)}",
             $"{Module.ApplicationSection}:{nameof(Vitarish.Parties.Application.Onboarding.OnboardingHostOptions.OnboardingUrl)}",
             $"{Module.ApplicationSection}:{nameof(Vitarish.Parties.Application.SignIn.SignInHostOptions.SignInUrl)}",
+            $"{Module.ApplicationSection}:{nameof(Vitarish.Parties.Application.PlatformAdminHostOptions.PlatformAdminUrl)}",
+            $"{Module.ApplicationSection}:{nameof(Vitarish.Parties.Application.BrowserApplicationHostOptions.PatientsUrl)}",
+            $"{Module.ApplicationSection}:{nameof(Vitarish.Parties.Application.BrowserApplicationHostOptions.ProjectManagementUrl)}",
+            $"{Module.ApplicationSection}:{nameof(Vitarish.Parties.Application.BrowserApplicationHostOptions.KnowledgeQaUrl)}",
         ];
         foreach (string key in keys)
         {

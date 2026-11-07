@@ -9,28 +9,34 @@ public static class AuthenticationApiEndpointRouteBuilderExtensions
 {
     public static IEndpointRouteBuilder MapAuthenticationApi(this IEndpointRouteBuilder endpoints, AuthenticationProfilePolicy profilePolicy)
     {
-        RouteGroupBuilder anonymous = endpoints.MapAnonymousModuleGroup(AuthenticationRoutes.BasePath, "Authentication login, challenge, and antiforgery endpoints must be reachable before a user has an authenticated module session.").WithTags(AuthenticationEndpointTags.Authentication);
+        RouteGroupBuilder anonymous = endpoints.MapAnonymousModuleGroup(AuthenticationRoutes.BasePath, AuthenticationAnonymousEndpointJustifications.EntryGroup).WithTags(AuthenticationEndpointTags.Authentication);
         RouteGroupBuilder protectedGroup = endpoints.MapProtectedModuleGroup(AuthenticationRoutes.BasePath, requireTenantAccess: false).WithTags(AuthenticationEndpointTags.Authentication);
+        RouteGroupBuilder centralAnonymous = endpoints.MapAnonymousModuleGroup(AuthenticationRoutes.BasePath, AuthenticationAnonymousEndpointJustifications.EntryGroup).WithTags(AuthenticationEndpointTags.Authentication).AddEndpointFilter<CentralAuthenticationEndpointFilter>();
+        RouteGroupBuilder centralProtected = endpoints.MapProtectedModuleGroup(AuthenticationRoutes.BasePath, requireTenantAccess: false).WithTags(AuthenticationEndpointTags.Authentication).AddEndpointFilter<CentralAuthenticationEndpointFilter>();
         _ = anonymous.MapAntiforgeryEndpoints();
+        _ = anonymous.MapAuthenticationContinuationBegin();
+        _ = centralAnonymous.MapPendingAuthenticationChallenge();
+        _ = protectedGroup.MapAuthenticationContinuationComplete();
+        _ = centralProtected.MapPersonalBrowserSessions();
         _ = anonymous.MapAuthenticationProfileEndpoint();
-        _ = anonymous.MapPasswordLoginEndpoints();
-        _ = anonymous.MapPasswordRecoveryEndpoints();
+        _ = centralAnonymous.MapPasswordLoginEndpoints();
+        _ = centralAnonymous.MapPasswordRecoveryEndpoints();
         if (profilePolicy.AllowPasswordlessPhoneLogin)
-            _ = anonymous.MapPhoneLoginEndpoints();
+            _ = centralAnonymous.MapPhoneLoginEndpoints();
         if (profilePolicy.AllowPasswordlessEmailLogin)
-            _ = anonymous.MapEmailLoginEndpoints();
+            _ = centralAnonymous.MapEmailLoginEndpoints();
         if (profilePolicy.AllowPasskeyLogin)
-            _ = anonymous.MapPasskeyLoginEndpoints();
+            _ = centralAnonymous.MapPasskeyLoginEndpoints();
         if (profilePolicy.UsePhoneOtpForTwoFactorAccounts)
-            _ = anonymous.MapPasswordLoginOtpEndpoints();
+            _ = centralAnonymous.MapPasswordLoginOtpEndpoints();
         if (profilePolicy.AllowTenantHandoff)
             _ = anonymous.MapTenantHandoffEndpoints();
         _ = protectedGroup.MapCurrentSessionEndpoints();
         _ = protectedGroup.MapAuthenticationSecurityEndpoints();
         _ = protectedGroup.MapLogoutEndpoints();
-        _ = protectedGroup.MapAccountPhoneChangeEndpoints();
-        _ = protectedGroup.MapAccountEmailChangeEndpoints();
-        _ = protectedGroup.MapAccountPasswordChangeEndpoints();
+        _ = centralProtected.MapAccountPhoneChangeEndpoints();
+        _ = centralProtected.MapAccountEmailChangeEndpoints();
+        _ = centralProtected.MapAccountPasswordChangeEndpoints();
         return endpoints;
     }
 }

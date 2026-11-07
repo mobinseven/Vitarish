@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { usePendingAuthenticationChallenge } from "./usePendingAuthenticationChallenge";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useAuthenticationLoginPassword,
@@ -20,12 +21,19 @@ export function usePasswordLogin({ navigate = ignoreAuthNavigation, returnUrlSea
   const [otpChallengeId, setOtpChallengeId] = useState<string | null>(null);
   const [pendingReturnUrl, setPendingReturnUrl] = useState<string | undefined>(undefined);
 
+  const pending = usePendingAuthenticationChallenge(value => {
+    if (!value.isPasswordOtp) return;
+    setOtpChallengeId(value.challenge.challengeId);
+    setPendingReturnUrl(value.returnUrl ?? undefined);
+  }, error => setError(parseAuthError(error)));
+
   const login = useCallback(
     async (
       userNameOrEmail: string,
       password: string,
       returnUrl?: string
     ) => {
+      pending.cancelRestore();
       setError(null);
       const finalReturnUrl = getRequestedReturnUrl(returnUrlSearchParams, returnUrl);
       try {
@@ -88,7 +96,7 @@ export function usePasswordLogin({ navigate = ignoreAuthNavigation, returnUrlSea
     login,
     completeOtp,
     requiresOtp: otpChallengeId !== null,
-    isLoading: mutation.isPending || otpMutation.isPending,
+    isLoading: pending.isRestoring || mutation.isPending || otpMutation.isPending,
     error,
     errorMessage: error ? getErrorMessage(error) : null,
   };

@@ -16,6 +16,7 @@ public enum AuthenticationSessionTerminationReason
 public sealed class AuthenticationSession
 {
     public Guid Id { get; set; }
+    public Guid? CentralSessionId { get; set; }
     public string UserId { get; set; } = string.Empty;
     public string TenantId { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }

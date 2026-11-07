@@ -15,7 +15,8 @@ namespace Vitarish.Authentication.Infrastructure.ReturnUrls;
 public sealed class JourneyAwareRedirectResolver(
     IJourneyResolver journeyResolver,
     IHttpContextAccessor httpContextAccessor,
-    ILogger<JourneyAwareRedirectResolver> logger
+    ILogger<JourneyAwareRedirectResolver> logger,
+    IAuthenticationCentralDestinationPolicy? centralDestinations = null
 ) : IAuthenticationRedirectResolver
 {
     public string Resolve(string? requestedReturnUrl, bool requiresProfileCompletion)
@@ -56,10 +57,15 @@ public sealed class JourneyAwareRedirectResolver(
             );
 
             JourneyStep step = await journeyResolver.ResolveAsync(request, cancellationToken);
+            if (step.BlockingGate is not null && !string.IsNullOrWhiteSpace(requestedReturnUrl) && ReturnUrlPolicy.IsSafeLocal(requestedReturnUrl))
+                return step.DestinationUrl + "?" + AuthenticationBrowserQuery.ReturnUrl + "=" + Uri.EscapeDataString(requestedReturnUrl);
             return step.DestinationUrl;
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
+            // App continuation must not bypass mandatory personal gates during a dependency failure.
+            if (requestedReturnUrl is not null && centralDestinations?.Owns(requestedReturnUrl) == true)
+                throw;
             logger.LogWarning(ex, "Journey resolution failed for user {UserId}, falling back to legacy redirect", userId);
             return requiresProfileCompletion
                 ? "/account/profile/complete"

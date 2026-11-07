@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { useState } from "react";
 
 const session = vi.hoisted(() => ({ current: { isLoading: true, isAuthenticated: false } }));
 
@@ -22,6 +23,37 @@ afterEach(() => {
 });
 
 describe("AuthenticatedRedirectBoundary", () => {
+  it("preserves entered verification state through anonymous background session checks", () => {
+    function VerificationForm() {
+      const [code, setCode] = useState("");
+      return <input aria-label="Verification code" value={code} onChange={(event) => setCode(event.target.value)} />;
+    }
+    const onNavigate = vi.fn();
+    const content = () => (
+      <AuthenticatedRedirectBoundary authenticatedHref="/home" onNavigate={onNavigate} loadingFallback={<p>loading</p>}>
+        <VerificationForm />
+      </AuthenticatedRedirectBoundary>
+    );
+    const view = render(content());
+    expect(screen.queryByRole("textbox")).toBeNull();
+
+    session.current = { isLoading: false, isAuthenticated: false };
+    view.rerender(content());
+    fireEvent.change(screen.getByRole("textbox"), { target: { value: "123" } });
+    const input = screen.getByRole("textbox");
+
+    session.current = { isLoading: true, isAuthenticated: false };
+    view.rerender(content());
+    expect(screen.getByRole("textbox")).toBe(input);
+    expect(input).toHaveValue("123");
+
+    session.current = { isLoading: false, isAuthenticated: false };
+    view.rerender(content());
+    expect(screen.getByRole("textbox")).toBe(input);
+    expect(input).toHaveValue("123");
+    expect(onNavigate).not.toHaveBeenCalled();
+  });
+
   it("sends a visitor who arrives signed in away from the sign-in page", () => {
     const onNavigate = vi.fn();
     session.current = { isLoading: false, isAuthenticated: true };

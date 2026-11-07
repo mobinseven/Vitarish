@@ -22,7 +22,8 @@ public sealed class AuthenticationSessionRegistry(
     IClientIpAddressAccessor clientIp,
     IRequestContext requestContext,
     ISecurityAuditWriter auditWriter,
-    TimeProvider timeProvider) : IAuthenticationSessionRegistry, IAuthenticationActiveSessionQuery
+    TimeProvider timeProvider,
+    AuthenticationSessionLinkContext? sessionLink = null) : IAuthenticationSessionRegistry, IAuthenticationActiveSessionQuery
 {
     public async Task<IAuthenticationSessionPreparation> PrepareAsync(string userId, CancellationToken cancellationToken)
     {
@@ -160,14 +161,33 @@ public sealed class AuthenticationSessionRegistry(
             .ToListAsync(cancellationToken);
         List<AuthenticationSessionState> originalSessions = active.Select(Capture).ToList();
 
-        foreach (AuthenticationSession expired in active.Where(session => session.LastActivityAt.AddMinutes(inactivityMinutes) <= now))
+        Dictionary<Guid, AuthenticationSession> activeById = active.ToDictionary(item => item.Id);
+        bool IsActive(AuthenticationSession item) => item.CentralSessionId is Guid parentId
+            ? activeById.TryGetValue(parentId, out AuthenticationSession? parent) && parent.CentralSessionId is null && parent.LastActivityAt.AddMinutes(inactivityMinutes) > now
+            : item.LastActivityAt.AddMinutes(inactivityMinutes) > now;
+        foreach (AuthenticationSession expired in active.Where(session => !IsActive(session)))
         {
             sessionsToTerminate.Add((expired, AuthenticationSessionTerminationReason.InactivityTimeout));
             terminated.Add((AuthenticationSecurityAuditEvents.SessionInactive, expired.Id.ToString("N")));
         }
-        active = active.Where(session => session.LastActivityAt.AddMinutes(inactivityMinutes) > now).ToList();
+        active = active.Where(IsActive).ToList();
 
-        if (policy.MaximumConcurrentSessions == 1)
+        Guid? centralSessionId = sessionLink?.CentralSessionId;
+        AuthenticationSession? central = centralSessionId is Guid centralId
+            ? active.FirstOrDefault(item => item.Id == centralId && item.CentralSessionId is null)
+            : null;
+        if (centralSessionId is not null && central is null)
+        {
+            if (transaction is not null)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                await transaction.DisposeAsync();
+            }
+            return new AuthenticationSessionPreparation(AuthenticationSessionEstablishmentResult.Failed(
+                new(AuthenticationFailureReason.InvalidCredential, "The central browser session is no longer active.")));
+        }
+
+        if (centralSessionId is null && policy.MaximumConcurrentSessions == 1)
         {
             foreach (AuthenticationSession previous in active)
             {
@@ -176,7 +196,7 @@ public sealed class AuthenticationSessionRegistry(
             }
             active.Clear();
         }
-        else if (active.Count >= policy.MaximumConcurrentSessions)
+        else if (centralSessionId is null && active.Count(item => item.CentralSessionId is null) >= policy.MaximumConcurrentSessions)
         {
             if (transaction is not null)
                 await transaction.RollbackAsync(cancellationToken);
@@ -186,11 +206,21 @@ public sealed class AuthenticationSessionRegistry(
             return new AuthenticationSessionPreparation(AuthenticationSessionEstablishmentResult.Failed(new(AuthenticationFailureReason.TooManyAttempts, "The maximum number of simultaneous sessions has been reached.")));
         }
 
+        // Tabs on the same app share its host-only cookie. Re-entering the app
+        // renews that linked session rather than accumulating one row per visit.
+        AuthenticationSession? existingLinkedSession = centralSessionId is not null
+            ? active.FirstOrDefault(item => item.CentralSessionId == centralSessionId && item.TenantId == tenantId)
+            : null;
+        if (existingLinkedSession is not null && existingHistory is not null)
+            return new AuthenticationSessionPreparation(AuthenticationSessionEstablishmentResult.Success(
+                existingLinkedSession.Id.ToString("N"), Snapshot(existingHistory), inactivityMinutes), transaction, dbContext);
+
         AuthenticationSession session = new()
         {
             Id = Guid.NewGuid(),
             UserId = userId,
             TenantId = tenantId,
+            CentralSessionId = centralSessionId,
             CreatedAt = now,
             LastActivityAt = now,
             ClientIpAddress = address
@@ -198,9 +228,9 @@ public sealed class AuthenticationSessionRegistry(
         _ = dbContext.AuthenticationSessions.Add(session);
 
         List<AuthenticationSessionNotice> createdNotices = [];
-        if (policy.MaximumConcurrentSessions > 1)
+        if (centralSessionId is null && policy.MaximumConcurrentSessions > 1)
         {
-            foreach (AuthenticationSession previous in active)
+            foreach (AuthenticationSession previous in active.Where(item => item.CentralSessionId is null))
             {
                 AuthenticationSessionNotice notice = new()
                 {
@@ -295,17 +325,19 @@ public sealed class AuthenticationSessionRegistry(
         SecurityAccessPolicy policy = await policyProvider.GetAsync(cancellationToken);
         int inactivityMinutes = await GetEffectiveInactivityTimeoutAsync(userId, policy, cancellationToken);
         DateTime now = timeProvider.GetUtcNow().UtcDateTime;
-        if (session.LastActivityAt.AddMinutes(inactivityMinutes) <= now)
+        AuthenticationSession? central = session.CentralSessionId is Guid centralId
+            ? await dbContext.AuthenticationSessions.SingleOrDefaultAsync(item => item.Id == centralId, cancellationToken)
+            : session;
+        if (central is null || central.TerminatedAt is not null || central.UserId != userId || central.CentralSessionId is not null)
+            return new(false);
+        if (central.LastActivityAt.AddMinutes(inactivityMinutes) <= now)
         {
-            string eventKey = session.Id.ToString("N");
-            await BeginTerminationAuditAsync(userId, AuthenticationSecurityAuditEvents.SessionInactive, eventKey, cancellationToken);
-            Terminate(session, now, AuthenticationSessionTerminationReason.InactivityTimeout);
-            await SaveAsync(cancellationToken);
-            await CompleteAuditAsync(AuthenticationSecurityAuditEvents.SessionTerminated, SecurityAuditOutcome.Succeeded, userId, AuthenticationSecurityAuditEvents.SessionInactive, AuthenticationSecurityAuditEvents.SessionTerminatedOperation, eventKey, cancellationToken);
+            await RevokeAsync(central.Id.ToString("N"), AuthenticationSessionTerminationReason.InactivityTimeout, cancellationToken);
             return new(false);
         }
 
         session.LastActivityAt = now;
+        central.LastActivityAt = now;
         await SaveAsync(cancellationToken);
         return new(true, inactivityMinutes);
     }
@@ -317,18 +349,27 @@ public sealed class AuthenticationSessionRegistry(
         AuthenticationSession? session = await dbContext.AuthenticationSessions.SingleOrDefaultAsync(item => item.Id == id, cancellationToken);
         if (session is null)
             return;
+        if (reason == AuthenticationSessionTerminationReason.UserLogout && session.CentralSessionId is Guid centralId)
+        {
+            await RevokeAsync(centralId.ToString("N"), reason, cancellationToken);
+            return;
+        }
         string reasonText = AuthenticationSecurityAuditEvents.SessionTerminationReason(reason);
         string eventKey = session.Id.ToString("N");
         if (session.TerminatedAt is not null)
-        {
             await ReconcilePendingTerminationAuditAsync(session.UserId, reasonText, eventKey, cancellationToken);
-            return;
-        }
         DateTime now = timeProvider.GetUtcNow().UtcDateTime;
-        await BeginTerminationAuditAsync(session.UserId, reasonText, eventKey, cancellationToken);
-        Terminate(session, now, reason);
+        List<AuthenticationSession> family = await dbContext.AuthenticationSessions
+            .Where(item => item.UserId == session.UserId && (item.Id == session.Id || item.CentralSessionId == session.Id))
+            .ToListAsync(cancellationToken);
+        List<AuthenticationSession> activeFamily = family.Where(item => item.TerminatedAt is null).ToList();
+        foreach (AuthenticationSession member in activeFamily)
+            await BeginTerminationAuditAsync(member.UserId, reasonText, member.Id.ToString("N"), cancellationToken);
+        foreach (AuthenticationSession member in activeFamily)
+            Terminate(member, now, reason);
         await SaveAsync(cancellationToken);
-        await CompleteAuditAsync(AuthenticationSecurityAuditEvents.SessionTerminated, SecurityAuditOutcome.Succeeded, session.UserId, reasonText, AuthenticationSecurityAuditEvents.SessionTerminatedOperation, eventKey, cancellationToken);
+        foreach (AuthenticationSession member in activeFamily)
+            await CompleteAuditAsync(AuthenticationSecurityAuditEvents.SessionTerminated, SecurityAuditOutcome.Succeeded, member.UserId, reasonText, AuthenticationSecurityAuditEvents.SessionTerminatedOperation, member.Id.ToString("N"), CancellationToken.None);
     }
 
     public async Task<bool> HasActiveSessionAsync(string userId, CancellationToken cancellationToken)
@@ -338,7 +379,7 @@ public sealed class AuthenticationSessionRegistry(
         int inactivityMinutes = await GetEffectiveInactivityTimeoutAsync(userId, policy, cancellationToken);
         DateTime cutoff = timeProvider.GetUtcNow().UtcDateTime.AddMinutes(-inactivityMinutes);
         return await dbContext.AuthenticationSessions
-            .AnyAsync(session => session.UserId == userId && session.TerminatedAt == null && session.LastActivityAt > cutoff, cancellationToken);
+            .AnyAsync(session => session.UserId == userId && session.CentralSessionId == null && session.TerminatedAt == null && session.LastActivityAt > cutoff, cancellationToken);
     }
 
     public async Task<AuthenticationAccessHistory?> GetAccessHistoryAsync(string userId, string? tenantId, CancellationToken cancellationToken) =>
@@ -350,6 +391,10 @@ public sealed class AuthenticationSessionRegistry(
     {
         if (!Guid.TryParse(sessionId, out Guid id))
             return [];
+        AuthenticationSession? owner = await dbContext.AuthenticationSessions.AsNoTracking()
+            .SingleOrDefaultAsync(item => item.Id == id && item.UserId == userId, cancellationToken);
+        if (owner?.CentralSessionId is Guid centralId)
+            id = centralId;
         return await dbContext.AuthenticationSessionNotices.AsNoTracking()
             .Where(notice => notice.SessionId == id && notice.UserId == userId && notice.AcknowledgedAt == null)
             .OrderBy(notice => notice.CreatedAt)
@@ -360,6 +405,10 @@ public sealed class AuthenticationSessionRegistry(
     {
         if (!Guid.TryParse(noticeId, out Guid id) || !Guid.TryParse(sessionId, out Guid session))
             return false;
+        AuthenticationSession? owner = await dbContext.AuthenticationSessions.AsNoTracking()
+            .SingleOrDefaultAsync(item => item.Id == session && item.UserId == userId, cancellationToken);
+        if (owner?.CentralSessionId is Guid centralId)
+            session = centralId;
         AuthenticationSessionNotice? notice = await dbContext.AuthenticationSessionNotices.SingleOrDefaultAsync(item => item.Id == id && item.SessionId == session && item.UserId == userId, cancellationToken);
         if (notice is null)
             return false;
@@ -507,8 +556,11 @@ public sealed class AuthenticationSessionRegistry(
             .ToListAsync(cancellationToken);
         foreach (AuthenticationSession session in allSessions.Where(session => session.TerminatedAt is not null))
             await ReconcilePendingTerminationAuditAsync(userId, AuthenticationSecurityAuditEvents.SessionUserPolicyExpired, session.Id.ToString("N"), cancellationToken);
+        HashSet<Guid> expiredRoots = allSessions
+            .Where(session => session.CentralSessionId is null && (session.TerminatedAt is not null || session.LastActivityAt.AddMinutes(inactivityMinutes) <= now))
+            .Select(session => session.Id).ToHashSet();
         List<AuthenticationSession> sessions = allSessions
-            .Where(session => session.TerminatedAt is null && session.LastActivityAt.AddMinutes(inactivityMinutes) <= now)
+            .Where(session => session.TerminatedAt is null && (session.CentralSessionId is Guid parentId ? expiredRoots.Contains(parentId) : expiredRoots.Contains(session.Id)))
             .ToList();
         foreach (AuthenticationSession session in sessions)
         {
@@ -582,7 +634,7 @@ public sealed class AuthenticationSessionRegistry(
                     .AsNoTracking()
                     .ToDictionaryAsync(item => item.UserId, item => item.InactivityTimeoutMinutes, operationToken);
                 Dictionary<string, int> retainedByUser = [];
-                foreach (AuthenticationSession session in sessions)
+                foreach (AuthenticationSession session in sessions.Where(item => item.CentralSessionId is null))
                 {
                     int retained = retainedByUser.GetValueOrDefault(session.UserId);
                     bool overLimit = retained >= policy.MaximumConcurrentSessions;
@@ -597,6 +649,8 @@ public sealed class AuthenticationSessionRegistry(
                     }
                     retainedByUser[session.UserId] = retained + 1;
                 }
+                HashSet<Guid> invalidatedRoots = invalidated.Select(item => item.Id).ToHashSet();
+                invalidated.AddRange(sessions.Where(item => item.CentralSessionId is Guid parentId && invalidatedRoots.Contains(parentId)));
                 foreach (AuthenticationSession session in invalidated)
                     await BeginTerminationAuditAsync(session.UserId, AuthenticationSecurityAuditEvents.SessionPolicyInvalidated, session.Id.ToString("N"), operationToken);
                 foreach (AuthenticationSession session in invalidated)

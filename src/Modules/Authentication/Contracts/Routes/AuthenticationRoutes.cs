@@ -7,6 +7,8 @@ public static partial class AuthenticationRoutes
     public const string Antiforgery = BasePath + "/antiforgery";
     public const string ProfilePath = "/profile";
     public const string Profile = BasePath + ProfilePath;
+    public const string CompletePasswordLoginOtpPath = "/login/password/otp/complete";
+    public const string CompletePasswordLoginOtp = BasePath + CompletePasswordLoginOtpPath;
     public const string PasswordLogin = BasePath + "/login/password";
     public const string BeginPhoneLogin = BasePath + "/login/phone/begin";
     public const string CompletePhoneLogin = BasePath + "/login/phone/complete";

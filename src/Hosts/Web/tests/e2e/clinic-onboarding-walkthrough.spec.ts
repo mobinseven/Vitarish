@@ -304,7 +304,7 @@ test("a new phone number signs up, creates a clinic, lands signed in on it, and 
     .then(() => page.url());
   await page.getByRole("button", { name: setupMessages.ready.goToClinic, exact: true }).click();
   const recordedHandoffUrl = await handoffUrlPromise;
-  expect(recordedHandoffUrl).toMatch(new RegExp(`^http://${clinicHostname}:3005${Routes.Handoff}#.+$`));
+  expect(recordedHandoffUrl).toMatch(new RegExp(`^${twoHostE2eSignInOrigin}${Routes.Handoff}#.+$`));
 
   await expect(page).toHaveURL(new RegExp(`^http://${clinicHostname}:3005${Routes.Home}(?:[/?#]|$)`), {
     timeout: pageCompileTimeoutMilliseconds,

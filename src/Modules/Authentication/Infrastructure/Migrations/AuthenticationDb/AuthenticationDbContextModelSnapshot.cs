@@ -68,10 +68,48 @@ namespace Vitarish.Authentication.Infrastructure.Migrations.AuthenticationDb
                     b.ToTable("AuthenticationAccessHistories", "Authentication");
                 });
 
+            modelBuilder.Entity("Vitarish.Authentication.Domain.Sessions.AuthenticationContinuation", b =>
+                {
+                    b.Property<string>("TokenHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .IsConcurrencyToken()
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CorrelationHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Origin")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<string>("ReturnPath")
+                        .IsRequired()
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)");
+
+                    b.HasKey("TokenHash");
+
+                    b.HasIndex("ExpiresAt");
+
+                    b.ToTable("AuthenticationContinuation", "Authentication");
+                });
+
             modelBuilder.Entity("Vitarish.Authentication.Domain.Sessions.AuthenticationSession", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("CentralSessionId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("ClientIpAddress")
@@ -101,6 +139,8 @@ namespace Vitarish.Authentication.Infrastructure.Migrations.AuthenticationDb
                         .HasColumnType("character varying(450)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CentralSessionId");
 
                     b.HasIndex("LastActivityAt");
 
@@ -147,15 +187,33 @@ namespace Vitarish.Authentication.Infrastructure.Migrations.AuthenticationDb
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("CentralSessionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CorrelationHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
                     b.Property<DateTime>("ExpiresAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("IssuedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid?>("PriorCentralSessionId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTime?>("RedeemedAt")
                         .IsConcurrencyToken()
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ReturnOrigin")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<string>("ReturnPath")
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)");
 
                     b.Property<string>("TargetHost")
                         .IsRequired()
@@ -269,6 +327,14 @@ namespace Vitarish.Authentication.Infrastructure.Migrations.AuthenticationDb
                     b.HasKey("Id");
 
                     b.ToTable("SecurityAccessPolicies", "Authentication");
+                });
+
+            modelBuilder.Entity("Vitarish.Authentication.Domain.Sessions.AuthenticationSession", b =>
+                {
+                    b.HasOne("Vitarish.Authentication.Domain.Sessions.AuthenticationSession", null)
+                        .WithMany()
+                        .HasForeignKey("CentralSessionId")
+                        .OnDelete(DeleteBehavior.Restrict);
                 });
 #pragma warning restore 612, 618
         }

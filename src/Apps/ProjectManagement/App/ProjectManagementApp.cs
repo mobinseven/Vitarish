@@ -18,6 +18,7 @@ public sealed class ProjectManagementApp : Vitarish.Apps.Base.Core.App
     public override Task Register(WebApplicationBuilder builder, Action<DbContextOptionsBuilder>? configureDbContext = null)
     {
         _ = builder.Services.AddMediatR(configuration => configuration.RegisterServicesFromAssembly(typeof(RunProjectManagementAgentHandler).Assembly));
+        _ = builder.Services.AddTransient<Vitarish.Authentication.Application.Abstractions.IAuthenticationApplicationAdmission, ProjectManagementAdmissionPolicy>();
         _ = builder.Services.AddSingleton<ProjectManagementPresentationBuilder>();
         _ = builder.Services.AddSingleton(new ProjectManagementAgentOptions(
             builder.Configuration[AgentRuntimeOptions.ModelConfigurationKey]

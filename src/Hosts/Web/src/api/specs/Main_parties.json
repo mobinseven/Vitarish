@@ -2715,6 +2715,12 @@
               "null",
               "string"
             ]
+          },
+          "handoffUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -2995,6 +3001,12 @@
             "items": {
               "$ref": "#/components/schemas/SignInClinicDto"
             }
+          },
+          "onboardingUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },

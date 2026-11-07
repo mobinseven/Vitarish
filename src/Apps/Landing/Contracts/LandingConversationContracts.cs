@@ -48,7 +48,7 @@ public static class LandingErrorCodes
 public sealed record LandingError(string Code, string Message);
 
 /// <summary>A one-time ticket that signs the person in on the onboarding host, where they create their clinic.</summary>
-public sealed record LandingOnboardingHandoffResponse(string Hostname, string Token);
+public sealed record LandingOnboardingHandoffResponse(string Hostname, string Token, string? HandoffUrl = null);
 
 /// <summary>The consultation's answers to carry into sign-up; both may be empty.</summary>
 public sealed record LandingOnboardingHandoffRequest(string? Category, IReadOnlyList<string>? Answers);

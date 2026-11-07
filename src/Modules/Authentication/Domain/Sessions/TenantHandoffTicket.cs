@@ -17,6 +17,11 @@ public sealed class TenantHandoffTicket
     public string TokenHash { get; set; } = string.Empty;
 
     public string UserId { get; set; } = string.Empty;
+    public Guid? CentralSessionId { get; set; }
+    public string? CorrelationHash { get; set; }
+    public string? ReturnPath { get; set; }
+    public Guid? PriorCentralSessionId { get; set; }
+    public string? ReturnOrigin { get; set; }
 
     /// <summary>Lowercase hostname, without scheme or port, the ticket can be redeemed on.</summary>
     public string TargetHost { get; set; } = string.Empty;

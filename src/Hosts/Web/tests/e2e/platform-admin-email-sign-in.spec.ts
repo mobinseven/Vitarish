@@ -1,3 +1,4 @@
+import { twoHostE2eSignInOrigin, twoHostE2eProofScreenshotEnvironmentKey } from "../../scripts/two-host-e2e-artifacts.mjs";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { expect, test, type Browser, type Page } from "@playwright/test";
 import { Routes as PlatformRoutes } from "../../apps/platform-admin/src/app/routes";
@@ -37,11 +38,13 @@ async function signInWithEmailCode(browser: Browser, clientIp: string): Promise<
   const context = await browser.newContext({ extraHTTPHeaders: { [forwardedForHeaderName]: clientIp } });
   await context.addCookies([{ name: localeCookieName, value: "en", url: platformOrigin }]);
   const page = await context.newPage();
+  let deliveries = 0;
+  page.on("request", request => { if (request.method() === "POST" && request.url().endsWith(generatedPath(authenticationLoginEmailBegin))) deliveries++; });
   await page.goto(`${platformOrigin}${PlatformRoutes.Audit}`, { waitUntil: "domcontentloaded" });
-  await expect(page).toHaveURL(`${platformOrigin}${PlatformRoutes.Login}`, { timeout: 30_000 });
+  await expect(page).toHaveURL(url => url.origin === twoHostE2eSignInOrigin && url.pathname === PlatformRoutes.Login, { timeout: 120_000 });
 
   await page.getByRole("link", { name: new RegExp(messages.auth.login.emailMethod) }).click();
-  await expect(page).toHaveURL(`${platformOrigin}${PlatformRoutes.LoginEmail}`);
+  await expect(page).toHaveURL(url => url.origin === twoHostE2eSignInOrigin && url.pathname === PlatformRoutes.LoginEmail);
   await page.getByLabel(messages.auth.otp.emailLabel, { exact: true }).fill(platformAdminEmail);
   const previousModifiedAt = existsSync(smtpCapturePath!) ? statSync(smtpCapturePath!).mtimeMs : 0;
   const [beginResponse] = await Promise.all([
@@ -50,12 +53,27 @@ async function signInWithEmailCode(browser: Browser, clientIp: string): Promise<
   ]);
   expect(beginResponse.status()).toBe(200);
 
-  await page.getByLabel(messages.auth.otp.codeLabel).fill(await readDeliveredCode(previousModifiedAt));
+  const codeInput = page.getByLabel(messages.auth.otp.codeLabel);
+  await expect(codeInput).toBeVisible();
+  const emailTab = await context.newPage();
+  await emailTab.goto("about:blank");
+  await emailTab.bringToFront();
+  const code = await readDeliveredCode(previousModifiedAt);
+  await page.bringToFront();
+  await expect(codeInput).toBeVisible();
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await expect(codeInput).toBeVisible({ timeout: 30_000 });
+  expect(deliveries).toBe(1);
+  const proof = process.env[twoHostE2eProofScreenshotEnvironmentKey];
+  if (proof) await page.screenshot({ path: proof.replace(/\.png$/i, `-email-resumed-${clientIp}.png`), fullPage: true });
+  await emailTab.close();
+  await codeInput.fill(code);
   const [completeResponse] = await Promise.all([
     page.waitForResponse((response) => response.url().endsWith(generatedPath(authenticationLoginEmailComplete))),
     page.getByRole("button", { name: messages.auth.otp.verifyAction, exact: true }).click(),
   ]);
   expect(completeResponse.status()).toBe(200);
+  await expect(page).toHaveURL(url => url.origin === platformOrigin && !url.pathname.startsWith("/login") && url.pathname !== "/handoff", { timeout: 120_000 });
   return page;
 }
 

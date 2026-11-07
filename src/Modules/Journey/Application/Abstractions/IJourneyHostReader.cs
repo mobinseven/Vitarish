@@ -5,6 +5,7 @@ namespace Vitarish.Journey.Application.Abstractions;
 /// </summary>
 public interface IJourneyHostReader
 {
+    bool IsCentralDestination(string returnUrl) => false;
     /// <summary>True when the request came to the sign-up host, where users create their own tenant.</summary>
     Task<bool> IsSignUpHostAsync(CancellationToken cancellationToken = default);
 

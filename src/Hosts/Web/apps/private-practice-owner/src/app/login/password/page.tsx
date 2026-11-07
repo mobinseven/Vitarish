@@ -14,6 +14,7 @@ export default function PasswordLoginPage() {
 
   return (
     <LoginPageCard
+      returnUrlSearchParams={searchParams}
       title={t("auth.login.shortTitle")}
       subtitle={t("auth.login.credentialsSubtitle")}
       skeletonHeight="184px"

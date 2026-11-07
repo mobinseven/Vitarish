@@ -15,7 +15,10 @@ export const twoHostE2eTenantBClinicOrigin = "http://tenant-b.localhost:3005";
 export const twoHostE2eTenantBOwnerUsernameEnvironmentKey = "VITARISH_E2E_TENANT_B_OWNER_USERNAME";
 export const twoHostE2eTenantBOwnerUsername = "e2e-tenant-b-owner";
 export const twoHostE2ePlatformAdminClientIp = "198.51.100.21";
-export const twoHostE2ePlatformAdminOrigin = "http://localhost:3006";
+export const twoHostE2ePlatformAdminOrigin = "http://admin.localhost:3006";
+export const twoHostE2ePatientsOrigin = "http://patients.localhost:3007";
+export const twoHostE2eProjectManagementOrigin = "http://pm.localhost:3008";
+export const twoHostE2eKnowledgeOrigin = "http://knowledge.localhost:3009";
 /**
  * The shared sign-in host: the E2E host binds auth.localhost to the sign-in tenant
  * (src/Hosts/E2e/Program.cs), and the runner sends every other host's sign-in pages there.
@@ -26,3 +29,8 @@ export const twoHostE2eSmsCapturePathEnvironmentKey = "VITARISH_E2E_SMS_CAPTURE_
 
 // Maps the Files-owned FileTransferAuditKeyOptions.CurrentKey setting into the disposable host.
 export const twoHostE2eFileTransferAuditKeyEnvironmentKey = "Vitarish__Files__TransferAudit__CurrentKey";
+
+// Environment serialization of the Parties-owned BrowserApplicationHostOptions keys.
+export const twoHostE2ePatientsHostConfigurationKey = "Vitarish__PatientsUrl";
+export const twoHostE2eProjectManagementHostConfigurationKey = "Vitarish__ProjectManagementUrl";
+export const twoHostE2eKnowledgeHostConfigurationKey = "Vitarish__KnowledgeQaUrl";

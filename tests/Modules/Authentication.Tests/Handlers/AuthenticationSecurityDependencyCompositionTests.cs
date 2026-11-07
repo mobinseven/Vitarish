@@ -121,6 +121,23 @@ public sealed class AuthenticationSecurityDependencyCompositionTests
         methods.Should().Be(new EnabledAuthenticationMethods(true, false, true, false));
     }
 
+    [Theory]
+    [InlineData(false, false, true)]
+    [InlineData(true, false, false)]
+    [InlineData(true, true, true)]
+    public async Task Personal_credentials_are_managed_only_on_the_configured_central_host(bool configured, bool central, bool expected)
+    {
+        ServiceCollection services = new();
+        services.AddAuthenticationModuleServices(AuthenticationProfilePolicy.Default);
+        Mock<IAuthenticationHostDirectory> hosts = new();
+        hosts.SetupGet(item => item.SignInOrigin).Returns(configured ? "https://auth.example.test" : null);
+        hosts.Setup(item => item.IsCentralHostAsync(It.IsAny<CancellationToken>())).ReturnsAsync(central);
+        services.AddScoped(_ => hosts.Object);
+        using ServiceProvider provider = services.BuildServiceProvider();
+        using IServiceScope scope = provider.CreateScope();
+        (await scope.ServiceProvider.GetRequiredService<IPersonalCredentialHost>().AllowsManagementAsync(CancellationToken.None)).Should().Be(expected);
+    }
+
     private sealed class TestSecurityPolicyProvider : IAuthenticationSecurityPolicyProvider
     {
         public Task<SecurityAccessPolicy> GetAsync(CancellationToken cancellationToken) => Task.FromResult(SecurityAccessPolicy.Default);

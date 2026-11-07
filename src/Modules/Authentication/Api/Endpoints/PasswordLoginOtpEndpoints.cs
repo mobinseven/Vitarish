@@ -3,6 +3,7 @@ using Vitarish.Authentication.Application.Commands;
 using Vitarish.Authentication.Application.Handlers;
 using Vitarish.Authentication.Application.Results;
 using Vitarish.Authentication.Contracts.Requests;
+using Vitarish.Authentication.Contracts.Routes;
 using Vitarish.Authentication.Contracts.Responses;
 using Vitarish.Modules.Base.Core.Endpoints;
 
@@ -12,7 +13,7 @@ public static class PasswordLoginOtpEndpoints
 {
     public static RouteGroupBuilder MapPasswordLoginOtpEndpoints(this RouteGroupBuilder group)
     {
-        group.MapModulePost("/login/password/otp/complete", async (
+        group.MapModulePost(AuthenticationRoutes.CompletePasswordLoginOtpPath, async (
             CompletePasswordLoginOtpRequest request,
             [Microsoft.AspNetCore.Mvc.FromServices] CompletePasswordLoginOtpHandler handler,
             CancellationToken cancellationToken) =>

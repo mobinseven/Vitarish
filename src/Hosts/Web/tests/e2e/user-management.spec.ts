@@ -117,7 +117,7 @@ async function putAuthenticationPolicy(page: Page, request: Record<string, unkno
 
 async function login(page: Page, username: string, origin = ""): Promise<void> {
   expect(password, "VITARISH_E2E_PASSWORD must be supplied by the disposable E2E environment").toBeTruthy();
-  // Clinic hosts sign in only on the shared sign-in host; platform administration has its own sign-in.
+  // Clinic hosts sign in only on the shared sign-in host; platform administration follows central Auth too.
   if (origin !== platformOrigin) {
     await signInToClinic(page, username, password!, origin || webOrigin);
     return;
@@ -132,6 +132,7 @@ async function login(page: Page, username: string, origin = ""): Promise<void> {
     page.locator('button[type="submit"]').click(),
   ]);
   expect(response.status()).toBe(200);
+  await expect(page).toHaveURL(url => url.origin === platformOrigin && !url.pathname.startsWith("/login") && url.pathname !== "/handoff", { timeout: 120_000 });
 }
 
 async function reviewUserAuditEvent(page: Page, category: string, eventName: string, operation: string): Promise<void> {

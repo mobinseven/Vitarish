@@ -1,3 +1,5 @@
+using Vitarish.Authentication.Application.Abstractions;
+using Vitarish.Authentication.Domain.Challenges;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Vitarish.Authentication.Api.Mapping;
@@ -14,9 +16,15 @@ public static class PasswordLoginEndpoints
 {
     public static RouteGroupBuilder MapPasswordLoginEndpoints(this RouteGroupBuilder group)
     {
-        group.MapModulePost("/login/password", async (PasswordLoginRequest request, [Microsoft.AspNetCore.Mvc.FromServices] LoginWithPasswordHandler handler, CancellationToken ct) =>
+        group.MapModulePost("/login/password", async (PasswordLoginRequest request, [Microsoft.AspNetCore.Mvc.FromServices] LoginWithPasswordHandler handler, [Microsoft.AspNetCore.Mvc.FromServices] IPendingAuthenticationChallenge pending, [Microsoft.AspNetCore.Mvc.FromServices] IAuthenticationChallengeStore challenges, CancellationToken ct) =>
         {
             var r = await handler.Handle(new LoginWithPasswordCommand(request.UserNameOrEmail, request.Password, request.ReturnUrl), ct);
+            if (r is AuthenticationResult<LoginResult>.Failure { Error.ChallengeId: { } challengeId })
+            {
+                AuthenticationChallenge? challenge = await challenges.GetAsync(new AuthenticationChallengeId(challengeId), ct);
+                if (challenge is not null)
+                    pending.Store(new Vitarish.Authentication.Application.Results.ChallengeResult(challengeId, challenge.Purpose, challenge.ExpiresAt, challenge.RemainingAttempts), request.ReturnUrl);
+            }
             return r is AuthenticationResult<LoginResult>.Success s
                 ? Results.Ok(AuthenticationEndpointMapper.ToDto(s.Value))
                 : AuthenticationProblemHttpMapper.ToProblem(((AuthenticationResult<LoginResult>.Failure)r).Error);

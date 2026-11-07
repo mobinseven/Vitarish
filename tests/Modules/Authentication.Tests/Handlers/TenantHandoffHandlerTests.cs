@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using FluentAssertions;
 using Moq;
 using Vitarish.Audit.Application;
@@ -320,6 +321,48 @@ public sealed class TenantHandoffHandlerTests
             entry.Outcome == SecurityAuditOutcome.Denied);
     }
 
+    [Fact]
+    public async Task Linked_handoff_rejects_another_browser_before_spending_the_ticket()
+    {
+        TestRig rig = new();
+        string browser = TenantHandoffTokens.Create();
+        string? token = await rig.IssueHandler.Handle(new IssueTenantHandoffCommand(UserId, TargetHost,
+            LinkIssuingSession: true, CorrelationHash: TenantHandoffTokens.Hash(browser)), CancellationToken.None);
+        token.Should().NotBeNull();
+        rig.Correlation.Setup(item => item.Read(It.IsAny<string>())).Returns(TenantHandoffTokens.Create());
+        var refused = await rig.RedeemHandler.Handle(new RedeemTenantHandoffCommand(token!), CancellationToken.None);
+        refused.Should().BeOfType<AuthenticationResult<LoginResult>.Failure>();
+        rig.Tickets.Tickets.Single().RedeemedAt.Should().BeNull();
+        rig.SignIn.Verify(item => item.SignInAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+        Guid? linkedRoot = null;
+        rig.SignIn.Setup(item => item.SignInAsync(UserId, It.IsAny<CancellationToken>()))
+            .Callback(() => linkedRoot = rig.SessionLink.CentralSessionId).ReturnsAsync(AuthenticationSessionSignInResult.Success());
+        rig.Correlation.Setup(item => item.Read(It.IsAny<string>())).Returns(browser);
+        (await rig.RedeemHandler.Handle(new RedeemTenantHandoffCommand(token!), CancellationToken.None))
+            .Should().BeOfType<AuthenticationResult<LoginResult>.Success>();
+        linkedRoot.Should().Be(rig.SessionId);
+        rig.SessionLink.CentralSessionId.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task Creation_receipt_requires_the_same_prior_auth_cookie_and_returns_through_central_auth()
+    {
+        TestRig rig = new() { ClientInterfaceHost = "auth.example.test" };
+        const string clinicOrigin = "https://rezaei.clinic.example.test";
+        string? token = await rig.IssueHandler.Handle(new IssueTenantHandoffCommand(UserId, "auth.example.test",
+            PriorCentralSessionId: rig.SessionId, ReturnOrigin: clinicOrigin), CancellationToken.None);
+        rig.Hosts.Setup(item => item.IsCentralHostAsync(It.IsAny<CancellationToken>())).ReturnsAsync(true);
+        rig.Hosts.Setup(item => item.CanOpenAsync(clinicOrigin, UserId, It.IsAny<CancellationToken>())).ReturnsAsync(true);
+        rig.PreviousCookie.Setup(item => item.Read(UserId)).Returns(Guid.NewGuid());
+        (await rig.RedeemHandler.Handle(new RedeemTenantHandoffCommand(token!), CancellationToken.None))
+            .Should().BeOfType<AuthenticationResult<LoginResult>.Failure>();
+        rig.Tickets.Tickets.Single().RedeemedAt.Should().BeNull();
+        rig.PreviousCookie.Setup(item => item.Read(UserId)).Returns(rig.SessionId);
+        var success = (await rig.RedeemHandler.Handle(new RedeemTenantHandoffCommand(token!), CancellationToken.None))
+            .Should().BeOfType<AuthenticationResult<LoginResult>.Success>().Subject;
+        success.Value.ReturnUrl.Should().Be(clinicOrigin + "/login");
+    }
+
     private static SecurityAccessPolicy PolicyWithoutTenantHandoff() =>
         SecurityAccessPolicy.Default with
         {
@@ -330,6 +373,11 @@ public sealed class TenantHandoffHandlerTests
 
     private sealed class TestRig
     {
+        public Guid SessionId { get; } = Guid.Parse("5a332e8b-80cb-41ad-9581-3818da9abed1");
+        public AuthenticationSessionLinkContext SessionLink { get; } = new();
+        public Mock<IAuthenticationBrowserCorrelation> Correlation { get; } = new();
+        public Mock<IAuthenticationPreviousSessionCookie> PreviousCookie { get; } = new();
+        public Mock<IAuthenticationHostDirectory> Hosts { get; } = new();
         public InMemoryTicketStore Tickets { get; } = new();
         public SecurityAccessPolicy Policy { get; set; } = SecurityAccessPolicy.Default;
         public string? RequestContextUserId { get; set; } = UserId;
@@ -372,6 +420,8 @@ public sealed class TenantHandoffHandlerTests
 
             Mock<IRequestContext> requestContext = new();
             requestContext.SetupGet(context => context.UserId).Returns(() => RequestContextUserId);
+            requestContext.SetupGet(context => context.User).Returns(() => new ClaimsPrincipal(new ClaimsIdentity(
+                [new Claim(AuthenticationSessionClaimTypes.SessionId, SessionId.ToString("N"))], "cookie")));
             requestContext.SetupGet(context => context.TenantId).Returns("tenant-1");
             requestContext.SetupGet(context => context.RequestId).Returns("request-1");
             requestContext.SetupGet(context => context.TraceId).Returns("trace-1");
@@ -394,7 +444,7 @@ public sealed class TenantHandoffHandlerTests
                 users.Object,
                 redirects.Object,
                 clock.Object,
-                auditor);
+                auditor, SessionLink, Correlation.Object, PreviousCookie.Object, Hosts.Object);
         }
     }
 

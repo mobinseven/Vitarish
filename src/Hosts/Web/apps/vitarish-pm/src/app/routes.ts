@@ -1,5 +1,8 @@
+import { AuthenticationWebRoutes } from "@vitarish/auth/routes";
 export const Routes = {
   Root: "/",
+  Login: AuthenticationWebRoutes.SignIn,
+  Account: AuthenticationWebRoutes.Account,
   Projects: "/projects",
   Project: (id: string) => `/projects/${id}`,
   ProjectEdit: (id: string) => `/projects/${id}/edit`,

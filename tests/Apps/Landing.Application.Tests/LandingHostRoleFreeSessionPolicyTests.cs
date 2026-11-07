@@ -43,6 +43,18 @@ public sealed class LandingHostRoleFreeSessionPolicyTests
         admitted.Should().BeFalse();
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Destination_admission_checks_the_target_tenant_without_rebinding_the_request(bool liveLandingTenant)
+    {
+        Guid destination = Guid.NewGuid();
+        Mock<IAppTenantDirectory> tenants = new();
+        tenants.Setup(directory => directory.IsLiveAppTenantAsync(destination, LandingTenant.AppId, It.IsAny<CancellationToken>())).ReturnsAsync(liveLandingTenant);
+        var policy = Policy(tenants, Guid.NewGuid().ToString("D"));
+        (await policy.AllowsRoleFreeSessionForTenantAsync(destination)).Should().Be(liveLandingTenant);
+    }
+
     private static LandingHostRoleFreeSessionPolicy Policy(Mock<IAppTenantDirectory> tenants, string? tenantId)
     {
         Mock<IRequestContext> context = new();

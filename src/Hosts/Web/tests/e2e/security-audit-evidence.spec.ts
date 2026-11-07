@@ -167,7 +167,7 @@ async function saveSourceFailedAttemptThreshold(page: Page, threshold: number): 
 async function passwordLoginFrom(request: APIRequestContext, clientIp: string, username: string, attemptPassword: string, attempt: string): Promise<number> {
   const response = await request.post(`${apiOrigin}${passwordLoginPath}`, {
     data: { userNameOrEmail: username, password: attemptPassword, returnUrl: null },
-    headers: { [forwardedForHeaderName]: clientIp, [TENANT_HOST_HEADER]: "localhost", [REQUEST_ID_HEADER]: `e2e-source-block-${attempt}-${Date.now()}` },
+    headers: { [forwardedForHeaderName]: clientIp, [TENANT_HOST_HEADER]: new URL(twoHostE2eSignInOrigin).host, [REQUEST_ID_HEADER]: `e2e-source-block-${attempt}-${Date.now()}` },
     ignoreHTTPSErrors: true,
   });
   return response.status();
@@ -197,6 +197,7 @@ async function login(page: Page, username: string, origin = "", clientIp = "198.
     page.locator('button[type="submit"]').click(),
   ]);
   expect(response.status()).toBe(200);
+  await expect(page).toHaveURL(url => url.origin === platformOrigin && !url.pathname.startsWith("/login") && url.pathname !== "/handoff", { timeout: 120_000 });
 }
 
 async function platformAuditResponse(page: Page, event: AuditEventExpectation): Promise<{ status: number; body: unknown }> {
@@ -826,7 +827,7 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     const anonymousReview = { ...auditEvents.auditReview, operation: anonymousOperation, outcome: "denied" };
     const anonymousBefore = await platformAuditQuery(administratorPage, anonymousReview);
     const anonymousStatus = await request.get(`${apiOrigin}${anonymousEndpoint}${testInfo.retry === 0 ? "?page=1&pageSize=1&sortBy=1&descending=true&uncataloguedOnly=false" : ""}`, {
-      headers: { [TENANT_HOST_HEADER]: "localhost", [forwardedForHeaderName]: auditClientIp },
+      headers: { [TENANT_HOST_HEADER]: new URL(twoHostE2eSignInOrigin).host, [forwardedForHeaderName]: auditClientIp },
       ignoreHTTPSErrors: true,
     });
     expect(anonymousStatus.status()).toBe(401);
@@ -1231,7 +1232,7 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     try {
       const response = await request.post(`${apiOrigin}/api/modules/authentication/login/password`, {
         data: { userNameOrEmail: `e2e-outage-${Date.now()}@example.invalid`, password: "E2E-Outage-Wrong-Password", returnUrl: null },
-        headers: { [forwardedForHeaderName]: "203.0.113.67", [TENANT_HOST_HEADER]: "localhost", [REQUEST_ID_HEADER]: `e2e-audit-outage-${Date.now()}` },
+        headers: { [forwardedForHeaderName]: "203.0.113.67", [TENANT_HOST_HEADER]: new URL(twoHostE2eSignInOrigin).host, [REQUEST_ID_HEADER]: `e2e-audit-outage-${Date.now()}` },
         ignoreHTTPSErrors: true,
       });
       statusDuringOutage = response.status();
@@ -1297,7 +1298,7 @@ async function completeEmailOtp(request: APIRequestContext): Promise<void> {
   expect(smtpCapturePath, "VITARISH_E2E_SMTP_CAPTURE_PATH must be supplied for OTP evidence").toBeTruthy();
   const begin = await request.post(`${apiOrigin}/api/modules/authentication/login/email/begin`, {
     data: { email: "e2e-owner@example.test", returnUrl: "/home" },
-    headers: { [TENANT_HOST_HEADER]: "localhost", [forwardedForHeaderName]: "198.51.100.63", [REQUEST_ID_HEADER]: `e2e-audit-otp-${Date.now()}` },
+    headers: { [TENANT_HOST_HEADER]: new URL(twoHostE2eSignInOrigin).host, [forwardedForHeaderName]: "198.51.100.63", [REQUEST_ID_HEADER]: `e2e-audit-otp-${Date.now()}` },
     ignoreHTTPSErrors: true,
   });
   expect(begin.status()).toBe(200);
@@ -1309,7 +1310,7 @@ async function completeEmailOtp(request: APIRequestContext): Promise<void> {
   expect(code).toEqual(expect.any(String));
   const complete = await request.post(`${apiOrigin}/api/modules/authentication/login/email/complete`, {
     data: { challengeId: challenge.challengeId, code, returnUrl: "/home" },
-    headers: { [TENANT_HOST_HEADER]: "localhost", [forwardedForHeaderName]: "198.51.100.63", [REQUEST_ID_HEADER]: `e2e-audit-otp-complete-${Date.now()}` },
+    headers: { [TENANT_HOST_HEADER]: new URL(twoHostE2eSignInOrigin).host, [forwardedForHeaderName]: "198.51.100.63", [REQUEST_ID_HEADER]: `e2e-audit-otp-complete-${Date.now()}` },
     ignoreHTTPSErrors: true,
   });
   expect(complete.status()).toBe(200);

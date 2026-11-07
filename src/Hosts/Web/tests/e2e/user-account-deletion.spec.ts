@@ -76,6 +76,7 @@ test(`platform account deletion, refusal and attributable audit detail ${locale}
     page.locator('button[type="submit"]').click(),
   ]);
   expect(signIn.status()).toBe(200);
+  await expect(page).toHaveURL(url => url.origin === origin && !url.pathname.startsWith("/login") && url.pathname !== "/handoff", { timeout: 120_000 });
   const sessionResponse = await page.request.get(`${origin}${getAuthenticationSessionGetQueryKey()[0]}`, { headers: { [TENANT_HOST_HEADER]: new URL(origin).host } });
   const session = await sessionResponse.json() as AuthenticationSessionDto;
   expect(session.isAuthenticated).toBe(true);

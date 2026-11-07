@@ -136,7 +136,7 @@ public class JourneyResolverTests
     }
 
     [Fact]
-    public async Task ResolveAsync_OnTheSignInHost_SendsACompleteAccountToClinicSelectionBeforeAnyReturnUrl()
+    public async Task ResolveAsync_OnTheSignInHost_SendsACompleteAccountToClinicSelectionBeforeAClinicReturnUrl()
     {
         var request = new JourneyRequest("user1", "/patients", "/", null, null, true);
         SetUpCompleteAccount();
@@ -148,6 +148,21 @@ public class JourneyResolverTests
         result.HasBlockingGate.Should().BeTrue();
         result.BlockingGate!.Kind.Should().Be(JourneyGateKind.WorkspaceSelection);
         result.DestinationUrl.Should().Be("/workspaces/select");
+    }
+
+    [Fact]
+    public async Task ResolveAsync_OnTheSignInHost_ContinuesToAnAuthOwnedDestinationAfterPersonalGates()
+    {
+        const string destination = "/continue?request=opaque";
+        var request = new JourneyRequest("user1", destination, "/", null, null, true);
+        SetUpCompleteAccount();
+        _hostReaderMock.Setup(x => x.IsSignInHostAsync(It.IsAny<CancellationToken>())).ReturnsAsync(true);
+        _hostReaderMock.Setup(x => x.IsCentralDestination(destination)).Returns(true);
+        _returnUrlPolicyMock.Setup(x => x.Normalize(destination)).Returns(destination);
+        var result = await _sut.ResolveAsync(request);
+        result.HasBlockingGate.Should().BeFalse();
+        result.DestinationKind.Should().Be(JourneyDestinationKind.ReturnUrl);
+        result.DestinationUrl.Should().Be(destination);
     }
 
     [Fact]

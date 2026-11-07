@@ -10,6 +10,8 @@ import type {
 const apiPath = (path: string) => new RegExp(`/api/modules/authentication${path.replaceAll("/", "\\/")}(?:\\?|$)`);
 
 export const handlers = [
+  http.get(apiPath("/pending-challenge"), () => new HttpResponse(null, { status: 204 })),
+  http.post(apiPath("/pending-challenge"), () => new HttpResponse(null, { status: 204 })),
   http.post(apiPath("/login/password"), () => {
     const body: AuthenticationRedirectResultDto = {
       returnUrl: "/home",

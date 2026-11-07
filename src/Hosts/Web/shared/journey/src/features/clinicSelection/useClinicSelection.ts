@@ -2,12 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  partiesIssueSignInClinicHandoff,
-  partiesIssueSignInOnboardingHandoff,
   usePartiesGetSignInClinics,
 } from "../../api/generated/parties/parties";
-import type { SignInClinicDto, SignInHandoffResponse } from "../../api/generated/parties/model";
-import { handoffUrl } from "../handoff/hostUrl";
+import type { SignInClinicDto } from "../../api/generated/parties/model";
+import { AuthenticationWebRoutes } from "@vitarish/auth/routes";
+import { hostUrl } from "../handoff/hostUrl";
 
 /** What the person is being taken to: one of their clinics, or the onboarding host to create one. */
 export type ClinicSelectionTarget = { kind: "clinic"; tenantId: string } | { kind: "newClinic" };
@@ -41,18 +40,22 @@ export function useClinicSelection(handoffPath: string): ClinicSelection {
     (target: ClinicSelectionTarget) => {
       setOpening(target);
       setOpenFailed(false);
-      const issue: Promise<SignInHandoffResponse> =
-        target.kind === "clinic" ? partiesIssueSignInClinicHandoff(target.tenantId) : partiesIssueSignInOnboardingHandoff();
-      issue.then(
-        (handoff) => window.location.assign(handoffUrl(handoff.hostname, handoffPath, handoff.token)),
-        () => {
-          setOpening(null);
-          if (target.kind === "newClinic") setNewClinicUnavailable(true);
-          else setOpenFailed(true);
-        },
-      );
+      const destination = target.kind === "clinic"
+        ? clinics.find(clinic => clinic.tenantId === target.tenantId)?.hostname
+        : query.data?.onboardingUrl;
+      if (!destination) {
+        setOpening(null);
+        if (target.kind === "newClinic") setNewClinicUnavailable(true);
+        else setOpenFailed(true);
+        return;
+      }
+      const origin = target.kind === "clinic" ? hostUrl(destination, AuthenticationWebRoutes.SignIn) : new URL(destination);
+      origin.pathname = AuthenticationWebRoutes.SignIn;
+      origin.search = "";
+      origin.hash = "";
+      window.location.assign(origin.toString());
     },
-    [handoffPath],
+    [clinics, query.data?.onboardingUrl],
   );
 
   useEffect(() => {

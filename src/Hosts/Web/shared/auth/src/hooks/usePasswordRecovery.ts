@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { usePendingAuthenticationChallenge } from "./usePendingAuthenticationChallenge";
 import { useLocalizedText } from "@vitarish/localization";
 import {
   useAuthenticationPasswordRecoveryBegin,
@@ -18,7 +19,12 @@ export function usePasswordRecovery() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isComplete, setIsComplete] = useState(false);
 
+  const pending = usePendingAuthenticationChallenge(value => {
+    if (value.isPasswordRecovery) setChallengeId(value.challenge.challengeId);
+  }, () => setErrorMessage(t("auth.recovery.requestFailed")));
+
   const begin = useCallback(async (channel: PasswordRecoveryChannel, contact: string) => {
+    pending.cancelRestore();
     setErrorMessage(null);
     try {
       const result = await beginMutation.mutateAsync({
@@ -40,6 +46,7 @@ export function usePasswordRecovery() {
       await completeMutation.mutateAsync({
         data: { challengeId, code, newPassword },
       });
+      pending.clear();
       setIsComplete(true);
     } catch (error) {
       const authError = parseAuthError(error);
@@ -56,6 +63,7 @@ export function usePasswordRecovery() {
   }, [challengeId, completeMutation, t]);
 
   const startOver = useCallback(() => {
+    pending.clear();
     setChallengeId(null);
     setErrorMessage(null);
     setIsComplete(false);
@@ -68,6 +76,6 @@ export function usePasswordRecovery() {
     errorMessage,
     hasChallenge: challengeId !== null,
     isComplete,
-    isLoading: beginMutation.isPending || completeMutation.isPending,
+    isLoading: pending.isRestoring || beginMutation.isPending || completeMutation.isPending,
   };
 }

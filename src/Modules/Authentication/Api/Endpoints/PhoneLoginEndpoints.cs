@@ -1,3 +1,4 @@
+using Vitarish.Authentication.Application.Abstractions;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Vitarish.Authentication.Api.Mapping;
 using Vitarish.Authentication.Application.Commands;
@@ -13,9 +14,11 @@ public static class PhoneLoginEndpoints
 {
     public static RouteGroupBuilder MapPhoneLoginEndpoints(this RouteGroupBuilder group)
     {
-        group.MapModulePost("/login/phone/begin", async (BeginPhoneLoginRequest request, [Microsoft.AspNetCore.Mvc.FromServices] BeginPhoneLoginHandler handler, CancellationToken ct) =>
+        group.MapModulePost("/login/phone/begin", async (BeginPhoneLoginRequest request, [Microsoft.AspNetCore.Mvc.FromServices] BeginPhoneLoginHandler handler, [Microsoft.AspNetCore.Mvc.FromServices] IPendingAuthenticationChallenge pending, CancellationToken ct) =>
         {
             var r = await handler.Handle(new BeginPhoneLoginCommand(request.PhoneNumber, request.ReturnUrl), ct);
+            if (r is AuthenticationResult<ChallengeResult>.Success begun)
+                pending.Store(begun.Value, request.ReturnUrl);
             return r is AuthenticationResult<ChallengeResult>.Success s
                 ? Results.Ok(AuthenticationEndpointMapper.ToDto(s.Value))
                 : AuthenticationProblemHttpMapper.ToProblem(((AuthenticationResult<ChallengeResult>.Failure)r).Error);

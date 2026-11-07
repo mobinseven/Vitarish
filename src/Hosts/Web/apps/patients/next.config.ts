@@ -1,9 +1,10 @@
+import { twoHostE2eNextDistDirectoryEnvironmentKey } from "../../scripts/two-host-e2e-artifacts.mjs";
 import type { NextConfig } from "next";
 import { apiProxyRewrites } from "../../scripts/api-proxy-rewrites.mjs";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  output: "standalone",
+  output: "standalone", distDir: process.env[twoHostE2eNextDistDirectoryEnvironmentKey] ?? ".next",
   rewrites: apiProxyRewrites,
 };
 

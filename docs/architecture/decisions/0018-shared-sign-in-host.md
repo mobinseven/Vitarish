@@ -5,7 +5,7 @@ Status: Accepted
 Scope: Parties sign-in host and clinic list, Journey gates, the private-practice-owner Web app, and production settings
 Owner: Architecture
 Supersedes:
-Superseded by:
+Superseded by: ADR-0020 (decisions 7 and 8 and rollback)
 Related: ADR-0016; issue #900; PRs #939, #940
 
 ## Context

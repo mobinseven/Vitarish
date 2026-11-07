@@ -18,6 +18,8 @@ public static class AuthenticationSecurityAuditEvents
     public const string PhoneLoginOperation = SecurityAuditEventCatalog.PhoneLoginOperation;
     public const string EmailLoginOperation = SecurityAuditEventCatalog.EmailLoginOperation;
     public const string PasskeyLoginOperation = SecurityAuditEventCatalog.PasskeyLoginOperation;
+    public const string ContinuationBegin = SecurityAuditEventCatalog.AuthenticationContinuationBeginEvent;
+    public const string ContinuationBeginOperation = SecurityAuditEventCatalog.AuthenticationContinuationBeginOperation;
     public const string TenantHandoffIssue = SecurityAuditEventCatalog.AuthenticationTenantHandoffIssueEvent;
     public const string TenantHandoffRedeem = SecurityAuditEventCatalog.AuthenticationTenantHandoffRedeemEvent;
     public const string TenantHandoffIssueOperation = SecurityAuditEventCatalog.TenantHandoffIssueOperation;

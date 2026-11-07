@@ -128,4 +128,14 @@ public class JourneyRedirectResolverTests
         // Assert
         result.Should().Be("/dashboard");
     }
+    [Fact]
+    public async Task Central_continuation_does_not_skip_personal_gates_when_journey_is_unavailable()
+    {
+        _journeyResolverMock.Setup(item => item.ResolveAsync(It.IsAny<JourneyRequest>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Journey unavailable"));
+        var resolver = new JourneyAwareRedirectResolver(_journeyResolverMock.Object, _httpContextAccessorMock.Object,
+            _loggerMock.Object, new AuthenticationCentralDestinationPolicy());
+        Func<Task> resolve = async () => await resolver.ResolveAsync("/continue?request=opaque", false, "subject");
+        await resolve.Should().ThrowAsync<InvalidOperationException>();
+    }
 }

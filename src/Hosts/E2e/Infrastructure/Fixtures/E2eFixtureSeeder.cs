@@ -570,6 +570,35 @@ internal static class E2eFixtureSeeder
                 new Uri(signInUrl, UriKind.Absolute).Host), cancellationToken);
         }
 
+        var browserHosts = scope.ServiceProvider.GetRequiredService<IOptions<Vitarish.Parties.Application.BrowserApplicationHostOptions>>().Value;
+        var adminHost = scope.ServiceProvider.GetRequiredService<IOptions<Vitarish.Parties.Application.PlatformAdminHostOptions>>().Value;
+        foreach (var (url, appId, name) in new[]
+        {
+            (adminHost.PlatformAdminUrl, Vitarish.Parties.Application.PlatformAdminTenant.AppId, Vitarish.Parties.Application.PlatformAdminTenant.Name),
+            (browserHosts.PatientsUrl, Vitarish.Parties.Application.BrowserApplicationTenants.PatientsAppId, Vitarish.Parties.Application.BrowserApplicationTenants.PatientsName),
+            (browserHosts.ProjectManagementUrl, Vitarish.Parties.Application.BrowserApplicationTenants.ProjectManagementAppId, Vitarish.Parties.Application.BrowserApplicationTenants.ProjectManagementName),
+            (browserHosts.KnowledgeQaUrl, Vitarish.Parties.Application.BrowserApplicationTenants.KnowledgeQaAppId, Vitarish.Parties.Application.BrowserApplicationTenants.KnowledgeQaName)
+        })
+        {
+            if (url is null) continue;
+            Guid browserTenantId = await scope.ServiceProvider.GetRequiredService<IAppTenantProvisioner>().EnsureAsync(
+                new EnsureAppTenantRequest(SignInTenant.OwnerName, appId, name, new Uri(url).Host), cancellationToken);
+            if (appId == Vitarish.Parties.Application.BrowserApplicationTenants.KnowledgeQaAppId)
+            {
+                string roleName = Vitarish.Users.Application.Authorization.TenantRoleDefinitions.BuildRoleName(browserTenantId, IdentityDefinitions.TenantOwner);
+                if (!await roles.RoleExistsAsync(roleName))
+                {
+                    IdentityResult created = await roles.CreateAsync(new IdentityRole(roleName));
+                    if (!created.Succeeded) throw new InvalidOperationException("E2E application role creation failed.");
+                }
+                if (!await users.IsInRoleAsync(platformAdmin, roleName))
+                {
+                    IdentityResult assigned = await usersService.AddUserToRoleAsync(platformAdmin, roleName, cancellationToken);
+                    if (!assigned.Succeeded) throw new InvalidOperationException("E2E application role assignment failed.");
+                }
+            }
+        }
+
         Console.WriteLine("E2E fixture seeding: assigning platform-admin access.");
         if (!await roles.RoleExistsAsync(IdentityDefinitions.PlatformAdmin))
             _ = (await roles.CreateAsync(new IdentityRole(IdentityDefinitions.PlatformAdmin))).Succeeded;

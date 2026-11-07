@@ -152,7 +152,7 @@ public static class LandingApiEndpointMapping
         SignInHandoff? handoff = await sender.Send(new IssueSignInHandoffCommand(null), ct);
         return handoff is null
             ? Results.NotFound(new LandingError(LandingErrorCodes.NotFound, "Clinic creation is not available."))
-            : Results.Ok(new LandingOnboardingHandoffResponse(handoff.Hostname, handoff.Token));
+            : Results.Ok(new LandingOnboardingHandoffResponse(handoff.Hostname, handoff.Token, handoff.HandoffUrl));
     }
 
     private static async Task<IResult> DeleteAsync(Guid conversationId, string ownerKey, HttpContext context, IOptions<LandingPlatformOptions> options, IPartiesService parties, IDataProtectionProvider protection, ISender sender, CancellationToken ct)

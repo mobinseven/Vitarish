@@ -28,6 +28,7 @@ public static class AuthenticationInfrastructureServiceCollectionExtensions
         _ = services.AddScoped<IAuthenticationSecurityPolicyStore>(provider => provider.GetRequiredService<SecurityAccessPolicyStore>());
         _ = services.AddScoped<IAuthenticationSecurityPolicyProvider>(provider => provider.GetRequiredService<SecurityAccessPolicyStore>());
         _ = services.AddScoped<IEnabledAuthenticationMethods, EnabledAuthenticationMethodsReader>();
+        _ = services.AddScoped<IPersonalCredentialHost, PersonalCredentialHost>();
         _ = services.AddOptions<AuthenticationAttemptKeyOptions>()
             .BindConfiguration(AuthenticationAttemptKeyOptions.SectionName)
             .ValidateOnStart();
@@ -51,6 +52,14 @@ public static class AuthenticationInfrastructureServiceCollectionExtensions
         services.AddScoped<IAuthenticationSignInService, AspNetIdentitySignInService>();
         services.AddScoped<ITenantHandoffTicketStore, TenantHandoffTicketStore>();
         services.AddScoped<AuthenticationSessionRegistry>();
+        services.AddScoped<AuthenticationSessionLinkContext>();
+        services.AddScoped<IAuthenticationContinuationStore, AuthenticationContinuationStore>();
+        services.AddScoped<IAuthenticationBrowserCorrelation, AuthenticationBrowserCorrelation>();
+        services.AddScoped<IPendingAuthenticationChallenge, PendingAuthenticationChallengeCookie>();
+        services.AddScoped<IAuthenticationBrowserSessionDirectory, AuthenticationBrowserSessionDirectory>();
+        services.AddScoped<IAuthenticationSessionRootReader, AuthenticationSessionRootReader>();
+        services.AddScoped<IAuthenticationPreviousSessionCookie, AuthenticationPreviousSessionCookie>();
+        services.AddSingleton<IAuthenticationCentralDestinationPolicy, AuthenticationCentralDestinationPolicy>();
         services.AddScoped<IAuthenticationSessionRegistry>(provider => provider.GetRequiredService<AuthenticationSessionRegistry>());
         services.AddScoped<IAuthenticationActiveSessionQuery>(provider => provider.GetRequiredService<AuthenticationSessionRegistry>());
         services.TryAddSingleton(TimeProvider.System);

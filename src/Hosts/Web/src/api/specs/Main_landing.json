@@ -686,6 +686,12 @@
           },
           "token": {
             "type": "string"
+          },
+          "handoffUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },

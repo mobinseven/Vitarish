@@ -72,6 +72,15 @@ public static class HostPipelineExtensions
                 return ValueTask.CompletedTask;
             };
 
+            _ = options.AddPolicy(AuthenticationRateLimitPolicies.Continuation, context =>
+                RateLimitPartition.GetSlidingWindowLimiter(
+                    partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? context.Request.Headers.Host.ToString(),
+                    factory: _ => new SlidingWindowRateLimiterOptions
+                    {
+                        Window = TimeSpan.FromMinutes(1), PermitLimit = AuthenticationRateLimitPolicies.ContinuationPermitLimit,
+                        QueueProcessingOrder = QueueProcessingOrder.OldestFirst, QueueLimit = 0, SegmentsPerWindow = 6
+                    }));
+
             _ = options.AddPolicy(AuthenticationRateLimitPolicies.PasswordLogin, context =>
                 RateLimitPartition.GetSlidingWindowLimiter(
                     partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? context.Request.Headers.Host.ToString(),
