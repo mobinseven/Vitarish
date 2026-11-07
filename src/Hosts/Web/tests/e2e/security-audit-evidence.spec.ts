@@ -709,8 +709,8 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     expect((await deleteJson(administratorPage, rolePath, { roleSuffix: tenantUserRoleSuffix })).status).toBe(200);
     expect((await putJson(administratorPage, rolePath, { roleSuffix: tenantUserRoleSuffix })).status).toBe(200);
 
-    page.once("dialog", (dialog) => dialog.accept());
     await member.getByRole("button", { name: uiText.removeAccess }).click();
+    await page.getByRole("dialog").getByRole("button", { name: uiText.removeAccess }).click();
     await expect(page.getByText(uiText.memberRemoved, { exact: true })).toBeVisible();
 
     const uploaded = await uploadEvidenceFile(page);

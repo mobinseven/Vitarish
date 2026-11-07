@@ -32,7 +32,7 @@ import type { TenantRoleSuffix } from "@vitarish/auth/users";
 import { formatDateTime, formatNumber, useLocalizedText } from "@vitarish/localization";
 import { auditOutcomeColor } from "@vitarish/security";
 import { localizePlatformAuditEvent, localizePlatformAuditReason, localizeSecurityAuditOutcome } from "@vitarish/security/localization";
-import { HeaderIcon, MobileNumberField, removeButtonClassName } from "@vitarish/ui";
+import { ConfirmDialog, HeaderIcon, MobileNumberField, removeButtonClassName } from "@vitarish/ui";
 
 export type UserManagementMode = "tenant" | "platform";
 export type UserManagementPlatformView = "directory" | "create" | "detail";
@@ -250,11 +250,14 @@ function TenantUserManagement({
     });
   };
 
-  const removeMember = (id: string) => {
-    if (!window.confirm(t("users.management.removeConfirm"))) return;
+  const [pendingRemovalId, setPendingRemovalId] = useState<string | null>(null);
+  const removeMember = (id: string) => setPendingRemovalId(id);
+  const confirmRemoval = () => {
+    const id = pendingRemovalId;
+    if (id === null) return;
     remove.mutate({ userId: id }, {
-      onSuccess: async () => { setMessage(t("users.management.removed")); await onRefresh(); },
-      onError: () => setMessage(t("users.management.removeError")),
+      onSuccess: async () => { setPendingRemovalId(null); setMessage(t("users.management.removed")); await onRefresh(); },
+      onError: () => { setPendingRemovalId(null); setMessage(t("users.management.removeError")); },
     });
   };
 
@@ -328,6 +331,17 @@ function TenantUserManagement({
       </ul>}
         </div>
       </Surface>
+      <ConfirmDialog
+        isOpen={pendingRemovalId !== null}
+        isPending={remove.isPending}
+        title={t("users.management.removeDialogTitle")}
+        message={t("users.management.removeConfirm")}
+        confirmLabel={t("users.management.removeConfirmAction")}
+        cancelLabel={t("users.management.cancel")}
+        confirmIcon="user-minus"
+        onCancel={() => setPendingRemovalId(null)}
+        onConfirm={confirmRemoval}
+      />
     </main>
   );
 }
@@ -535,9 +549,15 @@ function PlatformUserDetail({ title, userId, memberships, onUserDeleted, t }: { 
       },
     });
   };
-  const revokeRole = (tenant: string, role: string) => {
-    if (!window.confirm(t("users.management.revokeConfirm"))) return;
-    revoke.mutate({ userId, tenantId: tenant, roleSuffix: role, data: { roleSuffix: role } }, { onSuccess: () => { setMessage(t("users.management.roleRevoked")); refreshSecurityDetails(); }, onError: () => setMessage(t("users.management.roleError")) });
+  const [pendingRevoke, setPendingRevoke] = useState<{ tenant: string; role: string } | null>(null);
+  const revokeRole = (tenant: string, role: string) => setPendingRevoke({ tenant, role });
+  const confirmRevoke = () => {
+    if (pendingRevoke === null) return;
+    const { tenant, role } = pendingRevoke;
+    revoke.mutate({ userId, tenantId: tenant, roleSuffix: role, data: { roleSuffix: role } }, {
+      onSuccess: () => { setPendingRevoke(null); setMessage(t("users.management.roleRevoked")); refreshSecurityDetails(); },
+      onError: () => { setPendingRevoke(null); setMessage(t("users.management.roleError")); },
+    });
   };
   const submitGlobalRole = (event: FormEvent) => {
     event.preventDefault();
@@ -801,6 +821,17 @@ function PlatformUserDetail({ title, userId, memberships, onUserDeleted, t }: { 
       </Tooltip>
       </div>
     </Surface>
+    <ConfirmDialog
+      isOpen={pendingRevoke !== null}
+      isPending={revoke.isPending}
+      title={t("users.management.revokeDialogTitle")}
+      message={t("users.management.revokeConfirm")}
+      confirmLabel={t("users.management.revokeConfirmAction")}
+      cancelLabel={t("users.management.cancel")}
+      confirmIcon="user-minus"
+      onCancel={() => setPendingRevoke(null)}
+      onConfirm={confirmRevoke}
+    />
     <EndUserSessionsDialog isOpen={confirmEndSessions} isPending={revokeUserSessions.isPending} onCancel={() => setConfirmEndSessions(false)} onConfirm={endUserSessions} t={t} />
     <AccountStatusDialog action={confirmAccountStatus} isPending={disableUser.isPending || enableUser.isPending || deleteUser.isPending} onCancel={() => setConfirmAccountStatus(null)} onConfirm={() => confirmAccountStatus === "delete" ? deleteAccount() : changeAccountStatus(confirmAccountStatus === "enable")} t={t} />
 

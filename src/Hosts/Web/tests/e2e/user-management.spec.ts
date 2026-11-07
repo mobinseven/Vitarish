@@ -482,10 +482,10 @@ test("platform administrator creates, edits, assigns access, and reviews a user'
   await expect(page.getByText(roleMessages.globalRoleBlockedByMemberships, { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: roleMessages.grantGlobalRole })).toHaveCount(0);
 
-  page.once("dialog", (dialog) => dialog.accept());
+  await page.getByRole("button", { name: roleMessages.revoke }).click();
   const [revokeResponse] = await Promise.all([
     page.waitForResponse((response) => response.request().method() === "DELETE" && response.request().url().includes(createdUser.id!)),
-    page.getByRole("button", { name: roleMessages.revoke }).click(),
+    page.getByRole("dialog").getByRole("button", { name: roleMessages.revokeConfirmAction }).click(),
   ]);
   expect(revokeResponse.ok()).toBe(true);
   await expect(grantedMembership).toHaveCount(0);
