@@ -63,11 +63,10 @@ and repeat the step.
    Password. The page offers "Set a password" with no current-password field.
    Use the value from the password manager, then store it in the matching
    secret.
-   - Clinic accounts: on a clinic host, `/account/password`.
-   - `smoke-no-workspace`: on the sign-in host,
-     `https://auth.vitarish.com/account/password`. This path has not yet been
-     tried in production; if it does not load, stop and report it rather than
-     giving the account a clinic.
+   - Any account, and the only place for `smoke-no-workspace`: on the platform
+     home, the **Account** button next to Sign out, which opens
+     `https://vitarish.com/account`. It also holds the email and phone changes.
+   - Clinic accounts can instead use a clinic host, `/account/password`.
    - `smoke-admin`: do this in step 7.
 4. **Confirm the phone (optional).** As `smoke-one-clinic`, open account
    settings, then Phone, and confirm the owner's phone with the SMS code.

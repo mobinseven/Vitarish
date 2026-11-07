@@ -177,6 +177,15 @@ describe("platform home interactions", () => {
     mocks.handoffStart.mockReset();
   });
 
+  it("opens the account area from the Account button without signing the person out", () => {
+    renderPlatformHome();
+
+    fireEvent.click(screen.getByRole("button", { name: "Account" }));
+
+    expect(mocks.push).toHaveBeenCalledWith("/account");
+    expect(mocks.logout).not.toHaveBeenCalled();
+  });
+
   it("shows session lookup failure and retries the session request without redirecting", async () => {
     const refetch = vi.fn().mockResolvedValue(undefined);
     mocks.session = { ...mocks.session, isAuthenticated: false, isError: true, refetch };

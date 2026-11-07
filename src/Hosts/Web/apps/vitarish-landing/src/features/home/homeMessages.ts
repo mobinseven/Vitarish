@@ -11,6 +11,7 @@ export const homeMessageCatalogs = {
       loading: "Opening your home…",
       sessionUnavailable: "Your session could not be checked.",
       retrySession: "Try again",
+      account: "Account",
       signOut: "Sign out",
       startNewConversation: "Start a new conversation",
       workspaces: {
@@ -68,6 +69,7 @@ export const homeMessageCatalogs = {
       loading: "در حال باز کردن خانه شما…",
       sessionUnavailable: "وضعیت نشست شما بررسی نشد.",
       retrySession: "تلاش دوباره",
+      account: "حساب کاربری",
       signOut: "خروج",
       startNewConversation: "گفت‌وگوی تازه",
       workspaces: {

@@ -48,6 +48,9 @@ internal static class E2eFixtureSeeder
     /// <summary>Has a confirmed email and no phone and no role, so it can create a clinic only by its email.</summary>
     public const string EmailOnlyClinicCreatorUserName = "e2e-email-only-clinic-creator";
     public const string EmailOnlyClinicCreatorEmail = "e2e-email-only-clinic-creator@example.test";
+    /// <summary>Has a confirmed email, no password, no phone and no workspace, like a person who has just signed up by email code.</summary>
+    public const string PasswordlessEmailAccountUserName = "e2e-platform-home-account-user";
+    public const string PasswordlessEmailAccountEmail = "e2e-platform-home-account-user@example.test";
     /// <summary>Has two-step sign-in on, so a correct password is followed by a text-message code.</summary>
     public const string TwoFactorPlatformAdminUserName = "e2e-two-factor-platform-admin";
     public const string TwoFactorPlatformAdminPhoneNumber = "+989130000001";
@@ -244,7 +247,7 @@ internal static class E2eFixtureSeeder
         Console.WriteLine("E2E fixture seeding: ensuring identity 14 of 15.");
         User passwordlessPhoneAccount = await EnsurePasswordlessPhoneAccountAsync(users);
 
-        Console.WriteLine("E2E fixture seeding: ensuring identity 15 of 15.");
+        Console.WriteLine("E2E fixture seeding: ensuring identity 15 of 16.");
         _ = await EnsureUserAsync(
             users,
             EmailOnlyClinicCreatorUserName,
@@ -253,6 +256,9 @@ internal static class E2eFixtureSeeder
             "E2E",
             "Email Only Clinic Creator",
             password);
+
+        Console.WriteLine("E2E fixture seeding: ensuring identity 16 of 16.");
+        _ = await EnsurePasswordlessEmailAccountAsync(users);
 
         Console.WriteLine("E2E fixture seeding: identity accounts are ready.");
         Guid ownerId = Guid.Parse(user.Id);
@@ -737,6 +743,39 @@ internal static class E2eFixtureSeeder
         IdentityResult created = await users.CreateAsync(user);
         if (!created.Succeeded)
             throw new InvalidOperationException($"E2E passwordless phone account creation failed: {string.Join(';', created.Errors.Select(error => error.Code))}");
+        return user;
+    }
+
+    private static async Task<User> EnsurePasswordlessEmailAccountAsync(UserManager<User> users)
+    {
+        User? existing = await users.FindByNameAsync(PasswordlessEmailAccountUserName);
+        if (existing is not null)
+        {
+            // A rerun starts from a person who has no password yet.
+            if (await users.HasPasswordAsync(existing))
+            {
+                IdentityResult removedPassword = await users.RemovePasswordAsync(existing);
+                if (!removedPassword.Succeeded)
+                    throw new InvalidOperationException($"E2E passwordless email account reset failed: {string.Join(';', removedPassword.Errors.Select(error => error.Code))}");
+            }
+
+            return existing;
+        }
+
+        User user = new()
+        {
+            Id = Guid.Parse("4d2e8a1c-6b3f-4a97-b1d5-9c7e0f2a3b68").ToString(),
+            UserName = PasswordlessEmailAccountUserName,
+            NormalizedUserName = PasswordlessEmailAccountUserName.ToUpperInvariant(),
+            Email = PasswordlessEmailAccountEmail,
+            NormalizedEmail = PasswordlessEmailAccountEmail.ToUpperInvariant(),
+            EmailConfirmed = true,
+            FirstName = "E2E",
+            LastName = "Platform Home Account"
+        };
+        IdentityResult created = await users.CreateAsync(user);
+        if (!created.Succeeded)
+            throw new InvalidOperationException($"E2E passwordless email account creation failed: {string.Join(';', created.Errors.Select(error => error.Code))}");
         return user;
     }
 

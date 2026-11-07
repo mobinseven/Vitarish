@@ -184,18 +184,27 @@ export function PlatformHome({ signInHref }: { signInHref: string }) {
               </h1>
               <p className="text-lg text-muted">{t("home.prompt")}</p>
             </div>
-            <Tooltip>
-              <Button
-                variant="tertiary"
-                isDisabled={isSigningOut || isLogoutContextLoading}
-                isPending={isSigningOut}
-                onPress={() => void logout(LandingRoutes.Home)}
-              >
-                <FaIcon icon="arrow-right-from-bracket" aria-hidden="true" className="rtl:-scale-x-100" />
-                {t("home.signOut")}
-              </Button>
-              <Tooltip.Content>{t("home.signOut")}</Tooltip.Content>
-            </Tooltip>
+            <div className="flex flex-wrap items-center gap-2">
+              <Tooltip>
+                <Button variant="tertiary" onPress={() => navigate(LandingRoutes.Account)}>
+                  <FaIcon icon="user-gear" aria-hidden="true" />
+                  {t("home.account")}
+                </Button>
+                <Tooltip.Content>{t("home.account")}</Tooltip.Content>
+              </Tooltip>
+              <Tooltip>
+                <Button
+                  variant="tertiary"
+                  isDisabled={isSigningOut || isLogoutContextLoading}
+                  isPending={isSigningOut}
+                  onPress={() => void logout(LandingRoutes.Home)}
+                >
+                  <FaIcon icon="arrow-right-from-bracket" aria-hidden="true" className="rtl:-scale-x-100" />
+                  {t("home.signOut")}
+                </Button>
+                <Tooltip.Content>{t("home.signOut")}</Tooltip.Content>
+              </Tooltip>
+            </div>
           </div>
           {signOutFailure ? (
             <Alert status="danger">
