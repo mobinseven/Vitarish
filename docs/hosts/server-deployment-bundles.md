@@ -137,6 +137,12 @@ committed topology and examples. The production job additionally runs
 `.env.test`, and `.env.production` files before pulling or restarting a
 service.
 
+## Mail server
+
+`docker-compose.mail.yml` is a separate, operator-applied Compose project for the
+Stalwart mail server. The release workflow validates it but never deploys it;
+see the [mail server runbook](../runbooks/mail-server.md).
+
 ## Workflow deployment and recovery
 
 For each changed production service, the serialized deploy job transfers the
