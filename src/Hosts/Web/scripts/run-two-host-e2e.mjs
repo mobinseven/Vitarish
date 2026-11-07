@@ -389,6 +389,13 @@ async function run() {
   delete buildEnvironment.VITARISH_E2E_AGENT_SHARED_SECRET;
   delete buildEnvironment[twoHostE2eFileTransferAuditKeyEnvironmentKey];
 
+  const collection = startProcess("playwright-collection", process.execPath,
+    [resolve(webRoot, "node_modules", "@playwright", "test", "cli.js"), "test", "--config", playwrightConfig, "--list", ...playwrightArguments],
+    webRoot, webEnvironment);
+  const collectionResult = await waitForExit(collection);
+  if (collectionResult.code !== 0 || collectionResult.signal !== null)
+    throw new Error(`Playwright collection failed. See ${collection.logPath}.`);
+
   await ensurePortAvailable("E2e", mainOrigin);
   await ensurePortAvailable("Private Practice Owner", webOrigin);
   await ensurePortAvailable("Platform Admin", platformAdminOrigin);

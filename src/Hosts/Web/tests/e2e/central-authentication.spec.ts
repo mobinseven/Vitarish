@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { expect, test, type Page } from "@playwright/test";
 import { Routes as AdminRoutes } from "../../apps/platform-admin/src/app/routes";
 import { Routes as PatientRoutes } from "../../apps/patients/src/app/routes";
@@ -20,7 +21,7 @@ async function post(page: Page, path: string, body: unknown) {
   }, { path, body, tenantHeader: TENANT_HOST_HEADER, antiforgeryPath: generatedOperationPath(authenticationAntiforgeryGet) });
 }
 
-const fixtureSource = readFileSync(new URL("../../../E2e/Infrastructure/Fixtures/E2eFixtureSeeder.cs", import.meta.url), "utf8");
+const fixtureSource = readFileSync(resolve(process.cwd(), "../E2e/Infrastructure/Fixtures/E2eFixtureSeeder.cs"), "utf8");
 const platformAdminUsername = /public const string PlatformAdminUserName = "([^"]+)";/.exec(fixtureSource)?.[1];
 const knowledgeMemberUsername = /public const string KnowledgeMemberUserName = "([^"]+)";/.exec(fixtureSource)?.[1];
 
