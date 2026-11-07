@@ -84,3 +84,14 @@ Rejected by the owner: entering an app requires a person's intent.
 - The landing conversation runtime path has not been verified in production.
 - Revisit when a second app ships, home agent memory is wanted, or in-app
   workspace switching is designed.
+
+## Amendments
+
+- 2026-11-07, owner decision: the platform home has an **Account** area at
+  `/account` on the landing host, reached by an Account button next to Sign
+  out. It offers the sign-in settings (password and two-step sign-in), email
+  change and phone change, using the same shared account hooks and server
+  operations as the clinic app, so a person with no workspace can manage how
+  they sign in. Passkeys, name, language and security history stay in the clinic
+  app for now. Reason: an account without a clinic had nowhere to set a
+  password.

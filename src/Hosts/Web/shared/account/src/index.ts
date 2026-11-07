@@ -1,6 +1,8 @@
 // Hooks
 export { AccountSignInSettings } from "./components/AccountSignInSettings";
 export type { AccountSignInSettingsProps } from "./components/AccountSignInSettings";
+export { AccountEmailChange } from "./components/AccountEmailChange";
+export { AccountPhoneChange } from "./components/AccountPhoneChange";
 export { useAccountNameUpdate } from "./hooks/useAccountNameUpdate";
 export { useAccountEmailChange } from "./hooks/useAccountEmailChange";
 export { useAccountPhoneChange } from "./hooks/useAccountPhoneChange";

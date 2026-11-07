@@ -1,16 +1,13 @@
 import { expect, test, type Page } from "@playwright/test";
 import crypto from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
-import { Routes } from "../../apps/private-practice-owner/src/app/routes";
-import { LandingRoutes } from "../../apps/vitarish-landing/src/app/routes";
 import { enMessages } from "../../apps/private-practice-owner/src/localization/messages/en";
 import { faMessages } from "../../apps/private-practice-owner/src/localization/messages/fa";
 import {
   twoHostE2eLocaleEnvironmentKey,
   twoHostE2eLandingOrigin,
   twoHostE2eProofScreenshotEnvironmentKey,
-  twoHostE2eSignInOrigin,
 } from "../../scripts/two-host-e2e-artifacts.mjs";
 import { REQUEST_ID_HEADER, TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
 import { authenticationAntiforgeryGet } from "../../shared/auth/src/api/generated/authentication/authentication";
@@ -21,15 +18,14 @@ import type { SupportedLocale } from "../../shared/localization/src/locales";
 import { landingIssueOnboardingHandoff } from "../../shared/platform/src/api/generated/landing/landing";
 import type { LandingOnboardingHandoffRequest, LandingOnboardingHandoffResponse } from "../../shared/platform/src/api/generated/landing/model";
 import { forwardedForHeaderName } from "./signInHost";
+import { signInWithEmailCodeOnSharedHost } from "./emailCodeSignIn";
 import { generatedOperationPath } from "./generatedOperationPath";
 
 const locale: SupportedLocale = process.env[twoHostE2eLocaleEnvironmentKey] === "fa" ? "fa" : "en";
 const ownerMessages = { en: enMessages, fa: faMessages }[locale];
-const authMessages = ownerMessages.auth;
 const setupMessages = ownerMessages.journey.setup;
 const clinicMessages = clinicMessageCatalogs[locale].clinic;
 
-const smtpCapturePath = process.env.VITARISH_E2E_SMTP_CAPTURE_PATH;
 const landingOrigin = twoHostE2eLandingOrigin;
 const onboardingOrigin = "http://start.localhost:3005";
 // E2eFixtureSeeder.EmailOnlyClinicCreatorEmail: confirmed email, no phone, no role.
@@ -49,14 +45,6 @@ function escapeRegExp(text: string) {
 /** Matches a field's accessible name, which carries a trailing "*" when the field is required. */
 function fieldName(label: string) {
   return new RegExp(`^${escapeRegExp(label)}\\*?$`);
-}
-
-async function readDeliveredEmailCode(previousModifiedAt: number): Promise<string> {
-  await expect.poll(() => Boolean(smtpCapturePath && existsSync(smtpCapturePath) && statSync(smtpCapturePath).mtimeMs > previousModifiedAt)).toBe(true);
-  const message = readFileSync(smtpCapturePath!, "utf8");
-  const code = /Your verification code is:\s*(?:<strong>)?([^<\s]+)(?:<\/strong>)?/i.exec(message)?.[1];
-  expect(code).toEqual(expect.any(String));
-  return code!;
 }
 
 async function requestOnboardingHandoff(page: Page): Promise<LandingOnboardingHandoffResponse> {
@@ -88,7 +76,6 @@ async function requestOnboardingHandoff(page: Page): Promise<LandingOnboardingHa
 
 test("an account with only a confirmed email signs in by email code and creates a clinic", async ({ context, page }) => {
   test.setTimeout(600_000);
-  expect(smtpCapturePath, "VITARISH_E2E_SMTP_CAPTURE_PATH must be supplied by the two-host runner").toBeTruthy();
 
   const suffix = crypto.randomBytes(3).toString("hex");
   const subdomain = `mail-${suffix}`;
@@ -104,27 +91,7 @@ test("an account with only a confirmed email signs in by email code and creates 
   ]);
 
   // 1. Sign in on the shared sign-in host with the emailed code; the account has no phone at all.
-  await page.goto(`${twoHostE2eSignInOrigin}${Routes.Login.Email}`, { waitUntil: "domcontentloaded" });
-  await page.getByRole("textbox", { name: fieldName(authMessages.otp.emailLabel) }).fill(creatorEmail, {
-    timeout: pageCompileTimeoutMilliseconds,
-  });
-  const previousModifiedAt = existsSync(smtpCapturePath!) ? statSync(smtpCapturePath!).mtimeMs : 0;
-  const [beginResponse] = await Promise.all([
-    page.waitForResponse((response) => response.url().endsWith("/api/modules/authentication/login/email/begin")),
-    page.getByRole("button", { name: authMessages.otp.sendAction, exact: true }).click(),
-  ]);
-  expect(beginResponse.status()).toBe(200);
-  await page.getByLabel(fieldName(authMessages.otp.codeLabel)).fill(await readDeliveredEmailCode(previousModifiedAt));
-  const [completeResponse] = await Promise.all([
-    page.waitForResponse((response) => response.url().endsWith("/api/modules/authentication/login/email/complete")),
-    page.getByRole("button", { name: authMessages.otp.verifyAction, exact: true }).click(),
-  ]);
-  expect(completeResponse.status()).toBe(200);
-
-  await page.waitForURL((url) => url.origin === landingOrigin && url.pathname === LandingRoutes.PlatformHome, {
-    waitUntil: "domcontentloaded",
-    timeout: pageCompileTimeoutMilliseconds,
-  });
+  await signInWithEmailCodeOnSharedHost(page, creatorEmail);
 
   // 2. Continue to the onboarding host and create the clinic.
   const handoff = await requestOnboardingHandoff(page);

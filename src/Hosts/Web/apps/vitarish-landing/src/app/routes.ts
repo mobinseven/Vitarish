@@ -8,6 +8,8 @@ export const LandingRoutes = {
   Studio: "/studio",
   /** The signed-in person's platform home (ADR-0020). */
   PlatformHome: "/home",
+  /** The signed-in person's account area: sign-in settings, email and phone. */
+  Account: "/account",
   /** Redeems the one-time sign-in link from the sign-in host. */
   Handoff: tenantHandoffPath,
   SignIn: AuthenticationWebRoutes.SignIn,
