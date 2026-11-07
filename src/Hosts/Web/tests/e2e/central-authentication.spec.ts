@@ -6,7 +6,7 @@ import { Routes as ProjectRoutes } from "../../apps/vitarish-pm/src/app/routes";
 import { Routes as KnowledgeRoutes } from "../../apps/knowledge-qa-demo/src/app/routes";
 import { getMessages } from "../../apps/platform-admin/src/localization/messages";
 import { AuthenticationWebRoutes } from "../../shared/auth/src/routes";
-import { authenticationAntiforgeryGet, authenticationBrowserSessionsGet, authenticationLoginPassword, authenticationLogoutPost, authenticationSessionGet } from "../../shared/auth/src/api/generated/authentication/authentication";
+import { authenticationAntiforgeryGet, authenticationBrowserSessionsGet, authenticationContinuationComplete, authenticationLoginPassword, authenticationLogoutPost, authenticationSessionGet } from "../../shared/auth/src/api/generated/authentication/authentication";
 import { TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
 import { localeCookieName } from "../../shared/localization/src/localeCookie";
 import { twoHostE2eForwardedForHeaderName, twoHostE2eKnowledgeOrigin, twoHostE2ePasswordEnvironmentKey, twoHostE2ePatientsOrigin, twoHostE2ePlatformAdminOrigin, twoHostE2eProjectManagementOrigin, twoHostE2eProofScreenshotEnvironmentKey, twoHostE2eSignInOrigin } from "../../scripts/two-host-e2e-artifacts.mjs";
@@ -20,9 +20,9 @@ async function post(page: Page, path: string, body: unknown) {
   }, { path, body, tenantHeader: TENANT_HOST_HEADER, antiforgeryPath: generatedOperationPath(authenticationAntiforgeryGet) });
 }
 
-const platformAdminUsername = /public const string PlatformAdminUserName = "([^"]+)";/.exec(
-  readFileSync(new URL("../../../E2e/Infrastructure/Fixtures/E2eFixtureSeeder.cs", import.meta.url), "utf8"),
-)?.[1];
+const fixtureSource = readFileSync(new URL("../../../E2e/Infrastructure/Fixtures/E2eFixtureSeeder.cs", import.meta.url), "utf8");
+const platformAdminUsername = /public const string PlatformAdminUserName = "([^"]+)";/.exec(fixtureSource)?.[1];
+const knowledgeMemberUsername = /public const string KnowledgeMemberUserName = "([^"]+)";/.exec(fixtureSource)?.[1];
 
 test("one central browser signs in across apps and app logout revokes the whole family", async ({ browser }) => {
   test.setTimeout(360_000);
@@ -47,11 +47,18 @@ test("one central browser signs in across apps and app logout revokes the whole 
     // No Origin, Referer or tenant header: renewal must resolve the actual Auth host.
     const authSession = await page.request.get(twoHostE2eSignInOrigin + generatedOperationPath(authenticationSessionGet));
     expect(authSession.status()).toBe(200);
-    for (const [origin, route] of [[twoHostE2ePatientsOrigin, PatientRoutes.Profile], [twoHostE2eProjectManagementOrigin, ProjectRoutes.Projects], [twoHostE2eKnowledgeOrigin, KnowledgeRoutes.KnowledgeQa]]) {
+    for (const [origin, route] of [[twoHostE2ePatientsOrigin, PatientRoutes.Profile], [twoHostE2eProjectManagementOrigin, ProjectRoutes.Projects]]) {
       await page.goto(origin + route);
       await expect(page).toHaveURL(origin + route, { timeout: 120_000 });
       await expect.poll(async () => (await page.request.get(origin + generatedOperationPath(authenticationSessionGet))).status()).toBe(200);
     }
+    // Platform roles do not grant a membership in the Knowledge tenant.
+    const [deniedKnowledge] = await Promise.all([
+      page.waitForResponse(response => response.url().endsWith(generatedOperationPath(authenticationContinuationComplete)) && response.request().method() === "POST"),
+      page.goto(twoHostE2eKnowledgeOrigin + KnowledgeRoutes.KnowledgeQa),
+    ]);
+    expect(deniedKnowledge.status()).toBe(404);
+    expect((await page.request.get(twoHostE2eKnowledgeOrigin + generatedOperationPath(authenticationSessionGet))).status()).toBe(401);
     expect(passwordSubmissions).toBe(1);
     // App-local credential submission remains unavailable even with a valid linked session.
     const credentialPath = generatedOperationPath(authenticationLoginPassword);
@@ -72,4 +79,41 @@ test("one central browser signs in across apps and app logout revokes the whole 
       expect((await page.request.get(origin + generatedOperationPath(authenticationSessionGet))).status()).toBe(401);
     }
   } finally { await context.close(); }
+});
+
+
+test("a Knowledge member enters Patients through the same central browser", async ({ browser }) => {
+  test.setTimeout(360_000);
+  const password = process.env[twoHostE2ePasswordEnvironmentKey];
+  const username = knowledgeMemberUsername;
+  expect(password).toBeTruthy();
+  expect(username).toBeTruthy();
+  const context = await browser.newContext({ extraHTTPHeaders: { [twoHostE2eForwardedForHeaderName]: "198.51.100.203" } });
+  await context.addCookies([twoHostE2eSignInOrigin, twoHostE2ePatientsOrigin, twoHostE2eKnowledgeOrigin].map(url => ({ name: localeCookieName, value: "en", url })));
+  const page = await context.newPage();
+  let passwordSubmissions = 0;
+  page.on("request", request => { if (request.method() === "POST" && request.url().endsWith(generatedOperationPath(authenticationLoginPassword))) passwordSubmissions++; });
+  try {
+    await page.goto(twoHostE2eKnowledgeOrigin + KnowledgeRoutes.KnowledgeQa);
+    await expect(page).toHaveURL(url => url.origin === twoHostE2eSignInOrigin && url.pathname === AuthenticationWebRoutes.SignIn, { timeout: 120_000 });
+    await page.getByRole("link", { name: new RegExp(getMessages("en").auth.login.passwordMethod) }).click();
+    await expect(page.locator('button[type="submit"]')).toBeEnabled();
+    await page.locator('input[name="username"]').fill(username!);
+    await page.locator('input[name="password"]').fill(password!);
+    await page.locator('button[type="submit"]').click();
+    await expect(page).toHaveURL(twoHostE2eKnowledgeOrigin + KnowledgeRoutes.KnowledgeQa, { timeout: 120_000 });
+    const knowledgeSession = await page.request.get(twoHostE2eKnowledgeOrigin + generatedOperationPath(authenticationSessionGet));
+    expect(knowledgeSession.status()).toBe(200);
+    await page.goto(twoHostE2ePatientsOrigin + PatientRoutes.Profile);
+    await expect(page).toHaveURL(twoHostE2ePatientsOrigin + PatientRoutes.Profile, { timeout: 120_000 });
+    expect((await page.request.get(twoHostE2ePatientsOrigin + generatedOperationPath(authenticationSessionGet))).status()).toBe(200);
+    const roots = await page.request.get(twoHostE2eSignInOrigin + generatedOperationPath(authenticationBrowserSessionsGet));
+    expect(roots.status()).toBe(200);
+    expect((await roots.json()).sessions).toEqual([expect.objectContaining({ isCurrent: true })]);
+    expect(passwordSubmissions).toBe(1);
+  } finally {
+    if ((await page.request.get(twoHostE2eKnowledgeOrigin + generatedOperationPath(authenticationSessionGet))).status() === 200)
+      expect(await post(page, generatedOperationPath(authenticationLogoutPost), { logoutId: null, returnUrl: null })).toBe(200);
+    await context.close();
+  }
 });

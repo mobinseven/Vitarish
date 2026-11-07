@@ -394,10 +394,6 @@ async function run() {
   await ensurePortAvailable("Platform Admin", platformAdminOrigin);
   for (const app of additionalApps) await ensurePortAvailable(app.name, app.origin);
 
-  await buildNextApp("web", appRoot, buildEnvironment);
-  await buildNextApp("platform-admin", platformAdminAppRoot, buildEnvironment);
-  for (const app of additionalApps) await buildNextApp(app.name, app.root, buildEnvironment);
-
   // dotnet run's implicit build can start one worker per core; cap the explicit build instead.
   const e2eBuild = startProcess("e2e-build", "dotnet", ["build", e2eProject, "-m:4"], repositoryRoot, mainEnvironment);
   const e2eBuildResult = await waitForExit(e2eBuild);
@@ -412,6 +408,13 @@ async function run() {
     repositoryRoot,
     mainEnvironment,
   );
+  // Fail on backend composition/fixture errors before spending time building every Web app.
+  await waitForHttp("E2e", main, `${mainOrigin}/api/modules/authentication/antiforgery`);
+
+  await buildNextApp("web", appRoot, buildEnvironment);
+  await buildNextApp("platform-admin", platformAdminAppRoot, buildEnvironment);
+  for (const app of additionalApps) await buildNextApp(app.name, app.root, buildEnvironment);
+
   const web = startProcess(
     "web",
     process.execPath,
@@ -430,7 +433,6 @@ async function run() {
   const additionalHosts = additionalApps.map(app => ({ ...app, process: startProcess(app.name,
     process.execPath, [nextCli, "start", "--port", new URL(app.origin).port], app.root, nextEnvironment) }));
 
-  await waitForHttp("E2e", main, `${mainOrigin}/api/modules/authentication/antiforgery`);
   await waitForHttp("Private Practice Owner", web, `${webOrigin}/`, nextReadinessTimeoutMs);
   await waitForHttp("Platform Admin", platformAdmin, `${platformAdminOrigin}/`, nextReadinessTimeoutMs);
   for (const host of additionalHosts) await waitForHttp(host.name, host.process, `${host.origin}/`, nextReadinessTimeoutMs);

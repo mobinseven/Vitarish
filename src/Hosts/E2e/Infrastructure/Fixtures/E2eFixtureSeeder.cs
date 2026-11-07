@@ -40,6 +40,7 @@ internal static class E2eFixtureSeeder
     public const string EmailChangeUserName = "e2e-email-change-user";
     public const string PhoneChangeUserName = "e2e-phone-change-user";
     public const string TenantBOwnerUserName = "e2e-tenant-b-owner";
+    public const string KnowledgeMemberUserName = "e2e-knowledge-member";
     public const string PlatformAdminUserName = "e2e-platform-admin";
     public const string UserManagementPlatformAdminUserName = "e2e-user-management-admin";
     public const string LockoutPlatformAdminUserName = "e2e-lockout-platform-admin";
@@ -647,15 +648,18 @@ internal static class E2eFixtureSeeder
                 new EnsureAppTenantRequest(SignInTenant.OwnerName, appId, name, new Uri(url).Host), cancellationToken);
             if (appId == Vitarish.Parties.Application.BrowserApplicationTenants.KnowledgeQaAppId)
             {
+                User knowledgeMember = await EnsureUserAsync(users, KnowledgeMemberUserName,
+                    Guid.Parse("0e2ee580-3e57-4a78-a5f6-a9f568dc7e9e"),
+                    "e2e-knowledge-member@example.test", "Knowledge", "Member", password);
                 string knowledgeRoleName = Vitarish.Users.Application.Authorization.TenantRoleDefinitions.BuildRoleName(browserTenantId, IdentityDefinitions.TenantOwner);
                 if (!await roles.RoleExistsAsync(knowledgeRoleName))
                 {
                     IdentityResult created = await roles.CreateAsync(new IdentityRole(knowledgeRoleName));
                     if (!created.Succeeded) throw new InvalidOperationException("E2E application role creation failed.");
                 }
-                if (!await users.IsInRoleAsync(platformAdmin, knowledgeRoleName))
+                if (!await users.IsInRoleAsync(knowledgeMember, knowledgeRoleName))
                 {
-                    IdentityResult assigned = await usersService.AddUserToRoleAsync(platformAdmin, knowledgeRoleName, cancellationToken);
+                    IdentityResult assigned = await usersService.AddUserToTenantRoleAsync(knowledgeMember, IdentityDefinitions.TenantOwner, browserTenantId, cancellationToken);
                     if (!assigned.Succeeded) throw new InvalidOperationException("E2E application role assignment failed.");
                 }
             }
