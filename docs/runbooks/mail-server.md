@@ -90,14 +90,39 @@ Caddy owns 443, so Stalwart could not serve the MTA-STS policy or autoconfig.
 then `reject` after outgoing mail has passed for a while. `mail.vitarish.com`
 is an `A` record, not a CNAME, because an MX target must not be a CNAME.
 
+## Outgoing mail
+
+The host's address is on a Spamhaus list, and Outlook refuses mail sent from it
+directly (`550 5.7.1 ... blocked using Spamhaus`). All mail for other domains
+therefore leaves through a relay: the `resend` route of the outbound strategy,
+a relay to `smtp.resend.com:465` (implicit TLS, user `resend`). The password is
+the Resend API key, read from the container environment variable
+`STALWART_RESEND_API_KEY` in `.env.mail`; the key only needs sending access.
+Mail for `vitarish.com` is still delivered locally. `vitarish.com` is a verified
+sending domain in Resend, which is required for it to accept the sender.
+
+The application sends through Stalwart, not the relay directly: its
+`VITARISH_PRODUCTION_SMTP_*` settings point at `mail.vitarish.com:465` with the
+`no-reply@vitarish.com` account, because the application uses the SMTP user name
+as the sender address and Resend's user name is not an address.
+
+Stalwart does not pick up a changed route or resolver until it restarts.
+
+## The host resolver is unreliable
+
+The host's own DNS resolver returns a fake address (`125.125.125.125`) for some
+domains, for example `live.com` and `smtp.resend.com`. Stalwart is therefore
+configured with Cloudflare's public resolver instead of the system one. Other
+containers and host tools still use the system resolver, so a lookup that fails
+on the host should be checked against `1.1.1.1` before suspecting the target.
+Mailgun also drops connections from this host's address range entirely, so it
+cannot be used from here.
+
 ## Open items
 
 - Reverse DNS: the host's PTR record belongs to the hosting provider and is
-  not `mail.vitarish.com`. Ask the provider to change it before relying on
-  delivery to large providers.
-- Outgoing mail to external providers is not yet verified end to end. The
-  public `verifier.port25.com` checker has an expired certificate and cannot
-  be used.
+  not `mail.vitarish.com`. With the relay this matters only for inbound
+  reputation checks, not for delivery of outgoing mail.
 
 ## Rollback
 
