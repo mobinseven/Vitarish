@@ -119,6 +119,10 @@ Applies to every `apps/*` and `shared/*` package.
 - Color a button by what it does, never per page, following the [Web color
   convention](../../../docs/hosts/web/color-roles.md#buttons). Keep
   `variant="danger"` for destructive confirmations.
+- **[MUST]** Never use the browser's native dialogs (`window.confirm`,
+  `alert`, `prompt`). Ask for confirmation with `ConfirmDialog` from
+  `@vitarish/ui`, which is localized with the page, styled by the theme, and
+  reachable by assistive technology and tests.
 
 ## Web test quality
 
