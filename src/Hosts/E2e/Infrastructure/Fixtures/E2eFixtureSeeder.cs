@@ -647,15 +647,15 @@ internal static class E2eFixtureSeeder
                 new EnsureAppTenantRequest(SignInTenant.OwnerName, appId, name, new Uri(url).Host), cancellationToken);
             if (appId == Vitarish.Parties.Application.BrowserApplicationTenants.KnowledgeQaAppId)
             {
-                string roleName = Vitarish.Users.Application.Authorization.TenantRoleDefinitions.BuildRoleName(browserTenantId, IdentityDefinitions.TenantOwner);
-                if (!await roles.RoleExistsAsync(roleName))
+                string knowledgeRoleName = Vitarish.Users.Application.Authorization.TenantRoleDefinitions.BuildRoleName(browserTenantId, IdentityDefinitions.TenantOwner);
+                if (!await roles.RoleExistsAsync(knowledgeRoleName))
                 {
-                    IdentityResult created = await roles.CreateAsync(new IdentityRole(roleName));
+                    IdentityResult created = await roles.CreateAsync(new IdentityRole(knowledgeRoleName));
                     if (!created.Succeeded) throw new InvalidOperationException("E2E application role creation failed.");
                 }
-                if (!await users.IsInRoleAsync(platformAdmin, roleName))
+                if (!await users.IsInRoleAsync(platformAdmin, knowledgeRoleName))
                 {
-                    IdentityResult assigned = await usersService.AddUserToRoleAsync(platformAdmin, roleName, cancellationToken);
+                    IdentityResult assigned = await usersService.AddUserToRoleAsync(platformAdmin, knowledgeRoleName, cancellationToken);
                     if (!assigned.Succeeded) throw new InvalidOperationException("E2E application role assignment failed.");
                 }
             }

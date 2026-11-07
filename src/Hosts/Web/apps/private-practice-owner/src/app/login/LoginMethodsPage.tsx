@@ -11,7 +11,7 @@ import {
   type SignInMethod,
 } from "@vitarish/ui";
 import { useAuthenticationProfile } from "@vitarish/auth";
-import { isSafeRelativeReturnTo, signInReturnUrlQueryKey } from "@vitarish/journey/sign-in-host";
+import { signInReturnUrlQueryKey } from "@vitarish/journey/sign-in-host";
 import { useLocalizedText, type MessageKey } from "@/localization";
 import { Routes } from "@/app/routes";
 import { useCreateClinicHref } from "@/features/onboarding/useCreateClinicHref";
