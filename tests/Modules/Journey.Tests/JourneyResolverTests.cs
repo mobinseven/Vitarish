@@ -211,11 +211,26 @@ public class JourneyResolverTests
         SetUpCompleteAccount();
         _hostReaderMock.Setup(x => x.IsSignInHostAsync(It.IsAny<CancellationToken>())).ReturnsAsync(true);
         _hostReaderMock.Setup(x => x.IsCentralDestination(destination)).Returns(true);
-        _returnUrlPolicyMock.Setup(x => x.Normalize(destination)).Returns(destination);
+        // General app returns reject queries; Auth owns validation of its internal continuation.
+        _returnUrlPolicyMock.Setup(x => x.Normalize(destination)).Returns((string?)null);
         var result = await _sut.ResolveAsync(request);
         result.HasBlockingGate.Should().BeFalse();
         result.DestinationKind.Should().Be(JourneyDestinationKind.ReturnUrl);
         result.DestinationUrl.Should().Be(destination);
+    }
+
+    [Theory]
+    [InlineData("/continue?request=opaque", "/account/profile/complete?returnUrl=%2Fcontinue%3Frequest%3Dopaque")]
+    [InlineData("/account/profile/complete", "/account/profile/complete")]
+    public async Task Central_profile_gate_preserves_continuation_but_never_returns_to_itself(string requested, string expected)
+    {
+        SetUpCompleteAccount();
+        _profileCompletionPolicyMock.Setup(x => x.EvaluateAsync("user1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ProfileCompletionResult.Incomplete(new ProfileCompletionRequirement("FirstName", true)));
+        _hostReaderMock.Setup(x => x.IsSignInHostAsync(It.IsAny<CancellationToken>())).ReturnsAsync(true);
+        _hostReaderMock.Setup(x => x.IsCentralDestination(requested)).Returns(true);
+        (await _sut.ResolveAsync(new JourneyRequest("user1", requested, "/", null, null, true)))
+            .DestinationUrl.Should().Be(expected);
     }
 
     [Fact]
