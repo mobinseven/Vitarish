@@ -234,6 +234,17 @@ public class JourneyResolverTests
     }
 
     [Fact]
+    public async Task Completed_central_profile_continues_home_without_carrying_the_gate_as_return_intent()
+    {
+        SetUpCompleteAccount();
+        _hostReaderMock.Setup(x => x.IsSignInHostAsync(It.IsAny<CancellationToken>())).ReturnsAsync(true);
+        _hostReaderMock.Setup(x => x.IsCentralDestination(JourneyPolicy.ProfileCompletionUrl)).Returns(true);
+        _returnUrlPolicyMock.Setup(x => x.Normalize(JourneyPolicy.ProfileCompletionUrl)).Returns(JourneyPolicy.ProfileCompletionUrl);
+        (await _sut.ResolveAsync(new JourneyRequest("user1", JourneyPolicy.ProfileCompletionUrl, "/", null, null, true)))
+            .DestinationUrl.Should().Be(JourneyPolicy.SignInContinueUrl);
+    }
+
+    [Fact]
     public async Task ResolveAsync_OnTheAdminHost_SkipsOwnerAppGatesForTheRequestedReturnUrl()
     {
         var request = new JourneyRequest("user1", "/audit", "/", null, null, true);
