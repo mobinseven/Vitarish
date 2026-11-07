@@ -1,0 +1,32 @@
+name: vitarish-mail
+
+# Operator-applied mail server bundle; the release workflow does not deploy it.
+# See docs/runbooks/mail-server.md. Caddy owns 443, so Stalwart's own HTTPS
+# listener stays unpublished and administration uses the loopback-only 8080.
+services:
+  stalwart:
+    image: stalwartlabs/stalwart:v1@sha256:73c684a84c24f5b4206ec266a8deb8986fe44a9f623997e07f084388d943c8bd
+    init: true
+    restart: unless-stopped
+    security_opt: [no-new-privileges:true]
+    mem_limit: 384m
+    env_file:
+      - path: ./.env.mail
+        required: false
+    environment:
+      # Read by Stalwart as the Cloudflare DNS provider secret; the shared value stays owned by .env.shared.
+      STALWART_CLOUDFLARE_API_TOKEN: ${VITARISH_CLOUDFLARE_API_TOKEN:?VITARISH_CLOUDFLARE_API_TOKEN is required}
+    ports:
+      - "25:25/tcp"
+      - "465:465/tcp"
+      - "993:993/tcp"
+      - "127.0.0.1:8080:8080/tcp"
+    volumes:
+      - mail-config:/etc/stalwart
+      - mail-data:/var/lib/stalwart
+
+volumes:
+  mail-config:
+    name: vitarish-mail-config
+  mail-data:
+    name: vitarish-mail-data

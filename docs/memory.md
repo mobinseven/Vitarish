@@ -37,6 +37,13 @@ Do not duplicate AGENTS.md, architecture.md, ADRs, runbooks, or module docs.
 
 ## Recurring pitfalls
 
+- The production host's Docker Engine must be 25 or newer to pull current
+  third-party images: layers compressed with zstd fail on 20.10 with
+  `invalid tar header`. Restarting the Docker daemon stops every container,
+  and the production services use `restart: on-failure:5`, so they stay down
+  until started again with the Compose files. Test containers can restart on
+  their own and must be stopped again.
+
 - Optional module references break focused builds.
 - Do not hide disabled modules with preprocessor symbols.
 - Query flows must not mutate state.
