@@ -2,16 +2,16 @@
 
 import { useCallback, useState, type FormEvent } from "react";
 import { Surface } from "@heroui/react";
-import { useAccountPhoneChange } from "@vitarish/account";
+import { useAccountPhoneChange } from "../hooks/useAccountPhoneChange";
 import { localizeApiError, useLocalizedText } from "@vitarish/localization";
 import { HeaderIcon, MobileNumberField, StatusAlert } from "@vitarish/ui";
-import { ContactActionButton, ContactCodeStep } from "./ContactChangeParts";
+import { ContactActionButton, ContactCodeStep } from "./AccountContactChange";
 
 /** The status the API answers for a number it cannot read as a mobile number. */
 const invalidPhoneNumberStatus = 400;
 
 /** Change and verify the account's phone number: send a code to the new number, then enter it. */
-export function PhoneChangeSection({ userId }: { userId: string }) {
+export function AccountPhoneChange({ userId }: { userId: string }) {
   const { t } = useLocalizedText();
   const { profile, step, phoneNumber, code, isLoading, error, success, setPhoneNumber, setCode, setError, reset, beginPhoneChange, verifyPhoneChange } =
     useAccountPhoneChange(userId);

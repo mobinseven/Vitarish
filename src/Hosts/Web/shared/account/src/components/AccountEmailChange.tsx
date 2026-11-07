@@ -2,13 +2,13 @@
 
 import { useCallback, type FormEvent } from "react";
 import { Input, Label, Surface, TextField } from "@heroui/react";
-import { useAccountEmailChange } from "@vitarish/account";
+import { useAccountEmailChange } from "../hooks/useAccountEmailChange";
 import { localizeApiError, useLocalizedText } from "@vitarish/localization";
 import { HeaderIcon, StatusAlert } from "@vitarish/ui";
-import { ContactActionButton, ContactCodeStep } from "./ContactChangeParts";
+import { ContactActionButton, ContactCodeStep } from "./AccountContactChange";
 
 /** Change and verify the account's email address: send a code to the new address, then enter it. */
-export function EmailChangeSection({ userId }: { userId: string }) {
+export function AccountEmailChange({ userId }: { userId: string }) {
   const { t } = useLocalizedText();
   const { profile, step, email, code, isLoading, error, success, setEmail, setCode, setError, reset, beginEmailChange, verifyEmailChange } =
     useAccountEmailChange(userId);

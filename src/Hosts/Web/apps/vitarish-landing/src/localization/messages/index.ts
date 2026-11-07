@@ -3,7 +3,7 @@ import { authMessageCatalogs } from "@vitarish/auth/localization";
 import { contentsStudioMessageCatalogs } from "@vitarish/contents/studio";
 import { enMessages } from "./en";
 import { faMessages } from "./fa";
-import { accountMessageCatalogs, authOtpMessages } from "../../features/account/accountMessages";
+import { accountMessageCatalogs, authOtpMessages } from "../../features/home/accountMessages";
 import { homeMessageCatalogs } from "../../features/home/homeMessages";
 
 // The shared auth catalog owns most of `auth`; the account area adds the one-time-code wording under `auth.otp`.
