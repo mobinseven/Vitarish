@@ -23,7 +23,7 @@ public sealed record AuthenticationProfilePolicy(
             HashSet<AuthenticationMethod> mechanisms = [AuthenticationMethod.Password];
             if (AllowPasswordlessPhoneLogin || UsePhoneOtpForTwoFactorAccounts)
                 mechanisms.Add(AuthenticationMethod.Phone);
-            if (AllowPasswordlessEmailLogin)
+            if (AllowPasswordlessEmailLogin || UsePhoneOtpForTwoFactorAccounts)
                 mechanisms.Add(AuthenticationMethod.Email);
             if (AllowPasskeyLogin)
                 mechanisms.Add(AuthenticationMethod.Passkey);
@@ -48,7 +48,10 @@ public sealed record AuthenticationProfilePolicy(
             if (AllowPasskeyLogin)
                 actions.Add(PreAuthenticationAction.PasskeyLogin);
             if (UsePhoneOtpForTwoFactorAccounts)
+            {
                 actions.Add(PreAuthenticationAction.PasswordPlusPhoneOtp);
+                actions.Add(PreAuthenticationAction.PasswordPlusEmailOtp);
+            }
             if (AllowTenantHandoff)
                 actions.Add(PreAuthenticationAction.TenantHandoff);
             return actions;
@@ -61,7 +64,10 @@ public sealed record AuthenticationProfilePolicy(
         {
             HashSet<AuthenticationMethod> required = [AuthenticationMethod.Password];
             if (UsePhoneOtpForTwoFactorAccounts)
+            {
                 required.Add(AuthenticationMethod.Phone);
+                required.Add(AuthenticationMethod.Email);
+            }
             return required;
         }
     }
@@ -76,7 +82,10 @@ public sealed record AuthenticationProfilePolicy(
                 PreAuthenticationAction.PasswordLogin
             ];
             if (UsePhoneOtpForTwoFactorAccounts)
+            {
                 required.Add(PreAuthenticationAction.PasswordPlusPhoneOtp);
+                required.Add(PreAuthenticationAction.PasswordPlusEmailOtp);
+            }
             return required;
         }
     }

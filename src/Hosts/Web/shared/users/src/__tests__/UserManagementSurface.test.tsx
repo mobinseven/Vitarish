@@ -10,6 +10,7 @@ import { usersMessageCatalogs } from "../localization/catalogs";
 const refetch = vi.fn(async () => ({}));
 const tenantProvision = vi.fn((_input: unknown, options?: { onSuccess?: () => void }) => options?.onSuccess?.());
 const tenantRemove = vi.fn((_input: unknown, options?: { onSuccess?: () => void }) => options?.onSuccess?.());
+const revokeTenantRole = vi.fn((_input: unknown, options?: { onSuccess?: () => void }) => options?.onSuccess?.());
 const managedUserUpdate = vi.fn((_input: unknown, options?: { onSuccess?: () => void; onError?: (error: unknown) => void }) => options?.onSuccess?.());
 const platformPhoneCreate = vi.fn((_input: unknown, options?: { onSuccess?: () => void; onError?: (error: unknown) => void }) => options?.onSuccess?.());
 const globalRoleGrant = vi.fn((_input: unknown, options?: { onSuccess?: () => void; onError?: (error: unknown) => void }) => options?.onSuccess?.());
@@ -120,7 +121,7 @@ vi.mock("@vitarish/auth", () => ({
   useUsersAdministrationCreateWithEmail: () => ({ isPending: false, mutate: vi.fn() }),
   useUsersAdministrationCreateWithPhone: () => ({ isPending: false, mutate: platformPhoneCreate }),
   useUsersAdministrationGrantTenantRole: () => ({ isPending: false, mutate: tenantRoleGrant }),
-  useUsersAdministrationRevokeTenantRole: () => ({ isPending: false, mutate: vi.fn() }),
+  useUsersAdministrationRevokeTenantRole: () => ({ isPending: false, mutate: revokeTenantRole }),
 }));
 
 afterEach(() => {
@@ -219,7 +220,7 @@ describe("platform account deletion", () => {
 describe("UserManagementSurface", () => {
   it("shows the owner and staff while exposing removal and refresh only for staff", async () => {
     const user = userEvent.setup();
-    vi.spyOn(window, "confirm").mockReturnValue(true);
+    const confirm = vi.spyOn(window, "confirm");
     renderSurface("tenant");
 
     expect(screen.getByText("Clinic Owner")).toBeInTheDocument();
@@ -229,8 +230,43 @@ describe("UserManagementSurface", () => {
     expect(screen.queryByText("Role to grant")).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Remove access" }));
+    // The app's own dialog asks first; the browser's native confirm is never used.
+    expect(confirm).not.toHaveBeenCalled();
+    expect(tenantRemove).not.toHaveBeenCalled();
+    await user.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Remove access" }));
     expect(tenantRemove).toHaveBeenCalledWith({ userId: "staff" }, expect.any(Object));
     expect(refetch).toHaveBeenCalled();
+  });
+
+  it("removes nothing when the person cancels the removal dialog", async () => {
+    const user = userEvent.setup();
+    renderSurface("tenant");
+
+    await user.click(screen.getByRole("button", { name: "Remove access" }));
+    await user.click(within(screen.getByRole("dialog")).getByRole("button", { name: usersMessageCatalogs.en.users.management.cancel }));
+
+    expect(tenantRemove).not.toHaveBeenCalled();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("revokes a tenant role only after the person confirms it in the app's own dialog", async () => {
+    const user = userEvent.setup();
+    const confirm = vi.spyOn(window, "confirm");
+    renderSurface("platform", { platformView: "detail", userId: userSecurityDetails.user.id });
+
+    await user.click(screen.getByRole("button", { name: usersMessageCatalogs.en.users.management.revoke }));
+    expect(confirm).not.toHaveBeenCalled();
+    expect(revokeTenantRole).not.toHaveBeenCalled();
+
+    await user.click(within(screen.getByRole("dialog")).getByRole("button", { name: usersMessageCatalogs.en.users.management.cancel }));
+    expect(revokeTenantRole).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole("button", { name: usersMessageCatalogs.en.users.management.revoke }));
+    await user.click(within(screen.getByRole("dialog")).getByRole("button", { name: usersMessageCatalogs.en.users.management.revokeConfirmAction }));
+    expect(revokeTenantRole).toHaveBeenCalledWith(
+      { userId: userSecurityDetails.user.id, tenantId: "tenant-a", roleSuffix: "TenantUser", data: { roleSuffix: "TenantUser" } },
+      expect.any(Object),
+    );
   });
 
   it("uses the tenant provisioning contract and refreshes after a successful add", async () => {

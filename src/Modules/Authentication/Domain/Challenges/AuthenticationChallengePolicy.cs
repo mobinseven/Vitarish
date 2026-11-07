@@ -9,6 +9,7 @@ public sealed record AuthenticationChallengePolicy(TimeSpan Lifetime, int Maximu
 
     private static readonly string PhoneLoginTokenPurpose = "Authentication:PhoneLogin";
     private static readonly string PasswordLoginOtpTokenPurpose = "Authentication:PasswordLoginOtp";
+    private static readonly string PasswordLoginEmailOtpTokenPurpose = "Authentication:PasswordLoginEmailOtp";
     private static readonly string EmailLoginTokenPurpose = "Authentication:EmailLogin";
     private static readonly string PasskeyTokenPurpose = "Authentication:PasskeyLogin";
     private static readonly string PhoneChangeTokenPurpose = "Authentication:PhoneChange";
@@ -32,6 +33,9 @@ public sealed record AuthenticationChallengePolicy(TimeSpan Lifetime, int Maximu
 
     public AuthenticationChallenge CreatePasswordLoginOtpChallenge(string userId, string phoneNumber, DateTimeOffset now, bool requiresProfileCompletion) =>
         CreateChallenge(AuthenticationChallengePurpose.PasswordLoginOtp, userId, phoneNumber, now, requiresProfileCompletion, SecondFactorMaximumAttempts);
+
+    public AuthenticationChallenge CreatePasswordLoginEmailOtpChallenge(string userId, string email, DateTimeOffset now, bool requiresProfileCompletion) =>
+        CreateChallenge(AuthenticationChallengePurpose.PasswordLoginEmailOtp, userId, email, now, requiresProfileCompletion, SecondFactorMaximumAttempts);
 
     public AuthenticationChallenge CreateEmailLoginChallenge(string userId, string email, DateTimeOffset now) =>
         CreateChallenge(AuthenticationChallengePurpose.EmailLogin, userId, email, now);
@@ -73,6 +77,7 @@ public sealed record AuthenticationChallengePolicy(TimeSpan Lifetime, int Maximu
     {
         AuthenticationChallengePurpose.PhoneLogin => PhoneLoginTokenPurpose,
         AuthenticationChallengePurpose.PasswordLoginOtp => PasswordLoginOtpTokenPurpose,
+        AuthenticationChallengePurpose.PasswordLoginEmailOtp => PasswordLoginEmailOtpTokenPurpose,
         AuthenticationChallengePurpose.EmailLogin => EmailLoginTokenPurpose,
         AuthenticationChallengePurpose.PasskeyLogin => PasskeyTokenPurpose,
         AuthenticationChallengePurpose.PhoneChange => PhoneChangeTokenPurpose,

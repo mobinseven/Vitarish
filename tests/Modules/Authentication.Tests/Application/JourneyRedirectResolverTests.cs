@@ -17,6 +17,18 @@ public class JourneyRedirectResolverTests
     private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock = new();
     private readonly Mock<ILogger<JourneyAwareRedirectResolver>> _loggerMock = new();
 
+    [Theory]
+    [InlineData("/account/profile/complete?returnUrl=%2Fcontinue%3Frequest%3Dopaque", "/account/profile/complete?returnUrl=%2Fcontinue%3Frequest%3Dopaque")]
+    [InlineData("/account/contact/confirm", "/account/contact/confirm?returnUrl=%2Fcontinue%3Frequest%3Dopaque")]
+    public async Task Blocking_gate_preserves_exactly_one_continuation(string destination, string expected)
+    {
+        var gate = new JourneyGate(JourneyGateKind.ProfileCompletion, true, destination);
+        _journeyResolverMock.Setup(item => item.ResolveAsync(It.IsAny<JourneyRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new JourneyStep(JourneyDestinationKind.Gate, destination, gate));
+        var resolver = new JourneyAwareRedirectResolver(_journeyResolverMock.Object, _httpContextAccessorMock.Object, _loggerMock.Object);
+        (await resolver.ResolveAsync("/continue?request=opaque", true, "subject")).Should().Be(expected);
+    }
+
     [Fact]
     public async Task ResolveAsync_AuthenticatedUser_DelegatesToJourney()
     {

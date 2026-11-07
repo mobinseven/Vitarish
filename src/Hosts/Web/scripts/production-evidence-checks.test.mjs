@@ -36,7 +36,7 @@ test("the transport policy lists hold the released TLS, cipher, and port expecta
   );
   assert.ok(tlsProtocolProbes.filter(({ expected }) => expected === "rejected").every(({ ciphers }) => ciphers === "DEFAULT@SECLEVEL=0"));
   assert.deepEqual([...weakTls12Ciphers], ["AES128-SHA", "DES-CBC3-SHA", "ECDHE-RSA-AES128-SHA"]);
-  assert.deepEqual([...expectedOpenIngressPorts], [22, 80, 443]);
+  assert.deepEqual([...expectedOpenIngressPorts], [22, 25, 80, 443, 465, 993]);
 });
 
 test("TLS scan evaluation passes the hardened protocol and cipher policy", () => {
@@ -194,8 +194,11 @@ test("unsafe-method evaluation requires 405 for TRACE and CONNECT without an acc
 test("port-scan evaluation expects exactly the ingress allowlist", () => {
   const allowed = evaluatePortScan("203.0.113.10", [
     { port: 22, state: "open" },
+    { port: 25, state: "open" },
     { port: 80, state: "open" },
     { port: 443, state: "open" },
+    { port: 465, state: "open" },
+    { port: 993, state: "open" },
     { port: 3306, state: "closed" },
   ]);
   assert.deepEqual(allowed.failures, []);
@@ -203,23 +206,26 @@ test("port-scan evaluation expects exactly the ingress allowlist", () => {
     { expected: "open", result: "PASS" },
     { expected: "open", result: "PASS" },
     { expected: "open", result: "PASS" },
+    { expected: "open", result: "PASS" },
+    { expected: "open", result: "PASS" },
+    { expected: "open", result: "PASS" },
     { expected: "closed", result: "PASS" },
   ]);
 
-  const unexpected = evaluatePortScan("203.0.113.10", [
-    { port: 22, state: "open" },
-    { port: 80, state: "open" },
-    { port: 443, state: "open" },
-    { port: 3306, state: "open" },
-  ]);
-  assert.match(unexpected.failures[0], /port 3306 is open/);
+  // The mail server's administration listener and legacy mail ports are not part of the allowlist.
+  for (const port of [110, 143, 3306, 8080]) {
+    const unexpected = evaluatePortScan("203.0.113.10", [{ port, state: "open" }]);
+    assert.match(unexpected.failures[0], new RegExp(`port ${port} is open`));
+  }
 
   const missing = evaluatePortScan("203.0.113.10", [
     { port: 22, state: "open" },
     { port: 80, state: "open" },
     { port: 443, state: "filtered" },
+    { port: 465, state: "closed" },
   ]);
   assert.match(missing.failures[0], /port 443 is filtered; expected it to be open/);
+  assert.match(missing.failures[1], /port 465 is closed; expected it to be open/);
 });
 
 test("timedatectl output is parsed into synchronisation, clock, and timezone fields", () => {

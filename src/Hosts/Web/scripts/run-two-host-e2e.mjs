@@ -26,6 +26,7 @@ import {
   twoHostE2eProofStorageStateEnvironmentKey,
   twoHostE2eSignInOrigin,
   twoHostE2eSmsCapturePathEnvironmentKey,
+  twoHostE2eOwnerUsernameEnvironmentKey,
 } from "./two-host-e2e-artifacts.mjs";
 
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
@@ -371,7 +372,7 @@ async function run() {
     NODE_OPTIONS: withSystemCa(process.env.NODE_OPTIONS),
     [twoHostE2eNextDistDirectoryEnvironmentKey]: appNextDistDirectory,
     [signInUrlEnvironmentKey]: twoHostE2eSignInOrigin,
-    VITARISH_E2E_USERNAME: "e2e-owner",
+    [twoHostE2eOwnerUsernameEnvironmentKey]: "e2e-owner",
     VITARISH_E2E_EMAIL_CHANGE_USERNAME: "e2e-email-change-user",
     VITARISH_E2E_PASSWORD: password,
     [twoHostE2eFileTransferAuditKeyEnvironmentKey]: fileTransferAuditKey,
@@ -397,10 +398,17 @@ async function run() {
   await buildNextApp("platform-admin", platformAdminAppRoot, buildEnvironment);
   for (const app of additionalApps) await buildNextApp(app.name, app.root, buildEnvironment);
 
+  // dotnet run's implicit build can start one worker per core; cap the explicit build instead.
+  const e2eBuild = startProcess("e2e-build", "dotnet", ["build", e2eProject, "-m:4"], repositoryRoot, mainEnvironment);
+  const e2eBuildResult = await waitForExit(e2eBuild);
+  if (e2eBuildResult.code !== 0 || e2eBuildResult.signal !== null) {
+    throw new Error(`E2e build failed (exit=${e2eBuildResult.code}, signal=${e2eBuildResult.signal}). See ${e2eBuild.logPath}.`);
+  }
+
   const main = startProcess(
     "e2e",
     "dotnet",
-    ["run", "--project", e2eProject, "--no-launch-profile", "--urls", mainOrigin],
+    ["run", "--project", e2eProject, "--no-build", "--no-launch-profile", "--urls", mainOrigin],
     repositoryRoot,
     mainEnvironment,
   );

@@ -6,6 +6,9 @@ public sealed class BrowserApplicationHostOptions
     public string? PatientsUrl { get; set; }
     public string? ProjectManagementUrl { get; set; }
     public string? KnowledgeQaUrl { get; set; }
+
+    public static bool IsDevelopmentHostname(string hostname) =>
+        hostname == "localhost" || hostname.EndsWith(".localhost", StringComparison.Ordinal);
 }
 
 public static class BrowserApplicationTenants

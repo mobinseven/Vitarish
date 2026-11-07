@@ -28,11 +28,13 @@ public sealed class TenantHandoffTicket
 
     public DateTime IssuedAt { get; set; }
 
+    public DateTime? AuthenticatedAt { get; set; }
+
     public DateTime ExpiresAt { get; set; }
 
     public DateTime? RedeemedAt { get; set; }
 
-    public static TenantHandoffTicket Issue(string tokenHash, string userId, string targetHost, DateTime nowUtc)
+    public static TenantHandoffTicket Issue(string tokenHash, string userId, string targetHost, DateTime nowUtc, DateTime? authenticatedAtUtc = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tokenHash);
         ArgumentException.ThrowIfNullOrWhiteSpace(userId);
@@ -44,6 +46,7 @@ public sealed class TenantHandoffTicket
             UserId = userId,
             TargetHost = targetHost.Trim().TrimEnd('.').ToLowerInvariant(),
             IssuedAt = nowUtc,
+            AuthenticatedAt = authenticatedAtUtc,
             ExpiresAt = nowUtc + Lifetime
         };
     }

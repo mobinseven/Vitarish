@@ -109,6 +109,9 @@ namespace Vitarish.Authentication.Infrastructure.Migrations.AuthenticationDb
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<DateTime?>("AuthenticatedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<Guid?>("CentralSessionId")
                         .HasColumnType("uuid");
 
@@ -186,6 +189,9 @@ namespace Vitarish.Authentication.Infrastructure.Migrations.AuthenticationDb
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("AuthenticatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid?>("CentralSessionId")
                         .HasColumnType("uuid");

@@ -1,3 +1,4 @@
+using Vitarish.Authentication.Contracts.Routes;
 using Vitarish.Authentication.Application.Abstractions;
 using Vitarish.Authentication.Domain.Challenges;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -16,7 +17,7 @@ public static class PasswordLoginEndpoints
 {
     public static RouteGroupBuilder MapPasswordLoginEndpoints(this RouteGroupBuilder group)
     {
-        group.MapModulePost("/login/password", async (PasswordLoginRequest request, [Microsoft.AspNetCore.Mvc.FromServices] LoginWithPasswordHandler handler, [Microsoft.AspNetCore.Mvc.FromServices] IPendingAuthenticationChallenge pending, [Microsoft.AspNetCore.Mvc.FromServices] IAuthenticationChallengeStore challenges, CancellationToken ct) =>
+        group.MapModulePost(AuthenticationRoutes.PasswordLoginPath, async (PasswordLoginRequest request, [Microsoft.AspNetCore.Mvc.FromServices] LoginWithPasswordHandler handler, [Microsoft.AspNetCore.Mvc.FromServices] IPendingAuthenticationChallenge pending, [Microsoft.AspNetCore.Mvc.FromServices] IAuthenticationChallengeStore challenges, CancellationToken ct) =>
         {
             var r = await handler.Handle(new LoginWithPasswordCommand(request.UserNameOrEmail, request.Password, request.ReturnUrl), ct);
             if (r is AuthenticationResult<LoginResult>.Failure { Error.ChallengeId: { } challengeId })
@@ -35,8 +36,10 @@ public static class PasswordLoginEndpoints
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status401Unauthorized)
         .ProducesProblem(StatusCodes.Status403Forbidden)
+        .ProducesProblem(StatusCodes.Status409Conflict)
         .ProducesProblem(StatusCodes.Status423Locked)
         .ProducesProblem(StatusCodes.Status429TooManyRequests)
+        .ProducesProblem(StatusCodes.Status503ServiceUnavailable)
         .WithSummary("Signs in with a password.");
 
         return group;

@@ -9,10 +9,10 @@ export async function isCentralAuthenticationHost(): Promise<boolean> {
   return signInUrl !== null && (await headers()).get("host")?.toLowerCase() === new URL(signInUrl).host;
 }
 
-export async function CentralAuthenticationLayout({ children, securityPath }: { children: ReactNode; securityPath?: string }) {
+export async function CentralAuthenticationLayout({ children, securityPath, defaultReturnPath }: { children: ReactNode; securityPath?: string; defaultReturnPath?: string }) {
   const signInUrl = readSignInUrl(process.env);
   if (!signInUrl || await isCentralAuthenticationHost()) return <>{children}</>;
-  return <CentralAuthenticationBoundary signInUrl={signInUrl} securityPath={securityPath} />;
+  return <CentralAuthenticationBoundary signInUrl={signInUrl} securityPath={securityPath} defaultReturnPath={defaultReturnPath} />;
 }
 
 export async function CentralAuthenticationSessionRenewal() {

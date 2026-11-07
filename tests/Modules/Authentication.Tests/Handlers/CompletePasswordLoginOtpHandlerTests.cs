@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Text.Json;
 using FluentAssertions;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -9,6 +10,7 @@ using Vitarish.Authentication.Application.Commands;
 using Vitarish.Authentication.Application.Handlers;
 using Vitarish.Authentication.Application.Results;
 using Vitarish.Authentication.Domain.Challenges;
+using Vitarish.Authentication.Domain.Methods;
 using Vitarish.Authentication.Domain.Security;
 using Vitarish.Authentication.Infrastructure;
 using Vitarish.Authentication.Infrastructure.Options;
@@ -82,7 +84,54 @@ public sealed class CompletePasswordLoginOtpHandlerTests
             CreateKeys(),
             TestSourceAttemptGuards.WithoutClientAddress(),
             new TestAuthenticationUtcClock(),
-            Mock.Of<IAuthenticationSessionRegistry>());
+            Mock.Of<IAuthenticationSessionRegistry>(),
+            Mock.Of<IAuthenticationUserDirectory>());
+
+        CompletePasswordLoginOtpCommand command = new(challenge.Id.Value, "123456", "/home");
+        AuthenticationResult<LoginResult>[] results = await Task.WhenAll(
+            handler.Handle(command, CancellationToken.None),
+            handler.Handle(command, CancellationToken.None));
+
+        results.OfType<AuthenticationResult<LoginResult>.Success>().Should().ContainSingle();
+        results.OfType<AuthenticationResult<LoginResult>.Failure>().Single().Error.Reason
+            .Should().Be(AuthenticationFailureReason.ChallengeAlreadyUsed);
+        signIn.Verify(x => x.SignInAsync("user-42", It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Concurrent_email_factor_completions_sign_in_only_once()
+    {
+        InMemoryAuthenticationChallengeStore store = new();
+        AuthenticationChallenge challenge = AuthenticationChallengePolicy.Default.CreatePasswordLoginEmailOtpChallenge(
+            "user-42", "person@example.test", DateTimeOffset.UtcNow, false);
+        await store.SaveAsync(challenge, CancellationToken.None);
+
+        Mock<IAuthenticationCodeVerifier> verifier = new();
+        verifier.Setup(x => x.VerifyAsync("user-42", challenge.TokenPurpose, "123456", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+        Mock<IAuthenticationSignInService> signIn = new();
+        Mock<IAuthenticationRedirectResolver> redirects = new();
+        redirects.Setup(x => x.ResolveAsync("/home", false, "user-42", It.IsAny<CancellationToken>())).ReturnsAsync("/home");
+        Mock<ISecurityAuditWriter> audit = new();
+        audit.Setup(x => x.WriteAsync(It.IsAny<SecurityAuditEvent>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(SecurityAuditWriteResult.Recorded);
+        Mock<IAuthenticationUserDirectory> userDirectory = new();
+        userDirectory.Setup(x => x.FindByIdAsync("user-42", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new AuthenticationUserDescriptor("user-42", "user-42", null, "Given", "Family", "person@example.test", null, false, EmailConfirmed: true));
+        CompletePasswordLoginOtpHandler handler = new(
+            store,
+            verifier.Object,
+            signIn.Object,
+            redirects.Object,
+            audit.Object,
+            new TestRequestContext(),
+            new InMemoryAuthenticationAttemptTracker(),
+            new TestSecurityPolicyProvider(),
+            CreateKeys(),
+            TestSourceAttemptGuards.WithoutClientAddress(),
+            new TestAuthenticationUtcClock(),
+            Mock.Of<IAuthenticationSessionRegistry>(),
+            userDirectory.Object);
 
         CompletePasswordLoginOtpCommand command = new(challenge.Id.Value, "123456", "/home");
         AuthenticationResult<LoginResult>[] results = await Task.WhenAll(
@@ -123,7 +172,8 @@ public sealed class CompletePasswordLoginOtpHandlerTests
             CreateKeys(),
             TestSourceAttemptGuards.WithoutClientAddress(),
             new TestAuthenticationUtcClock(),
-            Mock.Of<IAuthenticationSessionRegistry>());
+            Mock.Of<IAuthenticationSessionRegistry>(),
+            Mock.Of<IAuthenticationUserDirectory>());
 
         CompletePasswordLoginOtpCommand command = new(challenge.Id.Value, "000000", "/home");
         AuthenticationResult<LoginResult>[] results = await Task.WhenAll(
@@ -168,7 +218,8 @@ public sealed class CompletePasswordLoginOtpHandlerTests
             CreateKeys(),
             TestSourceAttemptGuards.WithoutClientAddress(),
             new TestAuthenticationUtcClock(),
-            Mock.Of<IAuthenticationSessionRegistry>());
+            Mock.Of<IAuthenticationSessionRegistry>(),
+            Mock.Of<IAuthenticationUserDirectory>());
 
         AuthenticationResult<LoginResult> wrongCode = await handler.Handle(new(challenge.Id.Value, "000000", "/home"), CancellationToken.None);
         AuthenticationResult<LoginResult> correctCodeAfterwards = await handler.Handle(new(challenge.Id.Value, "123456", "/home"), CancellationToken.None);
@@ -197,6 +248,78 @@ public sealed class CompletePasswordLoginOtpHandlerTests
         registry.Verify(
             item => item.RecordFailedAttemptAsync("user-42", It.IsAny<CancellationToken>()),
             Times.Once);
+    }
+
+    [Fact]
+    public async Task Email_second_factor_completion_uses_email_subject_attempt_key_and_redacts_the_code()
+    {
+        AuthenticationChallenge emailChallenge = AuthenticationChallengePolicy.Default.CreatePasswordLoginEmailOtpChallenge(
+            "user-42", "person@example.test", DateTimeOffset.UtcNow, false);
+        AuthenticationUserDescriptor user = new("user-42", "user-42", null, "Given", "Family", "person@example.test", null, false, EmailConfirmed: true);
+        TestDependencies dependencies = CreateDependencies(emailChallenge, user);
+        List<SecurityAuditEvent> events = [];
+        CompletePasswordLoginOtpHandler handler = dependencies.CreateHandler(new RecordingWriter(events));
+
+        AuthenticationResult<LoginResult> result = await handler.Handle(
+            new CompletePasswordLoginOtpCommand(emailChallenge.Id.Value, "123456", "/home"),
+            CancellationToken.None);
+
+        result.Should().BeOfType<AuthenticationResult<LoginResult>.Success>();
+        dependencies.SignIn.Verify(x => x.SignInAsync("user-42", It.IsAny<CancellationToken>()), Times.Once);
+        string emailAttemptKey = CreateKeys().Subject(AuthenticationMethod.Email, "user-42");
+        dependencies.AttemptTracker.Verify(x => x.IsDeniedAsync(emailAttemptKey, It.IsAny<CancellationToken>()), Times.Once);
+        events.Select(item => item.Outcome).Should().ContainInOrder(SecurityAuditOutcome.Started, SecurityAuditOutcome.Succeeded);
+        events.Select(item => item.RedactedReason)
+            .Where(reason => reason is not null)
+            .Select(reason => reason!)
+            .Should().NotContain("123456");
+    }
+
+    [Fact]
+    public async Task Email_second_factor_completion_rejects_a_contact_that_was_changed_or_unconfirmed()
+    {
+        AuthenticationChallenge emailChallenge = AuthenticationChallengePolicy.Default.CreatePasswordLoginEmailOtpChallenge(
+            "user-42", "old@example.test", DateTimeOffset.UtcNow, false);
+        AuthenticationUserDescriptor changedUser = new("user-42", "user-42", null, "Given", "Family", "new@example.test", null, false, EmailConfirmed: true);
+        TestDependencies dependencies = CreateDependencies(emailChallenge, changedUser);
+        CompletePasswordLoginOtpHandler handler = dependencies.CreateHandler(new RecordingWriter([]));
+
+        AuthenticationResult<LoginResult> result = await handler.Handle(
+            new CompletePasswordLoginOtpCommand(emailChallenge.Id.Value, "123456", "/home"),
+            CancellationToken.None);
+
+        result.Should().BeOfType<AuthenticationResult<LoginResult>.Failure>()
+            .Which.Error.Reason.Should().Be(AuthenticationFailureReason.NotAllowed);
+        dependencies.Store.Verify(x => x.TryConsumeAsync(emailChallenge, CancellationToken.None), Times.Once);
+        dependencies.Verifier.Verify(x => x.VerifyAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+        dependencies.SignIn.Verify(x => x.SignInAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Wrong_email_second_factor_code_counts_against_the_email_subject_attempt_key()
+    {
+        AuthenticationChallenge emailChallenge = AuthenticationChallengePolicy.Default.CreatePasswordLoginEmailOtpChallenge(
+            "user-42", "person@example.test", DateTimeOffset.UtcNow, false);
+        AuthenticationUserDescriptor user = new("user-42", "user-42", null, "Given", "Family", "person@example.test", null, false, EmailConfirmed: true);
+        TestDependencies dependencies = CreateDependencies(emailChallenge, user);
+        dependencies.Verifier.Setup(x => x.VerifyAsync("user-42", emailChallenge.TokenPurpose, "987654", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+        string emailAttemptKey = CreateKeys().Subject(AuthenticationMethod.Email, "user-42");
+        dependencies.AttemptTracker.Setup(x => x.RegisterFailureAsync(emailAttemptKey, It.IsAny<int>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(1);
+        Mock<IAuthenticationSessionRegistry> registry = new();
+        List<SecurityAuditEvent> events = [];
+        CompletePasswordLoginOtpHandler handler = dependencies.CreateHandler(new RecordingWriter(events), registry.Object);
+
+        AuthenticationResult<LoginResult> result = await handler.Handle(
+            new CompletePasswordLoginOtpCommand(emailChallenge.Id.Value, "987654", "/home"),
+            CancellationToken.None);
+
+        result.Should().BeOfType<AuthenticationResult<LoginResult>.Failure>()
+            .Which.Error.Reason.Should().Be(AuthenticationFailureReason.ChallengeAttemptsExhausted);
+        dependencies.AttemptTracker.Verify(x => x.RegisterFailureAsync(emailAttemptKey, It.IsAny<int>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()), Times.Once);
+        registry.Verify(x => x.RecordFailedAttemptAsync("user-42", It.IsAny<CancellationToken>()), Times.Once);
+        JsonSerializer.Serialize(events).Should().NotContain("987654");
     }
 
     [Fact]
@@ -245,10 +368,10 @@ public sealed class CompletePasswordLoginOtpHandlerTests
 
     private static CompletePasswordLoginOtpCommand Command() => new("challenge-42", "123456", "/home");
 
-    private static TestDependencies CreateDependencies()
+    private static TestDependencies CreateDependencies(AuthenticationChallenge? configuredChallenge = null, AuthenticationUserDescriptor? user = null)
     {
         Mock<IAuthenticationChallengeStore> store = new();
-        AuthenticationChallenge challenge = AuthenticationChallengePolicy.Default.CreatePasswordLoginOtpChallenge(
+        AuthenticationChallenge challenge = configuredChallenge ?? AuthenticationChallengePolicy.Default.CreatePasswordLoginOtpChallenge(
             "user-42", "+989121234567", DateTimeOffset.UtcNow, false);
         store.Setup(x => x.GetAsync(It.IsAny<AuthenticationChallengeId>(), It.IsAny<CancellationToken>())).ReturnsAsync(challenge);
         store.Setup(x => x.TryReserveAttemptAsync(It.IsAny<AuthenticationChallenge>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);
@@ -258,14 +381,21 @@ public sealed class CompletePasswordLoginOtpHandlerTests
         Mock<IAuthenticationSignInService> signIn = new();
         Mock<IAuthenticationRedirectResolver> redirects = new();
         redirects.Setup(x => x.ResolveAsync("/home", false, "user-42", It.IsAny<CancellationToken>())).ReturnsAsync("/home");
-        return new TestDependencies(store, verifier, signIn, redirects);
+        Mock<IAuthenticationUserDirectory> userDirectory = new();
+        userDirectory.Setup(x => x.FindByIdAsync("user-42", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user ?? new AuthenticationUserDescriptor("user-42", "user-42", null, "Given", "Family", null, "+989121234567", false, PhoneNumberConfirmed: true));
+        Mock<IAuthenticationAttemptTracker> attemptTracker = new();
+        attemptTracker.Setup(x => x.IsDeniedAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync(false);
+        return new TestDependencies(store, verifier, signIn, redirects, userDirectory, attemptTracker);
     }
 
     private sealed record TestDependencies(
         Mock<IAuthenticationChallengeStore> Store,
         Mock<IAuthenticationCodeVerifier> Verifier,
         Mock<IAuthenticationSignInService> SignIn,
-        Mock<IAuthenticationRedirectResolver> Redirects)
+        Mock<IAuthenticationRedirectResolver> Redirects,
+        Mock<IAuthenticationUserDirectory> UserDirectory,
+        Mock<IAuthenticationAttemptTracker> AttemptTracker)
     {
         public CompletePasswordLoginOtpHandler CreateHandler(
             ISecurityAuditWriter writer,
@@ -276,12 +406,13 @@ public sealed class CompletePasswordLoginOtpHandlerTests
             Redirects.Object,
             writer,
             new TestRequestContext(),
-            new InMemoryAuthenticationAttemptTracker(),
+            AttemptTracker.Object,
             new TestSecurityPolicyProvider(),
             CreateKeys(),
             TestSourceAttemptGuards.WithoutClientAddress(),
             new TestAuthenticationUtcClock(),
-            registry ?? Mock.Of<IAuthenticationSessionRegistry>());
+            registry ?? Mock.Of<IAuthenticationSessionRegistry>(),
+            UserDirectory.Object);
     }
 
     private sealed class TestSecurityPolicyProvider : IAuthenticationSecurityPolicyProvider

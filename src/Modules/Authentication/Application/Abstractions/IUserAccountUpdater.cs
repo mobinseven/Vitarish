@@ -1,4 +1,5 @@
 using Vitarish.Authentication.Domain.Security;
+using Vitarish.Authentication.Domain.Methods;
 
 namespace Vitarish.Authentication.Application.Abstractions;
 
@@ -8,11 +9,13 @@ namespace Vitarish.Authentication.Application.Abstractions;
 /// </summary>
 public interface IUserAccountUpdater
 {
-    Task<bool> SetPhoneNumberAsync(string userId, string phoneNumber, CancellationToken cancellationToken = default);
-    Task<bool> SetEmailAsync(string userId, string email, CancellationToken cancellationToken = default);
+    Task<bool> SetVerifiedPhoneNumberAsync(string userId, string phoneNumber, CancellationToken cancellationToken = default);
+    Task<bool> SetVerifiedEmailAsync(string userId, string email, CancellationToken cancellationToken = default);
     Task ConfirmContactAsync(string userId, string contact, CancellationToken cancellationToken = default);
     Task<PasswordChangeOutcome> ChangePasswordAsync(string userId, string currentPassword, string newPassword, CancellationToken cancellationToken = default);
+    Task<PasswordChangeOutcome> AddFirstPasswordAsync(string userId, string newPassword, CancellationToken cancellationToken = default);
     Task<PasswordChangeOutcome> ResetPasswordAsync(string userId, string newPassword, CancellationToken cancellationToken = default);
+    Task<bool> SetTwoFactorEnabledAsync(string userId, bool enabled, bool expectedCurrentValue, AuthenticationMethod? expectedChannel, CancellationToken cancellationToken = default);
     Task<bool> PasswordMatchesAsync(string userId, string password, CancellationToken cancellationToken = default);
     Task<bool> UserHasPasswordAsync(string userId, CancellationToken cancellationToken = default);
 }
@@ -22,6 +25,7 @@ public enum PasswordChangeStatus
     Succeeded,
     InvalidCurrentPassword,
     PolicyRejected,
+    AlreadyHasPassword,
     UserNotFound,
     Failed
 }

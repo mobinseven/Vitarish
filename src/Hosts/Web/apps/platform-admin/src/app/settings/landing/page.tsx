@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { Surface } from "@heroui/react";
+import { ConfirmDialog } from "@vitarish/ui";
 import { useQueryClient } from "@tanstack/react-query";
 import { usePlatformAuthorization } from "@vitarish/auth";
 import {
@@ -25,6 +26,7 @@ export default function LandingSettingsPage() {
   const [target, setTarget] = useState("");
   const [message, setMessage] = useState("");
   const targetRef = useRef("");
+  const [pendingTarget, setPendingTarget] = useState<string | null>(null);
 
   if (!hasAccess) return null;
 
@@ -62,19 +64,7 @@ export default function LandingSettingsPage() {
         <div>
           <form className="space-y-3" onSubmit={event => {
             event.preventDefault();
-            const submittedTarget = targetRef.current;
-            if (!submittedTarget || !window.confirm(t("admin.landing.confirmation"))) return;
-            setMessage("");
-            mutation.mutate({ data: { tenantId: submittedTarget } }, {
-              onSuccess: result => {
-                if (targetRef.current !== submittedTarget) return;
-                revalidateAffectedQueries(result.previousTenantId, result.tenantId);
-                setMessage(result.changed ? t("admin.landing.success") : t("admin.landing.noop"));
-              },
-              onError: () => {
-                if (targetRef.current === submittedTarget) setMessage(t("admin.landing.mutationError"));
-              },
-            });
+            if (targetRef.current) setPendingTarget(targetRef.current);
           }}>
             <label className="block">{t("admin.landing.target")}
               <select className="mt-1 w-full rounded border p-2" value={target} onChange={event => selectTarget(event.target.value)}>
@@ -88,6 +78,33 @@ export default function LandingSettingsPage() {
             <button className="rounded bg-primary px-4 py-2 text-primary-foreground" disabled={mutation.isPending || !target}>{t("admin.landing.confirm")}</button>
             {message && <p role="status">{message}</p>}
           </form>
+          <ConfirmDialog
+            isOpen={pendingTarget !== null}
+            isPending={mutation.isPending}
+            title={t("admin.landing.confirmTitle")}
+            message={t("admin.landing.confirmation")}
+            confirmLabel={t("admin.landing.confirm")}
+            cancelLabel={t("admin.landing.cancel")}
+            confirmIcon="arrows-rotate"
+            onCancel={() => setPendingTarget(null)}
+            onConfirm={() => {
+              const submittedTarget = pendingTarget;
+              if (!submittedTarget) return;
+              setMessage("");
+              mutation.mutate({ data: { tenantId: submittedTarget } }, {
+                onSuccess: result => {
+                  setPendingTarget(null);
+                  if (targetRef.current !== submittedTarget) return;
+                  revalidateAffectedQueries(result.previousTenantId, result.tenantId);
+                  setMessage(result.changed ? t("admin.landing.success") : t("admin.landing.noop"));
+                },
+                onError: () => {
+                  setPendingTarget(null);
+                  if (targetRef.current === submittedTarget) setMessage(t("admin.landing.mutationError"));
+                },
+              });
+            }}
+          />
         </div>
       </Surface>
     </>}

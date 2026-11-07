@@ -177,6 +177,129 @@
         }
       }
     },
+    "/api/apps/landing/workspaces": {
+      "get": {
+        "tags": [
+          "Landing"
+        ],
+        "operationId": "LandingListWorkspaces",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LandingWorkspacesResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/apps/landing/workspaces/{tenantId}/handoff": {
+      "post": {
+        "tags": [
+          "Landing"
+        ],
+        "operationId": "LandingIssueWorkspaceHandoff",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LandingWorkspaceHandoffResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/apps/landing/onboarding-handoff": {
       "post": {
         "tags": [
@@ -203,6 +326,132 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/apps/landing/home-conversations": {
+      "post": {
+        "tags": [
+          "Landing"
+        ],
+        "operationId": "LandingRunHomeConversation",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LandingHomeConversationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LandingHomeConversationResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/apps/landing/home-conversations/{conversationId}": {
+      "delete": {
+        "tags": [
+          "Landing"
+        ],
+        "operationId": "LandingDeleteHomeConversation",
+        "parameters": [
+          {
+            "name": "conversationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
           },
           "401": {
             "description": "Unauthorized"
@@ -468,6 +717,35 @@
           }
         }
       },
+      "LandingAppAvailability": {
+        "enum": [
+          "Live",
+          "Soon"
+        ]
+      },
+      "LandingAppResponse": {
+        "required": [
+          "appId",
+          "name",
+          "availability",
+          "canCreate"
+        ],
+        "type": "object",
+        "properties": {
+          "appId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "availability": {
+            "$ref": "#/components/schemas/LandingAppAvailability"
+          },
+          "canCreate": {
+            "type": "boolean"
+          }
+        }
+      },
       "LandingCatalogResponse": {
         "required": [
           "features",
@@ -612,6 +890,99 @@
           }
         }
       },
+      "LandingHomeActionKeysResponse": {
+        "required": [
+          "createWorkspace",
+          "openWorkspace"
+        ],
+        "type": "object",
+        "properties": {
+          "createWorkspace": {
+            "type": "string"
+          },
+          "openWorkspace": {
+            "type": "string"
+          }
+        }
+      },
+      "LandingHomeActionTarget": {
+        "required": [
+          "key"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "appId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "tenantId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
+      "LandingHomeConversationRequest": {
+        "required": [
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "conversationId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "LandingHomeConversationResponse": {
+        "required": [
+          "conversationId",
+          "message",
+          "reply",
+          "actionTarget"
+        ],
+        "type": "object",
+        "properties": {
+          "conversationId": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "reply": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AgentInteractiveReplyResponse"
+              }
+            ]
+          },
+          "actionTarget": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/LandingHomeActionTarget"
+              }
+            ]
+          }
+        }
+      },
       "LandingHostBindingResponse": {
         "required": [
           "hostname",
@@ -671,6 +1042,12 @@
             "items": {
               "type": "string"
             }
+          },
+          "appId": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -705,6 +1082,80 @@
           "InProgress",
           null
         ]
+      },
+      "LandingWorkspaceHandoffResponse": {
+        "required": [
+          "hostname",
+          "token"
+        ],
+        "type": "object",
+        "properties": {
+          "hostname": {
+            "type": "string"
+          },
+          "token": {
+            "type": "string"
+          },
+          "handoffUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "LandingWorkspaceResponse": {
+        "required": [
+          "tenantId",
+          "appId",
+          "name",
+          "hostname",
+          "hasLogo"
+        ],
+        "type": "object",
+        "properties": {
+          "tenantId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "appId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "hostname": {
+            "type": "string"
+          },
+          "hasLogo": {
+            "type": "boolean"
+          }
+        }
+      },
+      "LandingWorkspacesResponse": {
+        "required": [
+          "workspaces",
+          "apps",
+          "actionKeys"
+        ],
+        "type": "object",
+        "properties": {
+          "workspaces": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LandingWorkspaceResponse"
+            }
+          },
+          "apps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LandingAppResponse"
+            }
+          },
+          "actionKeys": {
+            "$ref": "#/components/schemas/LandingHomeActionKeysResponse"
+          }
+        }
       },
       "ProblemDetails": {
         "type": "object",

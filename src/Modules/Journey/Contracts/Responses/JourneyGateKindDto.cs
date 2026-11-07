@@ -14,5 +14,6 @@ public enum JourneyGateKindDto
     SuspiciousLogin = 6,
     PasskeyEnrollmentPrompt = 7,
     MfaEnrollmentPrompt = 8,
-    TenantCreation = 9
+    TenantCreation = 9,
+    SignInContinue = 10
 }

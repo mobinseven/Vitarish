@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import { useCurrentJourney } from "@/hooks/journey/useCurrentJourney";
-import { AuthenticationSearchParams } from "@vitarish/auth/routes";
+import { isSafeRelativeReturnTo, signInReturnUrlQueryKey } from "@vitarish/journey/sign-in-host";
 import { Routes } from "@/app/routes";
+import { useCurrentJourney } from "@/hooks/journey/useCurrentJourney";
 import { JourneyErrorState, JourneyLoadingState } from "@vitarish/journey";
 
 interface JourneyGateBoundaryProps {
@@ -13,11 +13,44 @@ interface JourneyGateBoundaryProps {
 }
 
 export function JourneyGateBoundary({ children, central = false }: JourneyGateBoundaryProps) {
+  return (
+    <Suspense fallback={<JourneyLoadingState />}>
+      <JourneyGateContent central={central}>{children}</JourneyGateContent>
+    </Suspense>
+  );
+}
+
+function matchesJourneyDestination(
+  pathname: string | null,
+  currentSearch: string,
+  destinationUrl: string,
+): boolean {
+  const queryIndex = destinationUrl.indexOf("?");
+  const destinationPath = queryIndex < 0
+    ? destinationUrl
+    : destinationUrl.slice(0, queryIndex);
+
+  if (pathname !== destinationPath) return false;
+  if (queryIndex < 0) return true;
+
+  const currentParams = new URLSearchParams(currentSearch);
+  const destinationParams = new URLSearchParams(destinationUrl.slice(queryIndex + 1));
+  for (const [key, value] of destinationParams.entries()) {
+    if (!currentParams.getAll(key).includes(value)) return false;
+  }
+  return true;
+}
+
+function JourneyGateContent({ children, central = false }: JourneyGateBoundaryProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const search = useSearchParams();
-  const requestedReturnUrl = search.get(AuthenticationSearchParams.ReturnUrl);
-  const { data: decision, isLoading, error, refetch } = useCurrentJourney(requestedReturnUrl ?? (central ? pathname : undefined));
+  const searchParams = useSearchParams();
+  const requestedReturnUrl = searchParams.get(signInReturnUrlQueryKey);
+  const returnUrl = isSafeRelativeReturnTo(requestedReturnUrl)
+    ? requestedReturnUrl
+    : undefined;
+  const currentSearch = searchParams.toString();
+  const { data: decision, isLoading, error, refetch } = useCurrentJourney(central ? requestedReturnUrl ?? pathname ?? undefined : returnUrl);
 
   useEffect(() => {
     if (isLoading || error || !decision) return;
@@ -25,21 +58,19 @@ export function JourneyGateBoundary({ children, central = false }: JourneyGateBo
     const { step } = decision;
 
     if (step.blockingGate) {
-      const gatePath = step.blockingGate.destinationUrl;
-      const gateDestination = central && requestedReturnUrl
-        ? `${gatePath}?${AuthenticationSearchParams.ReturnUrl}=${encodeURIComponent(requestedReturnUrl)}` : gatePath;
+      const gateDestination = step.blockingGate.destinationUrl;
 
-      if (pathname === gatePath) {
+      if (matchesJourneyDestination(pathname, currentSearch, gateDestination)) {
         return;
       }
 
       router.push(gateDestination);
       return;
-    } else if (central && requestedReturnUrl && step.destinationUrl !== pathname &&
-      new Set<string>([Routes.Account.ProfileComplete, Routes.Account.ContactConfirm, Routes.Account.Consents]).has(pathname)) {
-      router.replace(step.destinationUrl);
     }
-  }, [decision, isLoading, error, router, pathname, central, requestedReturnUrl]);
+    if (central && requestedReturnUrl && step.destinationUrl !== pathname &&
+        new Set<string>([Routes.Account.ProfileComplete, Routes.Account.ContactConfirm, Routes.Account.Consents]).has(pathname ?? ""))
+      router.replace(step.destinationUrl);
+  }, [decision, isLoading, error, router, pathname, currentSearch, central, requestedReturnUrl]);
 
   if (isLoading) {
     return <JourneyLoadingState />;
@@ -52,7 +83,7 @@ export function JourneyGateBoundary({ children, central = false }: JourneyGateBo
   if (decision?.step?.blockingGate) {
     const gateDestination = decision.step.blockingGate.destinationUrl;
 
-    if (pathname === gateDestination) {
+    if (matchesJourneyDestination(pathname, currentSearch, gateDestination)) {
       return <>{children}</>;
     }
 

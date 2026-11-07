@@ -21,10 +21,11 @@ export const serverAuthenticationEkuOid = "1.3.6.1.5.5.7.3.1";
 export const tls12HandshakeProtocol = "TLSv1.2";
 const tlsExpectations = Object.freeze({ accepted: "accepted", rejected: "rejected" });
 const unsafeHttpMethods = Object.freeze({ trace: "TRACE", connect: "CONNECT" });
-export const expectedOpenIngressPorts = Object.freeze([22, 80, 443]);
+// 25, 465 and 993 are the mail server's SMTP, submission and IMAP ports (docs/runbooks/mail-server.md).
+export const expectedOpenIngressPorts = Object.freeze([22, 25, 80, 443, 465, 993]);
 export const httpRedirectSuccessStatuses = Object.freeze([301, 302, 307, 308]);
 export const publicIngressPorts = Object.freeze([
-  21, 22, 23, 25, 53, 80, 110, 143, 443, 445,
+  21, 22, 23, 25, 53, 80, 110, 143, 443, 445, 465, 993,
   3000, 3001, 3002, 3003, 3004, 3005, 3006,
   3306, 5432, 5672, 6379, 8080, 8443, 9000, 9001, 9200, 27017,
 ]);

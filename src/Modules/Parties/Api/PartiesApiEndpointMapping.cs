@@ -93,12 +93,20 @@ public static class PartiesApiEndpointMapping
             PartiesApiRoutes.SignInClinicHandoff,
             IssueSignInClinicHandoffAsync,
             PartiesApiOperations.IssueSignInClinicHandoff,
-            typeof(C.SignInHandoffResponse));
+            typeof(C.SignInHandoffResponse))
+            .RequireRateLimiting(PartiesRateLimitPolicies.SignInHandoff);
         _ = signInGroup.MapModulePost(
             PartiesApiRoutes.SignInOnboardingHandoff,
             IssueSignInOnboardingHandoffAsync,
             PartiesApiOperations.IssueSignInOnboardingHandoff,
-            typeof(C.SignInHandoffResponse));
+            typeof(C.SignInHandoffResponse))
+            .RequireRateLimiting(PartiesRateLimitPolicies.SignInHandoff);
+        _ = signInGroup.MapModulePost(
+            PartiesApiRoutes.SignInHomeHandoff,
+            IssueSignInHomeHandoffAsync,
+            PartiesApiOperations.IssueSignInHomeHandoff,
+            typeof(C.SignInHomeHandoffResponse))
+            .RequireRateLimiting(PartiesRateLimitPolicies.SignInHandoff);
         RouteGroupBuilder publicGroup = endpoints
             .MapAnonymousModuleGroup($"{PartiesApiRoutes.Base}{PartiesApiRoutes.Public}", PublicLogoJustification)
             .WithGroupName(PartiesApiRoutes.DocumentTag)
@@ -165,7 +173,7 @@ public static class PartiesApiEndpointMapping
 
     private static async Task<IResult> GetSignInClinicsAsync([FromServices] ISender sender, [FromServices] IOptions<OnboardingHostOptions> onboarding, CancellationToken cancellationToken) =>
         await sender.Send(new ListSignInClinicsQuery(), cancellationToken) is { } clinics
-            ? Results.Ok(new C.SignInClinicsResponse([.. clinics.Select(clinic => new C.SignInClinicDto(clinic.TenantId, clinic.Name, clinic.Hostname, clinic.Role, clinic.HasLogo ? PartiesApiRoutes.PublicLogoPath : null))], onboarding.Value.TenantOnboardingEnabled ? onboarding.Value.OnboardingUrl : null))
+            ? Results.Ok(new C.SignInClinicsResponse([.. clinics.Select(clinic => new C.SignInClinicDto(clinic.TenantId, clinic.AppId, clinic.Name, clinic.Hostname, clinic.Role, clinic.HasLogo ? PartiesApiRoutes.PublicLogoPath : null))], onboarding.Value.IsAvailable ? onboarding.Value.OnboardingUrl : null))
             : Results.Unauthorized();
 
     // A clinic that is not the user's answers the same as one that does not exist.
@@ -174,6 +182,11 @@ public static class PartiesApiEndpointMapping
 
     private static async Task<IResult> IssueSignInOnboardingHandoffAsync([FromServices] ISender sender, CancellationToken cancellationToken) =>
         ToHandoffResult(await sender.Send(new IssueSignInHandoffCommand(null), cancellationToken), "Clinic creation is not available.");
+
+    private static async Task<IResult> IssueSignInHomeHandoffAsync(C.SignInHomeHandoffRequest request, [FromServices] ISender sender, CancellationToken cancellationToken) =>
+        await sender.Send(new IssueSignInHandoffCommand(null, SignInHandoffTarget.Home, request.ReturnTo), cancellationToken) is { } handoff
+            ? Results.Ok(new C.SignInHomeHandoffResponse(handoff.Hostname, handoff.Token, handoff.ReturnTo, handoff.HandoffUrl))
+            : NotFound("Platform home is not available.");
 
     private static IResult ToHandoffResult(SignInHandoff? handoff, string notFound) =>
         handoff is null || handoff.HandoffUrl is not null ? NotFound(notFound) : Results.Ok(new C.SignInHandoffResponse(handoff.Hostname, handoff.Token));
@@ -228,8 +241,8 @@ public static class PartiesApiEndpointMapping
             CreateOwnTenantStatus.AddressReserved => BadRequest("This subdomain is reserved."),
             CreateOwnTenantStatus.AddressTaken => Conflict("This subdomain is already taken."),
             CreateOwnTenantStatus.IdempotencyConflict => Conflict($"This {PartiesApiRoutes.IdempotencyKeyHeader} was already used for a different request."),
-            CreateOwnTenantStatus.CreatorNotFound or CreateOwnTenantStatus.PhoneNotVerified =>
-                Results.Json(new PartiesError(PartiesErrorCode.Forbidden, "A verified phone number is required to create a clinic."), statusCode: StatusCodes.Status403Forbidden),
+            CreateOwnTenantStatus.CreatorNotFound or CreateOwnTenantStatus.ContactNotVerified =>
+                Results.Json(new PartiesError(PartiesErrorCode.Forbidden, "A verified phone number or email address is required to create a clinic."), statusCode: StatusCodes.Status403Forbidden),
             CreateOwnTenantStatus.RoleScopeConflict =>
                 Results.Json(new PartiesError(PartiesErrorCode.Forbidden, "A platform administrator account cannot own a clinic."), statusCode: StatusCodes.Status403Forbidden),
             CreateOwnTenantStatus.LimitReached =>

@@ -1,0 +1,7 @@
+/*
+ * The landing theme draws form fields without a border, which suits its marketing pages but leaves the
+ * account area's inputs invisible on a white card. Restore a visible field edge here only.
+ */
+.visibleFieldBorders {
+  --border-width-field: 0.0625rem;
+}

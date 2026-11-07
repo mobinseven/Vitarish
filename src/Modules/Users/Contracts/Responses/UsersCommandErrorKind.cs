@@ -27,7 +27,8 @@ public enum UsersCommandErrorKind
     LastOwnerProtection,
     SelfDeletion,
     LastPlatformAdministrator,
-    RoleScopeConflict
+    RoleScopeConflict,
+    ConfirmedContactRequiredForTwoStepSignIn
 }
 
 public static class UsersCommandErrorKinds

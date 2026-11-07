@@ -1,9 +1,10 @@
+import { AuthenticationWebRoutes } from "../../shared/auth/src/routes";
 import { expect, test, type Page } from "@playwright/test";
 import { execFile } from "node:child_process";
 import { existsSync } from "node:fs";
 import { rm } from "node:fs/promises";
 import { promisify } from "node:util";
-import { resolve } from "node:path";
+import { dirname, extname, join, parse, resolve } from "node:path";
 import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
 import { Routes as PlatformRoutes } from "../../apps/platform-admin/src/app/routes";
 import { forwardedForHeaderName, signInToClinic, submitPasswordOnSignInHost } from "./signInHost";
@@ -132,7 +133,7 @@ async function login(page: Page, username: string, origin = ""): Promise<void> {
     page.locator('button[type="submit"]').click(),
   ]);
   expect(response.status()).toBe(200);
-  await expect(page).toHaveURL(url => url.origin === platformOrigin && !url.pathname.startsWith("/login") && url.pathname !== "/handoff", { timeout: 120_000 });
+  await expect(page).toHaveURL(url => url.origin === platformOrigin && !url.pathname.startsWith(AuthenticationWebRoutes.SignIn) && url.pathname !== AuthenticationWebRoutes.Handoff, { timeout: 120_000 });
 }
 
 async function reviewUserAuditEvent(page: Page, category: string, eventName: string, operation: string): Promise<void> {
@@ -483,10 +484,10 @@ test("platform administrator creates, edits, assigns access, and reviews a user'
   await expect(page.getByText(roleMessages.globalRoleBlockedByMemberships, { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: roleMessages.grantGlobalRole })).toHaveCount(0);
 
-  page.once("dialog", (dialog) => dialog.accept());
+  await page.getByRole("button", { name: roleMessages.revoke }).click();
   const [revokeResponse] = await Promise.all([
     page.waitForResponse((response) => response.request().method() === "DELETE" && response.request().url().includes(createdUser.id!)),
-    page.getByRole("button", { name: roleMessages.revoke }).click(),
+    page.getByRole("dialog").getByRole("button", { name: roleMessages.revokeConfirmAction }).click(),
   ]);
   expect(revokeResponse.ok()).toBe(true);
   await expect(grantedMembership).toHaveCount(0);
@@ -629,8 +630,13 @@ test("platform administrator creates, edits, assigns access, and reviews a user'
   await expect(authenticationMethods.getByRole("list", { name: userMessages.enabledMethods }).getByText(userMessages.password, { exact: true })).toBeVisible();
   await expect(authenticationMethods.getByText("No passkey is registered.", { exact: true })).toBeVisible();
 
-  const proofScreenshot = process.env[twoHostE2eProofScreenshotEnvironmentKey];
-  if (proofScreenshot) await captureAuthenticatedScreenshot(page, proofScreenshot);
+  const configuredProofScreenshot = process.env[twoHostE2eProofScreenshotEnvironmentKey];
+  if (configuredProofScreenshot) {
+    const proofScreenshot = existsSync(configuredProofScreenshot)
+      ? join(dirname(configuredProofScreenshot), `${parse(configuredProofScreenshot).name}-user-management${extname(configuredProofScreenshot)}`)
+      : configuredProofScreenshot;
+    await captureAuthenticatedScreenshot(page, proofScreenshot);
+  }
 
   // The security history pages on its own: the request moves only its page, and the
   // sign-in history stays on its first page.

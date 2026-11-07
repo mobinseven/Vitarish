@@ -1,8 +1,11 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using MediatR;
 using Vitarish.Authentication.Application.Abstractions;
 using Vitarish.Authentication.Domain.Security;
 using Vitarish.Authentication.Domain.Sessions;
+using Vitarish.Authentication.Domain.Methods;
+using Vitarish.Authentication.Application.Security;
 using Vitarish.Users.Application.Commands;
 using Vitarish.Users.Domain.Entities;
 
@@ -12,15 +15,15 @@ public sealed class UserAccountUpdater(
     UserManager<User> userManager,
     ISender sender) : IUserAccountUpdater
 {
-    public async Task<bool> SetPhoneNumberAsync(string userId, string phoneNumber, CancellationToken cancellationToken = default)
+    public async Task<bool> SetVerifiedPhoneNumberAsync(string userId, string phoneNumber, CancellationToken cancellationToken = default)
     {
-        IdentityResult result = await sender.Send(new SetUserPhoneNumberCommand(userId, phoneNumber), cancellationToken);
+        IdentityResult result = await sender.Send(new SetVerifiedUserPhoneNumberCommand(userId, phoneNumber), cancellationToken);
         return result.Succeeded;
     }
 
-    public async Task<bool> SetEmailAsync(string userId, string email, CancellationToken cancellationToken = default)
+    public async Task<bool> SetVerifiedEmailAsync(string userId, string email, CancellationToken cancellationToken = default)
     {
-        IdentityResult result = await sender.Send(new SetUserEmailCommand(userId, email), cancellationToken);
+        IdentityResult result = await sender.Send(new SetVerifiedUserEmailCommand(userId, email), cancellationToken);
         return result.Succeeded;
     }
 
@@ -67,6 +70,34 @@ public sealed class UserAccountUpdater(
             : PasswordChangeOutcome.Failure(PasswordChangeStatus.InvalidCurrentPassword);
     }
 
+    public async Task<PasswordChangeOutcome> AddFirstPasswordAsync(string userId, string newPassword, CancellationToken cancellationToken = default)
+    {
+        User? user = await userManager.FindByIdAsync(userId);
+        if (user is null) return PasswordChangeOutcome.Failure(PasswordChangeStatus.UserNotFound);
+        if (await userManager.HasPasswordAsync(user)) return PasswordChangeOutcome.Failure(PasswordChangeStatus.AlreadyHasPassword);
+
+        IdentityResult result = await userManager.AddPasswordAsync(user, newPassword);
+        if (result.Succeeded) return PasswordChangeOutcome.Success();
+
+        PasswordPolicyViolation[] violations = result.Errors
+            .Select(error => error.Code)
+            .Where(code => code.StartsWith(SecurityPolicyPasswordValidator.PasswordPolicyViolationErrorCodePrefix, StringComparison.Ordinal))
+            .Select(code => Enum.TryParse(code[SecurityPolicyPasswordValidator.PasswordPolicyViolationErrorCodePrefix.Length..], out PasswordPolicyViolation violation)
+                ? (PasswordPolicyViolation?)violation
+                : null)
+            .Where(violation => violation.HasValue)
+            .Select(violation => violation!.Value)
+            .Distinct()
+            .ToArray();
+        if (violations.Length > 0) return PasswordChangeOutcome.PolicyFailure(violations);
+
+        bool passwordNowExists = await userManager.Users.AsNoTracking()
+            .AnyAsync(candidate => candidate.Id == userId && candidate.PasswordHash != null, cancellationToken);
+        return passwordNowExists
+            ? PasswordChangeOutcome.Failure(PasswordChangeStatus.AlreadyHasPassword)
+            : PasswordChangeOutcome.Failure(PasswordChangeStatus.Failed);
+    }
+
     public async Task<PasswordChangeOutcome> ResetPasswordAsync(string userId, string newPassword, CancellationToken cancellationToken = default)
     {
         User? user = await userManager.FindByIdAsync(userId);
@@ -90,6 +121,22 @@ public sealed class UserAccountUpdater(
         return violations.Length > 0
             ? PasswordChangeOutcome.PolicyFailure(violations)
             : PasswordChangeOutcome.Failure(PasswordChangeStatus.Failed);
+    }
+
+    public async Task<bool> SetTwoFactorEnabledAsync(string userId, bool enabled, bool expectedCurrentValue, AuthenticationMethod? expectedChannel, CancellationToken cancellationToken = default)
+    {
+        User? user = await userManager.FindByIdAsync(userId);
+        if (user is null || user.TwoFactorEnabled != expectedCurrentValue) return false;
+
+        if (enabled &&
+            (!await userManager.HasPasswordAsync(user) ||
+                PasswordLoginSecondFactorChannel.Select(AspNetIdentityAuthenticationUserDirectory.ToDescriptor(user))?.Method != expectedChannel))
+        {
+            return false;
+        }
+
+        IdentityResult result = await userManager.SetTwoFactorEnabledAsync(user, enabled);
+        return result.Succeeded;
     }
 
     public async Task<bool> PasswordMatchesAsync(string userId, string password, CancellationToken cancellationToken = default)

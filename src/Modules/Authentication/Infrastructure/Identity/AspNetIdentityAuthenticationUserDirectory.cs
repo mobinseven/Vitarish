@@ -72,10 +72,22 @@ public sealed class AspNetIdentityAuthenticationUserDirectory(
         return user is null || user.IsDeleted ? null : ToDescriptor(user);
     }
 
-    private static AuthenticationUserDescriptor ToDescriptor(User user)
+    internal static AuthenticationUserDescriptor ToDescriptor(User user)
     {
         string? displayName = string.IsNullOrWhiteSpace(user.FullName) ? user.UserName : user.FullName;
         bool requiresProfileCompletion = string.IsNullOrWhiteSpace(user.FirstName) || string.IsNullOrWhiteSpace(user.LastName);
-        return new AuthenticationUserDescriptor(user.Id, user.UserName, displayName, user.FirstName, user.LastName, user.Email, user.PhoneNumber, requiresProfileCompletion);
+        return new AuthenticationUserDescriptor(
+            user.Id,
+            user.UserName,
+            displayName,
+            user.FirstName,
+            user.LastName,
+            user.Email,
+            user.PhoneNumber,
+            requiresProfileCompletion,
+            user.EmailConfirmed,
+            user.PhoneNumberConfirmed,
+            user.PasswordHash is not null,
+            user.TwoFactorEnabled);
     }
 }

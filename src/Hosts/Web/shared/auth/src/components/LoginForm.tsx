@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { TextField, Label, Input, Button, Form } from "@heroui/react";
+import { TextField, Label, Input, Button, Form, Tooltip } from "@heroui/react";
 import { usePasswordLogin } from "../hooks/usePasswordLogin";
 import { useAuthErrorDisplay } from "../hooks/useAuthErrorDisplay";
 import { useLocalizedText } from "@vitarish/localization";
@@ -9,6 +9,7 @@ import { getRequestedReturnUrl } from "../hooks/requestedReturnUrl";
 import { AuthenticationSearchParams } from "../routes";
 import { StatusAlert } from "@vitarish/ui";
 import type { AuthNavigationOptions } from "../hooks/navigation";
+import { OtpVerificationStep } from "./OtpVerificationStep";
 
 interface LoginFormProps extends AuthNavigationOptions {
   returnUrl?: string;
@@ -21,7 +22,18 @@ export function LoginForm({
   navigate,
   returnUrlSearchParams,
 }: LoginFormProps) {
-  const { login, completeOtp, requiresOtp, isLoading, error, errorMessage } = usePasswordLogin({
+  const {
+    login,
+    completeOtp,
+    resendOtp,
+    resetOtp,
+    challenge,
+    requiresOtp,
+    isLoading,
+    error,
+    errorMessage,
+    statusCode,
+  } = usePasswordLogin({
     navigate,
     returnUrlSearchParams,
   });
@@ -44,13 +56,39 @@ export function LoginForm({
     [userNameOrEmail, password, returnUrl, login],
   );
 
-  const handleOtpSubmit = useCallback(
-    (e: React.FormEvent) => {
-      e.preventDefault();
-      completeOtp(otpCode);
-    },
-    [completeOtp, otpCode],
-  );
+  if (requiresOtp && challenge) {
+    return (
+      <OtpVerificationStep
+        destinationLabel={
+          challenge.maskedDestination ?? t("auth.passwordLoginOtp.destinationFallback")
+        }
+        code={otpCode}
+        onCodeChange={setOtpCode}
+        onVerify={completeOtp}
+        onReset={() => {
+          setOtpCode("");
+          resetOtp();
+        }}
+        onResend={resendOtp}
+        isLoading={isLoading}
+        errorMessage={displayedError}
+        errorCode={error?.code}
+        statusMessage={statusCode ? t(statusCode) : null}
+        remainingAttempts={challenge.remainingAttempts}
+        expiresAt={challenge.expiresAt}
+        autoSubmitOnCapturedCode
+        changeDestinationLabel={t("auth.passwordLoginOtp.returnToPasswordAction")}
+        codeLabel={t("auth.login.otpLabel")}
+        verifyActionLabel={t("auth.login.otpVerifyAction")}
+        stepDescription={
+          challenge.usesEmailSecondFactor
+            ? t("auth.passwordLoginOtp.emailStepDescription")
+            : undefined
+        }
+        captureCode={!challenge.usesEmailSecondFactor}
+      />
+    );
+  }
 
   const requestedReturn = returnUrl ?? getRequestedReturnUrl(returnUrlSearchParams);
   const recoveryParams = new URLSearchParams();
@@ -59,61 +97,39 @@ export function LoginForm({
     ? `${forgotPasswordHref}?${recoveryParams}` : forgotPasswordHref;
 
   return (
-    <Form
-      method="post"
-      onSubmit={requiresOtp ? handleOtpSubmit : handleSubmit}
-      className="flex flex-col gap-4"
-    >
+    <Form method="post" onSubmit={handleSubmit} className="flex flex-col gap-4">
       {displayedError && <StatusAlert className="mb-4" message={displayedError} />}
-      {!requiresOtp && (
-        <TextField name="username" isRequired isDisabled={isLoading}>
-          <Label>{t("auth.login.usernameOrEmailLabel")}</Label>
-          <Input
-            placeholder={t("auth.login.usernameOrEmailPlaceholder")}
-            value={userNameOrEmail}
-            onChange={(e) => setUserNameOrEmail(e.target.value)}
-            autoComplete="username"
-          />
-        </TextField>
-      )}
-      {!requiresOtp && (
-        <TextField
-          name="password"
-          type="password"
-          isRequired
-          isDisabled={isLoading}
-        >
-          <Label>{t("auth.login.passwordLabel")}</Label>
-          <Input
-            placeholder={t("auth.login.passwordPlaceholder")}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            autoComplete="current-password"
-          />
-        </TextField>
-      )}
-      {requiresOtp ? (
-        <>
-          <TextField name="otp" isRequired isDisabled={isLoading}>
-            <Label>{t("auth.login.otpLabel")}</Label>
-            <Input
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              placeholder={t("auth.login.otpPlaceholder")}
-              value={otpCode}
-              onChange={(e) => setOtpCode(e.target.value)}
-            />
-          </TextField>
-          <Button type="submit" isDisabled={!isHydrated || isLoading} isPending={isLoading} className="w-full">
-            {t("auth.login.otpVerifyAction")}
-          </Button>
-        </>
-      ) : (
+      <TextField name="username" isRequired isDisabled={isLoading}>
+        <Label>{t("auth.login.usernameOrEmailLabel")}</Label>
+        <Input
+          placeholder={t("auth.login.usernameOrEmailPlaceholder")}
+          value={userNameOrEmail}
+          onChange={(e) => setUserNameOrEmail(e.target.value)}
+          autoComplete="username"
+        />
+      </TextField>
+      <TextField
+        name="password"
+        type="password"
+        isRequired
+        isDisabled={isLoading}
+      >
+        <Label>{t("auth.login.passwordLabel")}</Label>
+        <Input
+          placeholder={t("auth.login.passwordPlaceholder")}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          autoComplete="current-password"
+        />
+      </TextField>
+      <Tooltip>
         <Button type="submit" isDisabled={!isHydrated || isLoading} isPending={isLoading} className="w-full">
-          {t("auth.login.signInAction")}
+          <i aria-hidden="true" className="fa-light fa-right-to-bracket" />
+          <span>{t("auth.login.signInAction")}</span>
         </Button>
-      )}
-      {!requiresOtp && forgotPasswordHref && (
+        <Tooltip.Content>{t("auth.login.signInAction")}</Tooltip.Content>
+      </Tooltip>
+      {forgotPasswordHref && (
         <a className="self-end text-sm text-accent underline-offset-4 hover:underline" href={recoveryHref}>
           {t("auth.recovery.forgotPasswordAction")}
         </a>

@@ -22,6 +22,6 @@ public sealed class GetPendingAuthenticationChallengeHandler(
             challenge.ExpiresAt <= clock.UtcNow || challenge.RemainingAttempts <= 0)
             return null;
         return new(new ChallengeResult(challenge.Id.Value, challenge.Purpose, challenge.ExpiresAt, challenge.RemainingAttempts),
-            challenge.Purpose == AuthenticationChallengePurpose.PasswordLoginOtp ? string.Empty : challenge.Destination, reference.ReturnUrl);
+            challenge.Purpose is AuthenticationChallengePurpose.PasswordLoginOtp or AuthenticationChallengePurpose.PasswordLoginEmailOtp ? string.Empty : challenge.Destination, reference.ReturnUrl);
     }
 }

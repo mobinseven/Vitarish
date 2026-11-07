@@ -77,7 +77,7 @@ its EF, cookie and Identity adapters implement those ports. Parties owns live
 host binding and generic tenant admission; PM provides its own admission port.
 Journey owns required personal gates and continuation ordering. Shared Auth
 owns form recovery and app adapters own Next routing. Hosting owns the exact
-origin, proxy, HTTPS and cookie mechanics. ADR-0020 records the contract migration.
+origin, proxy, HTTPS and cookie mechanics. ADR-0021 records the contract migration.
 
 Acceptance scenarios and proof:
 
@@ -135,7 +135,7 @@ rate limiting, legacy tickets, cookie cleanup and local fallback findings have
 been addressed in source. Follow-up corrections add app-owned PM admission,
 preserve existing host bindings, clear completed recovery references, and
 bound correlation cookies. Custom-domain background renewal limits are stated
-in ADR-0020. Final E2E, full diff/quoted-value audit, CI and release are pending.
+in ADR-0021. Final E2E, full diff/quoted-value audit, CI and release are pending.
 
 Latest completed checks before final gate: 484 Authentication tests with zero
 skips against disposable PostgreSQL, 223 Parties tests, 298 Users tests,
@@ -143,3 +143,42 @@ skips against disposable PostgreSQL, 223 Parties tests, 298 Users tests,
 all affected app/Auth/Journey typechecks; Main build; OpenAPI and security
 baseline with zero violations; Web localization, layout and boundaries passed.
 Additional focused checks are running for the final review corrections.
+
+
+## Mainline integration correction
+
+The first E2E attempt was stopped during Next builds, before browser tests,
+after fetching main 99577ebac revealed eight overlapping merged changes.
+Integrate platform home, app-aware workspaces and email second-factor/recent
+sign-in behavior; Auth still owns the persistent browser family. No-intent
+sign-in returns to platform home, with no automatic clinic selection. Correlated
+app entry retains explicit intent. Unrelated landing work is preserved in Git
+stash ad139a4620889a02bfb51f44b4d6c50bd67ded7a and must be reapplied before handoff.
+
+The generated Authentication snapshot conflicted with main's already-shipped
+AuthenticationSessionAndHandoffAuthenticationTimes migration. Preserve all
+existing migrations unchanged. Regenerate the snapshot through native EF
+scaffolding from the merged authoritative model, excluding only the conflicted
+snapshot from the temporary design build. The temporary scaffold migration is
+never applied or deployed and its two newly generated migration artifacts are
+discarded immediately; retain only EF's regenerated model snapshot. Verify the
+combined migration ledger/model on disposable PostgreSQL and normal rebuild.
+No generated snapshot is hand-edited, restored or copied to create a baseline.
+
+## Current integration checklist
+
+- Preserve all incoming mainline behavior and unrelated owner changes; inspect tracked, staged and untracked paths.
+- Keep authoritative rules/values at their owning boundary and inward dependencies; queries remain read-only, failures explicit and retries/idempotency unchanged.
+- Preserve authentication, authorization, tenant, transport, antiforgery, privacy and audit protections; retain recent-authentication timestamps across handoffs.
+- Generate clients/specs and EF output canonically; preserve applied migration history, validate additive combined model on disposable PostgreSQL.
+- Audit every added quoted value, compatibility/configuration effects and plan-independent names.
+- Follow Web localization, icons/tooltips, surface/color/theme/date rules and meaningful test assertions; retain no native confirmation dialogs.
+- Run focused tests, merge-level build, architecture/Web gates; Claude high review before final collective real-host E2E and inspected fresh screenshots.
+- Deploy exact reviewed release through repository workflow, verify runtime evidence, restore owner landing stash, clean owned temporary artifacts.
+All final integration gates are pending until recorded with current results.
+
+Integration validation: Main builds; Authentication 555 (zero skipped, disposable PostgreSQL), Parties 239, Journey 95, Landing 42, Users 307, Main 120 and PM Application 31 tests passed. Shared Auth 112 and shared Journey 37 passed; affected app typechecks and Web layout/localization/app/shared/API boundaries passed. OpenAPI and security baseline report zero violations; EF reports no pending model changes.
+
+Claude's initial and follow-up high-effort reviews completed before E2E. A requested extra integration review stopped at the provider five-hour quota after two turns; it did not review the integration. Local semantic integration audit found and corrected duplicated return query propagation, recent-authentication handoff plumbing, platform-home SSO/test assumptions and obsolete workspace navigation.
+
+Added-line quoted-value review covers tracked/staged and untracked source. Routes use AuthenticationRoutes/AuthenticationWebRoutes and app route aliases; operation/audit/claim values use their typed owners; generated output remains generator-owned. Frontend mirrors of browser query/path contracts are maintained at shared Auth and backend Authentication Domain, synchronized by the documented handoff contract and exact-value tests. Resource keys resolve shared localization; imports, CSS/framework attributes, format specifiers, URI delimiters, diagnostics and test-local synthetic values are local. New fixture usernames resolve the E2E seeder. Final E2E/release remain pending.

@@ -5,7 +5,7 @@ Status: Accepted
 Scope: Parties sign-in host and clinic list, Journey gates, the private-practice-owner Web app, and production settings
 Owner: Architecture
 Supersedes:
-Superseded by: ADR-0020 (decisions 7 and 8 and rollback)
+Superseded by: ADR-0020 (workspace destination); ADR-0021 (decisions 7 and 8 and rollback)
 Related: ADR-0016; issue #900; PRs #939, #940
 
 ## Context
@@ -49,6 +49,9 @@ it does not: a platform-owned tenant with no practice data can hold the session.
    goes to `/workspaces/select`. With one clinic it continues by itself; with
    several the person picks one; with none, or on **Create a new clinic**, it
    continues to the onboarding host.
+   Amended by [ADR-0020](0020-platform-home-and-app-aware-workspaces.md)
+   (accepted): continue to the platform home instead of selecting or creating
+   a workspace automatically.
 6. **Public clinic logos.** The list shows each clinic's logo, loaded from the
    clinic's own host at `/api/modules/parties/public/logo`, an anonymous,
    rate-limited `AnonymousBinaryDownload` endpoint. The image is requested

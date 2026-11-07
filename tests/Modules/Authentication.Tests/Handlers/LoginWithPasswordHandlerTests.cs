@@ -40,7 +40,100 @@ public sealed class LoginWithPasswordHandlerTests
         dependencies.SignIn.Verify(x => x.CheckPasswordSignInAsync("user-42", "password", It.IsAny<CancellationToken>()), Times.Once);
         dependencies.SignIn.Verify(x => x.SignInAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
         dependencies.PhoneSender.Verify(x => x.SendAsync("+989121234567", "123456", AuthenticationChallengePurpose.PasswordLoginOtp, It.IsAny<CancellationToken>()), Times.Once);
+        dependencies.EmailSender.Verify(x => x.SendAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<AuthenticationChallengePurpose>(), It.IsAny<CancellationToken>()), Times.Never);
         dependencies.ChallengeStore.Verify(x => x.SaveAsync(It.IsAny<AuthenticationChallenge>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Confirmed_email_is_used_when_phone_is_not_confirmed()
+    {
+        TestDependencies dependencies = CreateDependencies(
+            new PasswordSignInResult(PasswordSignInStatus.Succeeded, "user-42", false, true),
+            user: new AuthenticationUserDescriptor("user-42", "user-42", null, "Given", "Family", "person@example.test", "+989121234567", false, EmailConfirmed: true, PhoneNumberConfirmed: false));
+
+        AuthenticationResult<LoginResult> result = await dependencies.Handler.Handle(
+            new LoginWithPasswordCommand("user-42", "password", "/dashboard", "operation-42"),
+            CancellationToken.None);
+
+        AuthenticationFailure failure = result.Should().BeOfType<AuthenticationResult<LoginResult>.Failure>().Which.Error;
+        failure.Reason.Should().Be(AuthenticationFailureReason.AdditionalStepRequired);
+        failure.ChallengePurpose.Should().Be(AuthenticationChallengePurpose.PasswordLoginEmailOtp);
+        failure.MaskedDestination.Should().Be("***on@***");
+        failure.ChallengeExpiresAt.Should().NotBeNull();
+        failure.RemainingAttempts.Should().Be(1);
+        dependencies.EmailSender.Verify(x => x.SendAsync("person@example.test", "123456", AuthenticationChallengePurpose.PasswordLoginEmailOtp, It.IsAny<CancellationToken>()), Times.Once);
+        dependencies.PhoneSender.Verify(x => x.SendAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<AuthenticationChallengePurpose>(), It.IsAny<CancellationToken>()), Times.Never);
+        dependencies.ChallengeStore.Verify(x => x.SaveAsync(It.Is<AuthenticationChallenge>(challenge =>
+            challenge.Purpose == AuthenticationChallengePurpose.PasswordLoginEmailOtp &&
+            challenge.Destination == "person@example.test" &&
+            challenge.MaximumAttempts == AuthenticationChallengePolicy.SecondFactorMaximumAttempts), It.IsAny<CancellationToken>()), Times.Once);
+        dependencies.AuditEvents
+            .SelectMany(audit => new[] { audit.RedactedReason, audit.Resource })
+            .Where(value => value is not null)
+            .Select(value => value!)
+            .Should().NotContain("123456");
+    }
+
+    [Fact]
+    public async Task Additional_authentication_is_not_configured_without_a_confirmed_contact()
+    {
+        TestDependencies dependencies = CreateDependencies(
+            new PasswordSignInResult(PasswordSignInStatus.Succeeded, "user-42", false, true),
+            user: new AuthenticationUserDescriptor("user-42", "user-42", null, "Given", "Family", "person@example.test", "+989121234567", false));
+
+        AuthenticationResult<LoginResult> result = await dependencies.Handler.Handle(
+            new LoginWithPasswordCommand("user-42", "password", "/dashboard", "operation-42"),
+            CancellationToken.None);
+
+        result.Should().BeOfType<AuthenticationResult<LoginResult>.Failure>()
+            .Which.Error.Message.Should().Be("Additional authentication is not configured.");
+        dependencies.ChallengeStore.Verify(x => x.SaveAsync(It.IsAny<AuthenticationChallenge>(), It.IsAny<CancellationToken>()), Times.Never);
+        dependencies.PhoneSender.VerifyNoOtherCalls();
+        dependencies.EmailSender.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task Email_second_factor_is_denied_when_its_policy_action_is_disallowed()
+    {
+        SecurityAccessPolicy policy = SecurityAccessPolicy.Default with
+        {
+            PermittedPreAuthenticationActions = SecurityAccessPolicy.Default.PermittedPreAuthenticationActions
+                .Where(action => action is not PreAuthenticationAction.PasswordPlusEmailOtp)
+                .ToHashSet()
+        };
+        TestDependencies dependencies = CreateDependencies(
+            new PasswordSignInResult(PasswordSignInStatus.Succeeded, "user-42", false, true),
+            policy,
+            new AuthenticationUserDescriptor("user-42", "user-42", null, "Given", "Family", "person@example.test", null, false, EmailConfirmed: true));
+
+        AuthenticationResult<LoginResult> result = await dependencies.Handler.Handle(
+            new LoginWithPasswordCommand("user-42", "password", "/dashboard", "operation-42"),
+            CancellationToken.None);
+
+        result.Should().BeOfType<AuthenticationResult<LoginResult>.Failure>()
+            .Which.Error.Reason.Should().Be(AuthenticationFailureReason.NotAllowed);
+        dependencies.ChallengeStore.Verify(x => x.SaveAsync(It.IsAny<AuthenticationChallenge>(), It.IsAny<CancellationToken>()), Times.Never);
+        dependencies.EmailSender.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task Email_second_factor_uses_the_email_subject_attempt_key_and_denies_lockout()
+    {
+        TestDependencies dependencies = CreateDependencies(
+            new PasswordSignInResult(PasswordSignInStatus.Succeeded, "user-42", false, true),
+            user: new AuthenticationUserDescriptor("user-42", "user-42", null, "Given", "Family", "person@example.test", null, false, EmailConfirmed: true));
+        string emailAttemptKey = AuthenticationAttemptKeyFactoryForTests().Subject(AuthenticationMethod.Email, "user-42");
+        dependencies.AttemptTracker.Setup(x => x.IsDeniedAsync(emailAttemptKey, It.IsAny<CancellationToken>())).ReturnsAsync(true);
+
+        AuthenticationResult<LoginResult> result = await dependencies.Handler.Handle(
+            new LoginWithPasswordCommand("user-42", "password", "/dashboard", "operation-42"),
+            CancellationToken.None);
+
+        result.Should().BeOfType<AuthenticationResult<LoginResult>.Failure>()
+            .Which.Error.Reason.Should().Be(AuthenticationFailureReason.LockedOut);
+        dependencies.AttemptTracker.Verify(x => x.IsDeniedAsync(emailAttemptKey, It.IsAny<CancellationToken>()), Times.Once);
+        dependencies.EmailSender.VerifyNoOtherCalls();
+        dependencies.ChallengeStore.Verify(x => x.SaveAsync(It.IsAny<AuthenticationChallenge>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -222,7 +315,7 @@ public sealed class LoginWithPasswordHandlerTests
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
-    private static TestDependencies CreateDependencies(PasswordSignInResult signInResult, SecurityAccessPolicy? policy = null)
+    private static TestDependencies CreateDependencies(PasswordSignInResult signInResult, SecurityAccessPolicy? policy = null, AuthenticationUserDescriptor? user = null)
     {
         Mock<IAuthenticationSignInService> signIn = new();
         signIn.Setup(x => x.CheckPasswordSignInAsync("user-42", "password", It.IsAny<CancellationToken>()))
@@ -238,16 +331,19 @@ public sealed class LoginWithPasswordHandlerTests
                 "user-42", "+989121234567", DateTimeOffset.UtcNow, false));
         Mock<IAuthenticationUserDirectory> userDirectory = new();
         userDirectory.Setup(x => x.FindByIdAsync("user-42", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new AuthenticationUserDescriptor("user-42", "user-42", null, "Given", "Family", null, "+989121234567", false));
+            .ReturnsAsync(user ?? new AuthenticationUserDescriptor("user-42", "user-42", null, "Given", "Family", "person@example.test", "+989121234567", false, EmailConfirmed: true, PhoneNumberConfirmed: true));
 
         Mock<IAuthenticationCodeGenerator> codeGenerator = new();
         codeGenerator.Setup(x => x.GenerateAsync("user-42", It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync("123456");
 
         Mock<IPhoneAuthenticationCodeSender> phoneSender = new();
+        Mock<IEmailAuthenticationCodeSender> emailSender = new();
         Mock<IAuthenticationAttemptTracker> attemptTracker = new();
         Mock<ISecurityAuditWriter> auditWriter = new();
+        List<SecurityAuditEvent> auditEvents = [];
         auditWriter.Setup(x => x.WriteAsync(It.IsAny<SecurityAuditEvent>(), It.IsAny<CancellationToken>()))
+            .Callback<SecurityAuditEvent, CancellationToken>((audit, _) => auditEvents.Add(audit))
             .ReturnsAsync(SecurityAuditWriteResult.Recorded);
 
         LoginWithPasswordHandler handler = new(
@@ -261,11 +357,12 @@ public sealed class LoginWithPasswordHandlerTests
             userDirectory.Object,
             codeGenerator.Object,
             phoneSender.Object,
+            emailSender.Object,
             attemptTracker.Object,
             new TestSecurityPolicyProvider(policy ?? SecurityAccessPolicy.Default),
             AuthenticationAttemptKeyFactoryForTests());
 
-        return new TestDependencies(handler, signIn, challengeStore, phoneSender, attemptTracker, auditWriter);
+        return new TestDependencies(handler, signIn, challengeStore, phoneSender, emailSender, attemptTracker, auditWriter, auditEvents);
     }
 
     private sealed record TestDependencies(
@@ -273,8 +370,10 @@ public sealed class LoginWithPasswordHandlerTests
         Mock<IAuthenticationSignInService> SignIn,
         Mock<IAuthenticationChallengeStore> ChallengeStore,
         Mock<IPhoneAuthenticationCodeSender> PhoneSender,
+        Mock<IEmailAuthenticationCodeSender> EmailSender,
         Mock<IAuthenticationAttemptTracker> AttemptTracker,
-        Mock<ISecurityAuditWriter> AuditWriter);
+        Mock<ISecurityAuditWriter> AuditWriter,
+        List<SecurityAuditEvent> AuditEvents);
 
     private sealed class TestSecurityPolicyProvider(SecurityAccessPolicy policy) : IAuthenticationSecurityPolicyProvider
     {

@@ -1,3 +1,4 @@
+using Vitarish.Authentication.Contracts.Routes;
 using Vitarish.Authentication.Application.Abstractions;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Vitarish.Authentication.Api.Mapping;
@@ -14,7 +15,7 @@ public static class EmailLoginEndpoints
 {
     public static RouteGroupBuilder MapEmailLoginEndpoints(this RouteGroupBuilder group)
     {
-        group.MapModulePost("/login/email/begin", async (BeginEmailLoginRequest request, [Microsoft.AspNetCore.Mvc.FromServices] BeginEmailLoginHandler handler, [Microsoft.AspNetCore.Mvc.FromServices] IPendingAuthenticationChallenge pending, CancellationToken ct) =>
+        group.MapModulePost(AuthenticationRoutes.BeginEmailLoginPath, async (BeginEmailLoginRequest request, [Microsoft.AspNetCore.Mvc.FromServices] BeginEmailLoginHandler handler, [Microsoft.AspNetCore.Mvc.FromServices] IPendingAuthenticationChallenge pending, CancellationToken ct) =>
         {
             var r = await handler.Handle(new BeginEmailLoginCommand(request.Email, request.ReturnUrl), ct);
             if (r is AuthenticationResult<ChallengeResult>.Success begun)

@@ -33,6 +33,17 @@ public sealed class AuthenticationAttemptAuditor(
     /// <param name="failureReason">Null when the attempt succeeded.</param>
     public async Task RecordAsync(string eventName, string operation, string? subjectId, string? failureReason, CancellationToken cancellationToken)
     {
+        await RecordAsync(eventName, operation, subjectId, failureReason, cancellationToken, SecurityAuditEventCatalog.AuthenticationCategory);
+    }
+
+    public async Task RecordAsync(
+        string eventName,
+        string operation,
+        string? subjectId,
+        string? failureReason,
+        CancellationToken cancellationToken,
+        string eventCategory)
+    {
         string requestKey = requestContext.RequestId ?? requestContext.TraceId ?? Guid.NewGuid().ToString("N");
         string outcome = failureReason is null ? SecurityAuditOutcome.Succeeded : SecurityAuditOutcome.Denied;
         try
@@ -40,7 +51,7 @@ public sealed class AuthenticationAttemptAuditor(
             _ = await auditWriter.WriteAsync(new SecurityAuditEvent
             {
                 EventName = eventName,
-                EventCategory = SecurityAuditEventCatalog.AuthenticationCategory,
+                EventCategory = eventCategory,
                 Outcome = outcome,
                 ActorId = SecurityAuditSignInActor.Resolve(requestContext.UserId, outcome, subjectId),
                 SubjectId = subjectId,

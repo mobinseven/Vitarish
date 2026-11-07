@@ -20,6 +20,7 @@ public sealed class AuthenticationSession
     public string UserId { get; set; } = string.Empty;
     public string TenantId { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
+    public DateTime? AuthenticatedAt { get; set; }
     public DateTime LastActivityAt { get; set; }
     public string? ClientIpAddress { get; set; }
     public DateTime? TerminatedAt { get; set; }

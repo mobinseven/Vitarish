@@ -7,4 +7,7 @@ public static class PartiesRateLimitPolicies
 
     /// <summary>Public logo reads per client IP, across every clinic host.</summary>
     public const string PublicLogo = "parties-public-logo";
+
+    /// <summary>Sign-in handoffs per authenticated user.</summary>
+    public const string SignInHandoff = "parties-sign-in-handoff";
 }

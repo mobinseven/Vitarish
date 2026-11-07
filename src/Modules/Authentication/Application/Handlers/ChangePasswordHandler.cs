@@ -129,14 +129,18 @@ public sealed class ChangePasswordHandler(
 
         bool hasPassword = await accountUpdater.UserHasPasswordAsync(command.UserId, cancellationToken);
         PasswordChangeOutcome updated;
-        if (hasPassword)
+        if (!hasPassword)
         {
-            updated = await accountUpdater.ChangePasswordAsync(command.UserId, command.CurrentPassword, command.NewPassword, cancellationToken);
+            return await CompleteFailureAsync(
+                command.UserId,
+                completedKey,
+                AuthenticationFailureReason.InvalidInput,
+                AuthenticationSecurityAuditEvents.FailureMutationRejected,
+                outcomeUpdater,
+                cancellationToken);
         }
-        else
-        {
-            updated = await accountUpdater.ChangePasswordAsync(command.UserId, string.Empty, command.NewPassword, cancellationToken);
-        }
+
+        updated = await accountUpdater.ChangePasswordAsync(command.UserId, command.CurrentPassword, command.NewPassword, cancellationToken);
 
         if (!updated.Succeeded)
         {

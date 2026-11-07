@@ -19,8 +19,8 @@ function AuthenticationProgress({ failed }: { failed: boolean }) {
 }
 
 /** Keeps interactive authentication exclusively on Auth while preserving the originating app. */
-export function CentralAuthenticationBoundary({ signInUrl, securityPath }: {
-  signInUrl: string; securityPath?: string;
+export function CentralAuthenticationBoundary({ signInUrl, securityPath, defaultReturnPath }: {
+  signInUrl: string; securityPath?: string; defaultReturnPath?: string;
 }) {
   const started = useRef(false);
   const [failed, setFailed] = useState(false);
@@ -31,7 +31,7 @@ export function CentralAuthenticationBoundary({ signInUrl, securityPath }: {
       window.location.replace(new URL(window.location.pathname.startsWith(AuthenticationWebRoutes.Account) ? window.location.pathname + window.location.search : securityPath, signInUrl).toString());
       return;
     }
-    const returnPath = getRequestedReturnUrl(new URLSearchParams(window.location.search));
+    const returnPath = getRequestedReturnUrl(new URLSearchParams(window.location.search)) ?? defaultReturnPath;
     authenticationContinuationBegin({ returnPath: returnPath ?? null }).then(({ token }) => {
       const method = window.location.pathname.startsWith(AuthenticationWebRoutes.SignIn + "/")
         ? window.location.pathname : AuthenticationWebRoutes.SignIn;
@@ -41,7 +41,7 @@ export function CentralAuthenticationBoundary({ signInUrl, securityPath }: {
       target.searchParams.set(AuthenticationSearchParams.ReturnUrl, continuation.pathname + continuation.search);
       window.location.replace(target.toString());
     }).catch(() => setFailed(true));
-  }, [securityPath, signInUrl]);
+  }, [securityPath, signInUrl, defaultReturnPath]);
   return <AuthenticationProgress failed={failed} />;
 }
 

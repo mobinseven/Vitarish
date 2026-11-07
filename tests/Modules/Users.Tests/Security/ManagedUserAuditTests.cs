@@ -58,19 +58,23 @@ public sealed class ManagedUserAuditTests
     [Fact]
     public async Task Setting_an_email_records_the_previous_and_new_value()
     {
-        await using TestUsersDbContext dbContext = await CreateDbContextWithManagedUserAsync();
+        await using TestUsersDbContext dbContext = await CreateDbContextWithManagedUserAsync(user => user.EmailConfirmed = true);
         Mock<ISecurityAuditWriter> auditWriter = AuditWriter();
         SetUserEmailCommandHandler handler = new(
             CreateUserManager(dbContext),
             CreateSender(dbContext),
             CreateCache(),
-            new UsersManagementAudit(auditWriter.Object, RequestContext(), TimeProvider.System));
+            new UsersManagementAudit(auditWriter.Object, RequestContext(), TimeProvider.System),
+            dbContext);
 
         IdentityResult result = await handler.Handle(
             new SetUserEmailCommand(ManagedUserId, "updated@example.test"),
             CancellationToken.None);
 
         result.Succeeded.Should().BeTrue();
+        User updated = await dbContext.Users.AsNoTracking().SingleAsync(user => user.Id == ManagedUserId);
+        updated.EmailConfirmed.Should().BeFalse();
+        updated.SecurityStamp.Should().NotBe("security-stamp");
         AuditEvents(auditWriter).Single(entry =>
             entry.EventName == SecurityAuditEventCatalog.UserEditEvent &&
             entry.Outcome == SecurityAuditOutcome.Succeeded).Changes.Should().Equal(
@@ -83,19 +87,27 @@ public sealed class ManagedUserAuditTests
     [Fact]
     public async Task Setting_a_phone_number_records_the_previous_and_new_value()
     {
-        await using TestUsersDbContext dbContext = await CreateDbContextWithManagedUserAsync(user => user.PhoneNumber = "+14155552671");
+        await using TestUsersDbContext dbContext = await CreateDbContextWithManagedUserAsync(user =>
+        {
+            user.PhoneNumber = "+14155552671";
+            user.PhoneNumberConfirmed = true;
+        });
         Mock<ISecurityAuditWriter> auditWriter = AuditWriter();
         SetUserPhoneNumberCommandHandler handler = new(
             CreateUserManager(dbContext),
             CreateSender(dbContext),
             CreateCache(),
-            new UsersManagementAudit(auditWriter.Object, RequestContext(), TimeProvider.System));
+            new UsersManagementAudit(auditWriter.Object, RequestContext(), TimeProvider.System),
+            dbContext);
 
         IdentityResult result = await handler.Handle(
             new SetUserPhoneNumberCommand(ManagedUserId, "+14155552672"),
             CancellationToken.None);
 
         result.Succeeded.Should().BeTrue();
+        User updated = await dbContext.Users.AsNoTracking().SingleAsync(user => user.Id == ManagedUserId);
+        updated.PhoneNumberConfirmed.Should().BeFalse();
+        updated.SecurityStamp.Should().NotBe("security-stamp");
         AuditEvents(auditWriter).Single(entry =>
             entry.EventName == SecurityAuditEventCatalog.UserEditEvent &&
             entry.Outcome == SecurityAuditOutcome.Succeeded).Changes.Should().Equal(
@@ -103,6 +115,89 @@ public sealed class ManagedUserAuditTests
                 SecurityAuditChangeFields.PhoneNumber,
                 "+14155552671",
                 "+14155552672"));
+    }
+
+    [Fact]
+    public async Task Direct_unverified_email_change_cannot_remove_the_last_confirmed_two_step_channel()
+    {
+        await using TestUsersDbContext dbContext = await CreateDbContextWithManagedUserAsync(user =>
+        {
+            user.EmailConfirmed = true;
+            user.TwoFactorEnabled = true;
+        });
+        Mock<ISecurityAuditWriter> auditWriter = AuditWriter();
+        SetUserEmailCommandHandler handler = new(
+            CreateUserManager(dbContext),
+            CreateSender(dbContext),
+            CreateCache(),
+            new UsersManagementAudit(auditWriter.Object, RequestContext(), TimeProvider.System),
+            dbContext);
+
+        IdentityResult result = await handler.Handle(
+            new SetUserEmailCommand(ManagedUserId, "replacement@example.test"),
+            CancellationToken.None);
+
+        result.Succeeded.Should().BeFalse();
+        result.Errors.Should().ContainSingle(error => error.Code == nameof(UsersCommandFailureCode.ConfirmedContactRequiredForTwoStepSignIn));
+        User persisted = await dbContext.Users.AsNoTracking().SingleAsync(user => user.Id == ManagedUserId);
+        persisted.Email.Should().Be("original@example.test");
+        persisted.EmailConfirmed.Should().BeTrue();
+        persisted.TwoFactorEnabled.Should().BeTrue();
+        persisted.ConcurrencyStamp.Should().Be(SeedRevision);
+        SecurityAuditEvent[] events = AuditEvents(auditWriter);
+        events.Should().ContainSingle(entry =>
+            entry.EventName == SecurityAuditEventCatalog.UserEditFailureEvent &&
+            entry.Outcome == SecurityAuditOutcome.Denied &&
+            entry.RedactedReason == SecurityAuditReasonCatalog.MutationRejected);
+        events.Should().ContainSingle(entry =>
+            entry.EventName == SecurityAuditEventCatalog.UserSecurityAttributeChangeEvent &&
+            entry.Outcome == SecurityAuditOutcome.Denied &&
+            entry.RedactedReason == SecurityAuditReasonCatalog.MutationRejected);
+        events.Should().NotContain(entry => entry.Changes != null && entry.Changes.Any(change =>
+            (change.PreviousValue != null && change.PreviousValue.Contains("example.test", StringComparison.Ordinal)) ||
+            (change.NewValue != null && change.NewValue.Contains("example.test", StringComparison.Ordinal))));
+    }
+
+    [Fact]
+    public async Task Direct_unverified_phone_change_cannot_remove_the_last_confirmed_two_step_channel()
+    {
+        await using TestUsersDbContext dbContext = await CreateDbContextWithManagedUserAsync(user =>
+        {
+            user.PhoneNumber = "+14155552671";
+            user.PhoneNumberConfirmed = true;
+            user.TwoFactorEnabled = true;
+        });
+        Mock<ISecurityAuditWriter> auditWriter = AuditWriter();
+        SetUserPhoneNumberCommandHandler handler = new(
+            CreateUserManager(dbContext),
+            CreateSender(dbContext),
+            CreateCache(),
+            new UsersManagementAudit(auditWriter.Object, RequestContext(), TimeProvider.System),
+            dbContext);
+
+        IdentityResult result = await handler.Handle(
+            new SetUserPhoneNumberCommand(ManagedUserId, "+14155552672"),
+            CancellationToken.None);
+
+        result.Succeeded.Should().BeFalse();
+        result.Errors.Should().ContainSingle(error => error.Code == nameof(UsersCommandFailureCode.ConfirmedContactRequiredForTwoStepSignIn));
+        User persisted = await dbContext.Users.AsNoTracking().SingleAsync(user => user.Id == ManagedUserId);
+        persisted.PhoneNumber.Should().Be("+14155552671");
+        persisted.PhoneNumberConfirmed.Should().BeTrue();
+        persisted.TwoFactorEnabled.Should().BeTrue();
+        persisted.ConcurrencyStamp.Should().Be(SeedRevision);
+        SecurityAuditEvent[] events = AuditEvents(auditWriter);
+        events.Should().ContainSingle(entry =>
+            entry.EventName == SecurityAuditEventCatalog.UserEditFailureEvent &&
+            entry.Outcome == SecurityAuditOutcome.Denied &&
+            entry.RedactedReason == SecurityAuditReasonCatalog.MutationRejected);
+        events.Should().ContainSingle(entry =>
+            entry.EventName == SecurityAuditEventCatalog.UserSecurityAttributeChangeEvent &&
+            entry.Outcome == SecurityAuditOutcome.Denied &&
+            entry.RedactedReason == SecurityAuditReasonCatalog.MutationRejected);
+        events.Should().NotContain(entry => entry.Changes != null && entry.Changes.Any(change =>
+            (change.PreviousValue != null && change.PreviousValue.Contains("+14155552672", StringComparison.Ordinal)) ||
+            (change.NewValue != null && change.NewValue.Contains("+14155552672", StringComparison.Ordinal))));
     }
 
     [Fact]
@@ -298,6 +393,7 @@ public sealed class ManagedUserAuditTests
             user.EmailConfirmed = true;
             user.PhoneNumber = "+14155552671";
             user.PhoneNumberConfirmed = true;
+            user.TwoFactorEnabled = true;
         });
         Mock<ISecurityAuditWriter> auditWriter = AuditWriter();
         IDistributedCache cache = CreateCache();
@@ -319,6 +415,43 @@ public sealed class ManagedUserAuditTests
         persisted.ConcurrencyStamp.Should().NotBeNull().And.NotBe(SeedRevision);
         User? cached = await UserCacheExtensions.GetUserAsync(cache, ManagedUserId, CancellationToken.None);
         cached.Should().BeNull("mutations must not repopulate personal-data caches after a concurrent deletion");
+    }
+
+    [Fact]
+    public async Task Managed_edit_cannot_remove_the_last_confirmed_contact_from_two_step_sign_in()
+    {
+        await using TestUsersDbContext dbContext = await CreateDbContextWithManagedUserAsync(user =>
+        {
+            user.EmailConfirmed = true;
+            user.TwoFactorEnabled = true;
+        });
+        Mock<ISecurityAuditWriter> auditWriter = AuditWriter();
+        UpdateManagedUserCommandHandler handler = CreateUpdateHandler(dbContext, CreateCache(), auditWriter);
+
+        IdentityResult result = await handler.Handle(
+            new UpdateManagedUserCommand(ManagedUserId, "replacement@example.test", null, "Changed", "User", SeedRevision),
+            CancellationToken.None);
+
+        result.Succeeded.Should().BeFalse();
+        result.Errors.Should().ContainSingle().Which.Code.Should()
+            .Be(nameof(UsersCommandFailureCode.ConfirmedContactRequiredForTwoStepSignIn));
+        User persisted = await dbContext.Users.AsNoTracking().SingleAsync(user => user.Id == ManagedUserId);
+        persisted.Email.Should().Be("original@example.test");
+        persisted.EmailConfirmed.Should().BeTrue();
+        persisted.TwoFactorEnabled.Should().BeTrue();
+        persisted.ConcurrencyStamp.Should().Be(SeedRevision);
+        SecurityAuditEvent[] events = AuditEvents(auditWriter);
+        events.Should().ContainSingle(entry =>
+            entry.EventName == SecurityAuditEventCatalog.UserEditFailureEvent &&
+            entry.Outcome == SecurityAuditOutcome.Denied &&
+            entry.RedactedReason == SecurityAuditReasonCatalog.MutationRejected);
+        events.Should().ContainSingle(entry =>
+            entry.EventName == SecurityAuditEventCatalog.UserSecurityAttributeChangeEvent &&
+            entry.Outcome == SecurityAuditOutcome.Denied &&
+            entry.RedactedReason == SecurityAuditReasonCatalog.MutationRejected);
+        events.Should().NotContain(entry => entry.Changes != null && entry.Changes.Any(change =>
+            (change.PreviousValue != null && change.PreviousValue.Contains("example.test", StringComparison.Ordinal)) ||
+            (change.NewValue != null && change.NewValue.Contains("example.test", StringComparison.Ordinal))));
     }
 
     [Fact]

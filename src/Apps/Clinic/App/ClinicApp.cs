@@ -15,6 +15,7 @@ using Vitarish.Entities.Server.Extensions;
 using Vitarish.Modules.Base.Core;
 using Vitarish.Intelligence.Domain.Options;
 using Vitarish.Parties.Application.Onboarding;
+using Vitarish.Parties.Application.Apps;
 
 namespace Vitarish.Clinic.App;
 
@@ -28,7 +29,9 @@ public class ClinicApp : Vitarish.Apps.Base.Core.App
         _ = builder.Services.AddClinicInfrastructure();
         _ = builder.Services.AddClinicApiAuthorization();
         // People create their own clinics through self-service tenant onboarding.
-        _ = builder.Services.AddSingleton(new SelfServiceTenantProfile(ClinicTenant.AppId, ClinicSpecialties.All));
+        SelfServiceTenantProfile selfService = new(ClinicTenant.AppId, ClinicSpecialties.All);
+        _ = builder.Services.AddSingleton(selfService);
+        _ = builder.Services.AddSingleton(new PlatformApp(ClinicTenant.AppId, ClinicTenant.Name, PlatformAppAvailability.Live, true, selfService));
         _ = builder.Services.AddSingleton(new AssistantOptions(
             builder.Configuration[AgentRuntimeOptions.ModelConfigurationKey]
             ?? builder.Configuration[AiOptions.DefaultResponseModelConfigurationKey]

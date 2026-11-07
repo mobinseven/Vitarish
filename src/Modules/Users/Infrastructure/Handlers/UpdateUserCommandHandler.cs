@@ -80,6 +80,31 @@ public class UpdateUserCommandHandler(UsersDbContext dbContext, UserManager<User
             });
         }
 
+        bool proposedEmailConfirmed = current?.EmailConfirmed == true && !emailChanged;
+        bool proposedPhoneConfirmed = current?.PhoneNumberConfirmed == true && !phoneChanged;
+        if (current is not null)
+        {
+            request.User.EmailConfirmed = proposedEmailConfirmed;
+            request.User.PhoneNumberConfirmed = proposedPhoneConfirmed;
+            request.User.TwoFactorEnabled = current.TwoFactorEnabled;
+        }
+
+        if (contactIdentifierChanged && current?.TwoFactorEnabled == true &&
+            !UserContactIdentifierPolicy.HasConfirmedContact(
+                request.User.Email,
+                proposedEmailConfirmed,
+                request.User.PhoneNumber,
+                proposedPhoneConfirmed))
+        {
+            await managementAudit.AccountEditFailedAsync(request.User.Id, SecurityAuditReasonCatalog.MutationRejected, cancellationToken);
+            await managementAudit.SecurityAttributeChangedAsync(request.User.Id, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.MutationRejected, cancellationToken);
+            return IdentityResult.Failed(new IdentityError
+            {
+                Code = nameof(UsersCommandFailureCode.ConfirmedContactRequiredForTwoStepSignIn),
+                Description = UsersCommandErrorCodes.ConfirmedContactRequiredForTwoStepSignInDescription
+            });
+        }
+
         if (usernameChanged)
         {
             bool hasActiveSession;

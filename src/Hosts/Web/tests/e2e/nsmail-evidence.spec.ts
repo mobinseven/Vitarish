@@ -1,10 +1,15 @@
 import { expect, test, type Page } from "@playwright/test";
+import { createHash } from "node:crypto";
 import { TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
 import { Routes } from "../../apps/private-practice-owner/src/app/routes";
 import { securityMessageCatalogs } from "../../shared/security/src/localization";
 import { dirname, resolve } from "node:path";
 import { mkdirSync } from "node:fs";
-import { twoHostE2eApiOriginEnvironmentKey, twoHostE2eSignInOrigin } from "../../scripts/two-host-e2e-artifacts.mjs";
+import {
+  twoHostE2eApiOriginEnvironmentKey,
+  twoHostE2eArtifactDirectoryEnvironmentKey,
+  twoHostE2eSignInOrigin,
+} from "../../scripts/two-host-e2e-artifacts.mjs";
 import { forwardedForHeaderName, signInToClinic } from "./signInHost";
 import { authenticationLoginPassword } from "../../shared/auth/src/api/generated/authentication/authentication";
 import { generatedOperationPath } from "./generatedOperationPath";
@@ -16,9 +21,13 @@ const browserApiOrigin = "";
 const username = process.env.VITARISH_E2E_USERNAME ?? "e2e-owner";
 const tenantUserUsername = "e2e-tenant-user";
 const password = process.env.VITARISH_E2E_PASSWORD;
+const nsmailEvidenceDirectoryName = "nsmail-1-evidence-md";
+const artifactDirectory = process.env[twoHostE2eArtifactDirectoryEnvironmentKey];
+const screenshotDirectory = artifactDirectory
+  ? resolve(artifactDirectory, nsmailEvidenceDirectoryName, "screenshots")
+  : resolve(process.cwd(), "..", "artifacts", nsmailEvidenceDirectoryName, "screenshots");
 const auditEvidenceScreenshot = process.env.VITARISH_NMAIL_EVIDENCE_SCREENSHOT
-  ?? resolve(process.cwd(), "..", "artifacts", "nsmail-1-evidence-md", "screenshots", "audit-authentication-password-login.png");
-const screenshotDirectory = resolve(process.cwd(), "..", "artifacts", "nsmail-1-evidence-md", "screenshots");
+  ?? resolve(screenshotDirectory, "audit-authentication-password-login.png");
 
 async function login(page: Page, loginUsername = username): Promise<void> {
   expect(password, "VITARISH_E2E_PASSWORD must be supplied by the disposable E2E environment").toBeTruthy();
@@ -80,9 +89,13 @@ async function captureSurface(page: Page, path: string, heading: string, filenam
 }
 
 test.describe("NSMAIL-1 evidence execution coverage", () => {
-  // Keep repeated sign-ins out of the shared loopback rate-limit partition.
+  // Isolate each test and retry while keeping its handoffs within the real per-IP limit.
   test.beforeEach(async ({ context }, testInfo) => {
-    await context.setExtraHTTPHeaders({ [forwardedForHeaderName]: `198.18.0.${testInfo.retry + 1}` });
+    const addressHash = createHash("sha256").update(`${testInfo.testId}:${testInfo.retry}`).digest();
+    const subnet = ((addressHash[0] << 8) | addressHash[1]) % 512;
+    const host = (addressHash[2] % 254) + 1;
+    const clientIp = `198.${18 + Math.floor(subnet / 256)}.${subnet % 256}.${host}`;
+    await context.setExtraHTTPHeaders({ [forwardedForHeaderName]: clientIp });
   });
 
   test("AUD-09: authorized audit review exposes filtered, attributable records", async ({ page, request }) => {
@@ -178,8 +191,14 @@ test.describe("NSMAIL-1 evidence execution coverage", () => {
     await login(page);
     const cookies = await page.context().cookies();
     const apiHost = new URL(apiOrigin).hostname;
-    const authCookie = cookies.find((cookie) => /identity\.application/i.test(cookie.name));
-    expect(authCookie, "the authentication cookie must be issued").toBeDefined();
+    const authenticationCookies = cookies.filter((cookie) => /identity\.application|antiforgery/i.test(cookie.name));
+    expect(
+      authenticationCookies.every((cookie) => !cookie.domain.startsWith(".")),
+      "authentication and antiforgery cookies must not be shared with subdomains",
+    ).toBe(true);
+    const apiHostCookies = cookies.filter((cookie) => cookie.domain === apiHost);
+    const authCookie = apiHostCookies.find((cookie) => /identity\.application/i.test(cookie.name));
+    expect(authCookie, "the API-host authentication cookie must be issued").toBeDefined();
     expect(authCookie!.sameSite).toBe("Lax");
     // Persistent across browser restarts, but never past the 90-day idle-expiry maximum.
     const nowSeconds = Date.now() / 1000;
@@ -188,8 +207,8 @@ test.describe("NSMAIL-1 evidence execution coverage", () => {
     expect(authCookie!.secure).toBe(true);
     expect(authCookie!.httpOnly).toBe(true);
     expect(authCookie!.domain).toBe(apiHost);
-    const antiforgeryCookie = cookies.find((cookie) => /antiforgery/i.test(cookie.name));
-    expect(antiforgeryCookie, "the antiforgery cookie must be issued").toBeDefined();
+    const antiforgeryCookie = apiHostCookies.find((cookie) => /antiforgery/i.test(cookie.name));
+    expect(antiforgeryCookie, "the API-host antiforgery cookie must be issued").toBeDefined();
     expect(antiforgeryCookie!.sameSite).toBe("Lax");
     expect(antiforgeryCookie!.secure).toBe(true);
     expect(antiforgeryCookie!.httpOnly).toBe(true);

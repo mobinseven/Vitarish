@@ -1,5 +1,6 @@
 using Vitarish.Authentication.Domain.Challenges;
 using Vitarish.Authentication.Domain.Methods;
+using Vitarish.Authentication.Application.Security;
 
 namespace Vitarish.Authentication.Application.Abstractions;
 
@@ -23,8 +24,10 @@ public static class AuthenticationAttemptKeyMethods
 {
     public static AuthenticationMethod MethodFor(AuthenticationChallengePurpose purpose) => purpose switch
     {
+        AuthenticationChallengePurpose.PasswordLoginOtp or AuthenticationChallengePurpose.PasswordLoginEmailOtp =>
+            PasswordLoginSecondFactorChannel.ForPurpose(purpose)!.Method,
         AuthenticationChallengePurpose.EmailLogin => AuthenticationMethod.Email,
-        AuthenticationChallengePurpose.PhoneLogin or AuthenticationChallengePurpose.PasswordLoginOtp => AuthenticationMethod.Phone,
+        AuthenticationChallengePurpose.PhoneLogin => AuthenticationMethod.Phone,
         AuthenticationChallengePurpose.EmailPasswordRecovery => AuthenticationMethod.Email,
         AuthenticationChallengePurpose.PhonePasswordRecovery => AuthenticationMethod.Phone,
         _ => AuthenticationMethod.Passkey

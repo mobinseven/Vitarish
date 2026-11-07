@@ -31,6 +31,10 @@ interface OtpVerificationStepProps {
   expectedLength?: number;
   autoSubmitOnCapturedCode?: boolean;
   changeDestinationLabel?: string;
+  stepDescription?: string;
+  codeLabel?: string;
+  verifyActionLabel?: string;
+  captureCode?: boolean;
 }
 
 export function OtpVerificationStep({
@@ -49,6 +53,10 @@ export function OtpVerificationStep({
   expectedLength = 6,
   autoSubmitOnCapturedCode = true,
   changeDestinationLabel,
+  stepDescription,
+  codeLabel,
+  verifyActionLabel,
+  captureCode = true,
 }: OtpVerificationStepProps) {
   const { t } = useLocalizedText();
   const resetLabel =
@@ -87,7 +95,7 @@ export function OtpVerificationStep({
   );
 
   useOtpCodeCapture({
-    enabled: !isLoading && !expiry.isExpired && !isAccountBlocked,
+    enabled: captureCode && !isLoading && !expiry.isExpired && !isAccountBlocked,
     expectedLength,
     onCode: handleCapturedCode,
   });
@@ -130,6 +138,9 @@ export function OtpVerificationStep({
       {statusMessage && !errorMessage && (
         <StatusAlert type="success" message={statusMessage} />
       )}
+      {stepDescription && (
+        <p className="text-sm text-muted">{stepDescription}</p>
+      )}
       <div className="flex flex-col gap-2">
         <p className="flex flex-col items-start gap-0.5 text-sm text-muted">
           {t("auth.otp.codeSentLabel")}{" "}
@@ -167,12 +178,13 @@ export function OtpVerificationStep({
             : (codeErrorMessage ?? undefined)
         }
         expectedLength={expectedLength}
+        label={codeLabel}
       />
       <div className="flex flex-col gap-3">
         <StepAction
           type="submit"
           icon="fa-light fa-check"
-          label={t("auth.otp.verifyAction")}
+          label={verifyActionLabel ?? t("auth.otp.verifyAction")}
           isPending={isLoading}
           isDisabled={!canVerify}
         />

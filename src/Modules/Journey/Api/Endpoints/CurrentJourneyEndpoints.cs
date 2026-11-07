@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Vitarish.Journey.Application.Abstractions;
+using Vitarish.Journey.Application.Rules;
 using Vitarish.Journey.Contracts.Responses;
 using Vitarish.Journey.Contracts.Routes;
 using Vitarish.Journey.Domain;
@@ -36,7 +37,7 @@ public static class CurrentJourneyEndpoints
 
         string userId = resolvedUserId.UserId.Value;
 
-        string? returnUrl = httpContext.Request.Query["returnUrl"].FirstOrDefault();
+        string? returnUrl = httpContext.Request.Query[JourneyPolicy.ReturnUrlQueryKey].FirstOrDefault();
         string currentPath = httpContext.Request.Path.Value ?? "/";
 
         var request = new JourneyRequest(

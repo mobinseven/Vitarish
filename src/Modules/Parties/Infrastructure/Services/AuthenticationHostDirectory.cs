@@ -30,11 +30,11 @@ public sealed class AuthenticationHostDirectory(
         if (!Uri.TryCreate(origin, UriKind.Absolute, out Uri? address) ||
             address.GetLeftPart(UriPartial.Authority) != origin || !string.IsNullOrEmpty(address.UserInfo) ||
             (address.Scheme != Uri.UriSchemeHttps && !(address.Scheme == Uri.UriSchemeHttp && SignInOrigin is { } central && new Uri(central).Scheme == Uri.UriSchemeHttp &&
-                (address.Host == "localhost" || address.Host.EndsWith(".localhost", StringComparison.Ordinal)))))
+                (BrowserApplicationHostOptions.IsDevelopmentHostname(address.Host)))))
             return false;
         string?[] configured = [signIn.Value.SignInUrl, onboarding.Value.OnboardingUrl, admin.Value.PlatformAdminUrl,
             applications.Value.PatientsUrl, applications.Value.ProjectManagementUrl, applications.Value.KnowledgeQaUrl];
-        bool local = address.Host == "localhost" || address.Host.EndsWith(".localhost", StringComparison.Ordinal);
+        bool local = BrowserApplicationHostOptions.IsDevelopmentHostname(address.Host);
         bool configuredOrigin = configured.Where(value => value is not null)
             .Any(value => new Uri(value!).GetLeftPart(UriPartial.Authority) == origin);
         if (configured.Where(value => value is not null).Any(value => new Uri(value!).Host == address.Host) && !configuredOrigin)

@@ -27,7 +27,7 @@ public sealed class SmsAuthenticationCodeSender(
         Message message = new() { Recipient = phoneNumber, Body = code };
         await otpDelivery.SendSmsCodeAsync(phoneNumber, () => messagesService.SendSmsCode(message, cancellationToken));
         // Temporary exception, see DeliveredCodeLogOptions (issue #893).
-        if (deliveredCodeLog.Value.Enabled)
+        if (deliveredCodeLog.Value.Enabled && purpose is not AuthenticationChallengePurpose.PasswordLoginOtp)
             logger.LogWarning("Delivered SMS sign-in code {Code} for {Purpose}", code, purpose);
     }
 }

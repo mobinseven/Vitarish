@@ -5,8 +5,8 @@ export const Routes = {
   Root: "/",
   Logout: "/logout",
   Login: AuthenticationWebRoutes.SignIn,
-  LoginPassword: "/login/password",
-  LoginEmail: "/login/email",
+  LoginPassword: AuthenticationWebRoutes.SignInPassword,
+  LoginEmail: AuthenticationWebRoutes.SignInEmail,
   LoginForgotPassword: AuthenticationWebRoutes.PasswordRecovery,
   Users: {
     Index: "/users",

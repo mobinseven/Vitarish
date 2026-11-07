@@ -7,6 +7,7 @@ public interface IAuthenticationSignInService
     Task<PasswordSignInResult> PasswordSignInAsync(string login, string password, CancellationToken cancellationToken);
     Task<PasswordSignInResult> CheckPasswordSignInAsync(string login, string password, CancellationToken cancellationToken);
     Task<AuthenticationSessionSignInResult> SignInAsync(string userId, CancellationToken cancellationToken);
+    Task<AuthenticationSessionSignInResult> SignInFromTenantHandoffAsync(string userId, DateTime? authenticatedAt, CancellationToken cancellationToken);
     Task SignOutAsync(CancellationToken cancellationToken);
 }
 

@@ -51,11 +51,21 @@ public class SerializationTests
     [Fact]
     public void SessionDto_round_trip_with_user()
     {
-        var user = new CurrentAuthenticationUserDto("user-1", "John Smith", "John", "Smith", "john@test.com", "+1234567890");
+        var user = new CurrentAuthenticationUserDto(
+            "user-1",
+            "John Smith",
+            "John",
+            "Smith",
+            "john@test.com",
+            "+1234567890",
+            HasPassword: true,
+            TwoFactorEnabled: true,
+            TwoFactorChannel: TwoStepSignInChannelDto.Phone);
         var original = new AuthenticationSessionDto(true, user, new TenantAccessDto(false, false), true);
 
         var json = JsonSerializer.Serialize(original, JsonOptions);
         var deserialized = JsonSerializer.Deserialize<AuthenticationSessionDto>(json, JsonOptions);
+        using JsonDocument jsonDocument = JsonDocument.Parse(json);
 
         deserialized.Should().NotBeNull();
         deserialized!.IsAuthenticated.Should().BeTrue();
@@ -64,6 +74,11 @@ public class SerializationTests
         deserialized.User.DisplayName.Should().Be("John Smith");
         deserialized.User.GivenName.Should().Be("John");
         deserialized.User.FamilyName.Should().Be("Smith");
+        deserialized.User.HasPassword.Should().BeTrue();
+        deserialized.User.TwoFactorEnabled.Should().BeTrue();
+        deserialized.User.TwoFactorChannel.Should().Be(TwoStepSignInChannelDto.Phone);
+        jsonDocument.RootElement.GetProperty("user").GetProperty("twoFactorChannel")
+            .GetString().Should().Be(nameof(TwoStepSignInChannelDto.Phone));
         deserialized.CanAccessPlatformAdmin.Should().BeTrue();
     }
 

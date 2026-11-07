@@ -39,6 +39,9 @@ public sealed class LandingApp : Vitarish.Apps.Base.Core.App
         {
             options.AddPolicy(LandingRateLimitPolicies.PublicConversation, context => RateLimitPartition.GetSlidingWindowLimiter(context.Connection.RemoteIpAddress?.ToString() ?? "unknown", _ => new SlidingWindowRateLimiterOptions { Window = TimeSpan.FromMinutes(1), PermitLimit = 10, SegmentsPerWindow = 6, QueueLimit = 0, QueueProcessingOrder = QueueProcessingOrder.OldestFirst }));
             options.AddPolicy(LandingRateLimitPolicies.PublicCatalog, context => RateLimitPartition.GetSlidingWindowLimiter(context.Connection.RemoteIpAddress?.ToString() ?? "unknown", _ => new SlidingWindowRateLimiterOptions { Window = TimeSpan.FromMinutes(1), PermitLimit = 60, SegmentsPerWindow = 6, QueueLimit = 0, QueueProcessingOrder = QueueProcessingOrder.OldestFirst }));
+            options.AddPolicy(LandingRateLimitPolicies.AuthenticatedVisitor, context => RateLimitPartition.GetSlidingWindowLimiter(
+                LandingRateLimitPolicies.AuthenticatedVisitorPartitionKey(context),
+                _ => new SlidingWindowRateLimiterOptions { Window = TimeSpan.FromMinutes(1), PermitLimit = 10, SegmentsPerWindow = 6, QueueLimit = 0, QueueProcessingOrder = QueueProcessingOrder.OldestFirst }));
         });
         return Task.CompletedTask;
     }

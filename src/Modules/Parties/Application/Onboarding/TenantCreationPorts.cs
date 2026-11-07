@@ -2,9 +2,9 @@ using Vitarish.Parties.Domain.Profiles;
 
 namespace Vitarish.Parties.Application.Onboarding;
 
-/// <summary>The account asking to create a tenant, as far as creation cares.</summary>
+/// <summary>The account asking to create a tenant, as far as creation cares. <paramref name="HasVerifiedContact"/> is true when the account has a confirmed phone number or a confirmed email address.</summary>
 /// <param name="CanOwnTenant">False when the account holds a platform role, which excludes tenant roles.</param>
-public sealed record TenantCreator(string UserId, bool HasVerifiedPhone, bool CanOwnTenant);
+public sealed record TenantCreator(string UserId, bool HasVerifiedContact, bool CanOwnTenant);
 
 public interface ITenantCreatorDirectory
 {

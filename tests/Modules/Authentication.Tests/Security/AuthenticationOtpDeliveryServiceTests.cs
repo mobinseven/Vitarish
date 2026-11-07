@@ -45,7 +45,7 @@ public sealed class AuthenticationOtpDeliveryServiceTests
     }
 
     [Fact]
-    public async Task A_delivery_failure_is_logged_with_the_provider_error_and_masked_recipient_then_rethrown()
+    public async Task A_delivery_failure_logs_only_the_failure_type_and_masked_recipient_then_rethrows()
     {
         Mock<ISecurityAuditWriter> writer = new();
         writer.Setup(value => value.WriteAsync(It.IsAny<SecurityAuditEvent>(), It.IsAny<CancellationToken>()))
@@ -61,9 +61,11 @@ public sealed class AuthenticationOtpDeliveryServiceTests
         (await send.Should().ThrowAsync<InvalidOperationException>()).Which.Should().BeSameAs(providerFailure);
         RecordingLogger.Entry entry = logger.Entries.Should().ContainSingle().Subject;
         entry.Level.Should().Be(LogLevel.Error);
-        entry.Exception.Should().BeSameAs(providerFailure);
-        entry.Message.Should().Contain(AuthenticationSecurityAuditEvents.OtpEmailSendOperation).And.Contain("***er@***");
-        entry.Message.Should().NotContain("owner@example.test");
+        entry.Exception.Should().BeNull();
+        entry.Message.Should().Contain(AuthenticationSecurityAuditEvents.OtpEmailSendOperation)
+            .And.Contain("***er@***")
+            .And.Contain(nameof(InvalidOperationException));
+        entry.Message.Should().NotContain("smtp handshake failed").And.NotContain("owner@example.test");
     }
 
     private sealed class RecordingLogger : ILogger<AuthenticationOtpDeliveryService>

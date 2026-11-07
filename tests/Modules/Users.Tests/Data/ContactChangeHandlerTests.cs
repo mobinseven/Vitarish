@@ -42,11 +42,13 @@ public sealed class ContactChangeHandlerTests
         }
 
         Mock<ISecurityAuditWriter> auditWriter = AuditWriter();
+        await using UsersDbContext dbContext = PostgresTestSupport.CreateContext(connectionString);
         SetUserEmailCommandHandler handler = new(
-            CreateUserManager(PostgresTestSupport.CreateContext(connectionString)),
-            CreateSender(PostgresTestSupport.CreateContext(connectionString)),
+            CreateUserManager(dbContext),
+            CreateSender(dbContext),
             CreateCache(),
-            CreateAudit(auditWriter));
+            CreateAudit(auditWriter),
+            dbContext);
 
         IdentityResult result = await handler.Handle(new SetUserEmailCommand("under-test", "new@example.test"), CancellationToken.None);
 
@@ -84,11 +86,13 @@ public sealed class ContactChangeHandlerTests
         }
 
         Mock<ISecurityAuditWriter> auditWriter = AuditWriter();
+        await using UsersDbContext dbContext = PostgresTestSupport.CreateContext(connectionString);
         SetUserEmailCommandHandler handler = new(
-            CreateUserManager(PostgresTestSupport.CreateContext(connectionString)),
-            CreateSender(PostgresTestSupport.CreateContext(connectionString)),
+            CreateUserManager(dbContext),
+            CreateSender(dbContext),
             CreateCache(),
-            CreateAudit(auditWriter));
+            CreateAudit(auditWriter),
+            dbContext);
 
         IdentityResult usernameOwned = await handler.Handle(new SetUserEmailCommand("under-test", "username-owned@example.test"), CancellationToken.None);
         IdentityResult emailOwned = await handler.Handle(new SetUserEmailCommand("under-test", "email-owned@example.test"), CancellationToken.None);
@@ -128,11 +132,13 @@ public sealed class ContactChangeHandlerTests
             await seed.SaveChangesAsync();
         }
 
+        await using UsersDbContext dbContext = PostgresTestSupport.CreateContext(connectionString);
         SetUserEmailCommandHandler handler = new(
-            CreateUserManager(PostgresTestSupport.CreateContext(connectionString)),
-            CreateSender(PostgresTestSupport.CreateContext(connectionString)),
+            CreateUserManager(dbContext),
+            CreateSender(dbContext),
             CreateCache(),
-            CreateAudit(AuditWriter()));
+            CreateAudit(AuditWriter()),
+            dbContext);
 
         IdentityResult first = await handler.Handle(new SetUserEmailCommand("under-test", "new@example.test"), CancellationToken.None);
         IdentityResult second = await handler.Handle(new SetUserEmailCommand("under-test", "new@example.test"), CancellationToken.None);
@@ -160,11 +166,13 @@ public sealed class ContactChangeHandlerTests
         }
 
         Mock<ISecurityAuditWriter> auditWriter = AuditWriter();
+        await using UsersDbContext dbContext = PostgresTestSupport.CreateContext(connectionString);
         SetUserPhoneNumberCommandHandler handler = new(
-            CreateUserManager(PostgresTestSupport.CreateContext(connectionString)),
-            CreateSender(PostgresTestSupport.CreateContext(connectionString)),
+            CreateUserManager(dbContext),
+            CreateSender(dbContext),
             CreateCache(),
-            CreateAudit(auditWriter));
+            CreateAudit(auditWriter),
+            dbContext);
 
         IdentityResult result = await handler.Handle(new SetUserPhoneNumberCommand("under-test", "+989129999999"), CancellationToken.None);
 
@@ -202,11 +210,13 @@ public sealed class ContactChangeHandlerTests
         }
 
         Mock<ISecurityAuditWriter> auditWriter = AuditWriter();
+        await using UsersDbContext dbContext = PostgresTestSupport.CreateContext(connectionString);
         SetUserPhoneNumberCommandHandler handler = new(
-            CreateUserManager(PostgresTestSupport.CreateContext(connectionString)),
-            CreateSender(PostgresTestSupport.CreateContext(connectionString)),
+            CreateUserManager(dbContext),
+            CreateSender(dbContext),
             CreateCache(),
-            CreateAudit(auditWriter));
+            CreateAudit(auditWriter),
+            dbContext);
 
         IdentityResult phoneOwned = await handler.Handle(new SetUserPhoneNumberCommand("under-test", "+989125555555"), CancellationToken.None);
         IdentityResult usernameOwned = await handler.Handle(new SetUserPhoneNumberCommand("under-test", "+989127777777"), CancellationToken.None);
@@ -236,11 +246,13 @@ public sealed class ContactChangeHandlerTests
             await seed.SaveChangesAsync();
         }
 
+        await using UsersDbContext dbContext = PostgresTestSupport.CreateContext(connectionString);
         SetUserPhoneNumberCommandHandler handler = new(
-            CreateUserManager(PostgresTestSupport.CreateContext(connectionString)),
-            CreateSender(PostgresTestSupport.CreateContext(connectionString)),
+            CreateUserManager(dbContext),
+            CreateSender(dbContext),
             CreateCache(),
-            CreateAudit(AuditWriter()));
+            CreateAudit(AuditWriter()),
+            dbContext);
 
         IdentityResult first = await handler.Handle(new SetUserPhoneNumberCommand("under-test", "+989129999999"), CancellationToken.None);
         IdentityResult second = await handler.Handle(new SetUserPhoneNumberCommand("under-test", "+989129999999"), CancellationToken.None);

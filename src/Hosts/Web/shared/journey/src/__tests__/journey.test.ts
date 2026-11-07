@@ -37,7 +37,6 @@ const coldBarrelImportTimeoutMilliseconds = 30_000;
 describe("journey barrel exports", () => {
   it("exports key components", async () => {
     const mod = await import("../index");
-    expect(mod.WorkspaceSelectionPage).toBeDefined();
     expect(mod.ProfileCompletionPage).toBeDefined();
     expect(mod.ContactConfirmationPage).toBeDefined();
     expect(mod.ConsentReviewPage).toBeDefined();

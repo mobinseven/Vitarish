@@ -1,7 +1,7 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { LocalizationProvider } from "@vitarish/localization";
-import { securityMessageCatalogs } from "../localization";
+import { localizePlatformAuditOperation, securityMessageCatalogs } from "../localization";
 import { PlatformSecurityAuditReviewPage } from "../components/PlatformSecurityAuditReviewPage";
 import {
   auditPlatformSecurityEventsExport,
@@ -71,6 +71,13 @@ beforeEach(() => {
 });
 
 describe("PlatformSecurityAuditReviewPage", () => {
+  it.each([
+    ["en", "Sign in with password and one-time code"],
+    ["fa", "ورود با گذرواژه و کد یک‌بارمصرف"],
+  ] as const)("describes the shared password-code audit operation in %s", (locale, expected) => {
+    expect(localizePlatformAuditOperation(locale, "password.login.otp", "unknown")).toBe(expected);
+  });
+
   it("sends the applied actor filter to the global query and downloads the filtered CSV", async () => {
     renderPage();
 

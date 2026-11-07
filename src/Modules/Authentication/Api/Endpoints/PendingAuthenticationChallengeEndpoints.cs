@@ -19,8 +19,9 @@ public static class PendingAuthenticationChallengeEndpoints
                 AuthenticationEndpointMapper.ToDto(pending.Challenge), pending.Destination, pending.ReturnUrl,
                 pending.Challenge.Purpose == AuthenticationChallengePurpose.EmailLogin,
                 pending.Challenge.Purpose == AuthenticationChallengePurpose.PhoneLogin,
-                pending.Challenge.Purpose == AuthenticationChallengePurpose.PasswordLoginOtp,
-                pending.Challenge.Purpose is AuthenticationChallengePurpose.EmailPasswordRecovery or AuthenticationChallengePurpose.PhonePasswordRecovery));
+                pending.Challenge.Purpose is AuthenticationChallengePurpose.PasswordLoginOtp or AuthenticationChallengePurpose.PasswordLoginEmailOtp,
+                pending.Challenge.Purpose is AuthenticationChallengePurpose.EmailPasswordRecovery or AuthenticationChallengePurpose.PhonePasswordRecovery,
+                pending.Challenge.Purpose == AuthenticationChallengePurpose.PasswordLoginEmailOtp));
         }, AuthenticationPendingChallengeOperationIds.Get, typeof(PendingAuthenticationChallengeResponse),
             profile: ModuleEndpointProfile.AnonymousJson, anonymousJustification: AuthenticationAnonymousEndpointJustifications.PendingChallenge)
         .Produces<PendingAuthenticationChallengeResponse>()

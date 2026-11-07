@@ -26,6 +26,14 @@ public static class UserContactIdentifierPolicy
     public static bool HasContactIdentifier(string? email, string? phoneNumber) =>
         !string.IsNullOrWhiteSpace(email) || !string.IsNullOrWhiteSpace(phoneNumber);
 
+    public static bool HasConfirmedContact(
+        string? email,
+        bool emailConfirmed,
+        string? phoneNumber,
+        bool phoneNumberConfirmed) =>
+        (emailConfirmed && !string.IsNullOrWhiteSpace(email)) ||
+        (phoneNumberConfirmed && !string.IsNullOrWhiteSpace(phoneNumber));
+
     public static bool IsValidE164PhoneNumber(string? phoneNumber) =>
         UserPhoneNumberPolicy.IsValidE164(phoneNumber);
 }

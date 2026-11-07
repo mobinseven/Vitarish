@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { expect, test, type Page } from "@playwright/test";
 import { Routes as AdminRoutes } from "../../apps/platform-admin/src/app/routes";
 import { Routes as PatientRoutes } from "../../apps/patients/src/app/routes";
@@ -19,6 +20,10 @@ async function post(page: Page, path: string, body: unknown) {
   }, { path, body, tenantHeader: TENANT_HOST_HEADER, antiforgeryPath: generatedOperationPath(authenticationAntiforgeryGet) });
 }
 
+const platformAdminUsername = /public const string PlatformAdminUserName = "([^"]+)";/.exec(
+  readFileSync(new URL("../../../E2e/Infrastructure/Fixtures/E2eFixtureSeeder.cs", import.meta.url), "utf8"),
+)?.[1];
+
 test("one central browser signs in across apps and app logout revokes the whole family", async ({ browser }) => {
   test.setTimeout(360_000);
   const password = process.env[twoHostE2ePasswordEnvironmentKey];
@@ -34,7 +39,8 @@ test("one central browser signs in across apps and app logout revokes the whole 
     await expect(page).toHaveURL(url => url.origin === twoHostE2eSignInOrigin && url.pathname === AuthenticationWebRoutes.SignIn, { timeout: 120_000 });
     await page.getByRole("link", { name: new RegExp(getMessages("en").auth.login.passwordMethod) }).click();
     await expect(page.locator('button[type="submit"]')).toBeEnabled();
-    await page.locator('input[name="username"]').fill("e2e-platform-admin");
+    expect(platformAdminUsername).toBeTruthy();
+    await page.locator('input[name="username"]').fill(platformAdminUsername!);
     await page.locator('input[name="password"]').fill(password!);
     await page.locator('button[type="submit"]').click();
     await expect(page).toHaveURL(twoHostE2ePlatformAdminOrigin + AdminRoutes.Audit, { timeout: 120_000 });
@@ -50,7 +56,7 @@ test("one central browser signs in across apps and app logout revokes the whole 
     // App-local credential submission remains unavailable even with a valid linked session.
     const credentialPath = generatedOperationPath(authenticationLoginPassword);
     for (const path of [credentialPath, credentialPath.toUpperCase(), credentialPath + "/"])
-      expect(await post(page, path, { userNameOrEmail: "e2e-platform-admin", password, returnUrl: null })).toBe(404);
+      expect(await post(page, path, { userNameOrEmail: platformAdminUsername, password, returnUrl: null })).toBe(404);
     await page.goto(twoHostE2eSignInOrigin + AuthenticationWebRoutes.AccountSecurity);
     const roots = await page.request.get(twoHostE2eSignInOrigin + generatedOperationPath(authenticationBrowserSessionsGet));
     expect(roots.status()).toBe(200);

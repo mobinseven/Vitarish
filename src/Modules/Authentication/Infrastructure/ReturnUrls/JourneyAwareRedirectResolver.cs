@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Vitarish.Authentication.Application.Abstractions;
 using Vitarish.Authentication.Domain.ReturnUrls;
@@ -58,7 +59,11 @@ public sealed class JourneyAwareRedirectResolver(
 
             JourneyStep step = await journeyResolver.ResolveAsync(request, cancellationToken);
             if (step.BlockingGate is not null && !string.IsNullOrWhiteSpace(requestedReturnUrl) && ReturnUrlPolicy.IsSafeLocal(requestedReturnUrl))
-                return step.DestinationUrl + "?" + AuthenticationBrowserQuery.ReturnUrl + "=" + Uri.EscapeDataString(requestedReturnUrl);
+            {
+                int queryStart = step.DestinationUrl.IndexOf('?');
+                if (queryStart < 0 || !QueryHelpers.ParseQuery(step.DestinationUrl[queryStart..]).ContainsKey(AuthenticationBrowserQuery.ReturnUrl))
+                    return QueryHelpers.AddQueryString(step.DestinationUrl, AuthenticationBrowserQuery.ReturnUrl, requestedReturnUrl);
+            }
             return step.DestinationUrl;
         }
         catch (Exception ex) when (ex is not OperationCanceledException)

@@ -91,6 +91,40 @@ public class JourneyReturnUrlPolicyTests
     }
 
     [Theory]
+    [InlineData("/path\tname")]
+    [InlineData("/path\nname")]
+    [InlineData("/path\rname")]
+    [InlineData("/path name")]
+    [InlineData("/path\u007Fname")]
+    [InlineData("/path\uFEFFname")]
+    [InlineData("/%09path")]
+    [InlineData("/%0Apath")]
+    [InlineData("/%0Dpath")]
+    [InlineData("/%7Fpath")]
+    [InlineData("/%EF%BB%BFpath")]
+    [InlineData("%2F%09%2Fevil.example")]
+    public void IsSafe_ControlOrWhitespace_ReturnsFalse(string returnUrl)
+    {
+        _sut.IsSafe(returnUrl).Should().BeFalse();
+    }
+
+    [Theory]
+    [InlineData("/path\tname")]
+    [InlineData("/path\nname")]
+    [InlineData("/path\rname")]
+    [InlineData("/path\u007Fname")]
+    [InlineData("/%09path")]
+    [InlineData("/%0Apath")]
+    [InlineData("/%0Dpath")]
+    [InlineData("/%7Fpath")]
+    [InlineData("/%EF%BB%BFpath")]
+    [InlineData("%2F%09%2Fevil.example")]
+    public void Normalize_ControlOrWhitespace_ReturnsNull(string returnUrl)
+    {
+        _sut.Normalize(returnUrl).Should().BeNull();
+    }
+
+    [Theory]
     [InlineData(null)]
     [InlineData("")]
     public void Normalize_NullOrBlank_ReturnsNull(string? returnUrl)

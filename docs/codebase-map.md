@@ -116,10 +116,10 @@ Run npm workspace commands from `src/Hosts/Web`.
 
 | Path | Responsibility |
 | --- | --- |
-| `apps/private-practice-owner` | Private-practice owner application. |
+| `apps/private-practice-owner` | Private-practice owner application and sign-in host, including `/continue`. |
 | `apps/patients` | Patient-facing application. |
 | `apps/knowledge-qa-demo` | Knowledge QA demonstration application. |
-| `apps/vitarish-landing` | Public landing application. |
+| `apps/vitarish-landing` | Public front door and signed-in platform home (`/home`), including handoff redemption (`/handoff`). |
 | `apps/vitarish-pm` | Dedicated tenant-scoped project-management application backed by SEA. |
 | `apps/agent-runtime` | Server-only OpenAI Agents SDK runtime; not a browser UI. |
 | `apps/personal-site` | Owner's personal website at `farzadm.ir`; independent of the product, but released through the same production workflow and ingress. |
@@ -175,6 +175,11 @@ to `shared/ui` only when it satisfies the promotion rules in
 | Search | `src/Modules/Search` | owning feature routes/packages | `tests/Modules/Search.Tests` | `docs/platform/modules/search` |
 | Other modules | matching `src/Modules/<Name>` | owning app/feature package when implemented | matching test project when present | matching module docs when present |
 
+Account sign-in settings use `AccountSignInSettings` in `shared/account`;
+the Authentication module owns their endpoints, handlers, and
+`RecentAuthenticationPolicy`. The two-host account setup flow is in
+`src/Hosts/Web/tests/e2e/account-sign-in-security.spec.ts`.
+
 ## 7. Runtime and data flow
 
 - `src/Hosts/Main` exposes module Minimal APIs, authentication/authorization,
@@ -209,7 +214,11 @@ for bootstrap, secrets, health checks, and recovery, and
 [`docs/runbooks/clinic-onboarding.md`](runbooks/clinic-onboarding.md) to switch
 self-service clinic onboarding (ADR-0016) on or off, and
 [`docs/runbooks/sign-in-host.md`](runbooks/sign-in-host.md) for the shared
-sign-in host (ADR-0018). Use
+sign-in host (ADR-0018), and
+[`docs/runbooks/production-smoke-accounts.md`](runbooks/production-smoke-accounts.md)
+for the production smoke logins checked after each deploy, and
+[`docs/runbooks/mail-server.md`](runbooks/mail-server.md) for the operator-applied
+Stalwart mail server (`docker-compose.mail.yml`) behind those smoke mailboxes. Use
 `src/Hosts/scripts/Install-UbuntuServer.ps1` once to provision Docker/Compose
 and the server's GHCR read login. Run local Web development through the npm
 workspace and a separately started Main host.
@@ -387,6 +396,7 @@ also modifies executable or generated behavior.
 
 - Repository operating contract: [`AGENTS.md`](../AGENTS.md)
 - Architecture boundaries: [`docs/architecture.md`](architecture.md)
+- Platform functional model: [`docs/platform/functional-architecture.md`](platform/functional-architecture.md)
 - Architecture decisions: [`docs/architecture/decisions/_index.md`](architecture/decisions/_index.md)
 - Documentation index: [`docs/README.md`](README.md)
 - Platform/module docs: [`docs/platform`](platform)

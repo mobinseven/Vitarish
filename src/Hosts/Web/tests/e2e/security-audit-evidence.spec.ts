@@ -1,3 +1,4 @@
+import { AuthenticationWebRoutes } from "../../shared/auth/src/routes";
 import { expect, request as playwrightRequest, test, type APIRequestContext, type Page, type Response } from "@playwright/test";
 import { createHmac } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
@@ -197,7 +198,7 @@ async function login(page: Page, username: string, origin = "", clientIp = "198.
     page.locator('button[type="submit"]').click(),
   ]);
   expect(response.status()).toBe(200);
-  await expect(page).toHaveURL(url => url.origin === platformOrigin && !url.pathname.startsWith("/login") && url.pathname !== "/handoff", { timeout: 120_000 });
+  await expect(page).toHaveURL(url => url.origin === platformOrigin && !url.pathname.startsWith(AuthenticationWebRoutes.SignIn) && url.pathname !== AuthenticationWebRoutes.Handoff, { timeout: 120_000 });
 }
 
 async function platformAuditResponse(page: Page, event: AuditEventExpectation): Promise<{ status: number; body: unknown }> {
@@ -710,8 +711,8 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     expect((await deleteJson(administratorPage, rolePath, { roleSuffix: tenantUserRoleSuffix })).status).toBe(200);
     expect((await putJson(administratorPage, rolePath, { roleSuffix: tenantUserRoleSuffix })).status).toBe(200);
 
-    page.once("dialog", (dialog) => dialog.accept());
     await member.getByRole("button", { name: uiText.removeAccess }).click();
+    await page.getByRole("dialog").getByRole("button", { name: uiText.removeAccess }).click();
     await expect(page.getByText(uiText.memberRemoved, { exact: true })).toBeVisible();
 
     const uploaded = await uploadEvidenceFile(page);

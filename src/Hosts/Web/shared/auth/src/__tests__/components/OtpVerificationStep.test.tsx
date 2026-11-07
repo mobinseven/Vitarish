@@ -21,9 +21,11 @@ vi.mock("@vitarish/ui", () => ({
 }));
 
 let capturedHandler: ((code: string) => void) | null = null;
+let captureEnabled: boolean | undefined;
 
 vi.mock("../../hooks/useOtpCodeCapture", () => ({
-  useOtpCodeCapture: vi.fn(({ onCode }) => {
+  useOtpCodeCapture: vi.fn(({ enabled, onCode }) => {
+    captureEnabled = enabled;
     capturedHandler = onCode;
   }),
 }));
@@ -33,6 +35,7 @@ describe("OtpVerificationStep", () => {
 
   beforeEach(() => {
     capturedHandler = null;
+    captureEnabled = undefined;
   });
 
   function renderStep(
@@ -70,6 +73,21 @@ describe("OtpVerificationStep", () => {
     expect(
       screen.getByRole("button", { name: /use a different email/i }),
     ).toBeInTheDocument();
+  });
+
+  it("shows an email instruction alongside the masked destination", () => {
+    const destinationLabel = "s***@example.test";
+    const stepDescription = "Enter the code sent to your email to finish signing in.";
+    renderStep({ destinationLabel, stepDescription });
+
+    expect(screen.getByText(stepDescription)).toBeInTheDocument();
+    expect(screen.getByText(destinationLabel)).toHaveAttribute("dir", "ltr");
+  });
+
+  it("does not request SMS code capture for an email challenge", () => {
+    renderStep({ captureCode: false });
+
+    expect(captureEnabled).toBe(false);
   });
 
   it("enables verify only for complete manual codes", async () => {

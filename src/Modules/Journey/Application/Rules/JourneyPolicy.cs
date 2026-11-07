@@ -29,20 +29,31 @@ public static class JourneyPolicy
     /// <summary>The root page of the app the user signed in to.</summary>
     public const string AppRootUrl = "/";
 
-    /// <summary>The page where a user chooses which workspace or clinic to continue to.</summary>
+    /// <summary>The page where a user chooses which workspace to open.</summary>
     public const string WorkspaceSelectionUrl = "/workspaces/select";
 
+    /// <summary>The page where a user completes the required account profile.</summary>
+    public const string ProfileCompletionUrl = "/account/profile/complete";
+
+    /// <summary>The page where a signed-in user continues to their platform home.</summary>
+    public const string SignInContinueUrl = "/continue";
+
+    /// <summary>The query key that carries a requested relative return path between journey pages.</summary>
+    public const string ReturnUrlQueryKey = "returnUrl";
+
     /// <summary>
-    /// Sends a user on the shared sign-in host, which serves nothing else, to choose which of their
-    /// clinics to continue to.
+    /// Sends a signed-in user on the shared sign-in host to continue to platform home, carrying an
+    /// already-normalized relative return path so home can open it after the handoff.
     /// </summary>
-    public static JourneyGate? EvaluateClinicSelection(bool isSignInHost) =>
+    public static JourneyGate? EvaluateSignInContinue(bool isSignInHost, string? safeReturnUrl = null) =>
         isSignInHost
             ? new JourneyGate(
-                JourneyGateKind.WorkspaceSelection,
+                JourneyGateKind.SignInContinue,
                 IsBlocking: true,
-                DestinationUrl: WorkspaceSelectionUrl,
-                Message: "Choose a clinic to continue.")
+                DestinationUrl: safeReturnUrl is null
+                    ? SignInContinueUrl
+                    : $"{SignInContinueUrl}?{ReturnUrlQueryKey}={Uri.EscapeDataString(safeReturnUrl)}",
+                Message: "Continue to platform home.")
             : null;
 
     /// <summary>The page where a user on the sign-up host creates their own tenant.</summary>

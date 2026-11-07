@@ -21,6 +21,10 @@ public sealed class OnboardingHostOptions
 {
     public string? OnboardingUrl { get; set; }
 
+    public string? Hostname => Uri.TryCreate(OnboardingUrl, UriKind.Absolute, out Uri? uri) ? uri.Host : null;
+
+    public bool IsAvailable => TenantOnboardingEnabled && Hostname is not null;
+
     /// <summary>The <c>Vitarish:Features:TenantOnboarding</c> flag; composition copies it here.</summary>
     public bool TenantOnboardingEnabled { get; set; }
 }

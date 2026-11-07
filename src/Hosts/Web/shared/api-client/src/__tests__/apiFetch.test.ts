@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ApiError, apiFetch, apiFetchBlob, resetAntiforgeryToken } from "../apiFetch";
+import { ACCEPT_LANGUAGE_HEADER, ApiError, apiFetch, apiFetchBlob, resetAntiforgeryToken } from "../apiFetch";
 
 const tenantHostHeader = "X-Vitarish-Tenant-Host";
 
@@ -24,6 +24,21 @@ describe("apiFetch antiforgery", () => {
     await apiFetch("/api/modules/example");
 
     expect(fetchMock.mock.calls[0][1].headers.get(tenantHostHeader)).toBe("tenant-a.example.test");
+  });
+
+  it("forwards the selected document language to the API", async () => {
+    const previousLanguage = document.documentElement.lang;
+    const fetchMock = vi.fn().mockResolvedValueOnce(jsonResponse({ ok: true }));
+    document.documentElement.lang = "fa";
+    vi.stubGlobal("fetch", fetchMock);
+
+    try {
+      await apiFetch("/api/modules/example");
+
+      expect(fetchMock.mock.calls[0][1].headers.get(ACCEPT_LANGUAGE_HEADER)).toBe("fa");
+    } finally {
+      document.documentElement.lang = previousLanguage;
+    }
   });
 
   it("forwards cancellation signals to fetch", async () => {

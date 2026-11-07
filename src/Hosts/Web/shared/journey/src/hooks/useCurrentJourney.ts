@@ -1,11 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { apiFetch } from "@vitarish/api-client";
+import { signInReturnUrlQueryKey } from "../signInHost";
 
 export interface JourneyGate {
   kind:
     | "ContactConfirmation"
     | "ProfileCompletion"
     | "RequiredConsent"
+    | "SignInContinue"
     | "WorkspaceSelection"
     | "AccountRecovery"
     | "SuspiciousLogin"
@@ -40,7 +42,7 @@ async function fetchCurrentJourney(
 ): Promise<JourneyDecision> {
   const params = new URLSearchParams();
   if (returnUrl) {
-    params.set("returnUrl", returnUrl);
+    params.set(signInReturnUrlQueryKey, returnUrl);
   }
   const queryString = params.toString();
   const url = `/api/modules/journey/current${queryString ? `?${queryString}` : ""}`;

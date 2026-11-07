@@ -26,5 +26,6 @@ export function useAuthSession({ enabled = true }: { enabled?: boolean } = {}) {
     displayProfile,
     isLoading: query.isLoading && !unauthorized,
     isError: query.isError && !unauthorized,
+    refetch: query.refetch,
   };
 }

@@ -12,6 +12,7 @@ Applies to every changed artifact. A nearer `AGENTS.md` may specialize commands,
 Read only relevant sources:
 
 - `docs/architecture.md`: boundaries, dependency matrix, public contracts.
+- `docs/platform/functional-architecture.md`: platform vs apps, hosts, user states and destinations.
 - `docs/codebase-map.md`: locations, generated areas, canonical commands.
 - `docs/memory.md`: durable lessons, fragile areas, unfinished migrations.
 - `docs/architecture-rationale.md`: reasoning for architecture-sensitive work.

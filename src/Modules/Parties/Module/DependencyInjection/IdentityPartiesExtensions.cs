@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Parties.Application;
+using Vitarish.Parties.Application.Apps;
 using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Application.Addresses;
 using Vitarish.Parties.Application.Onboarding;
@@ -19,6 +20,7 @@ using Vitarish.Parties.Infrastructure.Services;
 using Vitarish.Entities.Server.Extensions;
 using Vitarish.Parties.Module.BackgroundJobs;
 using Vitarish.Modules.Base.Core.BackgroundJobs;
+using Vitarish.Modules.Base.Core.Identity;
 
 namespace Vitarish.Parties.Module.DependencyInjection;
 
@@ -34,12 +36,13 @@ public static class IdentityPartiesExtensions
         _ = builder.Services.AddTransientDbContext<PartiesDbContext>((_, options) => dbContextOptionsBuilder(options));
 
         _ = builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(typeof(AssemblyMarker).Assembly, typeof(PlatformAdminTenant).Assembly));
+        _ = builder.Services.AddSingleton<IPlatformAppCatalog, PlatformAppCatalog>();
         _ = builder.Services.AddOptions<PlatformAdminHostOptions>().BindConfiguration(Modules.Base.Core.Module.ApplicationSection);
         _ = builder.Services.AddOptions<BrowserApplicationHostOptions>().BindConfiguration(Modules.Base.Core.Module.ApplicationSection)
             .Validate(options => new[] { options.PatientsUrl, options.ProjectManagementUrl, options.KnowledgeQaUrl }
                 .All(value => value is null || Uri.TryCreate(value, UriKind.Absolute, out Uri? uri)
                     && (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp &&
-                        (uri.Host == "localhost" || uri.Host.EndsWith(".localhost", StringComparison.Ordinal)))),
+                        (BrowserApplicationHostOptions.IsDevelopmentHostname(uri.Host)))),
                 "Browser application hosts require HTTPS, except localhost development origins.").ValidateOnStart();
         _ = builder.Services.AddOptions<TenantAddressOptions>().BindConfiguration(Modules.Base.Core.Module.ApplicationSection);
         _ = builder.Services.AddOptions<OnboardingHostOptions>()
@@ -63,6 +66,16 @@ public static class IdentityPartiesExtensions
                     Window = TimeSpan.FromMinutes(1), PermitLimit = 60, SegmentsPerWindow = 6,
                     QueueLimit = 0, QueueProcessingOrder = QueueProcessingOrder.OldestFirst
                 })));
+        _ = builder.Services.AddRateLimiter(options => options.AddPolicy(PartiesRateLimitPolicies.SignInHandoff, context =>
+            RateLimitPartition.GetSlidingWindowLimiter(
+                AuthenticatedUserIdResolver.Resolve(context.User) is AuthenticatedUserIdResolution.Success user
+                    ? user.UserId.Value
+                    : context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                _ => new SlidingWindowRateLimiterOptions
+                {
+                    Window = TimeSpan.FromMinutes(1), PermitLimit = 10, SegmentsPerWindow = 6,
+                    QueueLimit = 0, QueueProcessingOrder = QueueProcessingOrder.OldestFirst
+                })));
 
         // Register Entity Services
         _ = builder.Services.AddTransient<OwnersService>();
@@ -77,7 +90,7 @@ public static class IdentityPartiesExtensions
         _ = builder.Services.AddTransient<ISelfServiceTenantStore, SelfServiceTenantStore>();
         _ = builder.Services.AddTransient<ITenantHandoffIssuer, AuthenticationTenantHandoffIssuer>();
         _ = builder.Services.AddTransient<Vitarish.Authentication.Application.Abstractions.IRoleFreeSessionPolicy, PlatformHostRoleFreeSessionPolicy>();
-        _ = builder.Services.AddTransient<ISignInClinicDirectory, SignInClinicDirectory>();
+        _ = builder.Services.AddTransient<IWorkspaceDirectory, WorkspaceDirectory>();
         _ = builder.Services.AddTransient<Vitarish.Authentication.Application.Abstractions.IAuthenticationHostDirectory, AuthenticationHostDirectory>();
         _ = builder.Services.AddTransient<IAppTenantDirectory, AppTenantDirectory>();
         _ = builder.Services.AddTransient<ITenantBusinessProfileStore, TenantBusinessProfileStore>();

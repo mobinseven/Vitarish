@@ -9,5 +9,6 @@ public enum AuthenticationChallengePurposeDto
     PhoneChange,
     EmailChange,
     EmailPasswordRecovery,
-    PhonePasswordRecovery
+    PhonePasswordRecovery,
+    PasswordLoginEmailOtp
 }

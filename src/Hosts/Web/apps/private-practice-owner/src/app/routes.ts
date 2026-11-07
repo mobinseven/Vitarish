@@ -18,10 +18,10 @@ export const Routes = {
   /** Public authentication routes */
   Login: {
     Index: AuthenticationWebRoutes.SignIn,
-    Password: "/login/password",
-    Phone: "/login/phone",
-    Email: "/login/email",
-    Passkey: "/login/passkey",
+    Password: AuthenticationWebRoutes.SignInPassword,
+    Phone: AuthenticationWebRoutes.SignInPhone,
+    Email: AuthenticationWebRoutes.SignInEmail,
+    Passkey: AuthenticationWebRoutes.SignInPasskey,
     ForgotPassword: AuthenticationWebRoutes.PasswordRecovery,
   },
   Logout: "/logout",
@@ -58,10 +58,8 @@ export const Routes = {
     Index: "/contents",
   },
 
-  /** Workspace routes */
-  Workspaces: {
-    Select: "/workspaces/select",
-  },
+  /** Shared sign-in host: continues a signed-in person to their platform home */
+  SignInContinue: "/continue",
 
   /** Private-practice clinic owner routes */
   Clinic: {

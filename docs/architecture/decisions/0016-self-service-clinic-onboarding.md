@@ -41,9 +41,12 @@ Several existing boundaries are involved:
    account endpoints and clinic creation; every tenant endpoint still refuses it.
 4. **Journey gates.** The profile gate comes first, then a `TenantCreation` gate
    that sends a signed-in user on the onboarding host to `/setup`.
+   Amended by [ADR-0020](0020-platform-home-and-app-aware-workspaces.md)
+   (accepted): onboarding is reached by an explicit create action; the
+   onboarding host gate remains.
 5. **Creation.** `POST /api/modules/parties/onboarding/tenants` with an
    `Idempotency-Key`. The creator comes from the session, never the request
-   body, and needs a verified phone. Limits are 3 clinics per creator per day
+   body, and needs a verified phone number or email address (amended 2026-11-07). Limits are 3 clinics per creator per day
    and 10 requests per IP per hour. The same creator and key always derive the
    same tenant and owner ids, so a replay returns the clinic already created. A
    taken address answers 409. The store writes the Parties rows, roles and owner
@@ -131,3 +134,12 @@ active session.
   security event, are written under the new clinic's tenant, not the onboarding
   request's (owner decision on #918).
 - Clinic settings editing and photos: #915.
+
+## Amendments
+
+- 2026-11-07, owner decision: creating a clinic needs a verified phone number
+  **or** a verified email address, not a phone number alone. A contact counts as
+  verified only after its owner proved control of it with a sign-in code, so
+  the check is as strong for email as for phone. The creation limits, audit and
+  every other rule above are unchanged. Reason: an account that signs in by
+  email code must not be locked out of onboarding when SMS is unavailable.

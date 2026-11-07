@@ -117,6 +117,15 @@ public static class HostPipelineExtensions
                         QueueProcessingOrder = QueueProcessingOrder.OldestFirst, QueueLimit = 0, SegmentsPerWindow = 6
                     }));
 
+            _ = options.AddPolicy(AuthenticationRateLimitPolicies.AccountSecurityMutation, context =>
+                RateLimitPartition.GetSlidingWindowLimiter(
+                    partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? context.Request.Headers.Host.ToString(),
+                    factory: _ => new SlidingWindowRateLimiterOptions
+                    {
+                        Window = TimeSpan.FromMinutes(1), PermitLimit = 5,
+                        QueueProcessingOrder = QueueProcessingOrder.OldestFirst, QueueLimit = 0, SegmentsPerWindow = 6
+                    }));
+
             _ = options.AddPolicy("allow-endpoint", context =>
                 RateLimitPartition.GetSlidingWindowLimiter(
                     partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? context.Request.Headers.Host.ToString(),

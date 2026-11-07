@@ -148,7 +148,7 @@ public sealed class CreateOwnTenantEndpointTests
     [Theory]
     [InlineData(CreateOwnTenantStatus.Replayed, StatusCodes.Status200OK)]
     [InlineData(CreateOwnTenantStatus.AddressTaken, StatusCodes.Status409Conflict)]
-    [InlineData(CreateOwnTenantStatus.PhoneNotVerified, StatusCodes.Status403Forbidden)]
+    [InlineData(CreateOwnTenantStatus.ContactNotVerified, StatusCodes.Status403Forbidden)]
     [InlineData(CreateOwnTenantStatus.RoleScopeConflict, StatusCodes.Status403Forbidden)]
     [InlineData(CreateOwnTenantStatus.LimitReached, StatusCodes.Status429TooManyRequests)]
     [InlineData(CreateOwnTenantStatus.AddressReserved, StatusCodes.Status400BadRequest)]

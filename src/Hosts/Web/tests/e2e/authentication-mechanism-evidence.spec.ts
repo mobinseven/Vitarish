@@ -6,6 +6,7 @@ import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/ap
 import { enMessages } from "../../apps/private-practice-owner/src/localization/messages/en";
 import { faMessages } from "../../apps/private-practice-owner/src/localization/messages/fa";
 import { Routes as PlatformRoutes } from "../../apps/platform-admin/src/app/routes";
+import { authMessageCatalogs } from "../../shared/auth/src/localization";
 import { twoHostE2eClinicOrigin, twoHostE2eForwardedForHeaderName as forwardedForHeaderName, twoHostE2eLocaleEnvironmentKey, twoHostE2ePasswordEnvironmentKey, twoHostE2ePlatformAdminOrigin, twoHostE2eSignInOrigin, twoHostE2eSmsCapturePathEnvironmentKey } from "../../scripts/two-host-e2e-artifacts.mjs";
 import { REQUEST_ID_HEADER, TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
 import {
@@ -15,6 +16,7 @@ import {
   authenticationLoginPasskeyComplete,
   authenticationLoginPassword,
   authenticationLoginPasswordOtpComplete,
+  authenticationLoginPasswordOtpResend,
   authenticationLoginPhoneBegin,
   authenticationLoginPhoneComplete,
   authenticationLogoutPost,
@@ -42,6 +44,8 @@ const reviewerUserName = sourceString(fixtureSource, "UserManagementPlatformAdmi
 const emailSignInAddress = sourceString(fixtureSource, "EmailSignInPlatformAdminEmail");
 const twoFactorUserName = sourceString(fixtureSource, "TwoFactorPlatformAdminUserName");
 const twoFactorPhoneNumber = sourceString(fixtureSource, "TwoFactorPlatformAdminPhoneNumber");
+const emailTwoFactorUserName = sourceString(fixtureSource, "EmailTwoFactorPlatformAdminUserName");
+const emailTwoFactorAddress = sourceString(fixtureSource, "EmailTwoFactorPlatformAdminEmail");
 const passkeyUserName = sourceString(fixtureSource, "PasskeyUserName");
 
 const locale = process.env[twoHostE2eLocaleEnvironmentKey] === "fa" ? "fa" : "en";
@@ -54,7 +58,7 @@ const smtpCapturePath = process.env.VITARISH_E2E_SMTP_CAPTURE_PATH;
 const platformOrigin = twoHostE2ePlatformAdminOrigin;
 
 // Each method has its own client address, which also identifies its record below.
-const clientIps = { password: "198.51.100.242", email: "198.51.100.243", phone: "198.51.100.244", passwordOtp: "198.51.100.245", passkey: "198.51.100.246" } as const;
+const clientIps = { password: "198.51.100.242", email: "198.51.100.243", phone: "198.51.100.244", passwordOtp: "198.51.100.245", passkey: "198.51.100.246", emailPasswordOtp: "198.51.100.247" } as const;
 
 // A platform authenticator that keeps discoverable credentials and verifies the user without a prompt.
 const virtualAuthenticator = {
@@ -126,6 +130,21 @@ async function deliveredSmsCode(previousModifiedAt: number, recipientDigits: str
   return code!;
 }
 
+async function deliveredEmailCode(previousModifiedAt: number, recipientEmail: string): Promise<string> {
+  const message = await changedFile(smtpCapturePath!, previousModifiedAt);
+  expect(message.toLowerCase()).toContain(recipientEmail.toLowerCase());
+  const htmlPart = message.split(/\r?\n--/).find(part => /^Content-Type:\s*text\/html\b/im.test(part));
+  expect(htmlPart).toBeTruthy();
+  const [headers, ...bodyParts] = htmlPart!.split(/\r?\n\r?\n/);
+  const body = bodyParts.join("\n\n");
+  const html = /Content-Transfer-Encoding:\s*base64/i.test(headers!)
+    ? Buffer.from(body.replace(/\s/g, ""), "base64").toString("utf8")
+    : body.replace(/=\r?\n/g, "").replace(/=([0-9a-f]{2})/gi, (_, hex: string) => String.fromCharCode(parseInt(hex, 16)));
+  const code = /<strong>\s*(\d{6})\s*<\/strong>/i.exec(html)?.[1];
+  expect(code).toEqual(expect.stringMatching(/^\d+$/));
+  return code!;
+}
+
 async function signInWithPasswordAndPhoneCode(page: Page): Promise<void> {
   await page.goto(`${platformOrigin}${PlatformRoutes.LoginPassword}`, { waitUntil: "domcontentloaded" });
   await page.locator('input[name="username"]').fill(twoFactorUserName);
@@ -139,6 +158,54 @@ async function signInWithPasswordAndPhoneCode(page: Page): Promise<void> {
   expect(passwordStep.ok()).toBe(false);
   const code = await deliveredSmsCode(previous, twoFactorPhoneNumber.slice(-10));
   await page.getByLabel(fieldName(authText.login.otpLabel)).fill(code);
+  const [complete] = await Promise.all([
+    page.waitForResponse(response => response.url().endsWith(generatedOperationPath(authenticationLoginPasswordOtpComplete))),
+    page.getByRole("button", { name: authText.login.otpVerifyAction, exact: true }).click(),
+  ]);
+  expect(complete.status()).toBe(200);
+}
+
+async function signInWithPasswordAndEmailCode(page: Page, testInfo: TestInfo): Promise<void> {
+  await page.goto(`${platformOrigin}${PlatformRoutes.LoginPassword}`, { waitUntil: "domcontentloaded" });
+  await page.locator('input[name="username"]').fill(emailTwoFactorUserName);
+  await page.locator('input[name="password"]').fill(password!);
+  const previous = modifiedAt(smtpCapturePath!);
+  const [passwordStep] = await Promise.all([
+    page.waitForResponse(response => response.url().endsWith(generatedOperationPath(authenticationLoginPassword)) && response.request().method() === "POST"),
+    page.locator('button[type="submit"]').click(),
+  ]);
+  expect(passwordStep.ok()).toBe(false);
+  const challenge = await passwordStep.json() as {
+    challengeId: string;
+    usesEmailSecondFactor: boolean;
+    maskedDestination: string;
+    challengeExpiresAt: string;
+    remainingAttempts: number;
+  };
+  expect(challenge.challengeId).toEqual(expect.any(String));
+  expect(challenge.usesEmailSecondFactor).toBe(true);
+  expect(challenge.challengeExpiresAt).toEqual(expect.any(String));
+  expect(challenge.remainingAttempts).toBeGreaterThan(0);
+  expect(challenge.maskedDestination).toContain("@");
+  expect(challenge.maskedDestination).not.toBe(emailTwoFactorAddress);
+  await expect(page.getByText(authMessageCatalogs[locale].auth.passwordLoginOtp.emailStepDescription, { exact: true })).toBeVisible();
+  await expect(page.getByText(challenge.maskedDestination, { exact: true })).toBeVisible();
+  await expect(page.getByText(emailTwoFactorAddress, { exact: true })).toHaveCount(0);
+  await page.screenshot({ path: testInfo.outputPath("password-email-otp-step.png"), fullPage: true });
+
+  const firstCode = await deliveredEmailCode(previous, emailTwoFactorAddress);
+  const codeField = page.getByLabel(fieldName(authText.login.otpLabel));
+  await codeField.fill(firstCode);
+
+  const resendPrevious = modifiedAt(smtpCapturePath!);
+  const [resend] = await Promise.all([
+    page.waitForResponse(response => response.url().endsWith(generatedOperationPath(authenticationLoginPasswordOtpResend))),
+    page.getByRole("button", { name: authText.otp.resendAction, exact: true }).click(),
+  ]);
+  expect(resend.status()).toBe(200);
+  await expect(page.getByText(challenge.maskedDestination, { exact: true })).toBeVisible();
+  const code = await deliveredEmailCode(resendPrevious, emailTwoFactorAddress);
+  await codeField.fill(code);
   const [complete] = await Promise.all([
     page.waitForResponse(response => response.url().endsWith(generatedOperationPath(authenticationLoginPasswordOtpComplete))),
     page.getByRole("button", { name: authText.login.otpVerifyAction, exact: true }).click(),
@@ -291,6 +358,7 @@ test(`each sign-in method leaves its own attributable audit record ${locale}`, a
       { key: "email", eventName: sourceString(auditSource, "AuthenticationEmailLoginEvent"), cookieOrigin: platformOrigin, signIn: signInWithEmailCode },
       { key: "phone", eventName: sourceString(auditSource, "AuthenticationPhoneLoginEvent"), cookieOrigin: twoHostE2eSignInOrigin, signIn: signInWithPhoneCode },
       { key: "passwordOtp", eventName: sourceString(auditSource, "AuthenticationPasswordLoginOtpEvent"), cookieOrigin: platformOrigin, signIn: signInWithPasswordAndPhoneCode },
+      { key: "emailPasswordOtp", eventName: sourceString(auditSource, "AuthenticationPasswordLoginOtpEvent"), cookieOrigin: platformOrigin, signIn: (page: Page) => signInWithPasswordAndEmailCode(page, testInfo) },
       { key: "passkey", eventName: sourceString(auditSource, "AuthenticationPasskeyLoginEvent"), cookieOrigin: twoHostE2eClinicOrigin, signIn: (page: Page) => signInWithPasskey(page, passkey) },
     ] as const;
     for (const method of methods) {

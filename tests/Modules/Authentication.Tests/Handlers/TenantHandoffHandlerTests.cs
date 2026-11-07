@@ -42,7 +42,7 @@ public sealed class TenantHandoffHandlerTests
         login.UserId.Should().Be(UserId);
         login.RequiresProfileCompletion.Should().BeFalse();
         login.ReturnUrl.Should().Be(HomeUrl);
-        rig.SignIn.Verify(service => service.SignInAsync(UserId, It.IsAny<CancellationToken>()), Times.Once);
+        rig.SignIn.Verify(service => service.SignInFromTenantHandoffAsync(UserId, It.IsAny<DateTime?>(), It.IsAny<CancellationToken>()), Times.Once);
         rig.AuditEvents.Should().Contain(entry =>
             entry.EventName == AuthenticationSecurityAuditEvents.TenantHandoffRedeem &&
             entry.Outcome == SecurityAuditOutcome.Succeeded &&
@@ -52,7 +52,7 @@ public sealed class TenantHandoffHandlerTests
 
         secondRedeem.Should().BeOfType<AuthenticationResult<LoginResult>.Failure>()
             .Which.Error.Reason.Should().Be(AuthenticationFailureReason.InvalidCredential);
-        rig.SignIn.Verify(service => service.SignInAsync(UserId, It.IsAny<CancellationToken>()), Times.Once);
+        rig.SignIn.Verify(service => service.SignInFromTenantHandoffAsync(UserId, It.IsAny<DateTime?>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -298,7 +298,7 @@ public sealed class TenantHandoffHandlerTests
         string token = (await rig.IssueHandler.Handle(new IssueTenantHandoffCommand(UserId, TargetHost), CancellationToken.None))!;
         rig.AuditEvents.Clear();
         rig.SignIn
-            .Setup(service => service.SignInAsync(UserId, It.IsAny<CancellationToken>()))
+            .Setup(service => service.SignInFromTenantHandoffAsync(UserId, It.IsAny<DateTime?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(AuthenticationSessionSignInResult.Failed(new AuthenticationFailure(AuthenticationFailureReason.NoAccess, "No access.")));
 
         AuthenticationResult<LoginResult> result = await rig.RedeemHandler.Handle(new RedeemTenantHandoffCommand(token), CancellationToken.None);
@@ -315,7 +315,7 @@ public sealed class TenantHandoffHandlerTests
     {
         result.Should().BeOfType<AuthenticationResult<LoginResult>.Failure>()
             .Which.Error.Reason.Should().Be(expectedReason);
-        rig.SignIn.Verify(service => service.SignInAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+        rig.SignIn.Verify(service => service.SignInFromTenantHandoffAsync(It.IsAny<string>(), It.IsAny<DateTime?>(), It.IsAny<CancellationToken>()), Times.Never);
         rig.AuditEvents.Should().ContainSingle(entry =>
             entry.EventName == AuthenticationSecurityAuditEvents.TenantHandoffRedeem &&
             entry.Outcome == SecurityAuditOutcome.Denied);
@@ -333,9 +333,9 @@ public sealed class TenantHandoffHandlerTests
         var refused = await rig.RedeemHandler.Handle(new RedeemTenantHandoffCommand(token!), CancellationToken.None);
         refused.Should().BeOfType<AuthenticationResult<LoginResult>.Failure>();
         rig.Tickets.Tickets.Single().RedeemedAt.Should().BeNull();
-        rig.SignIn.Verify(item => item.SignInAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+        rig.SignIn.Verify(item => item.SignInFromTenantHandoffAsync(It.IsAny<string>(), It.IsAny<DateTime?>(), It.IsAny<CancellationToken>()), Times.Never);
         Guid? linkedRoot = null;
-        rig.SignIn.Setup(item => item.SignInAsync(UserId, It.IsAny<CancellationToken>()))
+        rig.SignIn.Setup(item => item.SignInFromTenantHandoffAsync(UserId, It.IsAny<DateTime?>(), It.IsAny<CancellationToken>()))
             .Callback(() => linkedRoot = rig.SessionLink.CentralSessionId).ReturnsAsync(AuthenticationSessionSignInResult.Success());
         rig.Correlation.Setup(item => item.Read(It.IsAny<string>())).Returns(browser);
         (await rig.RedeemHandler.Handle(new RedeemTenantHandoffCommand(token!), CancellationToken.None))
@@ -397,7 +397,7 @@ public sealed class TenantHandoffHandlerTests
             policyProvider.Setup(provider => provider.GetAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(() => Policy);
 
-            SignIn.Setup(service => service.SignInAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            SignIn.Setup(service => service.SignInFromTenantHandoffAsync(It.IsAny<string>(), It.IsAny<DateTime?>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(AuthenticationSessionSignInResult.Success());
 
             Mock<IClientInterfaceHostAccessor> hostAccessor = new();
@@ -432,7 +432,10 @@ public sealed class TenantHandoffHandlerTests
                 .ReturnsAsync(SecurityAuditWriteResult.Recorded);
 
             AuthenticationAttemptAuditor auditor = new(auditWriter.Object, requestContext.Object, clock.Object);
-            IssueHandler = new IssueTenantHandoffHandler(Tickets, policyProvider.Object, requestContext.Object, clock.Object, auditor, SignIn.Object);
+            Mock<IAuthenticationSessionRegistry> sessions = new();
+            sessions.Setup(registry => registry.GetCurrentAuthenticationAtAsync(UserId, It.IsAny<CancellationToken>()))
+                .ReturnsAsync((DateTime?)null);
+            IssueHandler = new IssueTenantHandoffHandler(Tickets, policyProvider.Object, requestContext.Object, clock.Object, auditor, SignIn.Object, sessions.Object);
             RedeemHandler = new RedeemTenantHandoffHandler(
                 Tickets,
                 policyProvider.Object,

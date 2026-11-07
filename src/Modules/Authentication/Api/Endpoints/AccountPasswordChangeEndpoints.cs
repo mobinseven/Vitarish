@@ -4,6 +4,7 @@ using Vitarish.Authentication.Application.Commands;
 using Vitarish.Authentication.Application.Handlers;
 using Vitarish.Authentication.Application.Results;
 using Vitarish.Authentication.Contracts.Requests;
+using Vitarish.Authentication.Contracts.Routes;
 using Vitarish.Authentication.Contracts.Responses;
 using Vitarish.Modules.Base.Core.Endpoints;
 using Vitarish.Modules.Base.Core.Identity;
@@ -14,7 +15,7 @@ public static class AccountPasswordChangeEndpoints
 {
     public static RouteGroupBuilder MapAccountPasswordChangeEndpoints(this RouteGroupBuilder group)
     {
-        group.MapModulePost("/account/password", async (ChangePasswordRequest request, [Microsoft.AspNetCore.Mvc.FromServices] ChangePasswordHandler handler, System.Security.Claims.ClaimsPrincipal user, CancellationToken ct) =>
+        group.MapModulePost(AuthenticationRoutes.ChangePasswordPath, async (ChangePasswordRequest request, [Microsoft.AspNetCore.Mvc.FromServices] ChangePasswordHandler handler, System.Security.Claims.ClaimsPrincipal user, CancellationToken ct) =>
         {
             string? userId = AuthenticatedUserIdResolver.Resolve(user) is AuthenticatedUserIdResolution.Success resolvedUserId
                 ? resolvedUserId.UserId.Value
@@ -25,11 +26,13 @@ public static class AccountPasswordChangeEndpoints
             return r is AuthenticationResult<bool>.Success s && s.Value
                 ? Results.Ok(new AuthenticationActionResultDto(true))
                 : AuthenticationProblemHttpMapper.ToProblem(((AuthenticationResult<bool>.Failure)r).Error);
-        }, "Authentication_Account_Password_Change", typeof(AuthenticationActionResultDto))
+        }, AuthenticationAccountSecurityOperationIds.PasswordChange, typeof(AuthenticationActionResultDto))
+        .RequireRateLimiting(AuthenticationRateLimitPolicies.AccountSecurityMutation)
         .WithMetadata(new SecurityAuditHandledByApplicationMetadata())
         .Produces(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status401Unauthorized)
+        .ProducesProblem(StatusCodes.Status429TooManyRequests)
         .WithSummary("Changes the user password.");
 
         return group;

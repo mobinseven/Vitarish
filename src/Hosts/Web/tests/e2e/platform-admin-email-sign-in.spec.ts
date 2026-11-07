@@ -1,3 +1,4 @@
+import { AuthenticationWebRoutes } from "../../shared/auth/src/routes";
 import { twoHostE2eSignInOrigin, twoHostE2eProofScreenshotEnvironmentKey } from "../../scripts/two-host-e2e-artifacts.mjs";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { expect, test, type Browser, type Page } from "@playwright/test";
@@ -73,7 +74,7 @@ async function signInWithEmailCode(browser: Browser, clientIp: string): Promise<
     page.getByRole("button", { name: messages.auth.otp.verifyAction, exact: true }).click(),
   ]);
   expect(completeResponse.status()).toBe(200);
-  await expect(page).toHaveURL(url => url.origin === platformOrigin && !url.pathname.startsWith("/login") && url.pathname !== "/handoff", { timeout: 120_000 });
+  await expect(page).toHaveURL(url => url.origin === platformOrigin && !url.pathname.startsWith(AuthenticationWebRoutes.SignIn) && url.pathname !== AuthenticationWebRoutes.Handoff, { timeout: 120_000 });
   return page;
 }
 

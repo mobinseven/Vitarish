@@ -17,6 +17,12 @@ export const authMessageCatalogs = {
         expiresIn: "Expires in {time}",
         expired: "Code expired; request a new code",
       },
+      passwordLoginOtp: {
+        emailStepDescription: "Enter the code sent to your email to finish signing in.",
+        destinationFallback: "your verified contact method",
+        returnToPasswordAction: "Return to password sign-in",
+        codeResent: "A new sign-in code was sent.",
+      },
       failures: {
         invalidCredentials: "Invalid username or password",
         lockedOut: "Account is locked. Please try again later",
@@ -75,6 +81,12 @@ export const authMessageCatalogs = {
       challenge: {
         expiresIn: "اعتبار کد تا {time}",
         expired: "کد منقضی شده است؛ کد جدید درخواست کنید",
+      },
+      passwordLoginOtp: {
+        emailStepDescription: "برای تکمیل ورود، کدی را که به ایمیل‌تان فرستادیم وارد کنید.",
+        destinationFallback: "راه ارتباطی تأییدشده شما",
+        returnToPasswordAction: "بازگشت به ورود با گذرواژه",
+        codeResent: "کد تازه‌ای برای ورود فرستاده شد.",
       },
       failures: {
         invalidCredentials: "نام کاربری یا رمز عبور نادرست است",

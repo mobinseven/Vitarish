@@ -42,6 +42,7 @@ public sealed class IssueTenantHandoffHandler(
     IAuthenticationUtcClock clock,
     AuthenticationAttemptAuditor auditor,
     IAuthenticationSignInService signInService,
+    IAuthenticationSessionRegistry sessionRegistry,
     IAuthenticationHostDirectory? hosts = null)
 {
     /// <returns>The raw token, shown once, or null when the handoff is not allowed.</returns>
@@ -68,7 +69,8 @@ public sealed class IssueTenantHandoffHandler(
         }
         string token = TenantHandoffTokens.Create();
         DateTime now = clock.UtcNow;
-        TenantHandoffTicket ticket = TenantHandoffTicket.Issue(TenantHandoffTokens.Hash(token), command.UserId, command.TargetHost, now);
+        DateTime? authenticatedAt = await sessionRegistry.GetCurrentAuthenticationAtAsync(command.UserId, cancellationToken);
+        TenantHandoffTicket ticket = TenantHandoffTicket.Issue(TenantHandoffTokens.Hash(token), command.UserId, command.TargetHost, now, authenticatedAt);
         ticket.CorrelationHash = command.CorrelationHash;
         ticket.ReturnPath = command.ReturnPath;
         ticket.PriorCentralSessionId = command.PriorCentralSessionId;
@@ -163,7 +165,7 @@ public sealed class RedeemTenantHandoffHandler(
         AuthenticationSessionSignInResult session;
         try
         {
-            session = await signInService.SignInAsync(ticket.UserId, cancellationToken);
+            session = await signInService.SignInFromTenantHandoffAsync(ticket.UserId, ticket.AuthenticatedAt, cancellationToken);
         }
         finally
         {

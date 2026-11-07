@@ -9,6 +9,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Requests\Application\Requests.Application.csproj" />
     <ProjectReference Include="..\..\Users\Application\Users.Application.csproj" />
+    <ProjectReference Include="..\..\Journey\Application\Journey.Application.csproj" />
     <ProjectReference Include="..\..\..\Libraries\Audit\Audit.Application\Audit.Application.csproj" />
     <ProjectReference Include="..\Domain\Parties.Domain.csproj" />
     <ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />

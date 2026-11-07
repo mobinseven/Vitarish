@@ -2,12 +2,12 @@
 
 How the shared sign-in host is configured in production, how to check it, and
 how to switch it off. The design is in
-[ADR-0020](../architecture/decisions/0020-central-browser-authentication.md).
+[ADR-0021](../architecture/decisions/0021-central-browser-authentication.md).
 
 ## What it needs
 
 People sign in at one address, `auth.vitarish.com`, and continue signed in to
-their clinic or originating platform app. Clinic hosts use
+platform home when no app intent exists, or their explicitly requested app. Clinic hosts use
 `<subdomain>.darman.vitarish.com`. The ingress serves
 that address:
 
@@ -16,11 +16,8 @@ that address:
 - Proxy: the `PRODUCTION_SIGN_IN_HOST` site in `src/Hosts/deployment/Caddyfile`
   sends it to the owner Web app, and `/api/*` to Main. Every other
   `*.vitarish.com` host redirects to the landing page.
-- CSP: `img-src` allows the clinic wildcard hosts, where the clinic list loads
-  each clinic's public logo (`src/Hosts/deployment/docker-compose.ingress.yml`).
-- Clinic creation from the sign-in host also needs onboarding on; see the
-  [clinic onboarding runbook](clinic-onboarding.md). Without it the list offers
-  no **Create a new clinic**.
+- Workspace creation from home needs onboarding on; see the
+  [clinic onboarding runbook](clinic-onboarding.md).
 
 ## Settings
 
@@ -33,18 +30,27 @@ One value in the server's `/opt/vitarish/deployment/.env.shared`:
 - The setting is required. Use a subdomain no platform app already uses. On
   start, Main binds that host to the platform-owned sign-in tenant.
 
+## Password and contact code
+
+A password account with two-factor enabled receives its sign-in code by SMS to
+its confirmed phone, or by email to its confirmed email when no confirmed phone
+is available. Both the password and code are required. Protect the destination
+inbox or phone independently, and verify email delivery before relying on an
+email-only account for a production smoke check. If neither contact is
+confirmed, the account cannot complete this sign-in. See the
+[Authentication documentation](../platform/modules/authentication/README.md#password-sign-in-with-an-additional-code).
+
 ## Check it
 
 1. Run the production workflow (`workflow_dispatch` on `main`) after the
    integrated revision passes its gates. The workflow selects affected services;
    central-auth changes require Main and the affected browser apps together.
 2. Check it with an account that has two clinics:
-   - Sign in on the sign-in host; **Choose a clinic** lists both, each with its
-     address and its logo, or its initials when it has none.
+   - Sign in on Auth without app intent; platform home lists both workspaces.
    - **Open** on one lands signed in on that clinic's `/home`.
-   - With one clinic, sign-in continues to it by itself.
+   - With one clinic, sign-in still reaches home and waits for an explicit choice.
    - `https://<clinic host>/api/modules/parties/sign-in/clinics` answers 404:
-     the list exists only on the sign-in host.
+     the compatibility endpoint exists only on the sign-in host.
    - `https://<clinic host>/login` redirects to the sign-in host's `/login`.
    - After a clinic opens, Auth stays signed in. Opening another authorized app
      installs its linked session without asking for credentials again.
