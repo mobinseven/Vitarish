@@ -15,6 +15,13 @@ and uses the SMTP settings in `.env.production`.
   published.
 - Administration listener: `127.0.0.1:8080` on the host, plain HTTP. Never
   publish it; reach it only from the host or through an SSH tunnel.
+- Public exposure is a validated security setting. The post-deploy port scan in
+  `src/Hosts/Web/scripts/production-evidence-checks.mjs` expects exactly
+  22, 25, 80, 443, 465 and 993 to be open and every other scanned port to be
+  closed, so a release run fails if a mail port closes or the administration or
+  a legacy mail port (110, 143, 8080) opens. The owner approved publishing 25,
+  465 and 993 on 2026-11-07; change both the Compose file and that list
+  together.
 - Volumes `vitarish-mail-config` (only `config.json`, the datastore pointer)
   and `vitarish-mail-data`. Everything else lives in the datastore.
 - Certificate: wildcard `*.vitarish.com` from Let's Encrypt, obtained and
