@@ -47,9 +47,10 @@ credentials.
 
 The deployment uses one Ubuntu host for the ingress and both Compose
 environments. Internal HTTP links are allowed only because the communicating
-containers share that host. Caddy is the only service that publishes TCP 80
-and 443. Main, databases, Redis, AIStor, Elasticsearch, and the agent runtime
-remain private. Test and production use separate Compose projects, networks,
+containers share that host. Caddy is the only service in the release bundles
+that publishes TCP 80 and 443; the separate mail server bundle publishes TCP
+25, 465 and 993 (see [Mail server](#mail-server)). Main, databases, Redis,
+AIStor, Elasticsearch, and the agent runtime remain private. Test and production use separate Compose projects, networks,
 volumes, credentials, and application images.
 
 Prepare Docker Engine, Compose, and the host's GHCR read login once from the
