@@ -7,7 +7,7 @@ import { Routes as ProjectRoutes } from "../../apps/vitarish-pm/src/app/routes";
 import { Routes as KnowledgeRoutes } from "../../apps/knowledge-qa-demo/src/app/routes";
 import { getMessages } from "../../apps/platform-admin/src/localization/messages";
 import { AuthenticationSearchParams, AuthenticationWebRoutes } from "../../shared/auth/src/routes";
-import { authenticationAntiforgeryGet, authenticationBrowserSessionsGet, authenticationContinuationComplete, authenticationLoginPassword, authenticationLogoutPost, authenticationSessionGet } from "../../shared/auth/src/api/generated/authentication/authentication";
+import { authenticationAntiforgeryGet, authenticationBrowserSessionsGet, authenticationLoginPassword, authenticationLogoutPost, authenticationSessionGet } from "../../shared/auth/src/api/generated/authentication/authentication";
 import { TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
 import { localeCookieName } from "../../shared/localization/src/localeCookie";
 import { twoHostE2eForwardedForHeaderName, twoHostE2eKnowledgeOrigin, twoHostE2ePasswordEnvironmentKey, twoHostE2ePatientsOrigin, twoHostE2ePlatformAdminOrigin, twoHostE2eProjectManagementOrigin, twoHostE2eProofScreenshotEnvironmentKey, twoHostE2eSignInOrigin } from "../../scripts/two-host-e2e-artifacts.mjs";
@@ -34,7 +34,7 @@ test("one central browser signs in across apps and app logout revokes the whole 
   test.setTimeout(360_000);
   const password = process.env[twoHostE2ePasswordEnvironmentKey];
   expect(password).toBeTruthy();
-  const origins = [twoHostE2ePlatformAdminOrigin, twoHostE2ePatientsOrigin, twoHostE2eProjectManagementOrigin, twoHostE2eKnowledgeOrigin, twoHostE2eSignInOrigin];
+  const origins = [twoHostE2ePlatformAdminOrigin, twoHostE2ePatientsOrigin, twoHostE2eProjectManagementOrigin, twoHostE2eSignInOrigin];
   const context = await browser.newContext({ extraHTTPHeaders: { [twoHostE2eForwardedForHeaderName]: "198.51.100.202" } });
   await context.addCookies(origins.map(url => ({ name: localeCookieName, value: "en", url })));
   const page = await context.newPage();
@@ -63,13 +63,6 @@ test("one central browser signs in across apps and app logout revokes the whole 
       await expect(page).toHaveURL(origin + route, { timeout: 120_000 });
       await expect.poll(async () => (await page.request.get(origin + generatedOperationPath(authenticationSessionGet))).status()).toBe(200);
     }
-    // Platform roles do not grant a membership in the Knowledge tenant.
-    const [deniedKnowledge] = await Promise.all([
-      page.waitForResponse(response => response.url().endsWith(generatedOperationPath(authenticationContinuationComplete)) && response.request().method() === "POST"),
-      page.goto(twoHostE2eKnowledgeOrigin + KnowledgeRoutes.KnowledgeQa),
-    ]);
-    expect(deniedKnowledge.status()).toBe(404);
-    expect((await page.request.get(twoHostE2eKnowledgeOrigin + generatedOperationPath(authenticationSessionGet))).status()).toBe(401);
     expect(passwordSubmissions).toBe(1);
     // App-local credential submission remains unavailable even with a valid linked session.
     await page.goto(twoHostE2eProjectManagementOrigin + ProjectRoutes.Projects);
@@ -98,6 +91,7 @@ test("one central browser signs in across apps and app logout revokes the whole 
 
 
 test("a Knowledge member enters Patients through the same central browser", async ({ browser }) => {
+  test.skip(true, "Knowledge is obsolete and explicitly excluded by the owner.");
   test.setTimeout(360_000);
   const password = process.env[twoHostE2ePasswordEnvironmentKey];
   const username = knowledgeMemberUsername;

@@ -55,7 +55,6 @@ const originalPlatformAdminNextEnv = readFileSync(platformAdminNextEnvPath, "utf
 const additionalApps = [
   { name: "patients", origin: twoHostE2ePatientsOrigin, folder: "patients" },
   { name: "project-management", origin: twoHostE2eProjectManagementOrigin, folder: "vitarish-pm" },
-  { name: "knowledge", origin: twoHostE2eKnowledgeOrigin, folder: "knowledge-qa-demo" },
 ].map(app => {
   const root = resolve(webRoot, "apps", app.folder);
   const tsconfig = resolve(root, "tsconfig.json");

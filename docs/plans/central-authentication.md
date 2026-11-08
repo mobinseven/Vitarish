@@ -2,6 +2,21 @@
 
 Status: implementation authorized; release incomplete.
 
+Owner scope correction on 2026-11-08: skip Knowledge because the app is obsolete.
+Knowledge is excluded from authentication acceptance and future E2E runner
+startup; it already has no production deployment service. The in-flight run
+had built its idle server before this instruction. Remove Knowledge checks
+before its central-auth test file executes, retain all active-app assertions,
+and record the explicit obsolete-app skip separately from existing skips.
+No product authorization or active-app proof is waived. The retained legacy
+Knowledge application and fixture are outside this task; remove them with the
+application's eventual deprecation cleanup rather than expanding this release.
+The old tool-session handle was missing and its runner PID and all listening
+ports were absent; the log stopped after 14 passes with no final result. Restore
+only the ten verified temporary Next references/include changes. Restart the
+active-app proof in a hidden background process with a retained PID and explicit
+exit-result file, so later conversation turns do not lose its execution handle.
+
 ## Resumed failure correction checklist
 
 Root, Hosts, Web, browser-test and docs instructions re-read on 2026-11-08.
