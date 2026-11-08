@@ -11,6 +11,8 @@ const mutations = vi.hoisted(() => ({
 }));
 
 vi.mock("../../api/generated/authentication/authentication", () => ({
+  authenticationPendingChallengeGet: async () => undefined,
+  authenticationPendingChallengeClear: async () => undefined,
   useAuthenticationPasswordRecoveryBegin: () => ({ mutateAsync: mutations.begin, isPending: false }),
   useAuthenticationPasswordRecoveryComplete: () => ({ mutateAsync: mutations.complete, isPending: false }),
 }));
@@ -81,6 +83,7 @@ describe("PasswordRecoveryForm", () => {
   it("keeps a generic confirmation and completes email recovery in one submission", async () => {
     render(<PasswordRecoveryForm />, { wrapper });
     fireEvent.change(screen.getByLabelText("Email address"), { target: { value: "owner@example.test" } });
+    await waitFor(() => expect(screen.getByRole("button", { name: "Send verification code" })).toBeEnabled());
     fireEvent.click(screen.getByRole("button", { name: "Send verification code" }));
 
     await screen.findByText("If an eligible account exists, a verification code has been sent.");
@@ -103,6 +106,7 @@ describe("PasswordRecoveryForm", () => {
     render(<PasswordRecoveryForm />, { wrapper });
     fireEvent.click(screen.getByRole("button", { name: "Text message" }));
     fireEvent.change(screen.getByLabelText("Phone number"), { target: { value: "+15555550123" } });
+    await waitFor(() => expect(screen.getByRole("button", { name: "Send verification code" })).toBeEnabled());
     fireEvent.click(screen.getByRole("button", { name: "Send verification code" }));
 
     await waitFor(() => expect(mutations.begin).toHaveBeenCalledWith({

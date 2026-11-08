@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Vitarish.Modules.Base.Core.Endpoints;
 using Vitarish.Users.Application.Abstractions;
@@ -13,10 +14,10 @@ public static class WebAuthnEndpoints
 {
     public static RouteGroupBuilder MapWebAuthnEndpoints(this RouteGroupBuilder group)
     {
-        group.MapModuleGet(UsersApiRoutes.WebAuthnCredentials, ListCredentialsAsync, "UsersListWebAuthnCredentials", typeof(Vitarish.Users.Contracts.Responses.WebAuthnCredentialResponse[]));
-        group.MapModulePost(UsersApiRoutes.WebAuthnBeginRegister, BeginRegisterAsync, "UsersBeginWebAuthnRegister", typeof(string));
-        group.MapModulePost(UsersApiRoutes.WebAuthnCompleteRegister, CompleteRegisterAsync, "UsersCompleteWebAuthnRegister", typeof(string));
-        group.MapModuleDelete(UsersApiRoutes.WebAuthnDelete, DeleteCredentialAsync, "UsersDeleteWebAuthnCredential", typeof(bool));
+        group.MapModuleGet(UsersApiRoutes.WebAuthnCredentials, ListCredentialsAsync, "UsersListWebAuthnCredentials", typeof(Vitarish.Users.Contracts.Responses.WebAuthnCredentialResponse[])).AddEndpointFilter<PersonalCredentialHostFilter>();
+        group.MapModulePost(UsersApiRoutes.WebAuthnBeginRegister, BeginRegisterAsync, "UsersBeginWebAuthnRegister", typeof(string)).AddEndpointFilter<PersonalCredentialHostFilter>();
+        group.MapModulePost(UsersApiRoutes.WebAuthnCompleteRegister, CompleteRegisterAsync, "UsersCompleteWebAuthnRegister", typeof(string)).AddEndpointFilter<PersonalCredentialHostFilter>();
+        group.MapModuleDelete(UsersApiRoutes.WebAuthnDelete, DeleteCredentialAsync, "UsersDeleteWebAuthnCredential", typeof(bool)).AddEndpointFilter<PersonalCredentialHostFilter>();
         return group;
     }
 
@@ -47,4 +48,11 @@ public static class WebAuthnEndpoints
         bool deleted = await webAuthnService.DeleteCredentialAsync(credentialId, userId, ct);
         return deleted ? Results.Ok(true) : Results.NotFound();
     }
+}
+
+internal sealed class PersonalCredentialHostFilter(IPersonalCredentialHost host) : IEndpointFilter
+{
+    public async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next) =>
+        await host.AllowsManagementAsync(context.HttpContext.RequestAborted)
+            ? await next(context) : Results.NotFound();
 }

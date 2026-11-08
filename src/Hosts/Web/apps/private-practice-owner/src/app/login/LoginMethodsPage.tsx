@@ -11,7 +11,7 @@ import {
   type SignInMethod,
 } from "@vitarish/ui";
 import { useAuthenticationProfile } from "@vitarish/auth";
-import { isSafeRelativeReturnTo, signInReturnUrlQueryKey } from "@vitarish/journey/sign-in-host";
+import { signInReturnUrlQueryKey } from "@vitarish/journey/sign-in-host";
 import { useLocalizedText, type MessageKey } from "@/localization";
 import { Routes } from "@/app/routes";
 import { useCreateClinicHref } from "@/features/onboarding/useCreateClinicHref";
@@ -63,9 +63,7 @@ export function LoginMethodsPage({ onboardingUrl }: LoginMethodsPageProps) {
   const { data: profile } = useAuthenticationProfile();
   const searchParams = useSearchParams();
   const requestedReturnUrl = searchParams.get(signInReturnUrlQueryKey);
-  const safeReturnUrl = isSafeRelativeReturnTo(requestedReturnUrl)
-    ? requestedReturnUrl
-    : undefined;
+  const safeReturnUrl = requestedReturnUrl?.startsWith("/") && !requestedReturnUrl.startsWith("//") ? requestedReturnUrl : undefined;
   const createClinicHref = useCreateClinicHref(onboardingUrl);
   const enabledMethods = authMethods.filter((method) =>
     method.id === "password" ||

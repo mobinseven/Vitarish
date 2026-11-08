@@ -38,6 +38,12 @@ public static class IdentityPartiesExtensions
         _ = builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(typeof(AssemblyMarker).Assembly, typeof(PlatformAdminTenant).Assembly));
         _ = builder.Services.AddSingleton<IPlatformAppCatalog, PlatformAppCatalog>();
         _ = builder.Services.AddOptions<PlatformAdminHostOptions>().BindConfiguration(Modules.Base.Core.Module.ApplicationSection);
+        _ = builder.Services.AddOptions<BrowserApplicationHostOptions>().BindConfiguration(Modules.Base.Core.Module.ApplicationSection)
+            .Validate(options => new[] { options.PatientsUrl, options.ProjectManagementUrl, options.KnowledgeQaUrl }
+                .All(value => value is null || Uri.TryCreate(value, UriKind.Absolute, out Uri? uri)
+                    && (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp &&
+                        (BrowserApplicationHostOptions.IsDevelopmentHostname(uri.Host)))),
+                "Browser application hosts require HTTPS, except localhost development origins.").ValidateOnStart();
         _ = builder.Services.AddOptions<TenantAddressOptions>().BindConfiguration(Modules.Base.Core.Module.ApplicationSection);
         _ = builder.Services.AddOptions<OnboardingHostOptions>()
             .BindConfiguration(Modules.Base.Core.Module.ApplicationSection)
@@ -85,6 +91,7 @@ public static class IdentityPartiesExtensions
         _ = builder.Services.AddTransient<ITenantHandoffIssuer, AuthenticationTenantHandoffIssuer>();
         _ = builder.Services.AddTransient<Vitarish.Authentication.Application.Abstractions.IRoleFreeSessionPolicy, PlatformHostRoleFreeSessionPolicy>();
         _ = builder.Services.AddTransient<IWorkspaceDirectory, WorkspaceDirectory>();
+        _ = builder.Services.AddTransient<Vitarish.Authentication.Application.Abstractions.IAuthenticationHostDirectory, AuthenticationHostDirectory>();
         _ = builder.Services.AddTransient<IAppTenantDirectory, AppTenantDirectory>();
         _ = builder.Services.AddTransient<ITenantBusinessProfileStore, TenantBusinessProfileStore>();
         _ = builder.Services.AddTransient<ITenantImageFiles, FilesTenantImageFiles>();

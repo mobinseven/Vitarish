@@ -13,12 +13,12 @@ identified by `Tenant.AppId`. A person may have workspaces in different apps.
 
 - `vitarish.com` is the public front door and hosts the signed-in platform home
   at `/home`.
-- The sign-in host (`auth.vitarish.com`) handles sign-in only. After handoff it
-  keeps no session; platform administration retains its own sign-in.
-- Workspace handoff does not itself end the home session. Redemption follows
-  the concurrent-session policy: the default single-session policy replaces
-  home with the workspace session; a policy allowing parallel sessions retains
-  home.
+- The authentication host (`auth.vitarish.com`) owns sign-in, personal account
+  security and the durable browser session under [ADR-0021](../architecture/decisions/0021-central-browser-authentication.md).
+  Every app, including platform administration, enters through Auth.
+- Home and workspaces hold host-only linked sessions in the same browser
+  family. Opening a workspace preserves home and consumes no additional browser
+  slot. Signing out on any linked app ends that family.
 - The onboarding host creates a workspace through the existing setup.
 - The administration host is for platform administration.
 

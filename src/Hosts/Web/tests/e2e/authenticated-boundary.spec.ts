@@ -1,20 +1,24 @@
+import { AuthenticationSearchParams, AuthenticationWebRoutes } from "../../shared/auth/src/routes";
+import { twoHostE2eSignInOrigin } from "../../scripts/two-host-e2e-artifacts.mjs";
 import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
 import { existsSync, mkdirSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { usersGetProfile } from "../../shared/auth/src/api/generated/users/users";
 import {
   authenticationAccessHistoryGet,
+  authenticationContinuationComplete,
   authenticationLoginPasswordOtpResend,
   authenticationLogoutPost,
   authenticationSessionGet,
   authenticationSessionNoticesGet,
 } from "../../shared/auth/src/api/generated/authentication/authentication";
-import { auditPlatformSecurityEventsList, auditSecurityEventsList, getAuditPlatformSecurityEventCatalogGetQueryKey, getAuditPlatformSecurityEventsExportQueryKey } from "../../shared/security/src/api/generated/audit/audit";
+import { auditPlatformSecurityEventsList, auditSecurityEventsList, getAuditPlatformSecurityEventCatalogGetQueryKey, getAuditPlatformSecurityEventsExportQueryKey, getAuditSecurityEventsListQueryKey } from "../../shared/security/src/api/generated/audit/audit";
 import type { AuditPlatformSecurityEventsListParams, SecurityAuditPageReadDto } from "../../shared/security/src/api/generated/audit/model";
 import { auditSortFields } from "../../shared/security/src/api/securityAuditSortFields";
 import { ApiError, ANTIFORGERY_VALIDATION_FAILED_CODE, REQUEST_ID_HEADER, TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
 import { localizePlatformAuditCategory, localizePlatformAuditEvent, localizePlatformAuditOperation } from "../../shared/security/src/localization";
 import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
+import { catalogs } from "../../apps/private-practice-owner/src/localization/messages";
 import { twoHostE2eApiOriginEnvironmentKey, twoHostE2ePlatformAdminClientIp, twoHostE2eProofScreenshotEnvironmentKey, twoHostE2eTenantBClinicOrigin, twoHostE2eTenantBOwnerUsername, twoHostE2eTenantBOwnerUsernameEnvironmentKey } from "../../scripts/two-host-e2e-artifacts.mjs";
 import { agentEnvelopeCanonical, base64UrlHmac } from "./agentCallback";
 import { generatedOperationPath } from "./generatedOperationPath";
@@ -237,10 +241,10 @@ async function generatedAuthenticationRequest<T>(
   }
 }
 
-async function login(page: Page, username: string, origin = "", password = e2ePassword, clientIp = "198.51.100.10") {
+async function login(page: Page, username: string, origin = "", password = e2ePassword, clientIp = "198.51.100.10", admitted = true) {
   expect(password).toBeTruthy();
   await page.setExtraHTTPHeaders({ [forwardedForHeaderName]: clientIp });
-  // Clinic hosts sign in only on the shared sign-in host; platform administration has its own sign-in.
+  // Clinic hosts sign in only on the shared sign-in host; platform administration follows central Auth too.
   if (origin !== platformAdminOrigin) {
     await signInToClinic(page, username, password!, origin || webOrigin);
     return;
@@ -250,19 +254,28 @@ async function login(page: Page, username: string, origin = "", password = e2ePa
   await expect(page.locator('button[type="submit"]')).toBeEnabled({ timeout: 30_000 });
   await page.locator('input[name="username"]').fill(username);
   await page.locator('input[name="password"]').fill(password!);
+  const deniedEntry = admitted ? null : page.waitForResponse(response =>
+    response.url().endsWith(generatedOperationPath(authenticationContinuationComplete))
+    && response.request().method() === "POST" && response.status() !== 400);
   const [loginResponse] = await Promise.all([
     page.waitForResponse((response) => response.url().endsWith("/api/modules/authentication/login/password")),
     page.locator('button[type="submit"]').click(),
   ]);
   expect(loginResponse.status()).toBe(200);
+  if (deniedEntry) {
+    expect((await deniedEntry).status(), "central admission refuses a non-administrator").toBe(404);
+    return;
+  }
+  await expect(page).toHaveURL(url => url.origin === platformAdminOrigin && !url.pathname.startsWith(AuthenticationWebRoutes.SignIn) && url.pathname !== AuthenticationWebRoutes.Handoff, { timeout: 120_000 });
 }
 
 test("uses the real Web and Main hosts for an authenticated tenant-scoped request", async ({ page, request }) => {
-  const apiRequests: Array<{ method: string; url: string; tenantHost: string | undefined }> = [];
+  const apiRequests: Array<{ method: string; url: string; tenantHost: string | undefined; origin: string | undefined; referer: string | undefined }> = [];
   const mockServiceWorkerRequests: string[] = [];
   page.on("request", (request) => {
     if (new URL(request.url()).pathname.startsWith("/api/")) {
-      apiRequests.push({ method: request.method(), url: request.url(), tenantHost: request.headers()["x-vitarish-tenant-host"] });
+      const headers = request.headers();
+      apiRequests.push({ method: request.method(), url: request.url(), tenantHost: headers[TENANT_HOST_HEADER.toLowerCase()], origin: headers.origin, referer: headers.referer });
     }
     if (request.url().includes("mockServiceWorker.js")) mockServiceWorkerRequests.push(request.url());
   });
@@ -278,7 +291,7 @@ test("uses the real Web and Main hosts for an authenticated tenant-scoped reques
     isAuthenticated: true,
     tenantAccess: { canAccessTenantOwner: true },
   });
-  const browserCookies = await page.context().cookies();
+  const browserCookies = await page.context().cookies(webOrigin);
   const cookieHeader = browserCookies.map(cookie => `${cookie.name}=${cookie.value}`).join("; ");
   const tenantHost = await page.evaluate(() => window.location.host);
   const accessHistory = await generatedAuthenticationRequest(
@@ -368,8 +381,17 @@ test("uses the real Web and Main hosts for an authenticated tenant-scoped reques
   expect(reminders.body).toEqual(expect.arrayContaining([expect.objectContaining({ isSent: false, subject: "E2E reminder" })]));
   expect(apiRequests.some((request) => request.url.endsWith("/api/modules/authentication/session"))).toBe(true);
   expect(apiRequests.some((request) => request.url.endsWith("/api/modules/appointments/health"))).toBe(true);
-  // Sign-in and clinic requests each carry their own host across the handoff.
-  expect(apiRequests.filter((request) => request.method !== "OPTIONS").every((request) => request.tenantHost === new URL(request.url).host)).toBe(true);
+  for (const request of apiRequests.filter((candidate) => candidate.method !== "OPTIONS")) {
+    const url = new URL(request.url);
+    const isRenewal = request.method === "GET" && url.origin === twoHostE2eSignInOrigin
+      && url.pathname === generatedOperationPath(authenticationSessionGet) && request.tenantHost === undefined;
+    if (isRenewal) {
+      expect([undefined, ""], "opaque Auth renewal has no Origin").toContain(request.origin);
+      expect([undefined, ""], "opaque Auth renewal has no Referer").toContain(request.referer);
+    } else {
+      expect(request.tenantHost, `${request.method} ${url.origin}${url.pathname}`).toBe(url.host);
+    }
+  }
 
   const logout = await generatedAuthenticationRequest(
     request,
@@ -394,6 +416,8 @@ test("uses the real Web and Main hosts for an authenticated tenant-scoped reques
 test("requires reauthentication after a security attribute change", async ({ page }) => {
   await login(page, e2eUsername, "", e2ePassword, "198.51.100.10");
 
+  await page.goto(twoHostE2eSignInOrigin + ClinicRoutes.Account.Password);
+  await expect(page.getByRole("main")).toBeVisible();
   const temporaryPassword = "E2E-Temporary-Password-774!";
   const rejectedPasswordChange = await postJson(page, "/api/modules/authentication/account/password", {
     currentPassword: "E2E-Wrong-Current-Password",
@@ -541,7 +565,7 @@ test("rejects invalid password authentication without creating a session", async
       password: "wrong-password-not-a-secret",
       returnUrl: null,
     },
-    headers: { "X-Vitarish-Tenant-Host": "localhost" },
+    headers: { [TENANT_HOST_HEADER]: new URL(twoHostE2eSignInOrigin).host },
     ignoreHTTPSErrors: true,
   });
   expect(response.status()).toBe(401);
@@ -549,7 +573,7 @@ test("rejects invalid password authentication without creating a session", async
   expect(errorBody).not.toContain("wrong-password-not-a-secret");
 
   const session = await request.get(`${apiOrigin}/api/modules/authentication/session`, {
-    headers: { "X-Vitarish-Tenant-Host": "localhost" },
+    headers: { [TENANT_HOST_HEADER]: new URL(twoHostE2eSignInOrigin).host },
     ignoreHTTPSErrors: true,
   });
   expect(session.status()).toBe(401);
@@ -573,14 +597,14 @@ test("normalizes unsafe authentication return URLs at the real API boundary", as
         returnUrl,
       },
       headers: {
-        "X-Vitarish-Tenant-Host": "localhost",
+        [TENANT_HOST_HEADER]: new URL(twoHostE2eSignInOrigin).host,
         [forwardedForHeaderName]: `198.51.100.${120 + index}`,
       },
       ignoreHTTPSErrors: true,
     });
 
     expect(response.status(), returnUrl).toBe(200);
-    await expect(response.json(), returnUrl).resolves.toMatchObject({ returnUrl: "/home" });
+    await expect(response.json(), returnUrl).resolves.toMatchObject({ returnUrl: ClinicRoutes.SignInContinue });
   }
 });
 
@@ -592,7 +616,7 @@ test("rejects invalid OTP and passkey completions at the real API boundary", asy
       returnUrl: null,
     },
     headers: {
-      "X-Vitarish-Tenant-Host": "localhost",
+      [TENANT_HOST_HEADER]: new URL(twoHostE2eSignInOrigin).host,
       "X-Request-Id": "e2e-missing-email-challenge",
     },
     ignoreHTTPSErrors: true,
@@ -606,7 +630,7 @@ test("rejects invalid OTP and passkey completions at the real API boundary", asy
       returnUrl: null,
     },
     headers: {
-      "X-Vitarish-Tenant-Host": "localhost",
+      [TENANT_HOST_HEADER]: new URL(twoHostE2eSignInOrigin).host,
       "X-Request-Id": "e2e-empty-passkey-completion",
     },
     ignoreHTTPSErrors: true,
@@ -620,7 +644,7 @@ test("completes a real email OTP once and rejects its replay", async ({ request 
   const begin = await request.post(`${apiOrigin}/api/modules/authentication/login/email/begin`, {
     data: { email: "e2e-owner@example.test", returnUrl: "/home" },
     headers: {
-      "X-Vitarish-Tenant-Host": "localhost",
+      [TENANT_HOST_HEADER]: new URL(twoHostE2eSignInOrigin).host,
       [forwardedForHeaderName]: "198.51.100.141",
       "X-Request-Id": "e2e-email-otp-begin",
     },
@@ -638,17 +662,18 @@ test("completes a real email OTP once and rejects its replay", async ({ request 
   const completed = await request.post(`${apiOrigin}/api/modules/authentication/login/email/complete`, {
     data: { challengeId: challenge.challengeId, code, returnUrl: "/home" },
     headers: {
-      "X-Vitarish-Tenant-Host": "localhost",
+      [TENANT_HOST_HEADER]: new URL(twoHostE2eSignInOrigin).host,
       [forwardedForHeaderName]: "198.51.100.141",
       "X-Request-Id": "e2e-email-otp-complete",
     },
     ignoreHTTPSErrors: true,
   });
   expect(completed.status()).toBe(200);
-  await expect(completed.json()).resolves.toMatchObject({ returnUrl: "/home" });
+  const continueQuery = new URLSearchParams({ [AuthenticationSearchParams.ReturnUrl]: ClinicRoutes.Home });
+  await expect(completed.json()).resolves.toMatchObject({ returnUrl: `${ClinicRoutes.SignInContinue}?${continueQuery}` });
 
   const session = await request.get(`${apiOrigin}/api/modules/authentication/session`, {
-    headers: { "X-Vitarish-Tenant-Host": "localhost" },
+    headers: { [TENANT_HOST_HEADER]: new URL(twoHostE2eSignInOrigin).host },
     ignoreHTTPSErrors: true,
   });
   expect(session.status()).toBe(200);
@@ -657,7 +682,7 @@ test("completes a real email OTP once and rejects its replay", async ({ request 
   const replay = await request.post(`${apiOrigin}/api/modules/authentication/login/email/complete`, {
     data: { challengeId: challenge.challengeId, code, returnUrl: "/home" },
     headers: {
-      "X-Vitarish-Tenant-Host": "localhost",
+      [TENANT_HOST_HEADER]: new URL(twoHostE2eSignInOrigin).host,
       [forwardedForHeaderName]: "198.51.100.141",
       "X-Request-Id": "e2e-email-otp-replay",
     },
@@ -668,6 +693,8 @@ test("completes a real email OTP once and rejects its replay", async ({ request 
 });
 
 test("registers a passkey through the real browser ceremony once", async ({ page }) => {
+  await login(page, e2eUsername, "", e2ePassword, "198.51.100.13");
+  await page.goto(`${twoHostE2eSignInOrigin}${ClinicRoutes.Account.Passkeys}`, { waitUntil: "domcontentloaded" });
   const cdp = await page.context().newCDPSession(page);
   await cdp.send("WebAuthn.enable");
   const { authenticatorId } = await cdp.send("WebAuthn.addVirtualAuthenticator", {
@@ -682,8 +709,6 @@ test("registers a passkey through the real browser ceremony once", async ({ page
     },
   });
 
-  await login(page, e2eUsername, "", e2ePassword, "198.51.100.13");
-  await page.goto("/account/passkeys", { waitUntil: "domcontentloaded" });
   await page.getByRole("button", { name: "Register New Passkey" }).click();
   await expect(page.getByText("Passkey registered successfully")).toBeVisible();
 
@@ -748,23 +773,35 @@ test("allows intentional anonymous operations to reach their owning boundary", a
   const emailLoginBegin = await request.post(`${apiOrigin}/api/modules/authentication/login/email/begin`, {
     data: {},
     headers: {
-      "X-Vitarish-Tenant-Host": "localhost",
+      [TENANT_HOST_HEADER]: new URL(twoHostE2eSignInOrigin).host,
       "X-Request-Id": "authorization-matrix-email-login",
     },
     ignoreHTTPSErrors: true,
   });
   expect(emailLoginBegin.status()).toBe(400);
+  const appEmailLoginBegin = await request.post(`${apiOrigin}/api/modules/authentication/login/email/begin`, {
+    data: {},
+    headers: { [TENANT_HOST_HEADER]: new URL(webOrigin).host },
+    ignoreHTTPSErrors: true,
+  });
+  expect(appEmailLoginBegin.status()).toBe(404);
 
   const passwordOtpResend = await request.post(`${apiOrigin}${generatedOperationPath(authenticationLoginPasswordOtpResend)}`, {
     data: { challengeId: "ffffffffffffffffffffffffffffffff" },
     headers: {
-      [TENANT_HOST_HEADER]: "localhost",
+      [TENANT_HOST_HEADER]: new URL(twoHostE2eSignInOrigin).host,
       [REQUEST_ID_HEADER]: "authorization-matrix-password-otp-resend",
     },
     ignoreHTTPSErrors: true,
   });
   expect(passwordOtpResend.status()).toBe(401);
   await expect(passwordOtpResend.json()).resolves.toMatchObject({ code: "invalid_credentials" });
+  const appPasswordOtpResend = await request.post(`${apiOrigin}${generatedOperationPath(authenticationLoginPasswordOtpResend)}`, {
+    data: { challengeId: "ffffffffffffffffffffffffffffffff" },
+    headers: { [TENANT_HOST_HEADER]: new URL(webOrigin).host },
+    ignoreHTTPSErrors: true,
+  });
+  expect(appPasswordOtpResend.status()).toBe(404);
 
   const challenge = "authorization-matrix-proof";
   const social = await request.get(`${apiOrigin}/webhooks/social/instagram?hub.challenge=${challenge}`, {
@@ -910,6 +947,19 @@ function resolveSourceOwnedOperationId(matrixValue: string): string {
 
 test("User-auth matrix denies out-of-scope operation access per operation", async ({ page }) => {
   await login(page, tenantUserUsername, "", e2ePassword, "198.51.100.28");
+  const centralPage = await page.context().newPage();
+  await centralPage.goto(`${twoHostE2eSignInOrigin}${ClinicRoutes.Account.Index}`, { waitUntil: "domcontentloaded" });
+  await expect.poll(() => fetchJson(centralPage, generatedOperationPath(authenticationSessionGet)).then(result => result.status)).toBe(200);
+  // Derive host-restricted Users operations from the endpoint owner, so adding a
+  // filtered credential endpoint automatically exercises both host and subject boundaries.
+  const usersEndpoints = join(process.cwd(), "../../../src/Modules/Users/Api/Endpoints");
+  const personalCredentialOperations = new Set(readdirSync(usersEndpoints)
+    .filter(name => name.endsWith(".cs"))
+    .flatMap(name => readFileSync(join(usersEndpoints, name), "utf8").split(/\r?\n/)
+      .filter(line => line.includes(".AddEndpointFilter<PersonalCredentialHostFilter>()"))
+      .map(line => /MapModule\w+\([^,]+,[^,]+,\s*"([^"]+)"/.exec(line)?.[1])
+      .filter((value): value is string => value !== undefined)));
+  expect(personalCredentialOperations.size, "source-owned personal credential filters must be discovered").toBeGreaterThan(0);
 
   const matrixPath = join(process.cwd(), "../../../docs/security/authorization-matrix.md");
   const matrixText = readFileSync(matrixPath, "utf8");
@@ -952,15 +1002,20 @@ test("User-auth matrix denies out-of-scope operation access per operation", asyn
         : operation.method === "PUT" && operation.route.endsWith("/culture")
           ? { culture: "en" }
           : {};
-    const response = operation.method === "GET"
-      ? await fetchJson(page, requestPath)
+    const invoke = (target: Page) => operation.method === "GET"
+      ? fetchJson(target, requestPath)
       : operation.method === "POST"
-        ? await postJson(page, requestPath, body)
+        ? postJson(target, requestPath, body)
         : operation.method === "PUT"
-          ? await putJson(page, requestPath, body)
+          ? putJson(target, requestPath, body)
           : operation.method === "DELETE"
-            ? await deleteJson(page, requestPath, body)
+            ? deleteJson(target, requestPath, body)
             : (() => { throw new Error(`Unsupported self-service HTTP method ${operation.method} for ${operationId}.`); })();
+    if (personalCredentialOperations.has(resolvedOperationId)) {
+      const appResponse = await invoke(page);
+      expect(appResponse.status, `${operationId} refuses app-local credential management`).toBe(404);
+    }
+    const response = await invoke(selfScoped || personalCredentialOperations.has(resolvedOperationId) ? centralPage : page);
     if (tenantUserDenied || checksDifferentSubject)
       expect(response.status, `${operationId} denies a different subject or TenantUser`).toBe(403);
     else
@@ -1154,15 +1209,11 @@ test("keeps two tenants isolated across identifiers, alternate routes, search, a
     const adminTenant = await fetchJson(adminPage, `/api/modules/parties/administration/tenants/${tenantBId}`);
     expect(adminTenant.status).toBe(200);
     expect(adminTenant.body).toMatchObject({ id: tenantBId, name: "E2E Clinic B" });
-    await adminPage.goto(tenantBOrigin, { waitUntil: "domcontentloaded" });
-    const adminTenantB = await fetchJson(adminPage, `/api/modules/clinic/patients/${tenantBPatientId}`);
-    await adminPage.goto("http://localhost:3005", { waitUntil: "domcontentloaded" });
-    const adminTenantAPage = await adminContext.newPage();
-    await adminTenantAPage.goto("http://localhost:3005", { waitUntil: "domcontentloaded" });
-    const adminTenantA = await fetchJson(adminTenantAPage, `/api/modules/clinic/patients/${tenantAPatientId}`);
-    expect(adminTenantA.status).toBe(200);
-    expect(adminTenantB.status).toBe(401);
-    await adminTenantAPage.close();
+    // A host-only administrator session grants neither clinic an app session.
+    const adminTenantB = await adminContext.request.get(new URL(`/api/modules/clinic/patients/${tenantBPatientId}`, tenantBOrigin).href);
+    const adminTenantA = await adminContext.request.get(new URL(`/api/modules/clinic/patients/${tenantAPatientId}`, webOrigin).href);
+    expect(adminTenantA.status()).toBe(401);
+    expect(adminTenantB.status()).toBe(401);
   } finally {
     if (tenantBRoleRevoked) {
       const restore = await putJson(
@@ -1207,9 +1258,17 @@ test("enforces platform-admin authorization through the API", async ({ page }) =
 
 });
 
-test("shows a generic 403 page while recording each denied audit review once", async ({ page, request }, testInfo) => {
+test("refuses administration entry while recording each denied audit review once", async ({ page, request }, testInfo) => {
   test.setTimeout(120_000);
-  await login(page, tenantBOwnerUsername, platformAdminOrigin, e2ePassword, "198.51.100.23");
+  await login(page, tenantBOwnerUsername, platformAdminOrigin, e2ePassword, "198.51.100.23", false);
+  await expect(page.getByText(catalogs.en.auth.failures.providerFailure, { exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: catalogs.en.auth.login.signInAction, exact: true })).toHaveAttribute("href", AuthenticationWebRoutes.SignIn);
+  expect((await page.request.get(platformAdminOrigin + generatedOperationPath(authenticationSessionGet))).status()).toBe(401);
+  if (forbiddenScreenshotPath) {
+    mkdirSync(dirname(forbiddenScreenshotPath), { recursive: true });
+    await page.screenshot({ path: forbiddenScreenshotPath, fullPage: true });
+  }
+  await page.goto(twoHostE2eSignInOrigin + ClinicRoutes.Account.Index, { waitUntil: "domcontentloaded" });
 
   const administratorContext = await page.context().browser()!.newContext();
   const administratorPage = await administratorContext.newPage();
@@ -1234,7 +1293,7 @@ test("shows a generic 403 page while recording each denied audit review once", a
       descending: true,
       uncataloguedOnly: false,
     };
-    const administratorCookieHeader = (await administratorContext.cookies())
+    const administratorCookieHeader = (await administratorContext.cookies(platformAdminOrigin))
       .map(cookie => `${cookie.name}=${cookie.value}`)
       .join("; ");
     const platformAdminTenantHost = new URL(platformAdminOrigin).hostname;
@@ -1265,15 +1324,6 @@ test("shows a generic 403 page while recording each denied audit review once", a
     expect(reviewEventsBefore.status).toBe(200);
     const reviewEventCountBefore = (reviewEventsBefore.body as { totalCount: number }).totalCount;
 
-    await page.goto(`${platformAdminOrigin}/`, { waitUntil: "domcontentloaded" });
-    await expect(page.getByRole("heading", { name: "Forbidden" })).toBeVisible({ timeout: 30_000 });
-    await expect(page.getByText("403", { exact: true })).toBeVisible();
-
-    if (forbiddenScreenshotPath) {
-      mkdirSync(dirname(forbiddenScreenshotPath), { recursive: true });
-      await page.screenshot({ path: forbiddenScreenshotPath, fullPage: true });
-    }
-
     const deniedAuditRead = await fetchJson(page, "/api/audit/platform/security-events?page=1&pageSize=25&sortBy=1&descending=true&uncataloguedOnly=false");
     expect(deniedAuditRead.status).toBe(403);
 
@@ -1290,7 +1340,7 @@ test("shows a generic 403 page while recording each denied audit review once", a
       expect.objectContaining({
         eventName: "authentication.password.login",
         subjectId: tenantBOwnerUserId,
-        clientInterfaceHost: new URL(platformAdminOrigin).hostname,
+        clientInterfaceHost: new URL(twoHostE2eSignInOrigin).hostname,
       }),
     ]));
   } finally {
@@ -1301,7 +1351,8 @@ test("shows a generic 403 page while recording each denied audit review once", a
 
 test("audits denied user creation and editing requests", async ({ page }) => {
   test.setTimeout(120_000);
-  await login(page, tenantBOwnerUsername, platformAdminOrigin, e2ePassword, "198.51.100.25");
+  await login(page, tenantBOwnerUsername, platformAdminOrigin, e2ePassword, "198.51.100.25", false);
+  await page.goto(twoHostE2eSignInOrigin + ClinicRoutes.Account.Index, { waitUntil: "domcontentloaded" });
 
   const deniedCreate = await postJson(page, "/api/modules/users/create/email", {
     email: `unauthorized-create-${Date.now()}@example.test`,
@@ -1373,6 +1424,13 @@ test("proves the global audit grid across a separate platform-admin origin", asy
 
   try {
     await login(tenantBPage, tenantBOwnerUsername, tenantBOrigin, e2ePassword, "198.51.100.22");
+    await login(ownerPage, e2eUsername, webOrigin, e2ePassword, "198.51.100.23");
+    // Sign-in events belong to Auth now. Generate each clinic's own audited
+    // review immediately before checking that the global view includes both.
+    const tenantReviewQuery = new URLSearchParams({ page: "1", pageSize: "1", sortBy: String(auditSortFields.occurredAt), descending: "true" });
+    const tenantReviewPath = `${getAuditSecurityEventsListQueryKey()[0]}?${tenantReviewQuery}`;
+    expect((await fetchJson(tenantBPage, tenantReviewPath)).status).toBe(200);
+    expect((await fetchJson(ownerPage, tenantReviewPath)).status).toBe(200);
     await page.goto(`${platformAdminOrigin}/audit`, { waitUntil: "domcontentloaded" });
     await expect(page).toHaveURL(/localhost:3006\/audit(?:\?|$)/);
     await expect(page.getByRole("heading", { name: "Global security audit" })).toBeVisible({ timeout: 30_000 });
@@ -1482,8 +1540,7 @@ test("proves the global audit grid across a separate platform-admin origin", asy
     }
     await detailDialog.getByRole("button", { name: "Close event details" }).click();
 
-    await login(ownerPage, e2eUsername, webOrigin, e2ePassword, "198.51.100.23");
-    await ownerPage.goto(`${platformAdminOrigin}/audit`, { waitUntil: "domcontentloaded" });
+    await ownerPage.goto(twoHostE2eSignInOrigin + ClinicRoutes.Account.Index, { waitUntil: "domcontentloaded" });
     const deniedTenants = await fetchJson(ownerPage, "/api/modules/parties/platform/tenants");
     expect(deniedTenants.status).toBe(403);
     expect(JSON.stringify(deniedTenants.body ?? "")).not.toContain(tenantAId);
@@ -1679,7 +1736,7 @@ test("locks the disposable platform-admin account after repeated real password f
       },
       headers: {
         [forwardedForHeaderName]: lockoutClientIp,
-        "X-Vitarish-Tenant-Host": "localhost",
+        [TENANT_HOST_HEADER]: new URL(twoHostE2eSignInOrigin).host,
         "X-Request-Id": `e2e-lockout-attempt-${attempt}`,
       },
       ignoreHTTPSErrors: true,
@@ -1698,7 +1755,7 @@ test("rate-limits repeated passkey authentication attempts at the real API bound
     const response = await request.post(`${apiOrigin}/api/modules/authentication/login/passkey/begin`, {
       data: { userNameOrEmail: null, returnUrl: null },
       headers: {
-        "X-Vitarish-Tenant-Host": "localhost",
+        [TENANT_HOST_HEADER]: new URL(twoHostE2eSignInOrigin).host,
         "X-Request-Id": `e2e-passkey-rate-limit-${attempt}`,
       },
       ignoreHTTPSErrors: true,

@@ -27,6 +27,10 @@ public static class AuthenticationModuleServiceCollectionExtensions
         services.AddScoped<BeginPhoneLoginHandler>();
         services.AddScoped<CompletePhoneLoginHandler>();
         services.AddScoped<IssueTenantHandoffHandler>();
+        services.AddScoped<AuthenticationContinuationHandler>();
+        services.AddScoped<GetPendingAuthenticationChallengeHandler>();
+        services.AddScoped<PersonalBrowserSessionHandler>();
+        services.AddScoped<Vitarish.Authentication.Application.Abstractions.IAuthenticationCreationHandoff, AuthenticationCreationHandoff>();
         services.AddScoped<RedeemTenantHandoffHandler>();
         services.AddScoped<BeginEmailLoginHandler>();
         services.AddScoped<CompleteEmailLoginHandler>();

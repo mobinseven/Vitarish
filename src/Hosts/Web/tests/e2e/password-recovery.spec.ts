@@ -74,7 +74,7 @@ test("password recovery completes through both shared LoginForm hosts", async ({
     },
     {
       name: "platform-admin",
-      origin: platformAdminOrigin,
+      origin: twoHostE2eSignInOrigin,
       loginPath: PlatformRoutes.LoginPassword,
       recoveryPath: PlatformRoutes.LoginForgotPassword,
     },

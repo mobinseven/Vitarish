@@ -66,6 +66,7 @@ if (!configuredUrls.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSpl
     throw new InvalidOperationException("The E2E server URLs must include the configured API origin.");
 
 builder.Configuration["Vitarish:Identity:Authority"] = apiOrigin.ToString().TrimEnd('/');
+builder.Configuration[$"{BaseModule.ApplicationSection}:{nameof(Vitarish.Parties.Application.PlatformAdminHostOptions.PlatformAdminUrl)}"] = platformWebOrigin.ToString().TrimEnd('/');
 // The landing host has its own address, so its platform tenant is provisioned there rather than
 // sharing localhost with the E2E clinic; landing sign-in and handoff can then be tested. Only the
 // host is used (tenant binding), so the URL keeps the HTTPS scheme the landing app requires while

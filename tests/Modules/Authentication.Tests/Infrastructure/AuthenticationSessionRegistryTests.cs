@@ -15,6 +15,75 @@ namespace Authentication.Tests.Infrastructure;
 public sealed class AuthenticationSessionRegistryTests
 {
     [Fact]
+    public async Task Linked_app_sessions_share_one_concurrency_slot_and_logout_ends_the_family()
+    {
+        TestTimeProvider clock = new(new DateTimeOffset(2026, 11, 7, 10, 0, 0, TimeSpan.Zero));
+        AuthenticationSessionLinkContext link = new();
+        (AuthenticationSessionRegistry registry, AuthenticationDbContext db) = CreateRegistry(SecurityAccessPolicy.Default, clock, new RecordingAuditWriter(), link: link);
+        var root = await registry.EstablishAsync("user-1", CancellationToken.None);
+        link.CentralSessionId = Guid.Parse(root.SessionId!);
+        var firstApp = await registry.EstablishAsync("user-1", CancellationToken.None);
+        var secondApp = await registry.EstablishAsync("user-1", CancellationToken.None);
+        firstApp.Succeeded.Should().BeTrue();
+        secondApp.Succeeded.Should().BeTrue();
+        secondApp.SessionId.Should().Be(firstApp.SessionId, "re-entering the same app reuses its linked session");
+        (await db.AuthenticationSessions.CountAsync(item => item.TerminatedAt == null)).Should().Be(2);
+        (await registry.ValidateAndTouchAsync(root.SessionId!, "user-1", "tenant-1", CancellationToken.None)).IsValid.Should().BeTrue();
+        await registry.RevokeAsync(firstApp.SessionId!, AuthenticationSessionTerminationReason.UserLogout, CancellationToken.None);
+        (await db.AuthenticationSessions.CountAsync(item => item.TerminatedAt == null)).Should().Be(0);
+        (await registry.ValidateAndTouchAsync(secondApp.SessionId!, "user-1", "tenant-1", CancellationToken.None)).IsValid.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task Linked_logout_preserves_an_independently_permitted_browser()
+    {
+        TestTimeProvider clock = new(new DateTimeOffset(2026, 11, 7, 10, 0, 0, TimeSpan.Zero));
+        AuthenticationSessionLinkContext link = new();
+        var (registry, db) = CreateRegistry(SecurityAccessPolicy.Default with
+        {
+            MaximumConcurrentSessions = 2, ConcurrentSessionsFunctionallyRequired = true
+        }, clock, new RecordingAuditWriter(), link: link);
+        var firstBrowser = await registry.EstablishAsync("user-1", CancellationToken.None);
+        var otherBrowser = await registry.EstablishAsync("user-1", CancellationToken.None);
+        link.CentralSessionId = Guid.Parse(firstBrowser.SessionId!);
+        var app = await registry.EstablishAsync("user-1", CancellationToken.None);
+        await registry.RevokeAsync(app.SessionId!, AuthenticationSessionTerminationReason.UserLogout, CancellationToken.None);
+        (await registry.ValidateAndTouchAsync(otherBrowser.SessionId!, "user-1", "tenant-1", CancellationToken.None)).IsValid.Should().BeTrue();
+        (await db.AuthenticationSessions.CountAsync(item => item.TerminatedAt == null)).Should().Be(1);
+    }
+
+    [Fact]
+    public async Task Linked_session_cannot_attach_to_another_user_or_an_ended_root()
+    {
+        TestTimeProvider clock = new(new DateTimeOffset(2026, 11, 7, 10, 0, 0, TimeSpan.Zero));
+        AuthenticationSessionLinkContext link = new();
+        var (registry, db) = CreateRegistry(SecurityAccessPolicy.Default, clock, new RecordingAuditWriter(), link: link);
+        var root = await registry.EstablishAsync("user-1", CancellationToken.None);
+        link.CentralSessionId = Guid.Parse(root.SessionId!);
+        (await registry.EstablishAsync("user-2", CancellationToken.None)).Succeeded.Should().BeFalse();
+        await registry.RevokeAsync(root.SessionId!, AuthenticationSessionTerminationReason.UserLogout, CancellationToken.None);
+        (await registry.EstablishAsync("user-1", CancellationToken.None)).Succeeded.Should().BeFalse();
+        (await db.AuthenticationSessions.CountAsync()).Should().Be(1);
+    }
+
+    [Fact]
+    public async Task App_activity_renews_the_root_but_cannot_resurrect_it_after_idle_expiry()
+    {
+        TestTimeProvider clock = new(new DateTimeOffset(2026, 11, 7, 10, 0, 0, TimeSpan.Zero));
+        AuthenticationSessionLinkContext link = new();
+        var (registry, _) = CreateRegistry(SecurityAccessPolicy.Default with { DefaultInactivityTimeoutMinutes = 1 }, clock, new RecordingAuditWriter(), link: link);
+        var root = await registry.EstablishAsync("user-1", CancellationToken.None);
+        link.CentralSessionId = Guid.Parse(root.SessionId!);
+        var app = await registry.EstablishAsync("user-1", CancellationToken.None);
+        clock.UtcNow = clock.UtcNow.AddSeconds(45);
+        (await registry.ValidateAndTouchAsync(app.SessionId!, "user-1", "tenant-1", CancellationToken.None)).IsValid.Should().BeTrue();
+        clock.UtcNow = clock.UtcNow.AddSeconds(45);
+        (await registry.ValidateAndTouchAsync(root.SessionId!, "user-1", "tenant-1", CancellationToken.None)).IsValid.Should().BeTrue();
+        clock.UtcNow = clock.UtcNow.AddMinutes(2);
+        (await registry.ValidateAndTouchAsync(app.SessionId!, "user-1", "tenant-1", CancellationToken.None)).IsValid.Should().BeFalse();
+    }
+
+    [Fact]
     public async Task Establishing_a_second_session_with_default_policy_terminates_the_first()
     {
         TestTimeProvider clock = new(new DateTimeOffset(2026, 8, 30, 10, 0, 0, TimeSpan.Zero));
@@ -483,7 +552,7 @@ public sealed class AuthenticationSessionRegistryTests
         return (registry, db, audit);
     }
 
-    private static (AuthenticationSessionRegistry Registry, AuthenticationDbContext Db) CreateRegistry(SecurityAccessPolicy policy, TimeProvider clock, ISecurityAuditWriter audit, string address = "127.0.0.1")
+    private static (AuthenticationSessionRegistry Registry, AuthenticationDbContext Db) CreateRegistry(SecurityAccessPolicy policy, TimeProvider clock, ISecurityAuditWriter audit, string address = "127.0.0.1", AuthenticationSessionLinkContext? link = null)
     {
         DbContextOptions<AuthenticationDbContext> options = new DbContextOptionsBuilder<AuthenticationDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString("N"))
@@ -498,7 +567,7 @@ public sealed class AuthenticationSessionRegistryTests
         requestContext.SetupGet(context => context.UserId).Returns("admin-1");
         requestContext.SetupGet(context => context.RequestId).Returns("request-1");
         requestContext.SetupGet(context => context.TraceId).Returns("trace-1");
-        return (new AuthenticationSessionRegistry(db, policyProvider.Object, clientIp.Object, requestContext.Object, audit, clock), db);
+        return (new AuthenticationSessionRegistry(db, policyProvider.Object, clientIp.Object, requestContext.Object, audit, clock, link), db);
     }
 
     private static AuthenticationSession CreateSession(string userId, TestTimeProvider clock, TimeSpan offset) => new()

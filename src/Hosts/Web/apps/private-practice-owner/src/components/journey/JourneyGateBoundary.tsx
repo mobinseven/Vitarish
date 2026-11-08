@@ -3,17 +3,19 @@
 import { Suspense, useEffect } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { isSafeRelativeReturnTo, signInReturnUrlQueryKey } from "@vitarish/journey/sign-in-host";
+import { Routes } from "@/app/routes";
 import { useCurrentJourney } from "@/hooks/journey/useCurrentJourney";
 import { JourneyErrorState, JourneyLoadingState } from "@vitarish/journey";
 
 interface JourneyGateBoundaryProps {
   children: React.ReactNode;
+  central?: boolean;
 }
 
-export function JourneyGateBoundary({ children }: JourneyGateBoundaryProps) {
+export function JourneyGateBoundary({ children, central = false }: JourneyGateBoundaryProps) {
   return (
     <Suspense fallback={<JourneyLoadingState />}>
-      <JourneyGateContent>{children}</JourneyGateContent>
+      <JourneyGateContent central={central}>{children}</JourneyGateContent>
     </Suspense>
   );
 }
@@ -39,7 +41,7 @@ function matchesJourneyDestination(
   return true;
 }
 
-function JourneyGateContent({ children }: JourneyGateBoundaryProps) {
+function JourneyGateContent({ children, central = false }: JourneyGateBoundaryProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -48,7 +50,7 @@ function JourneyGateContent({ children }: JourneyGateBoundaryProps) {
     ? requestedReturnUrl
     : undefined;
   const currentSearch = searchParams.toString();
-  const { data: decision, isLoading, error, refetch } = useCurrentJourney(returnUrl);
+  const { data: decision, isLoading, error, refetch } = useCurrentJourney(central ? requestedReturnUrl ?? pathname ?? undefined : returnUrl);
 
   useEffect(() => {
     if (isLoading || error || !decision) return;
@@ -65,7 +67,10 @@ function JourneyGateContent({ children }: JourneyGateBoundaryProps) {
       router.push(gateDestination);
       return;
     }
-  }, [decision, isLoading, error, router, pathname, currentSearch]);
+    if (central && requestedReturnUrl && step.destinationUrl !== pathname &&
+        new Set<string>([Routes.Account.ProfileComplete, Routes.Account.ContactConfirm, Routes.Account.Consents]).has(pathname ?? ""))
+      router.replace(step.destinationUrl);
+  }, [decision, isLoading, error, router, pathname, currentSearch, central, requestedReturnUrl]);
 
   if (isLoading) {
     return <JourneyLoadingState />;

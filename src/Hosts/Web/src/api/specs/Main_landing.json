@@ -1063,6 +1063,12 @@
           },
           "token": {
             "type": "string"
+          },
+          "handoffUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -1089,6 +1095,12 @@
           },
           "token": {
             "type": "string"
+          },
+          "handoffUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },

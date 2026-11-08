@@ -129,6 +129,30 @@ public sealed class AuthenticationCookieEventsTests
         context.Principal.Should().BeNull();
     }
 
+    [Fact]
+    public async Task Headerless_auth_session_request_renews_only_the_validated_central_cookie()
+    {
+        CookieValidatePrincipalContext context = ValidationContext(new AuthenticationProperties
+        {
+            IsPersistent = true, IssuedUtc = Now.AddDays(-1), ExpiresUtc = Now.AddDays(13)
+        });
+        context.HttpContext.Request.Method = HttpMethods.Get;
+        context.HttpContext.Request.Host = new HostString("auth.example.test");
+        context.HttpContext.Request.Path = Vitarish.Authentication.Contracts.Routes.AuthenticationRoutes.Session;
+        Mock<IRequestContext> request = new();
+        request.SetupGet(item => item.TenantId).Returns("central-tenant");
+        Mock<IAuthenticationSessionRegistry> registry = new();
+        registry.Setup(item => item.ValidateAndTouchAsync("session-1", "user-1", "central-tenant", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new AuthenticationSessionValidationResult(true, 20160));
+        AuthenticationCookieEvents events = new(registry.Object, request.Object,
+            Mock.Of<IMultiTenantContextAccessor<TenantInfo>>(), new FakeTimeProvider(Now));
+        await events.ValidatePrincipal(context);
+        context.HttpContext.Request.Headers.Keys.Should().Equal(Microsoft.Net.Http.Headers.HeaderNames.Host);
+        context.ShouldRenew.Should().BeTrue();
+        context.Properties.ExpiresUtc.Should().Be(Now.AddDays(14));
+        registry.VerifyAll();
+    }
+
     private static AuthenticationCookieEvents Events(AuthenticationSessionValidationResult validation)
     {
         Mock<IAuthenticationSessionRegistry> sessions = new();

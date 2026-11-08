@@ -1,8 +1,10 @@
+import { enMessages } from "../../apps/private-practice-owner/src/localization/messages/en";
+import { AuthenticationSearchParams } from "../../shared/auth/src/routes";
 import { expect, test, type Page } from "@playwright/test";
 import crypto from "node:crypto";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { Routes } from "../../apps/private-practice-owner/src/app/routes";
-import { twoHostE2eSmsCapturePathEnvironmentKey } from "../../scripts/two-host-e2e-artifacts.mjs";
+import { twoHostE2eSmsCapturePathEnvironmentKey, twoHostE2eSignInOrigin } from "../../scripts/two-host-e2e-artifacts.mjs";
 import { TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
 import {
   authenticationAntiforgeryGet,
@@ -16,7 +18,7 @@ import {
   intelligenceGetUserMemory,
 } from "../../shared/intelligence/src/api/generated/intelligence/intelligence";
 import { partiesGetOnboardingSetupDraft } from "../../shared/journey/src/api/generated/parties/parties";
-import { onboardingHandoffUrl, tenantHandoffPath } from "../../shared/journey/src/onboardingHost";
+import { tenantHandoffPath } from "../../shared/journey/src/onboardingHost";
 import { landingIssueOnboardingHandoff } from "../../shared/platform/src/api/generated/landing/landing";
 import { forwardedForHeaderName } from "./signInHost";
 
@@ -97,15 +99,26 @@ test("a new phone number signs in on the landing host without a clinic and carri
   // Anonymous visitors cannot ask for a handoff.
   expect((await callApi(page, "POST", handoffPath)).status).toBe(401);
 
+  // Interactive sign-in belongs to Auth; the return continuation restores the landing session.
+  await page.goto(`${landingOrigin}${Routes.Login.Phone}`);
+  await expect(page).toHaveURL(url => url.origin === twoHostE2eSignInOrigin && url.pathname === Routes.Login.Phone);
+  const returnUrl = new URL(page.url()).searchParams.get(AuthenticationSearchParams.ReturnUrl);
+  expect(returnUrl).toBeTruthy();
   const previousSmsModifiedAt = smsCapturePath && existsSync(smsCapturePath) ? statSync(smsCapturePath).mtimeMs : 0;
-  const begin = await callApi(page, "POST", generatedPath(authenticationLoginPhoneBegin), { phoneNumber: `0${nationalDigits}`, returnUrl: null });
+  const begin = await callApi(page, "POST", generatedPath(authenticationLoginPhoneBegin), { phoneNumber: `0${nationalDigits}`, returnUrl });
   expect(begin.status).toBe(200);
   const challengeId = (begin.body as { challengeId: string }).challengeId;
 
   const code = await readDeliveredSmsCode(previousSmsModifiedAt, nationalDigits);
-  const complete = await callApi(page, "POST", generatedPath(authenticationLoginPhoneComplete), { challengeId, code, returnUrl: null });
+  const complete = await callApi(page, "POST", generatedPath(authenticationLoginPhoneComplete), { challengeId, code, returnUrl });
   expect(complete.status, `the landing tenant admits a session without a role: ${JSON.stringify(complete.body)}`).toBe(200);
 
+  await page.goto(new URL((complete.body as { returnUrl: string }).returnUrl, twoHostE2eSignInOrigin).toString());
+  await expect(page).toHaveURL(url => url.origin === twoHostE2eSignInOrigin && url.pathname === Routes.Account.ProfileComplete);
+  await page.getByLabel(enMessages.journey.gates.profile.firstName, { exact: true }).fill("Landing");
+  await page.getByLabel(enMessages.journey.gates.profile.lastName, { exact: true }).fill("Visitor");
+  await page.getByRole("button", { name: enMessages.journey.gates.profile.saveAndContinue, exact: true }).click();
+  await expect(page).toHaveURL(url => url.origin === landingOrigin && url.pathname !== Routes.Handoff, { timeout: 120_000 });
   const session = await callApi(page, "GET", generatedPath(authenticationSessionGet));
   expect(session.status).toBe(200);
   expect((session.body as { isAuthenticated: boolean }).isAuthenticated).toBe(true);
@@ -123,15 +136,15 @@ test("a new phone number signs in on the landing host without a clinic and carri
 
   const handoff = await callApi(page, "POST", handoffPath, { category: "dermatology", answers: ["phone", "no-shows"] });
   expect(handoff.status).toBe(200);
-  const { hostname, token } = handoff.body as { hostname: string; token: string };
+  const { hostname, handoffUrl } = handoff.body as { hostname: string; handoffUrl: string };
   expect(hostname).toBe(onboardingHostname);
-  expect(token).toMatch(/\S{16,}/);
+  expect(handoffUrl).toBe(onboardingOrigin + Routes.Login.Index);
 
   // The ticket signs the person in on the onboarding host (a trusted platform origin), where
   // sign-up reads the saved answers to pre-select the category.
-  await page.goto(onboardingHandoffUrl(onboardingOrigin, token), { waitUntil: "domcontentloaded", timeout: 120_000 });
+  await page.goto(handoffUrl, { waitUntil: "domcontentloaded", timeout: 120_000 });
   // The handoff page redeems the ticket and then moves on; query only once it has.
-  await page.waitForURL((url) => url.host === `${onboardingHostname}:3005` && !url.pathname.startsWith(tenantHandoffPath), { timeout: 60_000 });
+  await page.waitForURL((url) => url.host === `${onboardingHostname}:3005` && !url.pathname.startsWith(tenantHandoffPath) && !url.pathname.startsWith(Routes.Login.Index), { timeout: 60_000 });
   await page.waitForLoadState("domcontentloaded");
   expect((await callApi(page, "GET", generatedPath(authenticationSessionGet))).status).toBe(200);
   const draft = await callApi(page, "GET", generatedPath(partiesGetOnboardingSetupDraft));

@@ -1,3 +1,4 @@
+import { getAuthenticationPendingChallengeGetQueryKey } from "../../api/generated/authentication/authentication";
 import { http, HttpResponse } from "msw";
 import type {
   AuthenticationRedirectResultDto,
@@ -10,6 +11,8 @@ import type {
 const apiPath = (path: string) => new RegExp(`/api/modules/authentication${path.replaceAll("/", "\\/")}(?:\\?|$)`);
 
 export const handlers = [
+  http.get(`*${getAuthenticationPendingChallengeGetQueryKey()[0]}`, () => new HttpResponse(null, { status: 204 })),
+  http.post(`*${getAuthenticationPendingChallengeGetQueryKey()[0]}`, () => new HttpResponse(null, { status: 204 })),
   http.post(apiPath("/login/password"), () => {
     const body: AuthenticationRedirectResultDto = {
       returnUrl: "/home",

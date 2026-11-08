@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { CentralAuthenticationSessionRenewal } from "@vitarish/auth/central-server";
 import { headers } from "next/headers";
 import { I18nAppLayout, resolveI18nAppLocale } from "@vitarish/localization";
 import { ContentSecurityPolicyNonceMeta, contentSecurityPolicyNonce } from "@vitarish/ui/content-security-policy";
@@ -49,6 +50,7 @@ export default async function RootLayout({
         bodyClassName="bg-background text-foreground"
       >
         <AppProviders nonce={nonce}>
+          <CentralAuthenticationSessionRenewal />
           <SplashScreen />
           {children}
         </AppProviders>

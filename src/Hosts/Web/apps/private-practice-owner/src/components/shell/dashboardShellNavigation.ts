@@ -30,3 +30,12 @@ export const homeDashboardNavGroups = clinicOwnerDashboardNavGroups;
 export const mainDashboardNavGroups = clinicOwnerDashboardNavGroups;
 
 export const clinicUserDashboardNavGroups = mainGroup(clinicUserDestinations);
+
+/** The central account's sidebar: the account itself and the way back to the platform home. */
+export const centralAccountNavGroups = [{
+  labelKey: "appShell.navigation.mainGroup",
+  items: [
+    { href: Routes.Account.Index, icon: "user-shield", labelKey: "appShell.userMenu.account", exactMatch: true },
+    { href: Routes.SignInContinue, icon: "house", labelKey: "appShell.navigation.home", exactMatch: true },
+  ],
+}] as const satisfies readonly DashboardShellNavGroup[];

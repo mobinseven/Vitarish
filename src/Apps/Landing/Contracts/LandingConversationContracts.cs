@@ -69,7 +69,7 @@ public sealed record LandingAppResponse(string AppId, string Name, LandingAppAva
 public sealed record LandingHomeActionKeysResponse(string CreateWorkspace, string OpenWorkspace);
 public sealed record LandingWorkspacesResponse(IReadOnlyList<LandingWorkspaceResponse> Workspaces, IReadOnlyList<LandingAppResponse> Apps, LandingHomeActionKeysResponse ActionKeys);
 
-public sealed record LandingWorkspaceHandoffResponse(string Hostname, string Token);
+public sealed record LandingWorkspaceHandoffResponse(string Hostname, string Token, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? HandoffUrl = null);
 
 /// <summary>Optional catalog app choice; omitted requests preserve the existing clinic setup handoff.</summary>
 public sealed record LandingOnboardingHandoffRequest(string? Category, IReadOnlyList<string>? Answers, string? AppId = null);
@@ -80,7 +80,7 @@ public sealed record LandingHomeActionTarget(string Key, string? AppId = null, G
 public sealed record LandingHomeConversationResponse(string ConversationId, string Message, AgentInteractiveReplyResponse? Reply, LandingHomeActionTarget? ActionTarget);
 
 /// <summary>A one-time ticket that signs the person in on the onboarding host, where they create their clinic.</summary>
-public sealed record LandingOnboardingHandoffResponse(string Hostname, string Token);
+public sealed record LandingOnboardingHandoffResponse(string Hostname, string Token, string? HandoffUrl = null);
 public sealed record LandingHostBindingResponse(string Hostname, Guid? TenantId);
 public sealed record SetLandingHostBindingRequest(Guid TenantId);
 public sealed record SetLandingHostBindingResponse(string Hostname, Guid? PreviousTenantId, Guid TenantId, bool Changed);

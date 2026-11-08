@@ -14,6 +14,7 @@ export default function PhoneLoginPage() {
 
   return (
     <LoginPageCard
+      returnUrlSearchParams={searchParams}
       title={t("auth.otp.phoneTitle")}
       subtitle={t("auth.otp.phoneSubtitle")}
       skeletonHeight="112px"

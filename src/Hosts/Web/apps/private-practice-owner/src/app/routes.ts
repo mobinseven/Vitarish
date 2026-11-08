@@ -18,10 +18,10 @@ export const Routes = {
   /** Public authentication routes */
   Login: {
     Index: AuthenticationWebRoutes.SignIn,
-    Password: "/login/password",
-    Phone: "/login/phone",
-    Email: "/login/email",
-    Passkey: "/login/passkey",
+    Password: AuthenticationWebRoutes.SignInPassword,
+    Phone: AuthenticationWebRoutes.SignInPhone,
+    Email: AuthenticationWebRoutes.SignInEmail,
+    Passkey: AuthenticationWebRoutes.SignInPasskey,
     ForgotPassword: AuthenticationWebRoutes.PasswordRecovery,
   },
   Logout: "/logout",
@@ -34,14 +34,14 @@ export const Routes = {
 
   /** Authenticated account routes */
   Account: {
-    Index: "/account",
+    Index: AuthenticationWebRoutes.Account,
     Name: "/account/name",
     Email: "/account/email",
     Phone: "/account/phone",
     Password: "/account/password",
     Passkeys: "/account/passkeys",
     Culture: "/account/culture",
-    Security: "/account/security",
+    Security: AuthenticationWebRoutes.AccountSecurity,
     Memory: "/account/memory",
     Consents: "/account/consents",
     ContactConfirm: "/account/contact/confirm",

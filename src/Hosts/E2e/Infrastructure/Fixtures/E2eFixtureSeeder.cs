@@ -40,7 +40,9 @@ internal static class E2eFixtureSeeder
     public const string EmailChangeUserName = "e2e-email-change-user";
     public const string PhoneChangeUserName = "e2e-phone-change-user";
     public const string TenantBOwnerUserName = "e2e-tenant-b-owner";
+    public const string KnowledgeMemberUserName = "e2e-knowledge-member";
     public const string PlatformAdminUserName = "e2e-platform-admin";
+    public const string AuditEvidencePlatformAdminUserName = "e2e-audit-evidence-admin";
     public const string UserManagementPlatformAdminUserName = "e2e-user-management-admin";
     public const string LockoutPlatformAdminUserName = "e2e-lockout-platform-admin";
     public const string EmailSignInPlatformAdminUserName = "e2e-email-sign-in-platform-admin";
@@ -135,6 +137,14 @@ internal static class E2eFixtureSeeder
             "e2e-platform-admin@example.test",
             "E2E",
             "Platform Admin",
+            password);
+        User auditEvidencePlatformAdmin = await EnsureUserAsync(
+            users,
+            AuditEvidencePlatformAdminUserName,
+            Guid.Parse("aa122848-44af-44c1-a76f-226239f59b77"),
+            AuditEvidencePlatformAdminUserName + "@example.test",
+            "E2E",
+            "Audit Evidence Admin",
             password);
         Console.WriteLine("E2E fixture seeding: ensuring identity 6 of 13.");
         User userManagementPlatformAdmin = await EnsureUserAsync(
@@ -632,6 +642,38 @@ internal static class E2eFixtureSeeder
                 new Uri(signInUrl, UriKind.Absolute).Host), cancellationToken);
         }
 
+        var browserHosts = scope.ServiceProvider.GetRequiredService<IOptions<Vitarish.Parties.Application.BrowserApplicationHostOptions>>().Value;
+        var adminHost = scope.ServiceProvider.GetRequiredService<IOptions<Vitarish.Parties.Application.PlatformAdminHostOptions>>().Value;
+        foreach (var (url, appId, name) in new[]
+        {
+            (adminHost.PlatformAdminUrl, Vitarish.Parties.Application.PlatformAdminTenant.AppId, Vitarish.Parties.Application.PlatformAdminTenant.Name),
+            (browserHosts.PatientsUrl, Vitarish.Parties.Application.BrowserApplicationTenants.PatientsAppId, Vitarish.Parties.Application.BrowserApplicationTenants.PatientsName),
+            (browserHosts.ProjectManagementUrl, Vitarish.Parties.Application.BrowserApplicationTenants.ProjectManagementAppId, Vitarish.Parties.Application.BrowserApplicationTenants.ProjectManagementName),
+            (browserHosts.KnowledgeQaUrl, Vitarish.Parties.Application.BrowserApplicationTenants.KnowledgeQaAppId, Vitarish.Parties.Application.BrowserApplicationTenants.KnowledgeQaName)
+        })
+        {
+            if (url is null) continue;
+            Guid browserTenantId = await scope.ServiceProvider.GetRequiredService<IAppTenantProvisioner>().EnsureAsync(
+                new EnsureAppTenantRequest(SignInTenant.OwnerName, appId, name, new Uri(url).Host), cancellationToken);
+            if (appId == Vitarish.Parties.Application.BrowserApplicationTenants.KnowledgeQaAppId)
+            {
+                User knowledgeMember = await EnsureUserAsync(users, KnowledgeMemberUserName,
+                    Guid.Parse("0e2ee580-3e57-4a78-a5f6-a9f568dc7e9e"),
+                    "e2e-knowledge-member@example.test", "Knowledge", "Member", password);
+                string knowledgeRoleName = Vitarish.Users.Application.Authorization.TenantRoleDefinitions.BuildRoleName(browserTenantId, IdentityDefinitions.TenantOwner);
+                if (!await roles.RoleExistsAsync(knowledgeRoleName))
+                {
+                    IdentityResult created = await roles.CreateAsync(new IdentityRole(knowledgeRoleName));
+                    if (!created.Succeeded) throw new InvalidOperationException("E2E application role creation failed.");
+                }
+                if (!await users.IsInRoleAsync(knowledgeMember, knowledgeRoleName))
+                {
+                    IdentityResult assigned = await usersService.AddUserToTenantRoleAsync(knowledgeMember, IdentityDefinitions.TenantOwner, browserTenantId, cancellationToken);
+                    if (!assigned.Succeeded) throw new InvalidOperationException("E2E application role assignment failed.");
+                }
+            }
+        }
+
         Console.WriteLine("E2E fixture seeding: assigning platform-admin access.");
         if (!await roles.RoleExistsAsync(IdentityDefinitions.PlatformAdmin))
             _ = (await roles.CreateAsync(new IdentityRole(IdentityDefinitions.PlatformAdmin))).Succeeded;
@@ -640,6 +682,12 @@ internal static class E2eFixtureSeeder
             IdentityResult result = await usersService.AddUserToRoleAsync(platformAdmin, IdentityDefinitions.PlatformAdmin, cancellationToken);
             if (!result.Succeeded)
                 throw new InvalidOperationException("E2E platform-admin role assignment failed.");
+        }
+        if (!await users.IsInRoleAsync(auditEvidencePlatformAdmin, IdentityDefinitions.PlatformAdmin))
+        {
+            IdentityResult result = await usersService.AddUserToRoleAsync(auditEvidencePlatformAdmin, IdentityDefinitions.PlatformAdmin, cancellationToken);
+            if (!result.Succeeded)
+                throw new InvalidOperationException("E2E audit-evidence administrator role assignment failed.");
         }
         if (!await users.IsInRoleAsync(userManagementPlatformAdmin, IdentityDefinitions.PlatformAdmin))
         {

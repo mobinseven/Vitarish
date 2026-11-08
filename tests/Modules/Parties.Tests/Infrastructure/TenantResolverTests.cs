@@ -13,6 +13,22 @@ namespace Vitarish.Parties.Tests.Infrastructure;
 public sealed class TenantResolverTests
 {
     [Fact]
+    public async Task Headerless_auth_cookie_renewal_resolves_only_the_actual_auth_host()
+    {
+        await using PartiesDbContext db = CreateContext();
+        Tenant central = AddTenant(db, "auth.example.test", "Auth");
+        AddTenant(db, "clinic.example.test", "Clinic");
+        await db.SaveChangesAsync();
+        using MemoryCache cache = new(new MemoryCacheOptions());
+        TenantResolver resolver = new(db, cache);
+        DefaultHttpContext context = new();
+        context.Request.Host = new HostString("auth.example.test");
+        context.Request.Method = HttpMethods.Get;
+        Assert.Equal(new[] { Microsoft.Net.Http.Headers.HeaderNames.Host }, context.Request.Headers.Keys);
+        Assert.Equal(central.Id, (await resolver.ResolveAsync(context))!.Id);
+    }
+
+    [Fact]
     public async Task Resolves_two_hosts_to_their_own_tenants_without_cache_crossover()
     {
         await using PartiesDbContext db = CreateContext();

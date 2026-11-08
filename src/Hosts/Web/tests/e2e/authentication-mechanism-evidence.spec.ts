@@ -235,9 +235,7 @@ async function registerPasskey(browser: Browser): Promise<VirtualCredential> {
 
 /**
  * Signs in with the registered passkey through the public passkey sign-in endpoints and the browser's own
- * WebAuthn ceremony. Locally the passkey belongs to "localhost", which browsers treat as a top-level name,
- * so the "auth.localhost" sign-in page cannot use it; the ceremony runs on the clinic origin instead and
- * sends the same requests that page sends.
+ * WebAuthn ceremony on Auth, where credentials are registered and sign-in is owned.
  */
 async function signInWithPasskey(page: Page, credential: VirtualCredential): Promise<void> {
   const cdp = await page.context().newCDPSession(page);
@@ -245,7 +243,7 @@ async function signInWithPasskey(page: Page, credential: VirtualCredential): Pro
   const { authenticatorId } = await cdp.send("WebAuthn.addVirtualAuthenticator", { options: virtualAuthenticator });
   await cdp.send("WebAuthn.addCredential", { authenticatorId, credential });
   const tokenPath = getAuthenticationAntiforgeryGetQueryKey()[0];
-  await page.goto(`${twoHostE2eClinicOrigin}${tokenPath}`, { waitUntil: "domcontentloaded" });
+  await page.goto(`${twoHostE2eSignInOrigin}${tokenPath}`, { waitUntil: "domcontentloaded" });
   const status = await page.evaluate(async ({ beginPath, completePath, tokenPath, tenantHeader, requestIdHeader }) => {
     const toBuffer = (value: string) => {
       const base64 = value.replace(/-/g, "+").replace(/_/g, "/");
@@ -359,7 +357,7 @@ test(`each sign-in method leaves its own attributable audit record ${locale}`, a
       { key: "phone", eventName: sourceString(auditSource, "AuthenticationPhoneLoginEvent"), cookieOrigin: twoHostE2eSignInOrigin, signIn: signInWithPhoneCode },
       { key: "passwordOtp", eventName: sourceString(auditSource, "AuthenticationPasswordLoginOtpEvent"), cookieOrigin: platformOrigin, signIn: signInWithPasswordAndPhoneCode },
       { key: "emailPasswordOtp", eventName: sourceString(auditSource, "AuthenticationPasswordLoginOtpEvent"), cookieOrigin: platformOrigin, signIn: (page: Page) => signInWithPasswordAndEmailCode(page, testInfo) },
-      { key: "passkey", eventName: sourceString(auditSource, "AuthenticationPasskeyLoginEvent"), cookieOrigin: twoHostE2eClinicOrigin, signIn: (page: Page) => signInWithPasskey(page, passkey) },
+      { key: "passkey", eventName: sourceString(auditSource, "AuthenticationPasskeyLoginEvent"), cookieOrigin: twoHostE2eSignInOrigin, signIn: (page: Page) => signInWithPasskey(page, passkey) },
     ] as const;
     for (const method of methods) {
       const client = await newClient(browser, clientIps[method.key], method.cookieOrigin);

@@ -31,15 +31,15 @@ public sealed class ListSignInClinicsQueryHandler(IWorkspaceDirectory workspaces
 }
 
 /// <summary>A one-time link target: continue signed in at <paramref name="Hostname"/> with <paramref name="Token"/>.</summary>
-public sealed record SignInHandoff(string Hostname, string Token, string? ReturnTo = null);
+public sealed record SignInHandoff(string Hostname, string Token, string? ReturnTo = null, string? HandoffUrl = null);
 
 public enum SignInHandoffTarget { WorkspaceOrOnboarding, Home }
 
 /// <summary>
 /// Issues a handoff to a workspace, onboarding, or the configured home host. The server
 /// chooses the target host from the user's workspaces or configuration.
-/// The sign-in host keeps no session of its own: issuing the link signs the user out there, so
-/// signing out on the target host leaves nothing signed in behind it.
+/// Configured central deployments keep the Auth browser root and return a correlated app-entry
+/// URL. Unconfigured legacy deployments issue a ticket and end the source session.
 /// </summary>
 public sealed record IssueSignInHandoffCommand(Guid? TenantId, SignInHandoffTarget Target = SignInHandoffTarget.WorkspaceOrOnboarding, string? ReturnTo = null) : IRequest<SignInHandoff?>;
 
@@ -49,7 +49,8 @@ public sealed class IssueSignInHandoffCommandHandler(
     IOptions<OnboardingHostOptions> onboarding,
     IOptions<SignInHomeOptions> home,
     IJourneyReturnUrlPolicy returnUrlPolicy,
-    IRequestContext requestContext)
+    IRequestContext requestContext,
+    Vitarish.Authentication.Application.Abstractions.IAuthenticationHostDirectory? hosts = null)
     : IRequestHandler<IssueSignInHandoffCommand, SignInHandoff?>
 {
     /// <returns>Null when there is no signed-in user, the clinic is not theirs, onboarding is off or has no host, or no ticket could be issued.</returns>
@@ -71,6 +72,19 @@ public sealed class IssueSignInHandoffCommandHandler(
             return null;
 
         string? returnTo = command.Target == SignInHandoffTarget.Home ? returnUrlPolicy.Normalize(command.ReturnTo) : null;
+        if (hosts?.SignInOrigin is not null)
+        {
+            if (!Uri.TryCreate(hosts.CurrentOrigin, UriKind.Absolute, out Uri? source)) return null;
+            string? entryReturnTo = command.Target == SignInHandoffTarget.Home ? returnTo ?? SignInHomeOptions.PlatformHomePath : null;
+            UriBuilder entry = new(source)
+            {
+                Host = hostname, Path = Vitarish.Authentication.Domain.ReturnUrls.AuthenticationBrowserPaths.Login,
+                Query = entryReturnTo is null ? string.Empty : Vitarish.Authentication.Domain.ReturnUrls.AuthenticationBrowserQuery.ReturnUrl + "=" + Uri.EscapeDataString(entryReturnTo),
+                Fragment = string.Empty
+            };
+            if (!await hosts.CanOpenAsync(entry.Uri.GetLeftPart(UriPartial.Authority), userId, cancellationToken)) return null;
+            return new SignInHandoff(hostname, string.Empty, returnTo, entry.Uri.ToString());
+        }
         string? token = await handoffs.IssueEndingSessionAsync(userId, hostname, cancellationToken);
         return token is null ? null : new SignInHandoff(hostname, token, returnTo);
     }

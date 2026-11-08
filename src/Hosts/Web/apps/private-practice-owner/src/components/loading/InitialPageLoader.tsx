@@ -3,9 +3,12 @@
 import { useEffect, useState } from "react";
 import { useAuthSession } from "@vitarish/auth";
 import { LoadingScreen } from "./LoadingScreen";
+import { usePathname } from "next/navigation";
+import { Routes } from "@/app/routes";
 
 export function InitialPageLoader() {
-  const { isLoading } = useAuthSession();
+  const pathname = usePathname();
+  const { isLoading } = useAuthSession({ enabled: pathname !== Routes.Handoff });
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {

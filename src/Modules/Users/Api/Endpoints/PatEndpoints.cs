@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Vitarish.Modules.Base.Core.Endpoints;
@@ -15,9 +16,9 @@ public static class PatEndpoints
 
     public static RouteGroupBuilder MapPatEndpoints(this RouteGroupBuilder group)
     {
-        group.MapModulePost(UsersApiRoutes.PatBase, CreatePatAsync, "UsersCreatePat", typeof(PatCreateResponse));
-        group.MapModuleGet(UsersApiRoutes.PatBase, ListPatsAsync, "UsersListPats", typeof(PatListResponse));
-        group.MapModuleDelete(UsersApiRoutes.PatRevoke, RevokePatAsync, "UsersRevokePat", typeof(bool));
+        group.MapModulePost(UsersApiRoutes.PatBase, CreatePatAsync, "UsersCreatePat", typeof(PatCreateResponse)).AddEndpointFilter<PersonalCredentialHostFilter>();
+        group.MapModuleGet(UsersApiRoutes.PatBase, ListPatsAsync, "UsersListPats", typeof(PatListResponse)).AddEndpointFilter<PersonalCredentialHostFilter>();
+        group.MapModuleDelete(UsersApiRoutes.PatRevoke, RevokePatAsync, "UsersRevokePat", typeof(bool)).AddEndpointFilter<PersonalCredentialHostFilter>();
         return group;
     }
 

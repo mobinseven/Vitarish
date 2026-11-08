@@ -14,6 +14,7 @@ export default function EmailLoginPage() {
 
   return (
     <LoginPageCard
+      returnUrlSearchParams={searchParams}
       title={t("auth.otp.emailTitle")}
       subtitle={t("auth.otp.emailSubtitle")}
       skeletonHeight="112px"

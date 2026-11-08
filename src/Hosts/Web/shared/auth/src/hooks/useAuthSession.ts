@@ -5,9 +5,10 @@ import { ApiError } from "@vitarish/api-client";
 import { useAuthenticationSessionGet } from "../api/generated/authentication/authentication";
 import { resolveUserDisplayProfile } from "../session/userDisplayProfile";
 
-export function useAuthSession() {
+export function useAuthSession({ enabled = true }: { enabled?: boolean } = {}) {
   const query = useAuthenticationSessionGet({
     query: {
+      enabled,
       retry: (failureCount, error) =>
         !(error instanceof ApiError && error.status === 401) && failureCount < 1,
     },

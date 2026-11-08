@@ -1,8 +1,9 @@
 "use client";
 
-import { type ReactNode, useMemo } from "react";
+import { type ReactNode, useMemo, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuthSession } from "@vitarish/auth";
+import { AuthenticationSearchParams } from "@vitarish/auth/routes";
 import {
   CenteredRegion,
   ContainedPage,
@@ -41,6 +42,11 @@ export function AppShell({ children }: { children: ReactNode }) {
     [t],
   );
 
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated)
+      router.replace(`${Routes.Login}?${AuthenticationSearchParams.ReturnUrl}=${encodeURIComponent(window.location.pathname + window.location.search)}`);
+  }, [isLoading, isAuthenticated, router]);
+
   if (isLoading)
     return (
       <CenteredRegion>
@@ -60,7 +66,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       contentMode="page"
       currentPath={pathname}
       identity={{
-        accountHref: "/account",
+        accountHref: Routes.Account,
         accountLabel: t("pm.account"),
         initials: getInitials(displayProfile?.displayLabel ?? ""),
         label: displayProfile?.displayLabel ?? t("pm.title"),

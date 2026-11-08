@@ -2,7 +2,8 @@ import { expect, test, type Page } from "@playwright/test";
 import crypto from "node:crypto";
 import { existsSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
-import { twoHostE2eLandingOrigin, twoHostE2eProofScreenshotEnvironmentKey } from "../../scripts/two-host-e2e-artifacts.mjs";
+import { twoHostE2eSignInOrigin, twoHostE2eLandingOrigin, twoHostE2eProofScreenshotEnvironmentKey } from "../../scripts/two-host-e2e-artifacts.mjs";
+import { AuthenticationWebRoutes } from "../../shared/auth/src/routes";
 import { REQUEST_ID_HEADER, TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
 import {
   authenticationAccountPasswordFirstSet,
@@ -51,10 +52,8 @@ async function postJson(page: Page, path: string, requestBody: unknown): Promise
   });
 }
 
-// The two-host runner serves landing.localhost from the owner app, not the landing app, so this proves the
-// server side the landing app's account area calls: the landing tenant accepts a role-free session for the
-// account operations. The page itself is covered by the landing app's component tests.
-test("a person with no workspace can set a first password on the landing host and sign in with it", async ({ browser, page }) => {
+// Personal credential changes belong to Auth; app-local requests must be refused.
+test("a person with no workspace sets a first password centrally and signs in with it", async ({ browser, page }) => {
   test.setTimeout(600_000);
   // A strong value that no other run reuses; it only lives in this test.
   const newPassword = `E2e-${crypto.randomBytes(9).toString("base64url")}-9!`;
@@ -73,7 +72,10 @@ test("a person with no workspace can set a first password on the landing host an
   expect(session.status).toBe(200);
   expect(session.body.user?.hasPassword, "the account starts with no password").toBe(false);
 
-  // 2. The landing host's session sets the first password.
+  // 2. The landing host refuses credential changes; the existing Auth root owns them.
+  expect((await postJson(page, firstPasswordPath, { newPassword })).status).toBe(404);
+  await page.goto(twoHostE2eSignInOrigin + AuthenticationWebRoutes.Account);
+  await page.waitForURL(url => url.origin === twoHostE2eSignInOrigin && url.pathname === AuthenticationWebRoutes.Account);
   const firstSet = await postJson(page, firstPasswordPath, { newPassword });
   expect(firstSet.status).toBe(200);
   expect(firstSet.body?.succeeded).toBe(true);

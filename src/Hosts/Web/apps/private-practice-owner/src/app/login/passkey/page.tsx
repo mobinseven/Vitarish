@@ -14,6 +14,7 @@ export default function PasskeyLoginPage() {
 
   return (
     <LoginPageCard
+      returnUrlSearchParams={searchParams}
       title={t("auth.passkey.title")}
       subtitle={t("auth.passkey.subtitle")}
       skeletonHeight="128px"

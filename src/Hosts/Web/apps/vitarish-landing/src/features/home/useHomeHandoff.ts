@@ -23,7 +23,7 @@ export function useHomeHandoff() {
       ? landingIssueWorkspaceHandoff(target.tenantId)
       : landingIssueOnboardingHandoff({ category: null, answers: [], appId: target.appId });
     issue.then(
-      (handoff) => window.location.assign(handoffUrl(handoff.hostname, tenantHandoffPath, handoff.token)),
+      (handoff) => window.location.assign(handoff.handoffUrl ?? handoffUrl(handoff.hostname, tenantHandoffPath, handoff.token)),
       () => {
         setPending(null);
         setFailed(target);

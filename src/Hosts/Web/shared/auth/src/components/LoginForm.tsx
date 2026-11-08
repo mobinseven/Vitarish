@@ -5,6 +5,8 @@ import { TextField, Label, Input, Button, Form, Tooltip } from "@heroui/react";
 import { usePasswordLogin } from "../hooks/usePasswordLogin";
 import { useAuthErrorDisplay } from "../hooks/useAuthErrorDisplay";
 import { useLocalizedText } from "@vitarish/localization";
+import { getRequestedReturnUrl } from "../hooks/requestedReturnUrl";
+import { AuthenticationSearchParams } from "../routes";
 import { StatusAlert } from "@vitarish/ui";
 import type { AuthNavigationOptions } from "../hooks/navigation";
 import { OtpVerificationStep } from "./OtpVerificationStep";
@@ -88,6 +90,12 @@ export function LoginForm({
     );
   }
 
+  const requestedReturn = returnUrl ?? getRequestedReturnUrl(returnUrlSearchParams);
+  const recoveryParams = new URLSearchParams();
+  if (requestedReturn) recoveryParams.set(AuthenticationSearchParams.ReturnUrl, requestedReturn);
+  const recoveryHref = forgotPasswordHref && requestedReturn
+    ? `${forgotPasswordHref}?${recoveryParams}` : forgotPasswordHref;
+
   return (
     <Form method="post" onSubmit={handleSubmit} className="flex flex-col gap-4">
       {displayedError && <StatusAlert className="mb-4" message={displayedError} />}
@@ -122,7 +130,7 @@ export function LoginForm({
         <Tooltip.Content>{t("auth.login.signInAction")}</Tooltip.Content>
       </Tooltip>
       {forgotPasswordHref && (
-        <a className="self-end text-sm text-accent underline-offset-4 hover:underline" href={forgotPasswordHref}>
+        <a className="self-end text-sm text-accent underline-offset-4 hover:underline" href={recoveryHref}>
           {t("auth.recovery.forgotPasswordAction")}
         </a>
       )}

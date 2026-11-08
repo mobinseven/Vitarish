@@ -1,7 +1,7 @@
 "use client";
 
 import { Surface } from "@heroui/react";
-import { AuthenticationSessionNoticeType, useAuthSession, useAuthenticationAccessHistory, useAuthenticationSessionNotices } from "@vitarish/auth";
+import { AuthenticationBrowserSessions, AuthenticationSessionNoticeType, useAuthSession, useAuthenticationAccessHistory, useAuthenticationSessionNotices } from "@vitarish/auth";
 import { formatDateTime, useLocalizedText } from "@/localization";
 import {
   AccountBackLink,
@@ -101,6 +101,7 @@ export default function AccountSecurityPage() {
           </div>
         </Surface>
 
+        <AuthenticationBrowserSessions />
         <AccountBackLink />
       </div>
     </AccountSurface>
