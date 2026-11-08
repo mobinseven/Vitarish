@@ -828,6 +828,14 @@ export const faMessages = {
       description: "مدیریت بیماران کلینیک",
     },
   },
+  routeStates: {
+    notFoundTitle: "این صفحه وجود ندارد",
+    notFoundDescription: "ممکن است نشانی اشتباه وارد شده باشد یا صفحه جابه‌جا شده باشد.",
+    errorTitle: "نمایش این صفحه ممکن نشد",
+    errorDescription: "هنگام بارگذاری صفحه مشکلی پیش آمد. سایر صفحه‌ها تحت تأثیر نیستند.",
+    goToToday: "رفتن به پیشخوان",
+    goToPatients: "رفتن به بیماران",
+  },
   errors: {
     generic: "مشکلی پیش آمد. لطفاً دوباره تلاش کنید.",
     unauthorized: "لطفاً برای ادامه وارد شوید.",

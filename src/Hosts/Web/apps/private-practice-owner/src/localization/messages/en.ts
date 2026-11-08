@@ -838,6 +838,14 @@ export const enMessages = {
       description: "Manage clinic patients",
     },
   },
+  routeStates: {
+    notFoundTitle: "This page doesn't exist",
+    notFoundDescription: "The address may be mistyped, or the page may have moved.",
+    errorTitle: "This page couldn't be shown",
+    errorDescription: "Something went wrong while loading it. Your other pages are unaffected.",
+    goToToday: "Go to Today",
+    goToPatients: "Go to Patients",
+  },
   errors: {
     generic: "Something went wrong. Please try again.",
     unauthorized: "Please sign in to continue.",
