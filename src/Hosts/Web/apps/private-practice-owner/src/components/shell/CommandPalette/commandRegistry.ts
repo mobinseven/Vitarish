@@ -63,10 +63,10 @@ export function createCommandGroups(
       commands: [
         {
           id: "all-reservations",
-          labelKey: "clinic.appointments.reservations.title",
+          labelKey: "clinic.schedule.title",
           icon: "calendar-check",
           action: () => navigate(Routes.Clinic.Appointments.Reservations.Index),
-          keywords: ["reservations", "list", "all"],
+          keywords: ["schedule", "reservations", "list", "all"],
         },
         {
           id: "shifts",

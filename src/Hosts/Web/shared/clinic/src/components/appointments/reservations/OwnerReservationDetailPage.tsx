@@ -40,7 +40,7 @@ export function OwnerReservationDetailPage({
   onNavigate,
 }: OwnerReservationDetailPageProps) {
   const { t, locale } = useLocalizedText();
-  const back = usePageBack([pageAncestors.reservations], onNavigate);
+  const back = usePageBack([pageAncestors.schedule], onNavigate);
   const query = useOwnerReservationDetail(reservationId);
   const deletion = useDeleteReservation();
   const [deleting, setDeleting] = useState(false);

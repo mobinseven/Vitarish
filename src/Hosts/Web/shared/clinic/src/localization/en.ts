@@ -2,6 +2,11 @@ import { surgeriesEnMessages } from "./surgeries";
 
 export const clinicEnMessages = {
   clinic: {
+    schedule: {
+      title: "Schedule",
+      description: "Browse visits by day, week or month, and book new ones.",
+      bookVisit: "Book a visit",
+    },
     navigation: {
       pageLocation: "Page location",
       backTo: "Back to {name}",

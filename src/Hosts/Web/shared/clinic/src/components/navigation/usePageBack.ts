@@ -20,7 +20,7 @@ export const pageAncestors = {
   services: { labelKey: "clinic.services.title", intent: { kind: "serviceIndex" } },
   serviceTypes: { labelKey: "clinic.serviceTypes.title", intent: { kind: "serviceTypeIndex" } },
   serviceProviders: { labelKey: "clinic.serviceProviders.title", intent: { kind: "serviceProviderIndex" } },
-  reservations: { labelKey: "clinic.appointments.reservations.title", intent: { kind: "ownerReservationIndex" } },
+  schedule: { labelKey: "clinic.schedule.title", intent: { kind: "ownerReservationIndex" } },
 } as const satisfies Record<string, PageAncestor>;
 
 /**

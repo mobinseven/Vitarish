@@ -2,6 +2,11 @@ import { surgeriesFaMessages } from "./surgeries";
 
 export const clinicFaMessages = {
   clinic: {
+    schedule: {
+      title: "نوبت‌ها",
+      description: "نوبت‌ها را بر اساس روز، هفته یا ماه ببینید و نوبت جدید ثبت کنید.",
+      bookVisit: "ثبت نوبت",
+    },
     navigation: {
       pageLocation: "موقعیت صفحه",
       backTo: "بازگشت به {name}",

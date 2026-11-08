@@ -118,6 +118,10 @@ Each slice is independently mergeable and leaves the app working.
 - Slice 5 is done except the Reminders tab: no reminder has a patient as its
   source, so the tab would be empty. Surgery reminders show under Surgeries.
   The record's tabs are path segments (`/patients/{id}/surgeries`).
+- Slice 6 is done: the page is titled Schedule, offers day, week and month views
+  (the visit browser's period switch) plus a calendar view for booking, and a
+  primary "Book a visit" action. The shared package still holds an unused
+  `OwnerReservationsList`; remove it with `user-appointments/*`.
 - `components/user-appointments/*` in the shared clinic package has no consumer in
   any app; remove it or give it one.
 
