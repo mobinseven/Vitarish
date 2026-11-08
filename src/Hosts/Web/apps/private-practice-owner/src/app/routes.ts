@@ -1,6 +1,6 @@
 import { AuthenticationWebRoutes } from "@vitarish/auth/routes";
 import { tenantHandoffPath } from "@vitarish/journey/onboarding-host";
-import type { PatientQuickAction } from "@vitarish/clinic";
+import type { PatientQuickAction, PatientRecordTab } from "@vitarish/clinic";
 
 /** Centralized route definitions for the React web host.
  *  Equivalent to Blazor's AppRoutes class.
@@ -62,6 +62,9 @@ export const Routes = {
         quickAction
           ? (`/patients/${patientId}?${PatientDetailSearchParams.QuickAction}=${quickAction}` as const)
           : (`/patients/${patientId}` as const),
+      /** A tab of the patient record; the overview is the record's own address. */
+      Tab: (patientId: string, tab: PatientRecordTab) =>
+        (tab === "overview" ? `/patients/${patientId}` : `/patients/${patientId}/${tab}`) as string,
       Edit: (patientId: string) => `/patients/${patientId}/edit` as const,
       Procedure: (patientId: string, procedureId: string) =>
         `/patients/${patientId}/procedures/${procedureId}` as const,

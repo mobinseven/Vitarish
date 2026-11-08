@@ -776,7 +776,6 @@ export const enMessages = {
     operationsAssistant: "Open clinic operations assistant",
     brand: "Vitarish",
     navigation: {
-      up: "Up",
       home: "Today",
       schedule: "Schedule",
       clinic: "Clinic",

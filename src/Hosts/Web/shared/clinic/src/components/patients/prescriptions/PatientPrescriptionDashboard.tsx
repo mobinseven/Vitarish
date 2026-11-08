@@ -12,13 +12,18 @@ import { useLocalizedText } from "../../../localization";
 
 export const patientPrescriptionHistoryQueryKey = (patientId: string) => ["medical", "patient-prescriptions", patientId];
 
+/** The patient's prescription totals and the ones that need attention. */
+export function usePatientPrescriptionDashboard(patientId: string) {
+  return useQuery({ queryKey: patientPrescriptionHistoryQueryKey(patientId), queryFn: ({ signal }) => medicalGetPatientPrescriptionDashboard({ patientId, attentionTake: 8 }, undefined, signal) });
+}
+
 export function PatientPrescriptionDashboard({ patientId, onNewPrescription }: { patientId: string; onNewPrescription: () => void }) {
   const { t } = useLocalizedText();
   const [take, setTake] = useState(20);
   const [provider, setProvider] = useState("");
   const [status, setStatus] = useState("");
   const [selectedId, setSelectedId] = useState<string>();
-  const dashboard = useQuery({ queryKey: patientPrescriptionHistoryQueryKey(patientId), queryFn: ({ signal }) => medicalGetPatientPrescriptionDashboard({ patientId, attentionTake: 8 }, undefined, signal) });
+  const dashboard = usePatientPrescriptionDashboard(patientId);
   const history = useQuery({ queryKey: [...patientPrescriptionHistoryQueryKey(patientId), "history", take], queryFn: ({ signal }) => medicalListPatientPrescriptions({ patientId, skip: 0, take }, undefined, signal) });
   const detail = useQuery({ queryKey: ["medical", "prescription", selectedId], enabled: Boolean(selectedId), queryFn: ({ signal }) => medicalGetPrescription(selectedId!, undefined, signal) });
   const records = (history.data ?? []) as PrescriptionSummaryDto[];

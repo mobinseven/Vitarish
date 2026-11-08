@@ -11,7 +11,7 @@ import {
   visitStatusLabel,
   type Visit,
 } from "../../../models/appointments/visitRows";
-import type { PatientQuickAction } from "../../patients/overview/PatientOverviewPage";
+import type { PatientQuickAction } from "../../patients/record/PatientRecordShell";
 import { patientTagClassName } from "../../patients/tags/patientTagColor";
 import { reservationStatusChipProps } from "../reservations/reservationStatusChip";
 

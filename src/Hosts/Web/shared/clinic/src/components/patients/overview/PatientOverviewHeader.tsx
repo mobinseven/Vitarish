@@ -10,7 +10,7 @@ interface PatientOverviewHeaderProps {
   patient: PatientViewDto;
 }
 
-function getDisplayName(patient: PatientViewDto, fallback: string): string {
+export function getDisplayName(patient: PatientViewDto, fallback: string): string {
   const name = [patient.firstName, patient.lastName]
     .filter(Boolean)
     .join(" ")

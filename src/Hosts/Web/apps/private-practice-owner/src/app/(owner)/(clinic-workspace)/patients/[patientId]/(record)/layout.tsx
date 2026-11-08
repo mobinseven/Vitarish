@@ -1,40 +1,46 @@
 "use client";
-import { use, useCallback } from "react";
-import { useRouter } from "next/navigation";
+
+import { use, useCallback, type ReactNode } from "react";
+import { useRouter, useSearchParams, useSelectedLayoutSegment } from "next/navigation";
 import {
-  PatientOverviewPage,
+  PatientRecordShell,
   patientQuickActions,
+  toPatientRecordTab,
   type PatientQuickAction,
 } from "@vitarish/clinic";
 import { useClinicNavigation } from "@/components/clinic-navigation";
 import { PatientDetailSearchParams, Routes } from "@/app/routes";
 
-function toQuickAction(value: string | string[] | undefined): PatientQuickAction | undefined {
+function toQuickAction(value: string | null): PatientQuickAction | undefined {
   return patientQuickActions.find((action) => action === value);
 }
 
-export default function PatientOverviewRoute({
+/** The patient's identity and tab strip, shared by every tab of the record. */
+export default function PatientRecordLayout({
+  children,
   params,
-  searchParams,
 }: {
+  children: ReactNode;
   params: Promise<{ patientId: string }>;
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { patientId } = use(params);
-  const initialAction = toQuickAction(
-    use(searchParams)[PatientDetailSearchParams.QuickAction],
-  );
+  const activeTab = toPatientRecordTab(useSelectedLayoutSegment());
+  const initialAction = toQuickAction(useSearchParams().get(PatientDetailSearchParams.QuickAction));
   const router = useRouter();
   const forgetInitialAction = useCallback(
     () => router.replace(Routes.Clinic.Patients.Detail(patientId)),
     [router, patientId],
   );
+
   return (
-    <PatientOverviewPage
+    <PatientRecordShell
       patientId={patientId}
+      activeTab={activeTab}
       onNavigate={useClinicNavigation()}
       initialAction={initialAction}
       onInitialActionHandled={forgetInitialAction}
-    />
+    >
+      {children}
+    </PatientRecordShell>
   );
 }

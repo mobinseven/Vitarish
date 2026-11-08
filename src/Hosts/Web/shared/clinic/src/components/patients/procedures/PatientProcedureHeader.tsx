@@ -45,9 +45,9 @@ export function PatientProcedureHeader({
         </Avatar>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
-            <h1 className="text-2xl font-semibold text-foreground sm:text-3xl">
+            <p className="text-2xl font-semibold text-foreground sm:text-3xl">
               {displayName}
-            </h1>
+            </p>
           </div>
           <div className="mt-1 flex flex-wrap justify-center gap-x-3 gap-y-1 text-sm text-muted sm:justify-start">
             <span>{procedure.name}</span>

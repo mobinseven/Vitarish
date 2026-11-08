@@ -67,12 +67,12 @@ Today                         /home
 Check-in                      /check-in
 Patients                      /patients
   Patient record              /patients/{id}
-    Overview (default tab)
-    Visits                    (tab)
-    Surgeries                 (tab)
-    Procedures                (tab) → procedure workspace /patients/{id}/procedures/{pid}
-    Prescriptions             (tab)
-    Reminders                 (tab)
+    Overview (default tab)    /patients/{id}
+    Visits                    /patients/{id}/visits
+    Surgeries                 /patients/{id}/surgeries
+    Procedures                /patients/{id}/procedures → workspace /patients/{id}/procedures/{pid}
+    Prescriptions             /patients/{id}/prescriptions
+    Reminders                 (tab, once patient-level reminders exist; surgery reminders show under Surgeries)
   New patient                 /patients/new
   Edit patient                /patients/{id}/edit
 Schedule                      /appointments

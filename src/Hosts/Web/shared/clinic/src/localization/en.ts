@@ -49,6 +49,19 @@ export const clinicEnMessages = {
       tagFilter: "Filter by tags",
     },
     patient: {
+      tabs: {
+        overview: "Overview",
+      },
+      summary: {
+        nextAppointment: "Next appointment",
+        noUpcomingAppointment: "No upcoming appointment",
+        nextSurgery: "Next surgery",
+        noUpcomingSurgery: "No planned surgery",
+        prescriptions: "Prescriptions",
+        prescriptionCount: "{count} prescriptions",
+        needAttention: "{count} need attention",
+        view: "View",
+      },
       delete: {
         title: "Delete Patient",
         unavailable:
@@ -445,6 +458,7 @@ export const clinicEnMessages = {
       visits: {
         title: "Visits",
         description: "Record a patient visit and add its notes or evidence.",
+        empty: "No visits recorded yet",
         new: "New visit",
         open: "Open visit",
         dialog: {

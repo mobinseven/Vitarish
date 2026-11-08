@@ -17,7 +17,6 @@ import { useAuthSession } from "@vitarish/auth";
 import { useTenantAuthorization } from "@vitarish/auth";
 import { ClinicAssistantAside, type ClinicAssistantScope } from "@vitarish/clinic";
 import { useLocalizedText, type MessageKey } from "@/localization";
-import { BreadcrumbUpButton } from "./BreadcrumbUpButton";
 import { CommandPalette } from "./CommandPalette/CommandPalette";
 
 const subscribeToNothing = () => () => {};
@@ -148,12 +147,7 @@ export function DashboardShell({
       }
       skipLinkLabel={t("appShell.navigation.skipToContent")}
       title={null}
-      toolbar={
-        <>
-          <CommandPalette />
-          <BreadcrumbUpButton navGroups={navGroups} />
-        </>
-      }
+      toolbar={<CommandPalette />}
     >
       {children}
     </DashboardFrame>

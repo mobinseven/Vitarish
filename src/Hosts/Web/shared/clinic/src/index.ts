@@ -9,8 +9,17 @@ export { useClinicListDashboardAppointments } from "./api/generated/clinic/clini
 export { DashboardPage } from "./components/dashboard/DashboardPage";
 export { CheckInPage } from "./components/check-in/CheckInPage";
 export { PatientListPage } from "./components/patients/list/PatientListPage";
-export { PatientOverviewPage, patientQuickActions } from "./components/patients/overview/PatientOverviewPage";
-export type { PatientQuickAction } from "./components/patients/overview/PatientOverviewPage";
+export { PatientRecordShell, patientQuickActions } from "./components/patients/record/PatientRecordShell";
+export type { PatientQuickAction } from "./components/patients/record/PatientRecordShell";
+export { patientRecordTabs, toPatientRecordTab } from "./components/patients/record/patientRecordTabs";
+export type { PatientRecordTab } from "./components/patients/record/patientRecordTabs";
+export {
+  PatientOverviewTab,
+  PatientPrescriptionsTab,
+  PatientProceduresTab,
+  PatientSurgeriesTab,
+  PatientVisitsTab,
+} from "./components/patients/record/PatientRecordTabContents";
 export {
   AssistantPanel,
   AssistantHeader,

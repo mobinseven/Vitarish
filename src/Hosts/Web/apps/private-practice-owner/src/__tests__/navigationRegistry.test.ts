@@ -53,3 +53,11 @@ describe("navigation registry", () => {
     expect(destinationForPath("/patients-archive", clinicOwnerDestinations)).toBeUndefined();
   });
 });
+
+describe("patient record addresses", () => {
+  it("gives the overview the record's own address and every other tab a path segment", () => {
+    expect(Routes.Clinic.Patients.Tab("p1", "overview")).toBe(Routes.Clinic.Patients.Detail("p1"));
+    expect(Routes.Clinic.Patients.Tab("p1", "surgeries")).toBe("/patients/p1/surgeries");
+    expect(destinationForPath(Routes.Clinic.Patients.Tab("p1", "procedures"), clinicOwnerDestinations)?.id).toBe("patients");
+  });
+});

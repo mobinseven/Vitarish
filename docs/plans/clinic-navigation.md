@@ -112,10 +112,12 @@ Each slice is independently mergeable and leaves the app working.
 - Slice 4 is done for the clinic pages outside the patient record: a plain header
   (`PageHeader`) on lists, forms and settings, the anchor band only on record
   pages, one `h1` per page, and a back trail (breadcrumb on desktop, a single
-  "Back to X" link on mobile). The patient record, edit and procedure pages keep
-  their current headers and the top-bar up button until slice 5. The account
+  "Back to X" link on mobile). The top-bar up button is removed. The account
   sub-pages (name, email, phone, passkeys, language) still use `SettingsSection`
   headers; unify them when the account area is next touched.
+- Slice 5 is done except the Reminders tab: no reminder has a patient as its
+  source, so the tab would be empty. Surgery reminders show under Surgeries.
+  The record's tabs are path segments (`/patients/{id}/surgeries`).
 - `components/user-appointments/*` in the shared clinic package has no consumer in
   any app; remove it or give it one.
 

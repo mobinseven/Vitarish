@@ -2,14 +2,15 @@
 
 import { Button, Card } from "@heroui/react";
 import { useSeaEventCapabilities } from "@vitarish/sea";
-import { ErrorStateSurface, LoadingStateSurface } from "@vitarish/ui";
+import { ErrorStateSurface, LoadingStateSurface, PageBackNavigation } from "@vitarish/ui";
 import { usePatientProcedureDetail } from "../../../hooks/patients/procedures/usePatientProcedureDetail";
 import { usePatientProcedureEvents } from "../../../hooks/patients/procedures/usePatientProcedureEvents";
 import { usePatientDetail } from "../../../hooks/patients/usePatientDetail";
 import { useLocalizedText } from "../../../localization";
 import type { ProcedureEventViewer } from "../../../models/patients/procedures/PatientProcedureEventItemModels";
 import type { NavigationIntent } from "../../../navigation";
-import { PatientOverviewHeader } from "../overview/PatientOverviewHeader";
+import { getDisplayName, PatientOverviewHeader } from "../overview/PatientOverviewHeader";
+import { pageAncestors, usePageBack } from "../../navigation/usePageBack";
 import { PatientProcedureEventAccessPanel } from "./PatientProcedureEventAccessPanel";
 import { PatientProcedureEventDetailPanel } from "./PatientProcedureEventDetailPanel";
 
@@ -33,6 +34,15 @@ export function PatientProcedureEventPage({
   const procedureQuery = usePatientProcedureDetail(procedureId);
   const eventsQuery = usePatientProcedureEvents(procedureId);
   const capabilitiesQuery = useSeaEventCapabilities(eventId);
+  const patientName = patientQuery.data ? getDisplayName(patientQuery.data, t("clinic.patients.unnamedPatient")) : "";
+  const back = usePageBack(
+    [
+      pageAncestors.patients,
+      { label: patientName, intent: { kind: "patientDetail", patientId } },
+      { label: procedureQuery.data?.name ?? "", intent: { kind: "patientProcedureDetail", patientId, procedureId } },
+    ],
+    onNavigate,
+  );
   const returnToProcedure = () =>
     onNavigate({ kind: "patientProcedureDetail", patientId, procedureId });
 
@@ -63,6 +73,7 @@ export function PatientProcedureEventPage({
 
   return (
     <section className="mx-auto flex h-full min-h-0 w-full max-w-6xl flex-col gap-6">
+      <PageBackNavigation {...back} />
       {patientQuery.data ? (
         <>
           <Card className="overflow-hidden" variant="transparent">

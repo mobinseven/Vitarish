@@ -68,7 +68,6 @@ vi.mock("@/localization", () => ({
       const translations: Record<string, string> = {
         "appShell.brand": "Vitarish",
         "appShell.navigation.home": "Home",
-        "appShell.navigation.up": "Up",
         "appShell.navigation.clinic": "Clinic",
         "appShell.navigation.knowledge": "Knowledge",
         "appShell.navigation.dashboardMenu": "Dashboard navigation",
@@ -251,28 +250,13 @@ describe("Dashboard Shell Components", () => {
       );
 
       expect(screen.getAllByText("Home").length).toBeGreaterThan(0);
-      expect(screen.getByRole("button", { name: "Up" })).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Up" })).not.toBeInTheDocument();
       fireEvent.click(screen.getAllByRole("button", { name: "Settings" })[0]);
       expect(screen.getAllByText("Language").length).toBeGreaterThan(0);
       expect(
         screen.getAllByText("Switch to light mode").length,
       ).toBeGreaterThan(0);
       expect(screen.getByText("Dashboard content")).toBeInTheDocument();
-    });
-
-    it("navigates to the parent route when the Up button is pressed", () => {
-      render(
-        <DashboardShell
-          footerItems={shellFooterItems}
-          navGroups={shellNavGroups}
-        >
-          <div>Dashboard content</div>
-        </DashboardShell>,
-      );
-
-      fireEvent.click(screen.getByRole("button", { name: "Up" }));
-
-      expect(routerPush).toHaveBeenCalledWith("/patients");
     });
 
     it("composes the operations assistant only for an authorized clinic owner", () => {

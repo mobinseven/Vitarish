@@ -4,9 +4,10 @@ import type { PageBackNavigationProps } from "@vitarish/ui";
 import { useLocalizedText } from "../../localization";
 import type { NavigationIntent } from "../../navigation";
 
-/** One ancestor of a page: its message key and where pressing it goes. */
+/** One ancestor of a page: its message key, or its own text such as a patient's name, and where pressing it goes. */
 export interface PageAncestor {
-  labelKey: string;
+  labelKey?: string;
+  label?: string;
   intent: NavigationIntent;
 }
 
@@ -32,8 +33,8 @@ export function usePageBack(
 ): PageBackNavigationProps {
   const { t } = useLocalizedText();
   const crumbs = ancestors.map((ancestor) => ({
-    id: ancestor.labelKey,
-    label: t(ancestor.labelKey),
+    id: ancestor.labelKey ?? ancestor.label ?? "",
+    label: ancestor.label ?? t(ancestor.labelKey ?? ""),
     onPress: () => onNavigate?.(ancestor.intent),
   }));
   const parent = crumbs.at(-1);

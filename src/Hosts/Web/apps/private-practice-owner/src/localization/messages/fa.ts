@@ -766,7 +766,6 @@ export const faMessages = {
     operationsAssistant: "باز کردن دستیار عملیات کلینیک",
     brand: "ویتاریش",
     navigation: {
-      up: "بالا",
       home: "پیشخوان",
       schedule: "نوبت‌ها",
       clinic: "کلینیک",
