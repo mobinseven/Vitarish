@@ -8,6 +8,8 @@ import type {
 } from "../../../models/patients/patientSearchModels";
 import { usePatientCount } from "../../../hooks/patients/usePatientCount";
 import { usePatientList } from "../../../hooks/patients/usePatientList";
+import { PageHeader } from "@vitarish/ui";
+import { useLocalizedText } from "../../../localization/index";
 import { PatientsGrid } from "./PatientsGrid";
 
 export interface PatientListPageProps {
@@ -15,6 +17,7 @@ export interface PatientListPageProps {
 }
 
 export function PatientListPage({ onNavigate }: PatientListPageProps) {
+  const { t } = useLocalizedText();
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<PatientSortBy | undefined>();
   const [descending, setDescending] = useState(false);
@@ -61,7 +64,8 @@ export function PatientListPage({ onNavigate }: PatientListPageProps) {
     (count == null || patients.length < totalCount);
 
   return (
-    <div className="h-full min-h-0">
+    <div className="flex h-full min-h-0 flex-col gap-4">
+      <PageHeader icon="users" title={t("clinic.patients.title")} />
       <PatientsGrid
         patients={patients}
         totalCount={totalCount}
