@@ -2,6 +2,15 @@ import { surgeriesEnMessages } from "./surgeries";
 
 export const clinicEnMessages = {
   clinic: {
+    schedule: {
+      title: "Schedule",
+      description: "Browse visits by day, week or month, and book new ones.",
+      bookVisit: "Book a visit",
+    },
+    navigation: {
+      pageLocation: "Page location",
+      backTo: "Back to {name}",
+    },
     // The specialty codes come from the clinic app (ClinicSpecialties); sign-up and the landing page show these labels.
     specialties: {
       "plastic-surgery": "Plastic surgery",
@@ -45,6 +54,19 @@ export const clinicEnMessages = {
       tagFilter: "Filter by tags",
     },
     patient: {
+      tabs: {
+        overview: "Overview",
+      },
+      summary: {
+        nextAppointment: "Next appointment",
+        noUpcomingAppointment: "No upcoming appointment",
+        nextSurgery: "Next surgery",
+        noUpcomingSurgery: "No planned surgery",
+        prescriptions: "Prescriptions",
+        prescriptionCount: "{count} prescriptions",
+        needAttention: "{count} need attention",
+        view: "View",
+      },
       delete: {
         title: "Delete Patient",
         unavailable:
@@ -441,6 +463,7 @@ export const clinicEnMessages = {
       visits: {
         title: "Visits",
         description: "Record a patient visit and add its notes or evidence.",
+        empty: "No visits recorded yet",
         new: "New visit",
         open: "Open visit",
         dialog: {

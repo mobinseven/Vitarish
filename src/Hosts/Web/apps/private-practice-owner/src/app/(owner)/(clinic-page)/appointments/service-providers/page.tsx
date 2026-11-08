@@ -1,5 +1,6 @@
-import { ServiceProviderListPage } from "@vitarish/clinic";
+import { LegacyPaths, redirectLegacyRoute } from "@/app/legacyRoutes";
 
-export default function ServiceProviderListRoute() {
-  return <ServiceProviderListPage />;
+/** The retired address of a page that moved; see legacyRoutes. */
+export default function LegacyServiceProvidersRoute(): never {
+  return redirectLegacyRoute(LegacyPaths.ServiceProviders);
 }

@@ -1,11 +1,13 @@
 "use client";
 
 import { Button, Card } from "@heroui/react";
-import { ErrorStateSurface, LoadingStateSurface } from "@vitarish/ui";
+import { ErrorStateSurface, LoadingStateSurface, PageBackNavigation } from "@vitarish/ui";
 import { usePatientProcedureDetail } from "../../../hooks/patients/procedures/usePatientProcedureDetail";
 import { usePatientProcedureEvents } from "../../../hooks/patients/procedures/usePatientProcedureEvents";
 import { usePatientDetail } from "../../../hooks/patients/usePatientDetail";
 import { useLocalizedText } from "../../../localization";
+import { getDisplayName } from "../overview/PatientOverviewHeader";
+import { pageAncestors, usePageBack } from "../../navigation/usePageBack";
 import type { NavigationIntent } from "../../../navigation";
 import { PatientProcedureActions } from "./PatientProcedureActions";
 import { PatientProcedureEventTimeline } from "./PatientProcedureEventTimeline";
@@ -30,6 +32,15 @@ export function PatientProcedureWorkspace({
   const eventsQuery = usePatientProcedureEvents(procedureId);
   const events = eventsQuery.data ?? [];
   const patientQuery = usePatientDetail(patientId);
+  const patientName = patientQuery.data ? getDisplayName(patientQuery.data, t("clinic.patients.unnamedPatient")) : "";
+  const back = usePageBack(
+    [
+      pageAncestors.patients,
+      { label: patientName, intent: { kind: "patientDetail", patientId } },
+      { labelKey: "clinic.procedures.title", intent: { kind: "patientDetail", patientId, tab: "procedures" } },
+    ],
+    onNavigate,
+  );
 
   if (
     procedureQuery.isLoading ||
@@ -45,6 +56,7 @@ export function PatientProcedureWorkspace({
 
   return (
     <section className="mx-auto flex w-full max-w-7xl flex-col gap-8">
+      <PageBackNavigation {...back} />
       {patientQuery.data ? (
         <PatientProcedureHeader
           patient={patientQuery.data}

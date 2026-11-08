@@ -13,7 +13,7 @@ import {
 } from "@heroui/react";
 import { ItemCard, ItemCardGroup } from "@heroui-pro/react";
 import {
-  AnchorPageHeader,
+  PageHeader,
   EmptyStateSurface,
   ErrorStateSurface,
   FaIcon,
@@ -21,6 +21,8 @@ import {
   LoadingStateSurface,
 } from "@vitarish/ui";
 import { formatNumber, useLocalizedText } from "../../localization";
+import type { NavigationIntent } from "../../navigation";
+import { pageAncestors, usePageBack } from "../navigation/usePageBack";
 import { ApiError } from "../../api/client/apiFetch";
 import { useCanPlanSurgeries } from "../../hooks/surgeries/useCanPlanSurgeries";
 import { useSurgerySettings } from "../../hooks/surgeries/useSurgerySettings";
@@ -308,8 +310,9 @@ function SurgeryCancellationSettingsSection() {
   );
 }
 
-export function SurgeryTypeManagementPanel() {
+export function SurgeryTypeManagementPanel({ onNavigate }: { onNavigate?: (intent: NavigationIntent) => void }) {
   const { t } = useLocalizedText();
+  const back = usePageBack([pageAncestors.settings], onNavigate);
   const canPlan = useCanPlanSurgeries();
   const { types, isLoading, error, refetch } = useSurgeryTypes();
   const { create, update, remove } = useSurgeryTypeMutations();
@@ -421,10 +424,11 @@ export function SurgeryTypeManagementPanel() {
 
   return (
     <div className="flex min-h-0 flex-col gap-6">
-      <AnchorPageHeader
+      <PageHeader
         icon="scissors"
         title={t("clinic.surgeries.types.title")}
         details={t("clinic.surgeries.types.settingsDescription")}
+        back={back}
       />
 
       {canPlan ? null : (

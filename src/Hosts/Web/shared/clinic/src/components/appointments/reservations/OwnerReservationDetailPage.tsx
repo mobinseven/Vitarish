@@ -1,11 +1,8 @@
 "use client";
 import { useState } from "react";
 import { Button } from "@heroui/react";
-import {
-  DetailGrid,
-  type DetailGridItem,
-  HeaderIcon,
-} from "@vitarish/ui";
+import { DetailGrid, PageHeader, type DetailGridItem } from "@vitarish/ui";
+import { pageAncestors, usePageBack } from "../../navigation/usePageBack";
 import type { NavigationIntent } from "../../../navigation";
 import {
   formatDateTime,
@@ -43,6 +40,7 @@ export function OwnerReservationDetailPage({
   onNavigate,
 }: OwnerReservationDetailPageProps) {
   const { t, locale } = useLocalizedText();
+  const back = usePageBack([pageAncestors.schedule], onNavigate);
   const query = useOwnerReservationDetail(reservationId);
   const deletion = useDeleteReservation();
   const [deleting, setDeleting] = useState(false);
@@ -105,27 +103,16 @@ export function OwnerReservationDetailPage({
 
   return (
     <section className="flex flex-col gap-6">
-      <header className="flex items-center justify-between">
-        <div>
-          <Button
-            variant="ghost"
-            onPress={() => onNavigate({ kind: "ownerReservationIndex" })}
-          >
-            {t("common.actions.previous")}
+      <PageHeader
+        icon="calendar-check"
+        title={t("clinic.appointments.reservations.detailTitle")}
+        back={back}
+        actions={
+          <Button variant="danger" onPress={() => setDeleting(true)}>
+            {t("common.actions.delete")}
           </Button>
-          <div className="flex items-center gap-4">
-            <HeaderIcon icon="calendar-check" level="page" />
-            <div className="min-w-0">
-              <h1 className="text-2xl font-bold">
-                {t("clinic.appointments.reservations.detailTitle")}
-              </h1>
-            </div>
-          </div>
-        </div>
-        <Button variant="danger" onPress={() => setDeleting(true)}>
-          {t("common.actions.delete")}
-        </Button>
-      </header>
+        }
+      />
       <DetailGrid items={items} />
       {deletion.isError ? (
         <ClinicErrorState

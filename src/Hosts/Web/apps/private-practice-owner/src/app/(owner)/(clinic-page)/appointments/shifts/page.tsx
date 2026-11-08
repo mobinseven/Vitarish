@@ -1,8 +1,6 @@
-"use client";
+import { LegacyPaths, redirectLegacyRoute } from "@/app/legacyRoutes";
 
-import { OwnerShiftListPage } from "@vitarish/clinic";
-import { useClinicNavigation } from "@/components/clinic-navigation";
-
-export default function OwnerShiftListRoute() {
-  return <OwnerShiftListPage onNavigate={useClinicNavigation()} />;
+/** The retired address of a page that moved; see legacyRoutes. */
+export default function LegacyShiftsRoute(): never {
+  return redirectLegacyRoute(LegacyPaths.Shifts);
 }

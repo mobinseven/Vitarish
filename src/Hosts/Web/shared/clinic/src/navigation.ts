@@ -1,4 +1,5 @@
-import type { PatientQuickAction } from "./components/patients/overview/PatientOverviewPage";
+import type { PatientQuickAction } from "./components/patients/record/PatientRecordShell";
+import type { PatientRecordTab } from "./components/patients/record/patientRecordTabs";
 
 export type NavigationIntent =
   | { kind: "dashboard" }
@@ -13,7 +14,7 @@ export type NavigationIntent =
   | { kind: "userShiftDetail"; shiftId: string }
   | { kind: "userReservationIndex" }
   | { kind: "userReservationDetail"; reservationId: string }
-  | { kind: "patientDetail"; patientId: string; quickAction?: PatientQuickAction }
+  | { kind: "patientDetail"; patientId: string; quickAction?: PatientQuickAction; tab?: PatientRecordTab }
   | { kind: "patientNew" }
   | { kind: "patientEdit"; patientId: string }
   | { kind: "patientIndex" }

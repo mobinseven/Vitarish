@@ -2,6 +2,15 @@ import { surgeriesFaMessages } from "./surgeries";
 
 export const clinicFaMessages = {
   clinic: {
+    schedule: {
+      title: "نوبت‌ها",
+      description: "نوبت‌ها را بر اساس روز، هفته یا ماه ببینید و نوبت جدید ثبت کنید.",
+      bookVisit: "ثبت نوبت",
+    },
+    navigation: {
+      pageLocation: "موقعیت صفحه",
+      backTo: "بازگشت به {name}",
+    },
     // The specialty codes come from the clinic app (ClinicSpecialties); sign-up and the landing page show these labels.
     specialties: {
       "plastic-surgery": "جراحی پلاستیک",
@@ -45,6 +54,19 @@ export const clinicFaMessages = {
       tagFilter: "فیلتر بر اساس برچسب",
     },
     patient: {
+      tabs: {
+        overview: "نمای کلی",
+      },
+      summary: {
+        nextAppointment: "نوبت بعدی",
+        noUpcomingAppointment: "نوبت پیش‌رو ندارد",
+        nextSurgery: "جراحی بعدی",
+        noUpcomingSurgery: "جراحی برنامه‌ریزی‌شده ندارد",
+        prescriptions: "نسخه‌ها",
+        prescriptionCount: "{count} نسخه",
+        needAttention: "{count} مورد نیاز به بررسی دارد",
+        view: "مشاهده",
+      },
       delete: {
         title: "حذف بیمار",
         unavailable:
@@ -437,6 +459,7 @@ export const clinicFaMessages = {
       visits: {
         title: "ویزیت‌ها",
         description: "ویزیت بیمار و یادداشت یا مدارک آن را ثبت کنید.",
+        empty: "هنوز ویزیتی ثبت نشده است",
         new: "ویزیت جدید",
         open: "باز کردن ویزیت",
         dialog: {

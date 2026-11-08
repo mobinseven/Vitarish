@@ -1,8 +1,6 @@
-"use client";
+import { LegacyPaths, redirectLegacyRoute } from "@/app/legacyRoutes";
 
-import { AppointmentSettingsPage } from "@vitarish/clinic";
-import { useClinicNavigation } from "@/components/clinic-navigation";
-
-export default function AppointmentSettingsRoute() {
-  return <AppointmentSettingsPage onNavigate={useClinicNavigation()} />;
+/** The retired address of a page that moved; see legacyRoutes. */
+export default function LegacySettingsRoute(): never {
+  return redirectLegacyRoute(LegacyPaths.Settings);
 }

@@ -30,11 +30,12 @@ vi.mock("@vitarish/auth", () => ({
 
 vi.mock("@/components/account/AccountSurface", async () => {
   const { StandaloneDocumentPage } = await import("@vitarish/ui");
+  const { default: Link } = await import("next/link");
   return {
     AccountSurface: ({ children }: { children: React.ReactNode }) => (
       <StandaloneDocumentPage>{children}</StandaloneDocumentPage>
     ),
-    AccountBackLink: () => <a href="/account">Back</a>,
+    AccountBackLink: () => <Link href="/account">Back</Link>,
   };
 });
 

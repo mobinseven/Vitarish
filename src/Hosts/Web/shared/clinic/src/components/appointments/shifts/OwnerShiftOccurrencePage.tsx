@@ -1,13 +1,8 @@
 "use client";
-import { Button } from "@heroui/react";
 import type { NavigationIntent } from "../../../navigation";
 import { formatTimeOfDay, useLocalizedText } from "../../../localization/index";
-import {
-  EmptyStateSurface as ClinicEmptyState,
-  ErrorStateSurface as ClinicErrorState,
-  LoadingStateSurface as ClinicLoadingState,
-  HeaderIcon,
-} from "@vitarish/ui";
+import { EmptyStateSurface as ClinicEmptyState, ErrorStateSurface as ClinicErrorState, LoadingStateSurface as ClinicLoadingState, PageHeader } from "@vitarish/ui";
+import { pageAncestors, usePageBack } from "../../navigation/usePageBack";
 import { useOwnerShiftDetail } from "../../../hooks/appointments/shifts/useOwnerShifts";
 export interface OwnerShiftOccurrencePageProps {
   shiftId: string;
@@ -20,6 +15,7 @@ export function OwnerShiftOccurrencePage({
   onNavigate,
 }: OwnerShiftOccurrencePageProps) {
   const { t, locale } = useLocalizedText();
+  const back = usePageBack([pageAncestors.settings, pageAncestors.shifts], onNavigate);
   const query = useOwnerShiftDetail(shiftId);
   if (query.isLoading)
     return <ClinicLoadingState label={t("common.states.loading")} />;
@@ -29,23 +25,12 @@ export function OwnerShiftOccurrencePage({
     );
   return (
     <section className="flex flex-col gap-6">
-      <header>
-        <Button
-          variant="ghost"
-          onPress={() => onNavigate({ kind: "ownerShiftDetail", shiftId })}
-        >
-          {t("common.actions.previous")}
-        </Button>
-        <div className="flex items-center gap-4">
-          <HeaderIcon icon="clock" level="page" />
-          <div className="min-w-0">
-            <h1 className="text-2xl font-bold">
-              {formatTimeOfDay(query.data.startTime, locale)} - {formatTimeOfDay(query.data.endTime, locale)}
-            </h1>
-            <p className="text-sm text-muted">{occurrenceDate}</p>
-          </div>
-        </div>
-      </header>
+      <PageHeader
+        icon="clock"
+        title={`${formatTimeOfDay(query.data.startTime, locale)} - ${formatTimeOfDay(query.data.endTime, locale)}`}
+        details={occurrenceDate}
+        back={back}
+      />
       <ClinicEmptyState
         title={t("clinic.appointments.shifts.occurrenceComingSoon")}
       />

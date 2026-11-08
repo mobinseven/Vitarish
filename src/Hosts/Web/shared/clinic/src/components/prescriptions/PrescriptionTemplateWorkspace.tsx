@@ -1,20 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  Button,
-  Input,
-  Label,
-  ListBox,
-  SearchField,
-  Select,
-  Surface,
-  TextArea,
-  TextField,
-} from "@heroui/react";
+import { Button, Input, Label, ListBox, SearchField, Surface, TextArea, TextField } from "@heroui/react";
 import { EmptyState } from "@heroui-pro/react";
-import { FaIcon, HeaderIcon } from "@vitarish/ui";
+import { FaIcon, PageHeader } from "@vitarish/ui";
+import { pageAncestors, usePageBack } from "../navigation/usePageBack";
 import { useLocalizedText } from "../../localization";
+import type { NavigationIntent } from "../../navigation";
 import {
   medicalGetAvailableProviders,
   medicalGetPrescriptionTemplate,
@@ -60,8 +52,9 @@ const categoryKeys = ["drug", "lab", "imaging", "service", "referral"] as const;
 const asArray = <T,>(value: unknown): T[] =>
   Array.isArray(value) ? (value as T[]) : [];
 
-export function PrescriptionTemplateWorkspace() {
+export function PrescriptionTemplateWorkspace({ onNavigate }: { onNavigate?: (intent: NavigationIntent) => void }) {
   const { t, direction } = useLocalizedText();
+  const back = usePageBack([pageAncestors.settings], onNavigate);
   const [templates, setTemplates] = useState<TemplateSummary[]>([]);
   const [draft, setDraft] = useState<Draft>({
     name: "",
@@ -241,26 +234,18 @@ export function PrescriptionTemplateWorkspace() {
       className="mx-auto flex h-full min-h-0 w-full max-w-[1200px] flex-col gap-5 px-4 py-6"
       dir={direction}
     >
-      <header className="flex items-end justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <HeaderIcon icon="prescription" level="page" />
-          <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-[.16em] text-muted">
-              {t("prescriptionTemplates.settingsLabel")}
-            </p>
-            <h1 className="mt-2 text-3xl font-semibold">
-              {t("prescriptionTemplates.title")}
-            </h1>
-            <p className="mt-2 max-w-2xl text-sm text-muted">
-              {t("prescriptionTemplates.description")}
-            </p>
-          </div>
-        </div>
-        <Button onPress={save} isPending={saving} variant="primary">
-          <FaIcon icon="floppy-disk" aria-hidden="true" />
-          {t("prescriptionTemplates.save")}
-        </Button>
-      </header>
+      <PageHeader
+        icon="prescription"
+        title={t("prescriptionTemplates.title")}
+        details={t("prescriptionTemplates.description")}
+        back={back}
+        actions={
+          <Button onPress={save} isPending={saving} variant="primary">
+            <FaIcon icon="floppy-disk" aria-hidden="true" />
+            {t("prescriptionTemplates.save")}
+          </Button>
+        }
+      />
       {message && (
         <p role="status" className="text-sm text-success">
           {message}

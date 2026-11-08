@@ -1,11 +1,8 @@
 "use client";
 import type { NavigationIntent } from "../../../navigation";
 import { useLocalizedText } from "../../../localization/index";
-import {
-  ErrorStateSurface as ClinicErrorState,
-  LoadingStateSurface as ClinicLoadingState,
-  HeaderIcon,
-} from "@vitarish/ui";
+import { ErrorStateSurface as ClinicErrorState, LoadingStateSurface as ClinicLoadingState, PageHeader } from "@vitarish/ui";
+import { pageAncestors, usePageBack } from "../../navigation/usePageBack";
 import { ShiftEditor } from "./ShiftEditor";
 import {
   useOwnerShiftDetail,
@@ -20,6 +17,7 @@ export function OwnerShiftEditPage({
   onNavigate,
 }: OwnerShiftEditPageProps) {
   const { t } = useLocalizedText();
+  const back = usePageBack([pageAncestors.settings, pageAncestors.shifts], onNavigate);
   const query = useOwnerShiftDetail(shiftId);
   const mutation = useUpdateShift();
   if (query.isLoading)
@@ -31,14 +29,11 @@ export function OwnerShiftEditPage({
   const shift = query.data;
   return (
     <section className="flex flex-col gap-6">
-      <div className="flex items-center gap-4">
-        <HeaderIcon icon="clock" level="page" />
-        <div className="min-w-0">
-          <h1 className="text-2xl font-bold">
-            {t("clinic.appointments.shifts.editTitle")}
-          </h1>
-        </div>
-      </div>
+      <PageHeader
+        icon="clock"
+        title={t("clinic.appointments.shifts.editTitle")}
+        back={back}
+      />
       <ShiftEditor
         initialValue={{
           dayOfWeek: shift.dayOfWeek,

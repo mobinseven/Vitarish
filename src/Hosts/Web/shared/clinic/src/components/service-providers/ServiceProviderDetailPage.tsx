@@ -1,10 +1,8 @@
 "use client";
 import { useState } from "react";
 import { Button } from "@heroui/react";
-import {
-  DetailGrid,
-  HeaderIcon,
-} from "@vitarish/ui";
+import { DetailGrid, PageHeader } from "@vitarish/ui";
+import { pageAncestors, usePageBack } from "../navigation/usePageBack";
 import type { NavigationIntent } from "../../navigation";
 import { formatDateTime, useLocalizedText } from "../../localization";
 import {
@@ -27,6 +25,7 @@ export function ServiceProviderDetailPage({
   onNavigate,
 }: ServiceProviderDetailPageProps) {
   const { t, locale } = useLocalizedText();
+  const back = usePageBack([pageAncestors.settings, pageAncestors.serviceProviders], onNavigate);
   const query = useServiceProviderDetail(serviceProviderId);
   const update = useUpdateServiceProvider();
   const deletion = useDeleteServiceProvider();
@@ -39,34 +38,23 @@ export function ServiceProviderDetailPage({
   const item = query.data;
   return (
     <section className="flex flex-col gap-6">
-      <header className="flex justify-between">
-        <div>
-          <Button
-            variant="ghost"
-            onPress={() => onNavigate({ kind: "serviceProviderIndex" })}
-          >
-            {t("common.actions.previous")}
-          </Button>
-          <div className="flex items-center gap-4">
-            <HeaderIcon icon="user-doctor" level="page" />
-            <div className="min-w-0">
-              <h1 className="text-2xl font-bold">
-                {editing ? t("clinic.serviceProviders.editTitle") : item.name}
-              </h1>
-            </div>
-          </div>
-        </div>
-        <div className="flex gap-2">
-          {!editing ? (
-            <Button variant="ghost" onPress={() => setEditing(true)}>
-              {t("common.actions.edit")}
+      <PageHeader
+        icon="user-doctor"
+        title={editing ? t("clinic.serviceProviders.editTitle") : item.name}
+        back={back}
+        actions={
+          <>
+            {!editing ? (
+              <Button variant="ghost" onPress={() => setEditing(true)}>
+                {t("common.actions.edit")}
+              </Button>
+            ) : null}
+            <Button variant="danger" onPress={() => setDeleting(true)}>
+              {t("common.actions.delete")}
             </Button>
-          ) : null}
-          <Button variant="danger" onPress={() => setDeleting(true)}>
-            {t("common.actions.delete")}
-          </Button>
-        </div>
-      </header>
+          </>
+        }
+      />
       {editing ? (
         <ServiceProviderEditor
           initialValue={{

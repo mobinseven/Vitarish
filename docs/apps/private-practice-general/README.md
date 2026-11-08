@@ -9,6 +9,10 @@ Former app identity: `clinic-owner`. The `clinic-owner` name is retained only as
 
 App-level journeys are the canonical source of truth for Private Practice General UX. All collection folders are flat and owned by the app experience, not by backend modules.
 
+## Navigation map
+
+- [Navigation map](navigation-map.md) — proposed ideal destinations, grouping and task flows; owns which pages exist and how people move between them.
+
 ## Canonical app journeys
 
 - [0001 Owner Dashboard Navigation Journey](journeys/0001-owner-dashboard-navigation-journey.md)

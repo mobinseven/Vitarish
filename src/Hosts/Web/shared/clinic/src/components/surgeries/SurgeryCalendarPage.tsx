@@ -6,7 +6,7 @@ import type { CalendarDate } from "@internationalized/date";
 import { Button, Chip, Input, Label, ListBox, Select, Surface, Tag, TagGroup, TextField, Tooltip } from "@heroui/react";
 import { Segment } from "@heroui-pro/react";
 import {
-  AnchorPageHeader,
+  PageHeader,
   EmptyStateSurface as ClinicEmptyState,
   ErrorStateSurface as ClinicErrorState,
   FaIcon,
@@ -167,7 +167,7 @@ export function SurgeryCalendarPage({ onNavigate }: SurgeryCalendarPageProps) {
 
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
-      <AnchorPageHeader
+      <PageHeader
         icon="scissors"
         title={t("clinic.surgeries.title")}
         details={t("clinic.surgeries.calendar.pageDescription")}

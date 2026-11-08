@@ -1,19 +1,11 @@
 "use client";
 
-import {
-  Alert,
-  Button,
-  Card,
-  Chip,
-  Input,
-  Label,
-  Spinner,
-  TextField,
-  Tooltip,
-} from "@heroui/react";
-import { FaIcon, HeaderIcon } from "@vitarish/ui";
+import { Alert, Button, Card, Chip, Input, Label, Spinner, TextField, Tooltip } from "@heroui/react";
+import { FaIcon, PageHeader } from "@vitarish/ui";
+import { pageAncestors, usePageBack } from "../../navigation/usePageBack";
 import { useEffect, useState } from "react";
 import { useLocalizedText } from "../../../localization";
+import type { NavigationIntent } from "../../../navigation";
 import {
   type TaminCredentialInput,
   useInsuranceProviderSetup,
@@ -25,8 +17,9 @@ const emptyInput: TaminCredentialInput = {
   providerClinicIdentifier: "",
 };
 
-export function InsuranceProviderSettingsPage() {
+export function InsuranceProviderSettingsPage({ onNavigate }: { onNavigate?: (intent: NavigationIntent) => void }) {
   const { t } = useLocalizedText();
+  const back = usePageBack([pageAncestors.settings], onNavigate);
   const { context, credentials, authorize } = useInsuranceProviderSetup();
   const credential = credentials.data?.[0];
   const [input, setInput] = useState<TaminCredentialInput>(emptyInput);
@@ -49,19 +42,12 @@ export function InsuranceProviderSettingsPage() {
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
-      <div>
-        <div className="flex items-center gap-4">
-          <HeaderIcon icon="shield-heart" level="page" />
-          <div className="min-w-0">
-            <h1 className="text-2xl font-bold">
-              {t("clinic.settings.insurance.title")}
-            </h1>
-            <p className="text-sm text-muted">
-              {t("clinic.settings.insurance.description")}
-            </p>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        icon="shield-heart"
+        title={t("clinic.settings.insurance.title")}
+        details={t("clinic.settings.insurance.description")}
+        back={back}
+      />
 
       {context.isError || credentials.isError ? (
         <Alert status="danger">

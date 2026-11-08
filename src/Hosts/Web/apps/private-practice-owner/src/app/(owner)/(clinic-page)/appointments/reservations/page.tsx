@@ -1,8 +1,6 @@
-"use client";
+import { LegacyPaths, redirectLegacyRoute } from "@/app/legacyRoutes";
 
-import { OwnerReservationListPage } from "@vitarish/clinic";
-import { useClinicNavigation } from "@/components/clinic-navigation";
-
-export default function OwnerReservationListRoute() {
-  return <OwnerReservationListPage onNavigate={useClinicNavigation()} />;
+/** The retired address of the reservation list; see legacyRoutes. */
+export default function LegacyReservationsRoute(): never {
+  return redirectLegacyRoute(LegacyPaths.Reservations);
 }

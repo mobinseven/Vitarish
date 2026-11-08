@@ -1,6 +1,7 @@
 "use client";
 
-import { ErrorStateSurface as ClinicErrorState, HeaderIcon } from "@vitarish/ui";
+import { ErrorStateSurface as ClinicErrorState, PageHeader } from "@vitarish/ui";
+import { pageAncestors, usePageBack } from "../../navigation/usePageBack";
 import { ApiError } from "@vitarish/api-client";
 import type { NavigationIntent } from "../../../navigation";
 import { useLocalizedText } from "../../../localization/index";
@@ -14,6 +15,7 @@ export interface PatientCreatePageProps {
 
 export function PatientCreatePage({ onNavigate }: PatientCreatePageProps) {
   const { t } = useLocalizedText();
+  const back = usePageBack([pageAncestors.patients], onNavigate);
   const mutation = useCreatePatientProfile();
   const errorTitle =
     mutation.error instanceof ApiError && mutation.error.status === 403
@@ -25,19 +27,13 @@ export function PatientCreatePage({ onNavigate }: PatientCreatePageProps) {
       className="flex flex-col gap-6"
       aria-labelledby="clinic-patient-create-title"
     >
-      <header>
-        <div className="flex items-center gap-4">
-          <HeaderIcon icon="user-plus" level="page" />
-          <div className="min-w-0">
-            <h1 id="clinic-patient-create-title" className="text-2xl font-bold">
-              {t("clinic.patients.newPatient")}
-            </h1>
-            <p className="text-sm text-muted">
-              {t("clinic.patients.createPatient")}
-            </p>
-          </div>
-        </div>
-      </header>
+      <PageHeader
+        icon="user-plus"
+        title={t("clinic.patients.newPatient")}
+        titleId="clinic-patient-create-title"
+        details={t("clinic.patients.createPatient")}
+        back={back}
+      />
       {mutation.error ? <ClinicErrorState title={errorTitle} /> : null}
       <PatientProfileForm
         initialData={emptyFormData()}

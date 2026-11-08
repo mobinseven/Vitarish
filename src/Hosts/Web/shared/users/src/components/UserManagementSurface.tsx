@@ -32,7 +32,7 @@ import type { TenantRoleSuffix } from "@vitarish/auth/users";
 import { formatDateTime, formatNumber, useLocalizedText } from "@vitarish/localization";
 import { auditOutcomeColor } from "@vitarish/security";
 import { localizePlatformAuditEvent, localizePlatformAuditReason, localizeSecurityAuditOutcome } from "@vitarish/security/localization";
-import { ConfirmDialog, HeaderIcon, MobileNumberField, removeButtonClassName } from "@vitarish/ui";
+import { ConfirmDialog, HeaderIcon, MobileNumberField, PageHeader, removeButtonClassName } from "@vitarish/ui";
 
 export type UserManagementMode = "tenant" | "platform";
 export type UserManagementPlatformView = "directory" | "create" | "detail";
@@ -176,13 +176,7 @@ const nativeDangerButtonClassName = "button button--md button--danger-soft";
 
 function SurfaceHeader({ title, description }: { title: string; description?: string }) {
   return (
-    <header className="flex items-center gap-4">
-      <HeaderIcon icon="users" level="page" />
-      <div className="min-w-0">
-        <h1 className="text-2xl font-semibold">{title}</h1>
-        {description && <p className="mt-2 text-muted">{description}</p>}
-      </div>
-    </header>
+    <PageHeader icon="users" title={title} details={description} />
   );
 }
 

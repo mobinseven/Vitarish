@@ -34,7 +34,7 @@ vi.mock("../components/patients/overview/PatientReservationsPanel", () => ({ Pat
 vi.mock("../components/patients/overview/PatientProfileCard", () => ({ PatientProfileCard: () => null }));
 vi.mock("../components/patients/overview/PatientOverviewHeader", () => ({ PatientOverviewHeader: () => null }));
 
-import { PatientOverviewPage, type PatientQuickAction } from "../components/patients/overview/PatientOverviewPage";
+import { PatientRecordShell, type PatientQuickAction } from "../components/patients/record/PatientRecordShell";
 
 function Wrapper({ children }: { children: ReactNode }) {
   return (
@@ -49,18 +49,21 @@ function Wrapper({ children }: { children: ReactNode }) {
 function renderWithInitialAction(initialAction: PatientQuickAction) {
   const onInitialActionHandled = vi.fn();
   render(
-    <PatientOverviewPage
+    <PatientRecordShell
       patientId="patient-1"
+      activeTab="overview"
       onNavigate={vi.fn()}
       initialAction={initialAction}
       onInitialActionHandled={onInitialActionHandled}
-    />,
+    >
+      <div />
+    </PatientRecordShell>,
     { wrapper: Wrapper },
   );
   return onInitialActionHandled;
 }
 
-describe("PatientOverviewPage initial action", () => {
+describe("PatientRecordShell initial action", () => {
   afterEach(cleanup);
 
   it("opens the prescription sheet on arrival and reports it once", () => {

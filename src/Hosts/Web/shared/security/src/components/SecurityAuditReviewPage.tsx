@@ -1,7 +1,7 @@
 "use client";
 
 import { Alert, Button, Chip, Dropdown, Input, Label, Spinner, Surface, TextField, Tooltip } from "@heroui/react";
-import { FaIcon, HeaderIcon } from "@vitarish/ui";
+import { FaIcon, HeaderIcon, PageHeader } from "@vitarish/ui";
 import { useMemo, useState } from "react";
 import { useAuditSecurityEventsList } from "../api/generated/audit/audit";
 import type { AuditSecurityEventsListParams } from "../api/generated/audit/model";
@@ -83,13 +83,7 @@ export function SecurityAuditReviewPage() {
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 pt-8">
-      <header className="flex items-center gap-4">
-        <HeaderIcon icon="shield-halved" level="page" />
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">{t("security.audit.title")}</h1>
-          <p className="text-sm text-muted">{t("security.audit.description")}</p>
-        </div>
-      </header>
+      <PageHeader icon="shield-halved" title={t("security.audit.title")} details={t("security.audit.description")} />
 
       {result?.capacityThresholdReached ? (
         <Alert status="warning">

@@ -49,9 +49,8 @@ describe("PatientListPage mobile composition", () => {
       </LocalizationProvider>,
     );
 
-    expect(
-      screen.queryByRole("heading", { name: "Patients" }),
-    ).not.toBeInTheDocument();
+    // The page owns its title; the grid owns the toolbar.
+    expect(screen.getByRole("heading", { level: 1, name: "Patients" })).toBeInTheDocument();
     expect(
       screen.queryByRole("toolbar", { name: "Patients" }),
     ).not.toBeInTheDocument();

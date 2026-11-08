@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { Button } from "@heroui/react";
 import { Segment } from "@heroui-pro/react";
-import { AnchorPageHeader, FaIcon } from "@vitarish/ui";
+import { FaIcon, PageHeader } from "@vitarish/ui";
 import type { NavigationIntent } from "../../../navigation";
 import { useLocalizedText } from "../../../localization";
 import { OwnerReservationsAgenda } from "../agenda/OwnerReservationsAgenda";
@@ -23,27 +24,35 @@ export function OwnerReservationListPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <AnchorPageHeader
+      <PageHeader
         icon="calendar-check"
-        title={t("clinic.appointments.reservations.title")}
-        details={t("clinic.appointments.reservations.description")}
+        title={t("clinic.schedule.title")}
+        details={t("clinic.schedule.description")}
         actions={
-          <Segment
-            aria-label={t("clinic.appointments.visits.viewLabel")}
-            className="bg-surface p-1"
-            selectedKey={view}
-            variant="ghost"
-            onSelectionChange={(key) => setView(key as ReservationView)}
-          >
-            <Segment.Item id="list">
-              <FaIcon aria-hidden="true" icon="list" />
-              {t("clinic.appointments.visits.listView")}
-            </Segment.Item>
-            <Segment.Item id="calendar">
-              <FaIcon aria-hidden="true" icon="calendar-week" />
-              {t("clinic.appointments.visits.calendarView")}
-            </Segment.Item>
-          </Segment>
+          <>
+            {view === "list" ? (
+              <Button variant="primary" onPress={() => setView("calendar")}>
+                <FaIcon aria-hidden="true" icon="plus" />
+                {t("clinic.schedule.bookVisit")}
+              </Button>
+            ) : null}
+            <Segment
+              aria-label={t("clinic.appointments.visits.viewLabel")}
+              className="bg-surface p-1"
+              selectedKey={view}
+              variant="ghost"
+              onSelectionChange={(key) => setView(key as ReservationView)}
+            >
+              <Segment.Item id="list">
+                <FaIcon aria-hidden="true" icon="list" />
+                {t("clinic.appointments.visits.listView")}
+              </Segment.Item>
+              <Segment.Item id="calendar">
+                <FaIcon aria-hidden="true" icon="calendar-week" />
+                {t("clinic.appointments.visits.calendarView")}
+              </Segment.Item>
+            </Segment>
+          </>
         }
       />
       {view === "list" ? (

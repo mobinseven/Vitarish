@@ -776,9 +776,8 @@ export const enMessages = {
     operationsAssistant: "Open clinic operations assistant",
     brand: "Vitarish",
     navigation: {
-      up: "Up",
-      home: "Home",
-      knowledge: "Knowledge",
+      home: "Today",
+      schedule: "Schedule",
       clinic: "Clinic",
       dashboardMenu: "Dashboard navigation",
       skipToContent: "Skip to main content",
@@ -837,6 +836,14 @@ export const enMessages = {
       title: "Patients | Vitarish",
       description: "Manage clinic patients",
     },
+  },
+  routeStates: {
+    notFoundTitle: "This page doesn't exist",
+    notFoundDescription: "The address may be mistyped, or the page may have moved.",
+    errorTitle: "This page couldn't be shown",
+    errorDescription: "Something went wrong while loading it. Your other pages are unaffected.",
+    goToToday: "Go to Today",
+    goToPatients: "Go to Patients",
   },
   errors: {
     generic: "Something went wrong. Please try again.",

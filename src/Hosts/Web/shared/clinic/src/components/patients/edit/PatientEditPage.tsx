@@ -3,7 +3,7 @@
 import {
   ErrorStateSurface as ClinicErrorState,
   LoadingStateSurface as ClinicLoadingState,
-  HeaderIcon,
+  PageHeader,
 } from "@vitarish/ui";
 import { ApiError } from "@vitarish/api-client";
 import type { NavigationIntent } from "../../../navigation";
@@ -11,7 +11,8 @@ import { useLocalizedText } from "../../../localization/index";
 import { usePatientUpdate } from "../../../hooks/patients/usePatientUpdate";
 import { PatientProfileForm } from "../profile/PatientProfileForm";
 import { usePatientProfileEditor } from "../../../hooks/patients/profile/usePatientProfileEditor";
-import { PatientOverviewHeader } from "../overview/PatientOverviewHeader";
+import { getDisplayName } from "../overview/PatientOverviewHeader";
+import { pageAncestors, usePageBack } from "../../navigation/usePageBack";
 import { Card } from "@heroui/react";
 
 export interface PatientEditPageProps {
@@ -25,6 +26,14 @@ export function PatientEditPage({
 }: PatientEditPageProps) {
   const { t } = useLocalizedText();
   const query = usePatientProfileEditor(patientId);
+  const patientName = query.patient ? getDisplayName(query.patient, t("clinic.patients.unnamedPatient")) : "";
+  const back = usePageBack(
+    [
+      pageAncestors.patients,
+      { label: patientName, intent: { kind: "patientDetail", patientId } },
+    ],
+    onNavigate,
+  );
   const mutation = usePatientUpdate();
   const errorTitle =
     mutation.error instanceof ApiError && mutation.error.status === 403
@@ -41,24 +50,15 @@ export function PatientEditPage({
       className="mx-auto flex w-full max-w-6xl flex-col gap-6"
       aria-labelledby="clinic-patient-edit-title"
     >
-      <Card className="overflow-hidden" variant="transparent">
-        <PatientOverviewHeader patient={query.patient} />
-      </Card>
+      <PageHeader
+        icon="user-pen"
+        title={t("clinic.patient.edit.title")}
+        titleId="clinic-patient-edit-title"
+        details={t("clinic.patient.edit.description")}
+        back={back}
+      />
       <Card>
         <Card.Content>
-          <header>
-            <div className="flex items-center gap-4">
-              <HeaderIcon icon="user-pen" level="page" />
-              <div className="min-w-0">
-                <h1 id="clinic-patient-edit-title" className="text-2xl font-bold">
-                  {t("clinic.patient.edit.title")}
-                </h1>
-                <p className="text-sm text-muted">
-                  {t("clinic.patient.edit.description")}
-                </p>
-              </div>
-            </div>
-          </header>
           {mutation.error ? <ClinicErrorState title={errorTitle} /> : null}
           <PatientProfileForm
             initialData={query.formData}
