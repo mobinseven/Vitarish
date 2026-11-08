@@ -606,6 +606,28 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
       if (activeScenario === "error") return unavailable();
       return HttpResponse.json(activeScenario === "empty" ? [] : [{ id: "mock-template", name: "Routine acute visit" }]);
     }),
+    http.post(/\/api\/modules\/medical\/prescription-templates\/[^/]+(?:\?|$)/, async ({ request }) => {
+      await withDelay();
+      if (activeScenario === "error") return unavailable();
+      const templateId = new URL(request.url).pathname.split("/").pop();
+      return HttpResponse.json({ id: templateId, name: "Routine acute visit", description: null, status: "Active", itemCount: 0, items: [] });
+    }),
+    http.post(/\/api\/modules\/medical\/prescriptions\/dashboard(?:\?|$)/, async () => {
+      await withDelay();
+      if (activeScenario === "error") return unavailable();
+      return HttpResponse.json({ totalCount: "0", attentionCount: "0", attentionQueue: [] });
+    }),
+    // The mock practice has no reminders yet.
+    http.post(/\/api\/modules\/communications\/reminders\/query(?:\?|$)/, async () => {
+      await withDelay();
+      if (activeScenario === "error") return unavailable();
+      return HttpResponse.json([]);
+    }),
+    http.get(/\/api\/modules\/files\/upload-policy(?:\?|$)/, async () => {
+      await withDelay();
+      if (activeScenario === "error") return unavailable();
+      return HttpResponse.json({ maximumContentBytes: "10485760", formats: [{ mediaType: "image/jpeg", extensions: [".jpg", ".jpeg"] }, { mediaType: "application/pdf", extensions: [".pdf"] }] });
+    }),
     // No prescriptions have been submitted in the mock practice.
     http.post(/\/api\/modules\/medical\/prescriptions\/history(?:\?|$)/, async () => {
       await withDelay();

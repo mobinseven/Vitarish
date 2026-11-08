@@ -25,6 +25,17 @@ describe("mock preview handlers", () => {
     await expect(session.json()).resolves.toMatchObject({ isAuthenticated: false, user: null });
   });
 
+  it("serves the appointment details and clinical lists the clinic pages read", async () => {
+    const base = "https://mock.example.test/api/modules";
+    const shifts = await (await fetch(`${base}/appointments/shifts`)).json() as { items?: { id: string }[] } | { id: string }[];
+    const shiftId = (Array.isArray(shifts) ? shifts : shifts.items ?? [])[0]?.id;
+    if (shiftId) await expect((await fetch(`${base}/appointments/shifts/${shiftId}`)).json()).resolves.toMatchObject({ id: shiftId });
+    await expect((await fetch(`${base}/communications/reminders/query`, { method: "POST", body: "{}" })).json()).resolves.toEqual([]);
+    await expect((await fetch(`${base}/medical/prescriptions/dashboard`, { method: "POST", body: "{}" })).json()).resolves.toMatchObject({ attentionQueue: [] });
+    await expect((await fetch(`${base}/medical/prescription-templates/mock-template`, { method: "POST", body: "{}" })).json()).resolves.toMatchObject({ id: "mock-template" });
+    await expect((await fetch(`${base}/files/upload-policy`)).json()).resolves.toHaveProperty("formats");
+  });
+
   it("pages a user's security and sign-in histories independently", async () => {
     const response = await fetch("https://mock.example.test/api/modules/users/administration/mock-user/security?page=3&authenticationPage=2&pageSize=25");
     const details = await response.json() as {
