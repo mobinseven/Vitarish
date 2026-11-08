@@ -1,6 +1,11 @@
-import { notFound } from "next/navigation";
+import { redirectLegacyRoute } from "@/app/legacyRoutes";
 
-/** Routes every unknown clinic URL to the in-shell not-found page instead of the bare framework 404. */
-export default function UnmatchedClinicRoute(): never {
-  notFound();
+/** Redirects retired clinic URLs to their new place; any other unknown URL gets the in-shell not-found page. */
+export default async function UnmatchedClinicRoute({
+  params,
+}: {
+  params: Promise<{ unmatched: string[] }>;
+}): Promise<never> {
+  const { unmatched } = await params;
+  return redirectLegacyRoute(`/${unmatched.join("/")}`);
 }

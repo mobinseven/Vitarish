@@ -777,8 +777,8 @@ export const enMessages = {
     brand: "Vitarish",
     navigation: {
       up: "Up",
-      home: "Home",
-      knowledge: "Knowledge",
+      home: "Today",
+      schedule: "Schedule",
       clinic: "Clinic",
       dashboardMenu: "Dashboard navigation",
       skipToContent: "Skip to main content",

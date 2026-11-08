@@ -43,8 +43,8 @@ describe("navigation registry", () => {
     expect(destinationForPath("/settings/users", clinicOwnerDestinations)?.id).toBe("settings");
   });
 
-  it("lets the more specific destination win for a clinic user", () => {
-    expect(destinationForPath("/appointments/shifts/abc", clinicUserDestinations)?.id).toBe("shifts");
+  it("places a clinic user's shift and reservation pages under their own destination", () => {
+    expect(destinationForPath("/settings/shifts/abc", clinicUserDestinations)?.id).toBe("shifts");
     expect(destinationForPath("/appointments/abc", clinicUserDestinations)?.id).toBe("reservations");
   });
 

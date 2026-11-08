@@ -767,8 +767,8 @@ export const faMessages = {
     brand: "ویتاریش",
     navigation: {
       up: "بالا",
-      home: "خانه",
-      knowledge: "دانش",
+      home: "پیشخوان",
+      schedule: "نوبت‌ها",
       clinic: "کلینیک",
       dashboardMenu: "ناوبری داشبورد",
       skipToContent: "رفتن به محتوای اصلی",

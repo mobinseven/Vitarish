@@ -47,7 +47,7 @@ export function useClinicNavigation() {
           router.push(Routes.Clinic.CheckIn);
           break;
         case "appointmentSettings":
-          router.push(Routes.Clinic.Appointments.Settings);
+          router.push(Routes.Clinic.Settings.Appointments);
           break;
         case "clinicSettings":
           router.push(Routes.Clinic.Settings.Index);
@@ -93,48 +93,48 @@ export function useClinicNavigation() {
           router.push(Routes.Clinic.Reminders);
           break;
         case "serviceTypeIndex":
-          router.push(Routes.Clinic.Appointments.ServiceTypes.Index);
+          router.push(Routes.Clinic.Settings.Services.Types.Index);
           break;
         case "serviceTypeDetail":
           router.push(
-            Routes.Clinic.Appointments.ServiceTypes.Detail(
+            Routes.Clinic.Settings.Services.Types.Detail(
               intent.serviceTypeId,
             ),
           );
           break;
         case "serviceIndex":
-          router.push(Routes.Clinic.Appointments.Services.Index);
+          router.push(Routes.Clinic.Settings.Services.Index);
           break;
         case "serviceDetail":
           router.push(
-            Routes.Clinic.Appointments.Services.Detail(intent.serviceId),
+            Routes.Clinic.Settings.Services.Detail(intent.serviceId),
           );
           break;
         case "serviceProviderIndex":
-          router.push(Routes.Clinic.Appointments.ServiceProviders.Index);
+          router.push(Routes.Clinic.Settings.Services.Providers.Index);
           break;
         case "serviceProviderDetail":
           router.push(
-            Routes.Clinic.Appointments.ServiceProviders.Detail(
+            Routes.Clinic.Settings.Services.Providers.Detail(
               intent.serviceProviderId,
             ),
           );
           break;
         case "ownerShiftIndex":
-          router.push(Routes.Clinic.Appointments.Shifts.Index);
+          router.push(Routes.Clinic.Settings.Shifts.Index);
           break;
         case "ownerShiftDetail":
-          router.push(Routes.Clinic.Appointments.Shifts.Detail(intent.shiftId));
+          router.push(Routes.Clinic.Settings.Shifts.Detail(intent.shiftId));
           break;
         case "ownerShiftCreate":
-          router.push(Routes.Clinic.Appointments.Shifts.New);
+          router.push(Routes.Clinic.Settings.Shifts.New);
           break;
         case "ownerShiftEdit":
-          router.push(Routes.Clinic.Appointments.Shifts.Edit(intent.shiftId));
+          router.push(Routes.Clinic.Settings.Shifts.Edit(intent.shiftId));
           break;
         case "ownerShiftOccurrence":
           router.push(
-            Routes.Clinic.Appointments.Shifts.Occurrence(
+            Routes.Clinic.Settings.Shifts.Occurrence(
               intent.shiftId,
               intent.occurrenceDate,
             ),

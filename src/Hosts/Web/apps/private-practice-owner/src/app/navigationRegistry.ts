@@ -48,7 +48,7 @@ export const clinicOwnerDestinations = [
     id: "appointments",
     href: Routes.Clinic.Appointments.Reservations.Index,
     icon: "calendar-check",
-    labelKey: "clinic.appointments.reservations.title",
+    labelKey: "appShell.navigation.schedule",
     owns: [Routes.Clinic.Appointments.Reservations.Index],
     shortcut: "G A",
     keywords: ["appointments", "reservations", "booking"],

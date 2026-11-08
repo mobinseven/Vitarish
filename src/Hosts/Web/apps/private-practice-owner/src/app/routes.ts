@@ -48,16 +48,6 @@ export const Routes = {
     ProfileComplete: "/account/profile/complete",
   },
 
-  /** Knowledge routes */
-  Knowledge: {
-    Index: "/knowledge",
-    QA: "/knowledge/qa",
-  },
-
-  Contents: {
-    Index: "/contents",
-  },
-
   /** Shared sign-in host: continues a signed-in person to their platform home */
   SignInContinue: "/continue",
 
@@ -96,34 +86,34 @@ export const Routes = {
       ProcedureTemplates: "/settings/procedure-templates",
       PrescriptionTemplates: "/settings/prescription-templates",
       SurgeryTypes: "/settings/surgery-types",
+      Appointments: "/settings/appointments",
+      Shifts: {
+        Index: "/settings/shifts",
+        New: "/settings/shifts/new",
+        NewWithDay: (dayOfWeek: string) => `/settings/shifts/new/${dayOfWeek}` as const,
+        Detail: (shiftId: string) => `/settings/shifts/${shiftId}` as const,
+        Edit: (shiftId: string) => `/settings/shifts/${shiftId}/edit` as const,
+        Occurrence: (shiftId: string, occurrenceDate: string) =>
+          `/settings/shifts/${shiftId}/occurrence/${occurrenceDate}` as const,
+      },
+      Services: {
+        Index: "/settings/services",
+        Detail: (serviceId: string) => `/settings/services/${serviceId}` as const,
+        Types: {
+          Index: "/settings/services/types",
+          Detail: (serviceTypeId: string) => `/settings/services/types/${serviceTypeId}` as const,
+        },
+        Providers: {
+          Index: "/settings/services/providers",
+          Detail: (serviceProviderId: string) => `/settings/services/providers/${serviceProviderId}` as const,
+        },
+      },
     },
     Reminders: "/reminders",
     Appointments: {
-      Settings: "/appointments/settings",
       Reservations: {
         Index: "/appointments",
         Detail: (reservationId: string) => `/appointments/${reservationId}` as const,
-      },
-      Shifts: {
-        Index: "/appointments/shifts",
-        New: "/appointments/shifts/new",
-        NewWithDay: (dayOfWeek: string) => `/appointments/shifts/new/${dayOfWeek}` as const,
-        Detail: (shiftId: string) => `/appointments/shifts/${shiftId}` as const,
-        Edit: (shiftId: string) => `/appointments/shifts/${shiftId}/edit` as const,
-        Occurrence: (shiftId: string, occurrenceDate: string) =>
-          `/appointments/shifts/${shiftId}/occurrence/${occurrenceDate}` as const,
-      },
-      ServiceTypes: {
-        Index: "/appointments/service-types",
-        Detail: (serviceTypeId: string) => `/appointments/service-types/${serviceTypeId}` as const,
-      },
-      Services: {
-        Index: "/appointments/services",
-        Detail: (serviceId: string) => `/appointments/services/${serviceId}` as const,
-      },
-      ServiceProviders: {
-        Index: "/appointments/service-providers",
-        Detail: (serviceProviderId: string) => `/appointments/service-providers/${serviceProviderId}` as const,
       },
     },
   },
@@ -134,8 +124,8 @@ export const Routes = {
       Detail: (reservationId: string) => `/appointments/${reservationId}` as const,
     },
     Shifts: {
-      Index: "/appointments/shifts",
-      Detail: (shiftId: string) => `/appointments/shifts/${shiftId}` as const,
+      Index: "/settings/shifts",
+      Detail: (shiftId: string) => `/settings/shifts/${shiftId}` as const,
     },
   },
 } as const;
