@@ -494,6 +494,27 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
       if (activeScenario === "error") return unavailable();
       return new HttpResponse(null, { status: 204 });
     }),
+    // The dates of a shift that still have seats: one occurrence per matching weekday, minus its reservations.
+    http.post(/\/api\/modules\/appointments\/shifts\/bookable-(dates|slots)(?:\?|$)/, async ({ request }) => {
+      await withDelay();
+      if (activeScenario === "error") return unavailable();
+      const isSlots = new URL(request.url).pathname.endsWith("/bookable-slots");
+      const body = await request.json().catch(() => null) as { shiftId?: string; from?: string; to?: string; date?: string } | null;
+      const shift = store.appointments.shifts.find((item) => item.id === body?.shiftId);
+      if (!shift) return HttpResponse.json([]);
+      const first = body?.date ?? body?.from;
+      const last = body?.date ?? body?.to;
+      if (!first || !last) return HttpResponse.json([]);
+      const occurrences: Record<string, unknown>[] = [];
+      for (let day = new Date(`${first}T00:00:00Z`); day <= new Date(`${last}T00:00:00Z`); day.setUTCDate(day.getUTCDate() + 1)) {
+        if (day.getUTCDay() !== shift.dayOfWeek) continue;
+        const date = day.toISOString().slice(0, 10);
+        const reservationCount = store.appointments.reservations.filter((item) => item.shiftId === shift.id && item.date === date).length;
+        const totalSeats = Number(shift.totalSeats ?? 0);
+        occurrences.push({ shiftId: shift.id, date, startTime: shift.startTime, endTime: shift.endTime, totalSeats, reservationCount, availableSeats: Math.max(totalSeats - reservationCount, 0), isClosed: false });
+      }
+      return HttpResponse.json(isSlots ? occurrences.map((occurrence) => ({ shift, occurrence })) : occurrences);
+    }),
     http.post(/\/api\/modules\/appointments\/(reservations|shifts|service-types|services|service-providers)(?:\?|$)/, async ({ request }) => {
       await withDelay();
       if (activeScenario === "error") return unavailable();

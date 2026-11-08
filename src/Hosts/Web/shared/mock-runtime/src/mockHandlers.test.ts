@@ -36,6 +36,27 @@ describe("mock preview handlers", () => {
     await expect((await fetch(`${base}/files/upload-policy`)).json()).resolves.toHaveProperty("formats");
   });
 
+  it("lists the bookable dates of the seeded shift with their remaining seats", async () => {
+    const base = "https://mock.example.test/api/modules/appointments/shifts";
+    const dates = await (await fetch(`${base}/bookable-dates`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ shiftId: "mock-shift", from: "2026-08-09", to: "2026-08-15" }),
+    })).json() as { date: string; availableSeats: number; reservationCount: number }[];
+
+    expect(dates).toHaveLength(1);
+    expect(dates[0]).toMatchObject({ date: "2026-08-11", reservationCount: 1, availableSeats: 0 });
+
+    const slots = await (await fetch(`${base}/bookable-slots`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ shiftId: "mock-shift", date: "2026-08-11" }),
+    })).json() as { shift: { id: string }; occurrence: { date: string } }[];
+
+    expect(slots).toHaveLength(1);
+    expect(slots[0].shift.id).toBe("mock-shift");
+  });
+
   it("pages a user's security and sign-in histories independently", async () => {
     const response = await fetch("https://mock.example.test/api/modules/users/administration/mock-user/security?page=3&authenticationPage=2&pageSize=25");
     const details = await response.json() as {
