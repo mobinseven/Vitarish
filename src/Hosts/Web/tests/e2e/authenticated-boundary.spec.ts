@@ -18,7 +18,7 @@ import { auditSortFields } from "../../shared/security/src/api/securityAuditSort
 import { ApiError, ANTIFORGERY_VALIDATION_FAILED_CODE, REQUEST_ID_HEADER, TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
 import { localizePlatformAuditCategory, localizePlatformAuditEvent, localizePlatformAuditOperation } from "../../shared/security/src/localization";
 import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
-import { enMessages } from "../../apps/private-practice-owner/src/localization/messages/en";
+import { catalogs } from "../../apps/private-practice-owner/src/localization/messages";
 import { twoHostE2eApiOriginEnvironmentKey, twoHostE2ePlatformAdminClientIp, twoHostE2eProofScreenshotEnvironmentKey, twoHostE2eTenantBClinicOrigin, twoHostE2eTenantBOwnerUsername, twoHostE2eTenantBOwnerUsernameEnvironmentKey } from "../../scripts/two-host-e2e-artifacts.mjs";
 import { agentEnvelopeCanonical, base64UrlHmac } from "./agentCallback";
 import { generatedOperationPath } from "./generatedOperationPath";
@@ -1261,8 +1261,8 @@ test("enforces platform-admin authorization through the API", async ({ page }) =
 test("refuses administration entry while recording each denied audit review once", async ({ page, request }, testInfo) => {
   test.setTimeout(120_000);
   await login(page, tenantBOwnerUsername, platformAdminOrigin, e2ePassword, "198.51.100.23", false);
-  await expect(page.getByText(enMessages.auth.failures.providerFailure, { exact: true })).toBeVisible();
-  await expect(page.getByRole("link", { name: enMessages.auth.login.signInAction, exact: true })).toHaveAttribute("href", AuthenticationWebRoutes.SignIn);
+  await expect(page.getByText(catalogs.en.auth.failures.providerFailure, { exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: catalogs.en.auth.login.signInAction, exact: true })).toHaveAttribute("href", AuthenticationWebRoutes.SignIn);
   expect((await page.request.get(platformAdminOrigin + generatedOperationPath(authenticationSessionGet))).status()).toBe(401);
   if (forbiddenScreenshotPath) {
     mkdirSync(dirname(forbiddenScreenshotPath), { recursive: true });
