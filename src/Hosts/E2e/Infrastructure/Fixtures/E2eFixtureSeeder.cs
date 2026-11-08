@@ -42,6 +42,7 @@ internal static class E2eFixtureSeeder
     public const string TenantBOwnerUserName = "e2e-tenant-b-owner";
     public const string KnowledgeMemberUserName = "e2e-knowledge-member";
     public const string PlatformAdminUserName = "e2e-platform-admin";
+    public const string AuditEvidencePlatformAdminUserName = "e2e-audit-evidence-admin";
     public const string UserManagementPlatformAdminUserName = "e2e-user-management-admin";
     public const string LockoutPlatformAdminUserName = "e2e-lockout-platform-admin";
     public const string EmailSignInPlatformAdminUserName = "e2e-email-sign-in-platform-admin";
@@ -136,6 +137,14 @@ internal static class E2eFixtureSeeder
             "e2e-platform-admin@example.test",
             "E2E",
             "Platform Admin",
+            password);
+        User auditEvidencePlatformAdmin = await EnsureUserAsync(
+            users,
+            AuditEvidencePlatformAdminUserName,
+            Guid.Parse("aa122848-44af-44c1-a76f-226239f59b77"),
+            AuditEvidencePlatformAdminUserName + "@example.test",
+            "E2E",
+            "Audit Evidence Admin",
             password);
         Console.WriteLine("E2E fixture seeding: ensuring identity 6 of 13.");
         User userManagementPlatformAdmin = await EnsureUserAsync(
@@ -673,6 +682,12 @@ internal static class E2eFixtureSeeder
             IdentityResult result = await usersService.AddUserToRoleAsync(platformAdmin, IdentityDefinitions.PlatformAdmin, cancellationToken);
             if (!result.Succeeded)
                 throw new InvalidOperationException("E2E platform-admin role assignment failed.");
+        }
+        if (!await users.IsInRoleAsync(auditEvidencePlatformAdmin, IdentityDefinitions.PlatformAdmin))
+        {
+            IdentityResult result = await usersService.AddUserToRoleAsync(auditEvidencePlatformAdmin, IdentityDefinitions.PlatformAdmin, cancellationToken);
+            if (!result.Succeeded)
+                throw new InvalidOperationException("E2E audit-evidence administrator role assignment failed.");
         }
         if (!await users.IsInRoleAsync(userManagementPlatformAdmin, IdentityDefinitions.PlatformAdmin))
         {

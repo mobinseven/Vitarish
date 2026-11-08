@@ -68,6 +68,27 @@ routes/query keys, the audit catalog and localization owners. No assertions,
 rate limits, authorization, antiforgery or diagnostics are suppressed.
 Unrelated navigation docs appeared concurrently and are excluded from staging.
 
+The next collective run completed 69 passed, four failed and 14 unchanged
+skips. Earlier host, DNS, audit-scope, account and administration failures are
+resolved. Corrections are confined to proof infrastructure: Patients' public
+profile is entered through its existing sign-in route; the passkey evidence
+ceremony runs on Auth; personal access history is read on Auth. The browser
+family test compares the set of roots before/after app visits and requires one
+current root, preserving unrelated browsers already belonging to the fixture.
+It returns to an actual app before testing app-local credential refusal.
+Knowledge cleanup signs out on Knowledge rather than the last visited page.
+
+Root, Hosts/E2e, Web, browser-test and documentation contracts were re-read.
+The audit/session-limit scenario receives its own deterministic E2E-only
+administrator through the existing user/role seeder so previous tests' durable
+browser roots cannot affect its two-browser limit. The host is disposable;
+there is no Main path, production credential, bypass, policy relaxation,
+migration, generated output or runtime product change in this correction.
+Typed routes/query names and generated DTOs own browser assertions; fixture
+names derive from their seeder owner. Added quoted fixture values are synthetic
+test data, and diagnostics/framework literals are local. The same final full
+two-host gate and inspected fresh screenshots remain required before release.
+
 Owner correction: do not stop at a completed slice. Continue until the update is
 deployed; the owner reports no active server sessions. E2E remains deferred until
 all implementation and faster checks are ready, with necessary fixes/reruns

@@ -50,7 +50,9 @@ const ownerClientIp = "198.51.100.61";
 const failedAttemptClientIp = "198.51.100.64";
 const tenantBOwnerClientIp = "198.51.100.63";
 const ownerOrigin = "";
-const platformAdminUsername = process.env.VITARISH_E2E_PLATFORM_ADMIN_USERNAME ?? "e2e-platform-admin";
+const fixtureSource = readFileSync(join(process.cwd(), "../E2e/Infrastructure/Fixtures/E2eFixtureSeeder.cs"), "utf8");
+const platformAdminUsername = /public const string AuditEvidencePlatformAdminUserName = "([^"]+)";/.exec(fixtureSource)?.[1];
+if (!platformAdminUsername) throw new Error("The isolated audit administrator fixture was not found.");
 const ownerTenantId = "9c8b6b3a-7d6e-4f75-a88d-7d3f5b1b0f92";
 const tenantUserRoleSuffix = "TenantUser";
 const password = process.env.VITARISH_E2E_PASSWORD;
@@ -980,6 +982,7 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     await hideDevelopmentIndicator(page);
     await page.screenshot({ path: join(evidenceDirectory, "tenant-file-download-audit.png"), fullPage: true });
 
+    await page.goto(twoHostE2eSignInOrigin + ClinicRoutes.Account.Security, { waitUntil: "domcontentloaded" });
     const accessHistory = await page.evaluate(async (origin) => {
       const response = await fetch(`${origin}/api/modules/authentication/access-history`, { credentials: "include" });
       return { status: response.status, body: await response.json().catch(() => null) };

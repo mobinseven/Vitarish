@@ -6,12 +6,13 @@ import { Routes as PatientRoutes } from "../../apps/patients/src/app/routes";
 import { Routes as ProjectRoutes } from "../../apps/vitarish-pm/src/app/routes";
 import { Routes as KnowledgeRoutes } from "../../apps/knowledge-qa-demo/src/app/routes";
 import { getMessages } from "../../apps/platform-admin/src/localization/messages";
-import { AuthenticationWebRoutes } from "../../shared/auth/src/routes";
+import { AuthenticationSearchParams, AuthenticationWebRoutes } from "../../shared/auth/src/routes";
 import { authenticationAntiforgeryGet, authenticationBrowserSessionsGet, authenticationContinuationComplete, authenticationLoginPassword, authenticationLogoutPost, authenticationSessionGet } from "../../shared/auth/src/api/generated/authentication/authentication";
 import { TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
 import { localeCookieName } from "../../shared/localization/src/localeCookie";
 import { twoHostE2eForwardedForHeaderName, twoHostE2eKnowledgeOrigin, twoHostE2ePasswordEnvironmentKey, twoHostE2ePatientsOrigin, twoHostE2ePlatformAdminOrigin, twoHostE2eProjectManagementOrigin, twoHostE2eProofScreenshotEnvironmentKey, twoHostE2eSignInOrigin } from "../../scripts/two-host-e2e-artifacts.mjs";
 import { generatedOperationPath } from "./generatedOperationPath";
+import type { BrowserSessionsResponse } from "../../shared/auth/src/api/generated/authentication/model";
 
 async function post(page: Page, path: string, body: unknown) {
   return page.evaluate(async ({ path, body, tenantHeader, antiforgeryPath }) => {
@@ -24,6 +25,10 @@ async function post(page: Page, path: string, body: unknown) {
 const fixtureSource = readFileSync(resolve(process.cwd(), "../E2e/Infrastructure/Fixtures/E2eFixtureSeeder.cs"), "utf8");
 const platformAdminUsername = /public const string PlatformAdminUserName = "([^"]+)";/.exec(fixtureSource)?.[1];
 const knowledgeMemberUsername = /public const string KnowledgeMemberUserName = "([^"]+)";/.exec(fixtureSource)?.[1];
+// Patients' profile is a public placeholder. Enter through its actual sign-in
+// route to acquire an app session before checking the shared browser family.
+const patientsProfileEntry = new URL(PatientRoutes.Login.Index, twoHostE2ePatientsOrigin);
+patientsProfileEntry.searchParams.set(AuthenticationSearchParams.ReturnUrl, PatientRoutes.Profile);
 
 test("one central browser signs in across apps and app logout revokes the whole family", async ({ browser }) => {
   test.setTimeout(360_000);
@@ -48,8 +53,13 @@ test("one central browser signs in across apps and app logout revokes the whole 
     // No Origin, Referer or tenant header: renewal must resolve the actual Auth host.
     const authSession = await page.request.get(twoHostE2eSignInOrigin + generatedOperationPath(authenticationSessionGet));
     expect(authSession.status()).toBe(200);
+    const initialRoots = await page.request.get(twoHostE2eSignInOrigin + generatedOperationPath(authenticationBrowserSessionsGet));
+    expect(initialRoots.status()).toBe(200);
+    const initialSessions = (await initialRoots.json() as BrowserSessionsResponse).sessions;
+    expect(initialSessions.filter(session => session.isCurrent)).toHaveLength(1);
+    const initialRootIds = initialSessions.map(session => session.sessionId).sort();
     for (const [origin, route] of [[twoHostE2ePatientsOrigin, PatientRoutes.Profile], [twoHostE2eProjectManagementOrigin, ProjectRoutes.Projects]]) {
-      await page.goto(origin + route);
+      await page.goto(origin === twoHostE2ePatientsOrigin ? patientsProfileEntry.href : origin + route);
       await expect(page).toHaveURL(origin + route, { timeout: 120_000 });
       await expect.poll(async () => (await page.request.get(origin + generatedOperationPath(authenticationSessionGet))).status()).toBe(200);
     }
@@ -62,13 +72,17 @@ test("one central browser signs in across apps and app logout revokes the whole 
     expect((await page.request.get(twoHostE2eKnowledgeOrigin + generatedOperationPath(authenticationSessionGet))).status()).toBe(401);
     expect(passwordSubmissions).toBe(1);
     // App-local credential submission remains unavailable even with a valid linked session.
+    await page.goto(twoHostE2eProjectManagementOrigin + ProjectRoutes.Projects);
+    await expect(page).toHaveURL(twoHostE2eProjectManagementOrigin + ProjectRoutes.Projects);
     const credentialPath = generatedOperationPath(authenticationLoginPassword);
     for (const path of [credentialPath, credentialPath.toUpperCase(), credentialPath + "/"])
       expect(await post(page, path, { userNameOrEmail: platformAdminUsername, password, returnUrl: null })).toBe(404);
     await page.goto(twoHostE2eSignInOrigin + AuthenticationWebRoutes.AccountSecurity);
     const roots = await page.request.get(twoHostE2eSignInOrigin + generatedOperationPath(authenticationBrowserSessionsGet));
     expect(roots.status()).toBe(200);
-    expect((await roots.json()).sessions).toEqual([expect.objectContaining({ isCurrent: true })]);
+    const finalSessions = (await roots.json() as BrowserSessionsResponse).sessions;
+    expect(finalSessions.filter(session => session.isCurrent)).toHaveLength(1);
+    expect(finalSessions.map(session => session.sessionId).sort()).toEqual(initialRootIds);
     const proof = process.env[twoHostE2eProofScreenshotEnvironmentKey];
     if (proof) {
       await expect(page.getByRole("heading", { name: getMessages("en").auth.browserSessions.title, exact: true })).toBeVisible();
@@ -105,7 +119,7 @@ test("a Knowledge member enters Patients through the same central browser", asyn
     await expect(page).toHaveURL(twoHostE2eKnowledgeOrigin + KnowledgeRoutes.KnowledgeQa, { timeout: 120_000 });
     const knowledgeSession = await page.request.get(twoHostE2eKnowledgeOrigin + generatedOperationPath(authenticationSessionGet));
     expect(knowledgeSession.status()).toBe(200);
-    await page.goto(twoHostE2ePatientsOrigin + PatientRoutes.Profile);
+    await page.goto(patientsProfileEntry.href);
     await expect(page).toHaveURL(twoHostE2ePatientsOrigin + PatientRoutes.Profile, { timeout: 120_000 });
     expect((await page.request.get(twoHostE2ePatientsOrigin + generatedOperationPath(authenticationSessionGet))).status()).toBe(200);
     const roots = await page.request.get(twoHostE2eSignInOrigin + generatedOperationPath(authenticationBrowserSessionsGet));
@@ -113,8 +127,10 @@ test("a Knowledge member enters Patients through the same central browser", asyn
     expect((await roots.json()).sessions).toEqual([expect.objectContaining({ isCurrent: true })]);
     expect(passwordSubmissions).toBe(1);
   } finally {
-    if ((await page.request.get(twoHostE2eKnowledgeOrigin + generatedOperationPath(authenticationSessionGet))).status() === 200)
+    if ((await page.request.get(twoHostE2eKnowledgeOrigin + generatedOperationPath(authenticationSessionGet))).status() === 200) {
+      await page.goto(twoHostE2eKnowledgeOrigin + KnowledgeRoutes.KnowledgeQa);
       expect(await post(page, generatedOperationPath(authenticationLogoutPost), { logoutId: null, returnUrl: null })).toBe(200);
+    }
     await context.close();
   }
 });
