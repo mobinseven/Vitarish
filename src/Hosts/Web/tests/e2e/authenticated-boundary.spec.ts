@@ -1,4 +1,4 @@
-import { AuthenticationWebRoutes } from "../../shared/auth/src/routes";
+import { AuthenticationSearchParams, AuthenticationWebRoutes } from "../../shared/auth/src/routes";
 import { twoHostE2eSignInOrigin } from "../../scripts/two-host-e2e-artifacts.mjs";
 import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
 import { existsSync, mkdirSync, readFileSync, readdirSync } from "node:fs";
@@ -261,11 +261,12 @@ async function login(page: Page, username: string, origin = "", password = e2ePa
 }
 
 test("uses the real Web and Main hosts for an authenticated tenant-scoped request", async ({ page, request }) => {
-  const apiRequests: Array<{ method: string; url: string; tenantHost: string | undefined }> = [];
+  const apiRequests: Array<{ method: string; url: string; tenantHost: string | undefined; origin: string | undefined; referer: string | undefined }> = [];
   const mockServiceWorkerRequests: string[] = [];
   page.on("request", (request) => {
     if (new URL(request.url()).pathname.startsWith("/api/")) {
-      apiRequests.push({ method: request.method(), url: request.url(), tenantHost: request.headers()["x-vitarish-tenant-host"] });
+      const headers = request.headers();
+      apiRequests.push({ method: request.method(), url: request.url(), tenantHost: headers[TENANT_HOST_HEADER.toLowerCase()], origin: headers.origin, referer: headers.referer });
     }
     if (request.url().includes("mockServiceWorker.js")) mockServiceWorkerRequests.push(request.url());
   });
@@ -371,8 +372,17 @@ test("uses the real Web and Main hosts for an authenticated tenant-scoped reques
   expect(reminders.body).toEqual(expect.arrayContaining([expect.objectContaining({ isSent: false, subject: "E2E reminder" })]));
   expect(apiRequests.some((request) => request.url.endsWith("/api/modules/authentication/session"))).toBe(true);
   expect(apiRequests.some((request) => request.url.endsWith("/api/modules/appointments/health"))).toBe(true);
-  // Sign-in and clinic requests each carry their own host across the handoff.
-  expect(apiRequests.filter((request) => request.method !== "OPTIONS").every((request) => request.tenantHost === new URL(request.url).host)).toBe(true);
+  for (const request of apiRequests.filter((candidate) => candidate.method !== "OPTIONS")) {
+    const url = new URL(request.url);
+    const isRenewal = request.method === "GET" && url.origin === twoHostE2eSignInOrigin
+      && url.pathname === generatedOperationPath(authenticationSessionGet) && request.tenantHost === undefined;
+    if (isRenewal) {
+      expect(request.origin, "opaque Auth renewal has no Origin").toBeUndefined();
+      expect(request.referer, "opaque Auth renewal has no Referer").toBeUndefined();
+    } else {
+      expect(request.tenantHost, `${request.method} ${url.origin}${url.pathname}`).toBe(url.host);
+    }
+  }
 
   const logout = await generatedAuthenticationRequest(
     request,
@@ -585,7 +595,7 @@ test("normalizes unsafe authentication return URLs at the real API boundary", as
     });
 
     expect(response.status(), returnUrl).toBe(200);
-    await expect(response.json(), returnUrl).resolves.toMatchObject({ returnUrl: ClinicRoutes.Workspaces.Select });
+    await expect(response.json(), returnUrl).resolves.toMatchObject({ returnUrl: ClinicRoutes.SignInContinue });
   }
 });
 
@@ -650,7 +660,8 @@ test("completes a real email OTP once and rejects its replay", async ({ request 
     ignoreHTTPSErrors: true,
   });
   expect(completed.status()).toBe(200);
-  await expect(completed.json()).resolves.toMatchObject({ returnUrl: ClinicRoutes.Workspaces.Select });
+  const continueQuery = new URLSearchParams({ [AuthenticationSearchParams.ReturnUrl]: ClinicRoutes.Home });
+  await expect(completed.json()).resolves.toMatchObject({ returnUrl: `${ClinicRoutes.SignInContinue}?${continueQuery}` });
 
   const session = await request.get(`${apiOrigin}/api/modules/authentication/session`, {
     headers: { [TENANT_HOST_HEADER]: new URL(twoHostE2eSignInOrigin).host },
@@ -673,6 +684,8 @@ test("completes a real email OTP once and rejects its replay", async ({ request 
 });
 
 test("registers a passkey through the real browser ceremony once", async ({ page }) => {
+  await login(page, e2eUsername, "", e2ePassword, "198.51.100.13");
+  await page.goto(`${twoHostE2eSignInOrigin}${ClinicRoutes.Account.Passkeys}`, { waitUntil: "domcontentloaded" });
   const cdp = await page.context().newCDPSession(page);
   await cdp.send("WebAuthn.enable");
   const { authenticatorId } = await cdp.send("WebAuthn.addVirtualAuthenticator", {
@@ -687,8 +700,6 @@ test("registers a passkey through the real browser ceremony once", async ({ page
     },
   });
 
-  await login(page, e2eUsername, "", e2ePassword, "198.51.100.13");
-  await page.goto("/account/passkeys", { waitUntil: "domcontentloaded" });
   await page.getByRole("button", { name: "Register New Passkey" }).click();
   await expect(page.getByText("Passkey registered successfully")).toBeVisible();
 
@@ -753,23 +764,35 @@ test("allows intentional anonymous operations to reach their owning boundary", a
   const emailLoginBegin = await request.post(`${apiOrigin}/api/modules/authentication/login/email/begin`, {
     data: {},
     headers: {
-      "X-Vitarish-Tenant-Host": "localhost",
+      [TENANT_HOST_HEADER]: new URL(twoHostE2eSignInOrigin).host,
       "X-Request-Id": "authorization-matrix-email-login",
     },
     ignoreHTTPSErrors: true,
   });
   expect(emailLoginBegin.status()).toBe(400);
+  const appEmailLoginBegin = await request.post(`${apiOrigin}/api/modules/authentication/login/email/begin`, {
+    data: {},
+    headers: { [TENANT_HOST_HEADER]: new URL(webOrigin).host },
+    ignoreHTTPSErrors: true,
+  });
+  expect(appEmailLoginBegin.status()).toBe(404);
 
   const passwordOtpResend = await request.post(`${apiOrigin}${generatedOperationPath(authenticationLoginPasswordOtpResend)}`, {
     data: { challengeId: "ffffffffffffffffffffffffffffffff" },
     headers: {
-      [TENANT_HOST_HEADER]: "localhost",
+      [TENANT_HOST_HEADER]: new URL(twoHostE2eSignInOrigin).host,
       [REQUEST_ID_HEADER]: "authorization-matrix-password-otp-resend",
     },
     ignoreHTTPSErrors: true,
   });
   expect(passwordOtpResend.status()).toBe(401);
   await expect(passwordOtpResend.json()).resolves.toMatchObject({ code: "invalid_credentials" });
+  const appPasswordOtpResend = await request.post(`${apiOrigin}${generatedOperationPath(authenticationLoginPasswordOtpResend)}`, {
+    data: { challengeId: "ffffffffffffffffffffffffffffffff" },
+    headers: { [TENANT_HOST_HEADER]: new URL(webOrigin).host },
+    ignoreHTTPSErrors: true,
+  });
+  expect(appPasswordOtpResend.status()).toBe(404);
 
   const challenge = "authorization-matrix-proof";
   const social = await request.get(`${apiOrigin}/webhooks/social/instagram?hub.challenge=${challenge}`, {
@@ -915,6 +938,19 @@ function resolveSourceOwnedOperationId(matrixValue: string): string {
 
 test("User-auth matrix denies out-of-scope operation access per operation", async ({ page }) => {
   await login(page, tenantUserUsername, "", e2ePassword, "198.51.100.28");
+  const centralPage = await page.context().newPage();
+  await centralPage.goto(`${twoHostE2eSignInOrigin}${ClinicRoutes.Account.Index}`, { waitUntil: "domcontentloaded" });
+  await expect.poll(() => fetchJson(centralPage, generatedOperationPath(authenticationSessionGet)).then(result => result.status)).toBe(200);
+  // Derive host-restricted Users operations from the endpoint owner, so adding a
+  // filtered credential endpoint automatically exercises both host and subject boundaries.
+  const usersEndpoints = join(process.cwd(), "../../../src/Modules/Users/Api/Endpoints");
+  const personalCredentialOperations = new Set(readdirSync(usersEndpoints)
+    .filter(name => name.endsWith(".cs"))
+    .flatMap(name => readFileSync(join(usersEndpoints, name), "utf8").split(/\r?\n/)
+      .filter(line => line.includes(".AddEndpointFilter<PersonalCredentialHostFilter>()"))
+      .map(line => /MapModule\w+\([^,]+,[^,]+,\s*"([^"]+)"/.exec(line)?.[1])
+      .filter((value): value is string => value !== undefined)));
+  expect(personalCredentialOperations.size, "source-owned personal credential filters must be discovered").toBeGreaterThan(0);
 
   const matrixPath = join(process.cwd(), "../../../docs/security/authorization-matrix.md");
   const matrixText = readFileSync(matrixPath, "utf8");
@@ -957,15 +993,20 @@ test("User-auth matrix denies out-of-scope operation access per operation", asyn
         : operation.method === "PUT" && operation.route.endsWith("/culture")
           ? { culture: "en" }
           : {};
-    const response = operation.method === "GET"
-      ? await fetchJson(page, requestPath)
+    const invoke = (target: Page) => operation.method === "GET"
+      ? fetchJson(target, requestPath)
       : operation.method === "POST"
-        ? await postJson(page, requestPath, body)
+        ? postJson(target, requestPath, body)
         : operation.method === "PUT"
-          ? await putJson(page, requestPath, body)
+          ? putJson(target, requestPath, body)
           : operation.method === "DELETE"
-            ? await deleteJson(page, requestPath, body)
+            ? deleteJson(target, requestPath, body)
             : (() => { throw new Error(`Unsupported self-service HTTP method ${operation.method} for ${operationId}.`); })();
+    if (personalCredentialOperations.has(resolvedOperationId)) {
+      const appResponse = await invoke(page);
+      expect(appResponse.status, `${operationId} refuses app-local credential management`).toBe(404);
+    }
+    const response = await invoke(selfScoped || personalCredentialOperations.has(resolvedOperationId) ? centralPage : page);
     if (tenantUserDenied || checksDifferentSubject)
       expect(response.status, `${operationId} denies a different subject or TenantUser`).toBe(403);
     else

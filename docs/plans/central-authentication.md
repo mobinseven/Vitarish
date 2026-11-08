@@ -2,6 +2,47 @@
 
 Status: implementation authorized; release incomplete.
 
+## Resumed failure correction checklist
+
+Root, Hosts, Web, browser-test and docs instructions re-read on 2026-11-08.
+The worktree starts clean at 56471fa8c; unrelated landing work remains stashed.
+Claude Opus 5.5 medium consultation completed read-only after the earlier high
+reviews. Its remaining hypotheses require source/trace confirmation.
+
+- Preserve single owners, dependency direction, read-only queries, explicit
+  failures, retries/idempotency, parameterization and contract compatibility.
+- Preserve secrets, host/subject/tenant authorization, antiforgery, WebAuthn,
+  TLS and rate limits; do not relax assertions to hide unexpected behavior.
+- No generated or migration edits in this correction; production RP ID remains
+  unchanged. Test-only RP configuration follows the actual central host.
+- Reuse typed routes, operation/configuration owners, fixture values and
+  defined localization resources; audit all added quoted values and complete
+  tracked/untracked diff. Keep responsibility-based names.
+- Preserve Web layout/color/theme/fonts, localized icons/tooltips/dates,
+  security-state ownership and shared API transport where applicable.
+- Add focused guard coverage, retain matrix markers and strict denials,
+  validate collection/affected checks, then collective real-host E2E with
+  inspected fresh proof and changed screens before release.
+- Deploy exact validated revision, verify runtime evidence, restore unrelated
+  stash and clean owned artifacts. All unfinished gates remain unproven.
+
+Trace confirms administrator /handoff is intercepted by its anonymous access
+guard before redemption: repeated 401 session, /login, continuation complete,
+/handoff, with no redeem request. Permit only the existing handoff page through
+the presentation guard; the server retains ticket and administrator authority.
+The guard also preserves the requested path/query through central sign-in.
+Three focused guard tests pass, including anonymous protected content and
+signed-in non-administrator refusal. Owner/admin typechecks, full browser-spec
+typecheck, 87-test collection, localization/layout and app/shared/API boundary
+checks pass. The browser-spec typecheck additionally caught a missing Routes
+import in clinic onboarding; restored the source-owned import. Named-value
+review covers every correction and the new untracked test: routes/query keys
+are typed owners, resource labels exist, credential-operation inventory derives
+from endpoint filters, and synthetic messages/framework selectors are local.
+No backend, public contract, generated schema or production configuration
+changed in this correction. The new collective E2E is running; its runtime
+passkey and central session evidence remain unproven until results are read.
+
 Owner correction: do not stop at a completed slice. Continue until the update is
 deployed; the owner reports no active server sessions. E2E remains deferred until
 all implementation and faster checks are ready, with necessary fixes/reruns

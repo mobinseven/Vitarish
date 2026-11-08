@@ -44,7 +44,7 @@ export const centralAccountNavGroups = [{
   labelKey: "appShell.navigation.mainGroup",
   items: [
     { href: Routes.Account.Index, icon: "user-shield", labelKey: "appShell.userMenu.account", exactMatch: true },
-    { href: Routes.SignInContinue, icon: "hospital", labelKey: "journey.gates.workspace.title", exactMatch: true },
+    { href: Routes.SignInContinue, icon: "house", labelKey: "appShell.navigation.home", exactMatch: true },
   ],
 }] as const satisfies readonly DashboardShellNavGroup[];
 

@@ -135,6 +135,7 @@ test(`a passwordless phone account can set a password and enable two-step sign-i
     await continueToClinic(page);
 
     await page.goto(`${twoHostE2eClinicOrigin}${Routes.Account.Password}`, { waitUntil: "domcontentloaded" });
+    await page.waitForURL(`${twoHostE2eSignInOrigin}${Routes.Account.Password}`);
     await expect.poll(() => getSessionStatus(page)).toBe(200);
     await expect(page.getByLabel(accountText.password.currentPassword, { exact: true })).toHaveCount(0);
     await page.screenshot({ path: testInfo.outputPath("passwordless-account-password.png"), fullPage: true });

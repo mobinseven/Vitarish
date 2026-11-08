@@ -340,6 +340,7 @@ async function run() {
     // `dotnet run` builds first; reused MSBuild workers would otherwise stay
     // resident (one per core) and compete with the Web servers for memory.
     MSBUILDDISABLENODEREUSE: "1",
+    WebAuthn__ServerDomain: new URL(twoHostE2eSignInOrigin).hostname,
     WebAuthn__Origins__0: webOrigin,
     WebAuthn__Origins__1: platformAdminOrigin,
     WebAuthn__Origins__2: twoHostE2eSignInOrigin,
