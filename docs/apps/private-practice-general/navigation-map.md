@@ -1,6 +1,6 @@
 # Private Practice General navigation map
 
-Status: Proposed — under owner review; not implemented
+Status: Active — enforced by tests/mock/navigation-routes.spec.ts
 Owner: Private Practice General app
 Scope: Ideal information architecture of the clinic workspace (Darman) for a
 surgeon's private practice. Account, sign-in, platform home and onboarding are
