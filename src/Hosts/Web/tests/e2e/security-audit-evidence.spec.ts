@@ -53,6 +53,9 @@ const ownerOrigin = "";
 const fixtureSource = readFileSync(join(process.cwd(), "../E2e/Infrastructure/Fixtures/E2eFixtureSeeder.cs"), "utf8");
 const platformAdminUsername = /public const string AuditEvidencePlatformAdminUserName = "([^"]+)";/.exec(fixtureSource)?.[1];
 if (!platformAdminUsername) throw new Error("The isolated audit administrator fixture was not found.");
+const auditScopeSource = readFileSync(join(process.cwd(), "../../Libraries/Audit/Audit.Domain/SecurityAuditScopeCatalog.cs"), "utf8");
+const platformAuditScope = /public const string PlatformScopeId = "([^"]+)";/.exec(auditScopeSource)?.[1];
+if (!platformAuditScope) throw new Error("The platform audit scope was not found.");
 const ownerTenantId = "9c8b6b3a-7d6e-4f75-a88d-7d3f5b1b0f92";
 const tenantUserRoleSuffix = "TenantUser";
 const password = process.env.VITARISH_E2E_PASSWORD;
@@ -1159,11 +1162,10 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     const platformSession = platformSessionResponse.body as AuthenticationSessionDto;
     expect(platformSession.isAuthenticated).toBe(true);
     expect(platformSession.user?.userId).toEqual(expect.any(String));
-    // The preceding serial auth-grid scenario already recorded this same actor,
-    // tenant scope, and IP; review events deduplicate within the configured window.
+    // The central administrator reviews the platform scope without a tenant host.
     const platformReviewRecord = platformReviewRecords.items.find((item) =>
       item.actorKind === "user" && item.actorId === platformSession.user?.userId &&
-      item.sourceIpAddress === platformAdminClientIp && item.tenantId === ownerTenantId,
+      item.sourceIpAddress === platformAdminClientIp && item.tenantId === platformAuditScope,
     );
     expect(platformReviewRecord).toMatchObject({
       eventName: auditEvents.auditReview.name,
@@ -1171,7 +1173,7 @@ test("real actions create visible platform security-audit evidence", async ({ pa
       outcome: "succeeded",
       actorKind: "user",
       actorId: platformSession.user!.userId,
-      tenantId: ownerTenantId,
+      tenantId: platformAuditScope,
       operation: platformAuditListOperation,
       resource: `endpoint/${platformAuditListOperation}`,
       sourceIpAddress: platformAdminClientIp,
@@ -1179,7 +1181,7 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     expect(platformReviewRecord?.id).toEqual(expect.any(String));
     await captureAuditReviewDetail(administratorPage, platformReviewRecord!.id!, [
       platformReviewRecord!.actorId!,
-      ownerTenantId,
+      platformAuditScope,
       platformAdminClientIp,
     ], "audit-review-platform-detail.png");
     await captureAuditSortOrders(administratorPage);

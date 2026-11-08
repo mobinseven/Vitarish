@@ -8,18 +8,18 @@ import { Routes as KnowledgeRoutes } from "../../apps/knowledge-qa-demo/src/app/
 import { getMessages } from "../../apps/platform-admin/src/localization/messages";
 import { AuthenticationSearchParams, AuthenticationWebRoutes } from "../../shared/auth/src/routes";
 import { authenticationAntiforgeryGet, authenticationBrowserSessionsGet, authenticationLoginPassword, authenticationLogoutPost, authenticationSessionGet } from "../../shared/auth/src/api/generated/authentication/authentication";
-import { TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
+import { REQUEST_ID_HEADER, TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
 import { localeCookieName } from "../../shared/localization/src/localeCookie";
 import { twoHostE2eForwardedForHeaderName, twoHostE2eKnowledgeOrigin, twoHostE2ePasswordEnvironmentKey, twoHostE2ePatientsOrigin, twoHostE2ePlatformAdminOrigin, twoHostE2eProjectManagementOrigin, twoHostE2eProofScreenshotEnvironmentKey, twoHostE2eSignInOrigin } from "../../scripts/two-host-e2e-artifacts.mjs";
 import { generatedOperationPath } from "./generatedOperationPath";
 import type { BrowserSessionsResponse } from "../../shared/auth/src/api/generated/authentication/model";
 
 async function post(page: Page, path: string, body: unknown) {
-  return page.evaluate(async ({ path, body, tenantHeader, antiforgeryPath }) => {
+  return page.evaluate(async ({ path, body, tenantHeader, requestIdHeader, antiforgeryPath }) => {
     const headers = { [tenantHeader]: window.location.host };
     const anti = await (await fetch(antiforgeryPath, { headers, credentials: "include" })).json();
-    return (await fetch(path, { method: "POST", credentials: "include", headers: { ...headers, "Content-Type": "application/json", [anti.headerName]: anti.requestToken }, body: JSON.stringify(body) })).status;
-  }, { path, body, tenantHeader: TENANT_HOST_HEADER, antiforgeryPath: generatedOperationPath(authenticationAntiforgeryGet) });
+    return (await fetch(path, { method: "POST", credentials: "include", headers: { ...headers, "Content-Type": "application/json", [requestIdHeader]: crypto.randomUUID(), [anti.headerName]: anti.requestToken }, body: JSON.stringify(body) })).status;
+  }, { path, body, tenantHeader: TENANT_HOST_HEADER, requestIdHeader: REQUEST_ID_HEADER, antiforgeryPath: generatedOperationPath(authenticationAntiforgeryGet) });
 }
 
 const fixtureSource = readFileSync(resolve(process.cwd(), "../E2e/Infrastructure/Fixtures/E2eFixtureSeeder.cs"), "utf8");
