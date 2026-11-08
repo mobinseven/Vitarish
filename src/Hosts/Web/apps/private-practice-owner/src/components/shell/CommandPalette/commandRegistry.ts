@@ -1,3 +1,4 @@
+import { clinicOwnerDestinations } from "@/app/navigationRegistry";
 import { Routes } from "@/app/routes";
 
 export interface Command {
@@ -24,54 +25,14 @@ export function createCommandGroups(
       id: "navigation",
       labelKey: "commandPalette.groups.navigation",
       commands: [
-        {
-          id: "home",
-          labelKey: "appShell.navigation.home",
-          icon: "house",
-          shortcut: "G H",
-          action: () => navigate(Routes.Home),
-          keywords: ["home", "dashboard", "main"],
-        },
-        {
-          id: "patients",
-          labelKey: "clinic.patients.title",
-          icon: "users",
-          shortcut: "G P",
-          action: () => navigate(Routes.Clinic.Patients.Index),
-          keywords: ["patients", "users", "list"],
-        },
-        {
-          id: "check-in",
-          labelKey: "clinic.dashboard.sections.checkIn.title",
-          icon: "clipboard-check",
-          shortcut: "G C",
-          action: () => navigate(Routes.Clinic.CheckIn),
-          keywords: ["checkin", "check-in", "arrival"],
-        },
-        {
-          id: "appointments",
-          labelKey: "clinic.appointments.reservations.title",
-          icon: "calendar-check",
-          shortcut: "G A",
-          action: () => navigate(Routes.Clinic.Appointments.Reservations.Index),
-          keywords: ["appointments", "reservations", "booking"],
-        },
-        {
-          id: "surgeries",
-          labelKey: "clinic.surgeries.title",
-          icon: "scissors",
-          shortcut: "G S",
-          action: () => navigate(Routes.Clinic.Surgeries.Index),
-          keywords: ["surgeries", "surgery", "operations"],
-        },
-        {
-          id: "reminders",
-          labelKey: "clinic.dashboard.sections.reminders.title",
-          icon: "bell",
-          shortcut: "G R",
-          action: () => navigate(Routes.Clinic.Reminders),
-          keywords: ["reminders", "alerts", "notifications"],
-        },
+        ...clinicOwnerDestinations.map((destination) => ({
+          id: destination.id,
+          labelKey: destination.labelKey,
+          icon: destination.icon,
+          ...("shortcut" in destination ? { shortcut: destination.shortcut } : {}),
+          action: () => navigate(destination.href),
+          keywords: [...destination.keywords],
+        })),
         {
           id: "knowledge",
           labelKey: "appShell.navigation.knowledge",

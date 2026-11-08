@@ -11,6 +11,7 @@ import {
   type DashboardNavigationItem,
 } from "@vitarish/ui";
 import { usePathname, useRouter } from "next/navigation";
+import { destinationForPath } from "@/app/navigationRegistry";
 import { Routes } from "@/app/routes";
 import { useAuthSession } from "@vitarish/auth";
 import { useTenantAuthorization } from "@vitarish/auth";
@@ -37,6 +38,8 @@ export interface DashboardShellItem {
   badgeKey?: MessageKey;
   children?: readonly DashboardShellItem[];
   exactMatch?: boolean;
+  /** Path prefixes whose pages count as this item for the active highlight. */
+  owns?: readonly string[];
 }
 
 export interface DashboardShellNavGroup {
@@ -106,6 +109,11 @@ export function DashboardShell({
     };
   }, [displayProfile, isAuthenticated, isHydrated, isLoading, t]);
 
+  // The sidebar highlights the destination a page belongs to, so child pages keep their parent lit.
+  const currentPath = useMemo(
+    () => destinationForPath(pathname, navGroups.flatMap((group) => group.items))?.href ?? pathname,
+    [navGroups, pathname],
+  );
   const navigationGroups = useMemo(
     () => navGroups.map((group) => toNavigationGroup(group, t)),
     [navGroups, t],
@@ -122,7 +130,7 @@ export function DashboardShell({
       asideOpen={operationsAssistantOpen}
       asideToggleLabel={showOperationsAssistant ? t("appShell.operationsAssistant") : undefined}
       contentMode={contentMode}
-      currentPath={pathname}
+      currentPath={currentPath}
       footerItems={footerNavigationItems}
       footerLabel={t("appShell.userMenu.signOut")}
       identity={sidebarIdentity}
