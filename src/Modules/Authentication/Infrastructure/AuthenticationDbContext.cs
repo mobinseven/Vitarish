@@ -19,6 +19,16 @@ public sealed class AuthenticationDbContext(DbContextOptions<AuthenticationDbCon
         base.OnModelCreating(modelBuilder);
         _ = modelBuilder.ConfigureUtcDateTimeColumns();
         _ = modelBuilder.HasDefaultSchema(SecurityAccessPolicyRecord.SchemaName);
+        _ = modelBuilder.Entity<AuthenticationContinuation>(entity =>
+        {
+            _ = entity.HasKey(item => item.TokenHash);
+            _ = entity.Property(item => item.TokenHash).HasMaxLength(TenantHandoffTicket.TokenHashLength);
+            _ = entity.Property(item => item.Origin).HasMaxLength(512);
+            _ = entity.Property(item => item.ReturnPath).HasMaxLength(AuthenticationContinuation.MaximumReturnPathLength);
+            _ = entity.Property(item => item.CorrelationHash).HasMaxLength(TenantHandoffTicket.TokenHashLength);
+            _ = entity.Property(item => item.CompletedAt).IsConcurrencyToken();
+            _ = entity.HasIndex(item => item.ExpiresAt);
+        });
         _ = modelBuilder.Entity<SecurityAccessPolicyRecord>(entity =>
         {
             _ = entity.HasKey(policy => policy.Id);
@@ -41,6 +51,8 @@ public sealed class AuthenticationDbContext(DbContextOptions<AuthenticationDbCon
             _ = entity.Property(session => session.ClientIpAddress).HasMaxLength(45);
             _ = entity.HasIndex(session => new { session.UserId, session.TerminatedAt });
             _ = entity.HasIndex(session => session.LastActivityAt);
+            _ = entity.HasIndex(session => session.CentralSessionId);
+            _ = entity.HasOne<AuthenticationSession>().WithMany().HasForeignKey(session => session.CentralSessionId).OnDelete(DeleteBehavior.Restrict);
         });
         _ = modelBuilder.Entity<TenantHandoffTicket>(entity =>
         {
@@ -50,6 +62,9 @@ public sealed class AuthenticationDbContext(DbContextOptions<AuthenticationDbCon
             _ = entity.Property(ticket => ticket.TargetHost).IsRequired().HasMaxLength(TenantHandoffTicket.TargetHostMaximumLength);
             _ = entity.Property(ticket => ticket.RedeemedAt).IsConcurrencyToken();
             _ = entity.Property(ticket => ticket.AuthenticatedAt);
+            _ = entity.Property(ticket => ticket.CorrelationHash).HasMaxLength(TenantHandoffTicket.TokenHashLength);
+            _ = entity.Property(ticket => ticket.ReturnPath).HasMaxLength(AuthenticationContinuation.MaximumReturnPathLength);
+            _ = entity.Property(ticket => ticket.ReturnOrigin).HasMaxLength(512);
             _ = entity.HasIndex(ticket => ticket.TokenHash).IsUnique();
             _ = entity.HasIndex(ticket => new { ticket.UserId, ticket.ExpiresAt });
         });

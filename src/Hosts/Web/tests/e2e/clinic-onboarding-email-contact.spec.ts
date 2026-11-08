@@ -2,6 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 import crypto from "node:crypto";
 import { existsSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
+import { Routes } from "../../apps/private-practice-owner/src/app/routes";
 import { enMessages } from "../../apps/private-practice-owner/src/localization/messages/en";
 import { faMessages } from "../../apps/private-practice-owner/src/localization/messages/fa";
 import {
@@ -12,7 +13,7 @@ import {
 import { REQUEST_ID_HEADER, TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
 import { authenticationAntiforgeryGet } from "../../shared/auth/src/api/generated/authentication/authentication";
 import { clinicMessageCatalogs } from "../../shared/clinic/src/localization/catalogs";
-import { onboardingHandoffUrl, tenantHandoffPath } from "../../shared/journey/src/onboardingHost";
+import { tenantHandoffPath } from "../../shared/journey/src/onboardingHost";
 import { localeCookieName } from "../../shared/localization/src/localeCookie";
 import type { SupportedLocale } from "../../shared/localization/src/locales";
 import { landingIssueOnboardingHandoff } from "../../shared/platform/src/api/generated/landing/landing";
@@ -95,11 +96,11 @@ test("an account with only a confirmed email signs in by email code and creates 
 
   // 2. Continue to the onboarding host and create the clinic.
   const handoff = await requestOnboardingHandoff(page);
-  await page.goto(onboardingHandoffUrl(onboardingOrigin, handoff.token), {
+  await page.goto(handoff.handoffUrl!, {
     waitUntil: "domcontentloaded",
     timeout: pageCompileTimeoutMilliseconds,
   });
-  await page.waitForURL((url) => url.host === new URL(onboardingOrigin).host && !url.pathname.startsWith(tenantHandoffPath), {
+  await page.waitForURL((url) => url.host === new URL(onboardingOrigin).host && !url.pathname.startsWith(tenantHandoffPath) && !url.pathname.startsWith(Routes.Login.Index), {
     timeout: pageCompileTimeoutMilliseconds,
   });
   await expect(page.getByRole("heading", { name: setupMessages.title })).toBeVisible({ timeout: pageCompileTimeoutMilliseconds });

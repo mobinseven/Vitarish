@@ -188,7 +188,7 @@ public static class LandingApiEndpointMapping
         LandingWorkspaceHandoff? handoff = await sender.Send(new IssueLandingWorkspaceHandoffCommand(tenantId), ct);
         return handoff is null
             ? Results.NotFound()
-            : Results.Ok(new LandingWorkspaceHandoffResponse(handoff.Hostname, handoff.Token));
+            : Results.Ok(new LandingWorkspaceHandoffResponse(handoff.Hostname, handoff.Token, handoff.HandoffUrl));
     }
 
     private static async Task<IResult> IssueOnboardingHandoffAsync(LandingOnboardingHandoffRequest request, HttpContext context, IOptions<LandingPlatformOptions> options, IPartiesService parties, ISender sender, CancellationToken ct)
@@ -211,7 +211,7 @@ public static class LandingApiEndpointMapping
         SignInHandoff? handoff = await sender.Send(new IssueSignInHandoffCommand(null), ct);
         return handoff is null
             ? Results.NotFound(new LandingError(LandingErrorCodes.NotFound, "Clinic creation is not available."))
-            : Results.Ok(new LandingOnboardingHandoffResponse(handoff.Hostname, handoff.Token));
+            : Results.Ok(new LandingOnboardingHandoffResponse(handoff.Hostname, handoff.Token, handoff.HandoffUrl));
     }
 
     private static async Task<IResult> RunHomeConversationAsync(LandingHomeConversationRequest request, HttpContext context, IOptions<LandingPlatformOptions> options, IPartiesService parties, ISender sender, CancellationToken ct)

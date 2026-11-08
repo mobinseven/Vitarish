@@ -14,5 +14,8 @@ public sealed class LandingHostRoleFreeSessionPolicy(IAppTenantDirectory tenants
 {
     public async Task<bool> AllowsRoleFreeSessionAsync(CancellationToken cancellationToken = default) =>
         Guid.TryParse(requestContext.TenantId, out Guid tenantId)
-        && await tenants.IsLiveAppTenantAsync(tenantId, LandingTenant.AppId, cancellationToken);
+        && await AllowsRoleFreeSessionForTenantAsync(tenantId, cancellationToken);
+
+    public Task<bool> AllowsRoleFreeSessionForTenantAsync(Guid tenantId, CancellationToken cancellationToken = default) =>
+        tenants.IsLiveAppTenantAsync(tenantId, LandingTenant.AppId, cancellationToken);
 }

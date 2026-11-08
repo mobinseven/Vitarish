@@ -17,7 +17,7 @@ import {
 import { REQUEST_ID_HEADER, TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
 import { authenticationAntiforgeryGet } from "../../shared/auth/src/api/generated/authentication/authentication";
 import { clinicMessageCatalogs } from "../../shared/clinic/src/localization/catalogs";
-import { onboardingHandoffUrl, tenantHandoffPath } from "../../shared/journey/src/onboardingHost";
+import { tenantHandoffPath } from "../../shared/journey/src/onboardingHost";
 import { getDateCalendar } from "../../shared/localization/src/dateLocale";
 import { formatTimeOfDay } from "../../shared/localization/src/format";
 import { localeCookieName } from "../../shared/localization/src/localeCookie";
@@ -306,12 +306,13 @@ test("a new phone number signs up, creates a clinic, lands signed in on it, and 
   });
   const onboardingHandoff = await requestOnboardingHandoff(page);
   expect(onboardingHandoff.hostname).toBe(new URL(onboardingOrigin).hostname);
-  expect(onboardingHandoff.token).toMatch(/\S{16,}/);
-  await page.goto(onboardingHandoffUrl(onboardingOrigin, onboardingHandoff.token), {
+  expect(onboardingHandoff.token).toBe("");
+  expect(onboardingHandoff.handoffUrl).toBeTruthy();
+  await page.goto(onboardingHandoff.handoffUrl!, {
     waitUntil: "domcontentloaded",
     timeout: pageCompileTimeoutMilliseconds,
   });
-  await page.waitForURL((url) => url.host === new URL(onboardingOrigin).host && !url.pathname.startsWith(tenantHandoffPath), {
+  await page.waitForURL((url) => url.host === new URL(onboardingOrigin).host && !url.pathname.startsWith(tenantHandoffPath) && !url.pathname.startsWith(Routes.Login.Index), {
     timeout: pageCompileTimeoutMilliseconds,
   });
   await expect(page).toHaveURL(new RegExp(`^${onboardingOrigin}${Routes.Setup}(?:[/?#]|$)`), {
@@ -361,7 +362,7 @@ test("a new phone number signs up, creates a clinic, lands signed in on it, and 
     .then(() => page.url());
   await page.getByRole("button", { name: setupMessages.ready.goToClinic, exact: true }).click();
   const recordedHandoffUrl = await handoffUrlPromise;
-  expect(recordedHandoffUrl).toMatch(new RegExp(`^http://${clinicHostname}:3005${Routes.Handoff}#.+$`));
+  expect(recordedHandoffUrl).toMatch(new RegExp(`^${twoHostE2eSignInOrigin}${Routes.Handoff}#.+$`));
 
   await expect(page).toHaveURL(new RegExp(`^http://${clinicHostname}:3005${Routes.Home}(?:[/?#]|$)`), {
     timeout: pageCompileTimeoutMilliseconds,

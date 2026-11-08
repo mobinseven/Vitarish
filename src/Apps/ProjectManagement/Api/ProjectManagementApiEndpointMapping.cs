@@ -87,9 +87,15 @@ public static class ProjectManagementApiEndpointMapping
             return null;
         }
 
-        bool member = await users.CheckUserRoleAsync(requestContext.UserId, IdentityDefinitions.PlatformAdmin, ct) ||
-            await users.CheckUserRoleAsync(requestContext.UserId, $"{tenantId:D}:{IdentityDefinitions.TenantOwner}", ct) ||
-            await users.CheckUserRoleAsync(requestContext.UserId, $"{tenantId:D}:{IdentityDefinitions.TenantUser}", ct);
+        bool member = false;
+        foreach (string role in ProjectManagementAdmissionPolicy.AdmissionRoles(tenantId))
+        {
+            if (await users.CheckUserRoleAsync(requestContext.UserId, role, ct))
+            {
+                member = true;
+                break;
+            }
+        }
         return member && await seaAccess.CanReadEventAsync(new(tenantId.ToString("D"), requestContext.UserId), eventId, ct) ? new(tenantId.ToString("D"), requestContext.UserId, eventId, "fa") : null;
     }
     private static async Task<IResult> DeleteConversationAsync(Guid eventId, Guid conversationId, IRequestContext requestContext, IUsersService users, ISeaManagementAccessEvaluator seaAccess, ISender sender, CancellationToken ct)

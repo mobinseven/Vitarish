@@ -107,12 +107,10 @@ export async function continueToClinic(page: Page, clinicOrigin = defaultClinicO
   expect(handoffResult.status, "the landing host must issue the requested workspace handoff").toBe(200);
   const handoff = handoffResult.body as LandingWorkspaceHandoffResponse | null;
   expect(handoff?.hostname.toLowerCase()).toBe(requestedClinicHostname);
-  expect(handoff?.token).toBeTruthy();
-
-  const redemptionUrl = new URL(Routes.Handoff, requestedClinicOrigin);
-  redemptionUrl.hash = handoff!.token;
-  await page.goto(redemptionUrl.toString(), { waitUntil: "domcontentloaded", timeout: handoffTimeoutMilliseconds });
-  await page.waitForURL((url) => url.origin === requestedClinicOrigin && url.pathname !== Routes.Handoff, {
+  expect(handoff?.handoffUrl).toBeTruthy();
+  expect(handoff?.token).toBe("");
+  await page.goto(handoff!.handoffUrl!, { waitUntil: "domcontentloaded", timeout: handoffTimeoutMilliseconds });
+  await page.waitForURL((url) => url.origin === requestedClinicOrigin && url.pathname !== Routes.Handoff && !url.pathname.startsWith(Routes.Login.Index), {
     waitUntil: "domcontentloaded",
     timeout: handoffTimeoutMilliseconds,
   });

@@ -8,7 +8,10 @@
     ".": "./src/index.ts",
     "./localization": "./src/localization/index.ts",
     "./users": "./src/users.ts",
-    "./routes": "./src/routes.ts"
+    "./routes": "./src/routes.ts",
+    "./central-host": "./src/centralHost.ts",
+    "./central-server": "./src/centralServer.tsx",
+    "./central": "./src/components/CentralAuthentication.tsx"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",

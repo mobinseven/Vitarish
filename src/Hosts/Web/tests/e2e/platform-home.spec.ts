@@ -228,7 +228,7 @@ async function signInWithPhone(
     }
   })!);
   const handoffUrl = await completeLandingSignIn(page, navigation.navigatedUrls);
-  await page.waitForURL((url) => url.origin === landingOrigin && url.pathname !== Routes.Handoff, {
+  await page.waitForURL((url) => url.origin === landingOrigin && url.pathname !== Routes.Handoff && !url.pathname.startsWith(Routes.Login.Index), {
     waitUntil: "domcontentloaded", timeout: pageCompileTimeoutMilliseconds,
   });
   await expect.poll(async () => (await callApi(page, "GET", sessionPath)).status, { timeout: pageCompileTimeoutMilliseconds }).toBe(200);
@@ -264,14 +264,14 @@ async function signInSeededClinicOwner(page: Page): Promise<SignInResult> {
     }
   })!);
   const handoffUrl = await completeLandingSignIn(page, navigation.navigatedUrls);
-  await page.waitForURL((url) => url.origin === landingOrigin && url.pathname !== Routes.Handoff, {
+  await page.waitForURL((url) => url.origin === landingOrigin && url.pathname !== Routes.Handoff && !url.pathname.startsWith(Routes.Login.Index), {
     waitUntil: "domcontentloaded", timeout: pageCompileTimeoutMilliseconds,
   });
   await expect.poll(async () => (await callApi(page, "GET", sessionPath)).status, { timeout: pageCompileTimeoutMilliseconds }).toBe(200);
   return { continueUrl, handoffUrl, issuingCookieHeader: navigation.issuingCookieHeader };
 }
 
-async function expectSourceSessionRevoked(context: BrowserContext, issuingCookieHeader: string, clientIp: string): Promise<void> {
+async function expectSourceSessionActive(context: BrowserContext, issuingCookieHeader: string, clientIp: string): Promise<void> {
   const apiOrigin = process.env[twoHostE2eApiOriginEnvironmentKey];
   expect(apiOrigin, `${twoHostE2eApiOriginEnvironmentKey} must be supplied by the two-host runner`).toBeTruthy();
   expect(issuingCookieHeader, "the sign-in host session cookie is captured before handoff").toBeTruthy();
@@ -283,7 +283,7 @@ async function expectSourceSessionRevoked(context: BrowserContext, issuingCookie
     },
     ignoreHTTPSErrors: true,
   });
-  expect(response.status()).toBe(401);
+  expect(response.status()).toBe(200);
 }
 
 async function captureProofScreenshot(page: Page): Promise<void> {
@@ -375,7 +375,7 @@ test("a fresh phone sign-in with no workspaces reaches platform home and can exp
     });
     expect(onboardingHandoff.status).toBe(200);
     expect((onboardingHandoff.body as { hostname: string }).hostname).toBe(onboardingHostname);
-    await expectSourceSessionRevoked(context, signedIn.issuingCookieHeader, emptyHomeClientIp);
+    await expectSourceSessionActive(context, signedIn.issuingCookieHeader, emptyHomeClientIp);
   } finally {
     await context.close();
   }
@@ -407,7 +407,7 @@ test("a person with one clinic reaches platform home before choosing and opening
     const workspaceHandoffPath = generatedPath(landingIssueWorkspaceHandoff).replace(/\$\{[^}]+\}/, clinic.tenantId);
     const workspaceHandoff = await callApi(homePage, "POST", workspaceHandoffPath);
     expect(workspaceHandoff.status).toBe(200);
-    const handoff = workspaceHandoff.body as { hostname: string; token: string };
+    const handoff = workspaceHandoff.body as { hostname: string; token: string; handoffUrl: string };
     expect(handoff.hostname).toBe(clinic.hostname);
     const unknownTenantPath = generatedPath(landingIssueWorkspaceHandoff).replace(/\$\{[^}]+\}/, crypto.randomUUID());
     expect((await callApi(homePage, "POST", unknownTenantPath)).status).toBe(404);
@@ -415,21 +415,21 @@ test("a person with one clinic reaches platform home before choosing and opening
     const clinicOrigin = `http://${handoff.hostname}:3005`;
     await context.addCookies([{ name: localeCookieName, value: locale, url: clinicOrigin }]);
     const clinicPage = await context.newPage();
-    const redemptionUrl = new URL(Routes.Handoff, clinicOrigin);
-    redemptionUrl.hash = handoff.token;
-    await clinicPage.goto(redemptionUrl.toString(), { waitUntil: "domcontentloaded", timeout: pageCompileTimeoutMilliseconds });
-    await clinicPage.waitForURL((url) => url.origin === clinicOrigin && url.pathname !== Routes.Handoff, {
+    expect(handoff.token).toBe("");
+    expect(new URL(handoff.handoffUrl).origin).toBe(clinicOrigin);
+    await clinicPage.goto(handoff.handoffUrl, { waitUntil: "domcontentloaded", timeout: pageCompileTimeoutMilliseconds });
+    await clinicPage.waitForURL((url) => url.origin === clinicOrigin && url.pathname !== Routes.Handoff && !url.pathname.startsWith(Routes.Login.Index), {
       waitUntil: "domcontentloaded", timeout: pageCompileTimeoutMilliseconds,
     });
     const clinicSession = await callApi(clinicPage, "GET", sessionPath);
     expect(clinicSession).toMatchObject({ status: 200, body: { isAuthenticated: true } });
-    // Owner decision: the default single-session policy replaces home on workspace redemption.
-    expect(await callApi(homePage, "GET", sessionPath)).toMatchObject({ status: 401 });
+    // Home and workspace belong to the same central browser family.
+    expect(await callApi(homePage, "GET", sessionPath)).toMatchObject({ status: 200 });
     await clinicPage.waitForLoadState("networkidle");
     await expect(clinicPage.getByText(messages.home.dashboard.loadingSurgeries)).toBeHidden();
     await expect(clinicPage.getByText(clinicMessages.appointments.visits.loading)).toBeHidden();
     await captureProofScreenshot(clinicPage);
-    await expectSourceSessionRevoked(context, signedIn.issuingCookieHeader, clinicHomeClientIp);
+    await expectSourceSessionActive(context, signedIn.issuingCookieHeader, clinicHomeClientIp);
   } finally {
     await context.close();
   }
@@ -444,7 +444,7 @@ test("a safe relative return intent survives phone sign-in from the login index"
     const page = await context.newPage();
     const signedIn = await signInWithPhone(page, `912${randomDigits(7)}`, returnIntent, true);
     expect(new URL(signedIn.continueUrl).searchParams.get(signInReturnUrlQueryKey)).toBe(returnIntent);
-    expect(new URL(signedIn.handoffUrl).searchParams.get(signInReturnUrlQueryKey)).toBe(returnIntent);
+    expect(new URL(page.url()).pathname).toBe(returnIntent);
   } finally {
     await context.close();
   }

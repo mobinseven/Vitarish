@@ -36,6 +36,28 @@ public sealed class PartiesModule : Modules.Base.Core.Module
         await EnsurePlatformAdminTenantAsync(app);
         await EnsureOnboardingTenantAsync(app);
         await EnsureSignInTenantAsync(app);
+        await EnsureBrowserApplicationTenantsAsync(app);
+    }
+
+    private static async Task EnsureBrowserApplicationTenantsAsync(WebApplication app)
+    {
+        await using AsyncServiceScope scope = app.Services.CreateAsyncScope();
+        BrowserApplicationHostOptions options = scope.ServiceProvider.GetRequiredService<IOptions<BrowserApplicationHostOptions>>().Value;
+        IAppTenantProvisioner provisioner = scope.ServiceProvider.GetRequiredService<IAppTenantProvisioner>();
+        ITenantHostnameRegistry hostnames = scope.ServiceProvider.GetRequiredService<ITenantHostnameRegistry>();
+        foreach (var (url, appId, name) in new[]
+        {
+            (options.PatientsUrl, BrowserApplicationTenants.PatientsAppId, BrowserApplicationTenants.PatientsName),
+            (options.ProjectManagementUrl, BrowserApplicationTenants.ProjectManagementAppId, BrowserApplicationTenants.ProjectManagementName),
+            (options.KnowledgeQaUrl, BrowserApplicationTenants.KnowledgeQaAppId, BrowserApplicationTenants.KnowledgeQaName)
+        })
+        {
+            if (url is null) continue;
+            string host = new Uri(url).Host;
+            // Existing operator-owned tenant bindings remain authoritative.
+            if (!await hostnames.IsClaimedAsync(host, CancellationToken.None))
+                _ = await provisioner.EnsureAsync(new EnsureAppTenantRequest(SignInTenant.OwnerName, appId, name, host), CancellationToken.None);
+        }
     }
 
     private static async Task EnsureSignInTenantAsync(WebApplication app)

@@ -1,3 +1,4 @@
+import { CentralAuthenticationSessionRenewal } from "@vitarish/auth/central-server";
 import type { Viewport } from "next";
 import { headers } from "next/headers";
 import { I18nAppLayout } from "@vitarish/localization";
@@ -35,7 +36,7 @@ export default async function RootLayout({
         htmlClassName={`${applicationFontVariables} bg-background text-foreground`}
         bodyClassName="bg-background text-foreground font-sans antialiased"
       >
-        <Providers nonce={nonce}>{children}</Providers>
+        <Providers nonce={nonce}><CentralAuthenticationSessionRenewal />{children}</Providers>
       </I18nAppLayout>
     </>
   );

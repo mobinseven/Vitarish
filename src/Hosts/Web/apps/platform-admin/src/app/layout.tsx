@@ -1,3 +1,4 @@
+import { CentralAuthenticationSessionRenewal } from "@vitarish/auth/central-server";
 import type { Viewport } from "next";
 import { headers } from "next/headers";
 import { I18nAppLayout } from "@vitarish/localization";
@@ -24,7 +25,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <img src="/Master-Hel-Logotype.svg" alt="Vitarish" className="block h-auto w-full" />
         </picture>
       </header>
-      <Providers nonce={nonce}><PlatformAdminAccessBoundary>{children}</PlatformAdminAccessBoundary></Providers>
+      <Providers nonce={nonce}><PlatformAdminAccessBoundary><CentralAuthenticationSessionRenewal />{children}</PlatformAdminAccessBoundary></Providers>
       <header className="w-full">
         <picture>
           <source media="(prefers-color-scheme: dark)" srcSet="/Master-Hel-Logotype-Dark-©.svg" />

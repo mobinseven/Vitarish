@@ -1,3 +1,4 @@
+import { CentralAuthenticationSessionRenewal } from "@vitarish/auth/central-server";
 import type { Viewport } from "next";
 import { headers } from "next/headers";
 import { Providers } from "@/components/providers/AppProviders";
@@ -41,7 +42,7 @@ export default async function RootLayout({
       >
         <Providers nonce={nonce}>
           <InitialPageLoader />
-          {children}
+          <CentralAuthenticationSessionRenewal />{children}
         </Providers>
       </I18nAppLayout>
     </>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { usePendingAuthenticationChallenge } from "./usePendingAuthenticationChallenge";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useAuthenticationLoginPassword,
@@ -29,12 +30,19 @@ export function usePasswordLogin({ navigate = ignoreAuthNavigation, returnUrlSea
   const [statusCode, setStatusCode] = useState<string | null>(null);
   const [pendingReturnUrl, setPendingReturnUrl] = useState<string | undefined>(undefined);
 
+  const pending = usePendingAuthenticationChallenge(value => {
+    if (!value.isPasswordOtp) return;
+    setChallenge({ challengeId: value.challenge.challengeId, expiresAt: value.challenge.expiresAt, remainingAttempts: value.challenge.remainingAttempts, usesEmailSecondFactor: value.usesEmailSecondFactor, maskedDestination: value.destination || undefined });
+    setPendingReturnUrl(value.returnUrl ?? undefined);
+  }, error => setError(parseAuthError(error)));
+
   const login = useCallback(
     async (
       userNameOrEmail: string,
       password: string,
       returnUrl?: string
     ) => {
+      pending.cancelRestore();
       setError(null);
       setStatusCode(null);
       const finalReturnUrl = getRequestedReturnUrl(returnUrlSearchParams, returnUrl);
@@ -126,6 +134,7 @@ export function usePasswordLogin({ navigate = ignoreAuthNavigation, returnUrlSea
   }, [challenge, resendOtpMutation]);
 
   const resetOtp = useCallback(() => {
+    pending.clear();
     setChallenge(null);
     setError(null);
     setStatusCode(null);
@@ -139,7 +148,7 @@ export function usePasswordLogin({ navigate = ignoreAuthNavigation, returnUrlSea
     resetOtp,
     challenge,
     requiresOtp: challenge !== null,
-    isLoading: mutation.isPending || otpMutation.isPending || resendOtpMutation.isPending,
+    isLoading: pending.isRestoring || mutation.isPending || otpMutation.isPending || resendOtpMutation.isPending,
     error,
     errorMessage: error ? getErrorMessage(error) : null,
     statusCode,

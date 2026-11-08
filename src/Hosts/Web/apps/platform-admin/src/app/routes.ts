@@ -4,9 +4,9 @@ import { AuthenticationWebRoutes } from "@vitarish/auth/routes";
 export const Routes = {
   Root: "/",
   Logout: "/logout",
-  Login: "/login",
-  LoginPassword: "/login/password",
-  LoginEmail: "/login/email",
+  Login: AuthenticationWebRoutes.SignIn,
+  LoginPassword: AuthenticationWebRoutes.SignInPassword,
+  LoginEmail: AuthenticationWebRoutes.SignInEmail,
   LoginForgotPassword: AuthenticationWebRoutes.PasswordRecovery,
   Users: {
     Index: "/users",

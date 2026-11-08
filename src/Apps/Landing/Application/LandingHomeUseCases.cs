@@ -74,13 +74,15 @@ public sealed class IsLandingWorkspaceCreationAvailableQueryHandler(
             && LandingAppCreationRules.CanCreate(app, activeProfile, onboardingOptions.Value)));
 }
 
-public sealed record LandingWorkspaceHandoff(string Hostname, string Token);
+public sealed record LandingWorkspaceHandoff(string Hostname, string Token, string? HandoffUrl = null);
 public sealed record IssueLandingWorkspaceHandoffCommand(Guid TenantId) : IRequest<LandingWorkspaceHandoff?>;
 
 public sealed class IssueLandingWorkspaceHandoffCommandHandler(
     IWorkspaceDirectory workspaces,
     ITenantHandoffIssuer handoffs,
-    IRequestContext requestContext)
+    IRequestContext requestContext,
+    ISender? sender = null,
+    Vitarish.Authentication.Application.Abstractions.IAuthenticationHostDirectory? hosts = null)
     : IRequestHandler<IssueLandingWorkspaceHandoffCommand, LandingWorkspaceHandoff?>
 {
     public async Task<LandingWorkspaceHandoff?> Handle(IssueLandingWorkspaceHandoffCommand command, CancellationToken cancellationToken)
@@ -94,6 +96,12 @@ public sealed class IssueLandingWorkspaceHandoffCommandHandler(
         if (workspace is null)
             return null;
 
+        if (hosts?.SignInOrigin is not null)
+        {
+            if (sender is null) return null;
+            SignInHandoff? entry = await sender.Send(new IssueSignInHandoffCommand(workspace.TenantId), cancellationToken);
+            return entry?.HandoffUrl is null ? null : new(workspace.Hostname, string.Empty, entry.HandoffUrl);
+        }
         string? token = await handoffs.IssueAsync(userId, workspace.Hostname, cancellationToken);
         return token is null ? null : new(workspace.Hostname, token);
     }

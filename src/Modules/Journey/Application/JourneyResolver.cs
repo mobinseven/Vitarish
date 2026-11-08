@@ -42,6 +42,14 @@ public sealed class JourneyResolver(
                 : new JourneyStep(JourneyDestinationKind.UserHome, JourneyPolicy.AppRootUrl);
         }
 
+        bool isCentralHost = await hostReader.IsSignInHostAsync(cancellationToken);
+        string? appReturnUrl = returnUrlPolicy.Normalize(request.RequestedReturnUrl);
+        if (isCentralHost && appReturnUrl == JourneyPolicy.ProfileCompletionUrl) appReturnUrl = null;
+        // Auth validates its own internal continuation query; general app return paths remain query-free.
+        string? centralReturnUrl = isCentralHost && request.RequestedReturnUrl is { } requestedCentral &&
+            requestedCentral != JourneyPolicy.ProfileCompletionUrl && hostReader.IsCentralDestination(requestedCentral)
+            ? requestedCentral : null;
+
         // Read snapshots
         var profile = await profileReader.GetSnapshotAsync(request.UserId, cancellationToken);
         var consent = await consentReader.GetSnapshotAsync(request.UserId, cancellationToken);
@@ -60,7 +68,7 @@ public sealed class JourneyResolver(
         if (!completionResult.IsComplete)
         {
             var missingFields = string.Join(", ", completionResult.MissingRequirements.Select(r => r.FieldName));
-            var safeProfileReturnUrl = returnUrlPolicy.Normalize(request.RequestedReturnUrl);
+            var safeProfileReturnUrl = centralReturnUrl ?? appReturnUrl;
             var profileCompletionUrl = safeProfileReturnUrl is null
                 ? JourneyPolicy.ProfileCompletionUrl
                 : $"{JourneyPolicy.ProfileCompletionUrl}?{JourneyPolicy.ReturnUrlQueryKey}={Uri.EscapeDataString(safeProfileReturnUrl)}";
@@ -78,10 +86,13 @@ public sealed class JourneyResolver(
         if (consentGate is not null)
             return new JourneyStep(JourneyDestinationKind.Gate, consentGate.DestinationUrl, consentGate);
 
+        if (centralReturnUrl is not null)
+            return new JourneyStep(JourneyDestinationKind.ReturnUrl, centralReturnUrl);
+
         // Priority 6: Continue to platform home on the shared sign-in host
         var signInContinueGate = JourneyPolicy.EvaluateSignInContinue(
-            await hostReader.IsSignInHostAsync(cancellationToken),
-            returnUrlPolicy.Normalize(request.RequestedReturnUrl));
+            isCentralHost,
+            appReturnUrl);
         if (signInContinueGate is not null)
             return new JourneyStep(JourneyDestinationKind.Gate, signInContinueGate.DestinationUrl, signInContinueGate);
 
@@ -96,7 +107,7 @@ public sealed class JourneyResolver(
             return new JourneyStep(JourneyDestinationKind.Gate, workspaceGate.DestinationUrl, workspaceGate);
 
         // Priority 8: Safe return URL
-        var safeReturnUrl = returnUrlPolicy.Normalize(request.RequestedReturnUrl);
+        var safeReturnUrl = appReturnUrl;
         if (safeReturnUrl is not null)
             return new JourneyStep(JourneyDestinationKind.ReturnUrl, safeReturnUrl);
 

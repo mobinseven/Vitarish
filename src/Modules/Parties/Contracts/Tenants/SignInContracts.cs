@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 namespace Vitarish.Parties.Contracts.Tenants;
 
 /// <summary>A clinic the signed-in user can open from the shared sign-in host.</summary>
@@ -5,11 +6,11 @@ namespace Vitarish.Parties.Contracts.Tenants;
 /// <param name="LogoPath">Where the clinic's logo loads from on <paramref name="Hostname"/>; null when it has none.</param>
 public sealed record SignInClinicDto(Guid TenantId, string AppId, string Name, string Hostname, string Role, string? LogoPath);
 
-public sealed record SignInClinicsResponse(IReadOnlyList<SignInClinicDto> Clinics);
+public sealed record SignInClinicsResponse(IReadOnlyList<SignInClinicDto> Clinics, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? OnboardingUrl = null);
 
 /// <param name="Token">One-time token, valid for a minute on <paramref name="Hostname"/> only, to continue there signed in.</param>
 public sealed record SignInHandoffResponse(string Hostname, string Token);
 
 public sealed record SignInHomeHandoffRequest(string? ReturnTo);
 
-public sealed record SignInHomeHandoffResponse(string Hostname, string Token, string? ReturnTo);
+public sealed record SignInHomeHandoffResponse(string Hostname, string Token, string? ReturnTo, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? HandoffUrl = null);

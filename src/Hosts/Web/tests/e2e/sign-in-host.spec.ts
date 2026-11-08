@@ -2,6 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 import crypto from "node:crypto";
 import { Routes } from "../../apps/private-practice-owner/src/app/routes";
 import { LandingRoutes } from "../../apps/vitarish-landing/src/app/routes";
+import { AuthenticationSearchParams } from "../../shared/auth/src/routes";
 import {
   twoHostE2eApiOriginEnvironmentKey,
   twoHostE2eClinicOrigin,
@@ -77,7 +78,7 @@ test("sign-in host forwards clinic-local visitors to platform home", async ({ br
 
     // Clinic-local entry pages lead to the shared sign-in host before collecting credentials.
     await page.goto(`${twoHostE2eClinicOrigin}${Routes.Login.Password}`, { waitUntil: "domcontentloaded" });
-    await expect(page).toHaveURL(`${signInOrigin}${Routes.Login.Index}`, { timeout: pageCompileTimeoutMilliseconds });
+    await expect(page).toHaveURL((url) => url.origin === signInOrigin && url.pathname === Routes.Login.Password && Boolean(url.searchParams.get(AuthenticationSearchParams.ReturnUrl)), { timeout: pageCompileTimeoutMilliseconds });
 
     await page.goto(`${signInOrigin}${Routes.Login.Password}`, { waitUntil: "domcontentloaded" });
     await expect(page.locator("form")).toHaveAttribute("method", "post", { timeout: pageCompileTimeoutMilliseconds });
@@ -131,7 +132,7 @@ test("sign-in host forwards clinic-local visitors to platform home", async ({ br
       },
       ignoreHTTPSErrors: true,
     });
-    expect(sourceSession.status()).toBe(401);
+    expect(sourceSession.status()).toBe(200);
 
     expect(await postStatus(page, generatedOperationPath(authenticationLogoutPost), { logoutId: null, returnUrl: null })).toBe(200);
     expect(await getStatus(page, sessionPath)).toBe(401);

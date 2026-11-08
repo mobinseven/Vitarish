@@ -5,7 +5,7 @@ Status: Accepted
 Scope: Platform home, app catalog, workspace directory, sign-in and onboarding journeys
 Owner: Architecture
 Supersedes:
-Superseded by:
+Superseded by: [ADR-0021](0021-central-browser-authentication.md) for session ownership and handoff compatibility; home and workspace selection remain in force
 Related: [ADR-0016](0016-self-service-clinic-onboarding.md); [ADR-0017](0017-conversational-front-door-and-shared-agent-interaction.md); [ADR-0018](0018-shared-sign-in-host.md)
 
 ## Context

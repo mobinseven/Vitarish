@@ -9,6 +9,7 @@ using Vitarish.Parties.Application.Addresses;
 using Vitarish.Parties.Domain.Addresses;
 using Vitarish.Parties.Domain.Profiles;
 using Vitarish.Requests.Application.Abstractions;
+using Vitarish.Parties.Application.SignIn;
 
 namespace Vitarish.Parties.Application.Onboarding;
 
@@ -31,7 +32,7 @@ public enum CreateOwnTenantStatus
 }
 
 /// <param name="HandoffToken">One-time token to continue signed in on <paramref name="Hostname"/>; null when none could be issued.</param>
-public sealed record CreateOwnTenantResult(CreateOwnTenantStatus Status, Guid? TenantId = null, string? Hostname = null, string? Error = null, string? HandoffToken = null);
+public sealed record CreateOwnTenantResult(CreateOwnTenantStatus Status, Guid? TenantId = null, string? Hostname = null, string? Error = null, string? HandoffToken = null, string? HandoffUrl = null);
 
 /// <summary>
 /// A signed-in user creates their own tenant at <c>&lt;subdomain&gt;.&lt;base domain&gt;</c> and becomes
@@ -58,7 +59,8 @@ public sealed partial class CreateOwnTenantCommandHandler(
     IRequestContext requestContext,
     TimeProvider timeProvider,
     IOnboardingSetupDraftStore setupDrafts,
-    ILogger<CreateOwnTenantCommandHandler> logger) : IRequestHandler<CreateOwnTenantCommand, CreateOwnTenantResult>
+    ILogger<CreateOwnTenantCommandHandler> logger,
+    IOptions<SignInHostOptions>? signIn = null) : IRequestHandler<CreateOwnTenantCommand, CreateOwnTenantResult>
 {
     public const int NameMaximumLength = 100;
     public const int DescriptionMaximumLength = 500;
@@ -138,10 +140,13 @@ public sealed partial class CreateOwnTenantCommandHandler(
     [LoggerMessage(Level = LogLevel.Warning, Message = "The setup draft could not be cleared after the tenant was created.")]
     private static partial void LogSetupDraftNotCleared(ILogger logger, Exception exception);
 
-    private async Task<CreateOwnTenantResult> WithHandoffAsync(CreateOwnTenantResult result, string creatorUserId, CancellationToken cancellationToken) =>
-        result.Status is CreateOwnTenantStatus.Created or CreateOwnTenantStatus.Replayed
-            ? result with { HandoffToken = await handoffs.IssueAsync(creatorUserId, result.Hostname!, cancellationToken) }
-            : result;
+    private async Task<CreateOwnTenantResult> WithHandoffAsync(CreateOwnTenantResult result, string creatorUserId, CancellationToken cancellationToken)
+    {
+        if (result.Status is not (CreateOwnTenantStatus.Created or CreateOwnTenantStatus.Replayed)) return result;
+        if (!string.IsNullOrWhiteSpace(signIn?.Value.SignInUrl))
+            return result with { HandoffUrl = await handoffs.IssueCentralCreationAsync(creatorUserId, result.Hostname!, cancellationToken) };
+        return result with { HandoffToken = await handoffs.IssueAsync(creatorUserId, result.Hostname!, cancellationToken) };
+    }
 
     private async Task<CreateOwnTenantResult?> FindReplayAsync(Guid tenantId, NewTenantListing listing, CancellationToken cancellationToken)
     {

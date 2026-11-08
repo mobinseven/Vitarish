@@ -1,13 +1,17 @@
 using Microsoft.Extensions.Logging;
 using Vitarish.Authentication.Application.Handlers;
+using Vitarish.Authentication.Application.Abstractions;
 using Vitarish.Parties.Application.Onboarding;
 
 namespace Vitarish.Parties.Infrastructure.Services;
 
 public sealed class AuthenticationTenantHandoffIssuer(
     IssueTenantHandoffHandler handler,
-    ILogger<AuthenticationTenantHandoffIssuer> logger) : ITenantHandoffIssuer
+    ILogger<AuthenticationTenantHandoffIssuer> logger,
+    IAuthenticationCreationHandoff? creation = null) : ITenantHandoffIssuer
 {
+    public Task<string?> IssueCentralCreationAsync(string userId, string hostname, CancellationToken cancellationToken = default) =>
+        creation?.CreateAsync(userId, hostname, cancellationToken) ?? Task.FromResult<string?>(null);
     public Task<string?> IssueAsync(string userId, string hostname, CancellationToken cancellationToken = default) =>
         IssueAsync(new IssueTenantHandoffCommand(userId, hostname), cancellationToken);
 

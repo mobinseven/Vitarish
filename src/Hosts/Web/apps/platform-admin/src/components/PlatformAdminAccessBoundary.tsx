@@ -9,6 +9,7 @@ import { ItemCard } from "@heroui-pro/react";
 import { FaIcon } from "@vitarish/ui";
 import Link from "next/link";
 import { Routes } from "../app/routes";
+import { AuthenticationSearchParams, AuthenticationWebRoutes } from "@vitarish/auth/routes";
 
 export function PlatformAdminAccessBoundary({
   children,
@@ -20,15 +21,16 @@ export function PlatformAdminAccessBoundary({
   const { isAuthenticated, isLoading, isError } = useAuthSession();
   const { hasAccess } = usePlatformAuthorization();
   const { t } = useLocalizedText();
-  const isLoginRoute = pathname.startsWith(Routes.Login);
+  const isAuthenticationRoute = pathname.startsWith(Routes.Login) || pathname === AuthenticationWebRoutes.Handoff;
 
   useEffect(() => {
-    if (!isLoginRoute && !isLoading && !isError && !isAuthenticated) {
-      router.replace(Routes.Login);
+    if (!isAuthenticationRoute && !isLoading && !isError && !isAuthenticated) {
+      const query = new URLSearchParams({ [AuthenticationSearchParams.ReturnUrl]: pathname + window.location.search });
+      router.replace(`${Routes.Login}?${query}`);
     }
-  }, [isAuthenticated, isError, isLoading, isLoginRoute, router]);
+  }, [isAuthenticated, isError, isLoading, isAuthenticationRoute, pathname, router]);
 
-  if (isLoginRoute) {
+  if (isAuthenticationRoute) {
     return <>{children}</>;
   }
 

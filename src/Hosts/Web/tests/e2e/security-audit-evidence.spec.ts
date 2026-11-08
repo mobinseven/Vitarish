@@ -1,3 +1,4 @@
+import { AuthenticationWebRoutes } from "../../shared/auth/src/routes";
 import { expect, request as playwrightRequest, test, type APIRequestContext, type Page, type Response } from "@playwright/test";
 import { createHmac } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
@@ -49,7 +50,9 @@ const ownerClientIp = "198.51.100.61";
 const failedAttemptClientIp = "198.51.100.64";
 const tenantBOwnerClientIp = "198.51.100.63";
 const ownerOrigin = "";
-const platformAdminUsername = process.env.VITARISH_E2E_PLATFORM_ADMIN_USERNAME ?? "e2e-platform-admin";
+const fixtureSource = readFileSync(join(process.cwd(), "../E2e/Infrastructure/Fixtures/E2eFixtureSeeder.cs"), "utf8");
+const platformAdminUsername = /public const string AuditEvidencePlatformAdminUserName = "([^"]+)";/.exec(fixtureSource)?.[1];
+if (!platformAdminUsername) throw new Error("The isolated audit administrator fixture was not found.");
 const ownerTenantId = "9c8b6b3a-7d6e-4f75-a88d-7d3f5b1b0f92";
 const tenantUserRoleSuffix = "TenantUser";
 const password = process.env.VITARISH_E2E_PASSWORD;
@@ -167,7 +170,7 @@ async function saveSourceFailedAttemptThreshold(page: Page, threshold: number): 
 async function passwordLoginFrom(request: APIRequestContext, clientIp: string, username: string, attemptPassword: string, attempt: string): Promise<number> {
   const response = await request.post(`${apiOrigin}${passwordLoginPath}`, {
     data: { userNameOrEmail: username, password: attemptPassword, returnUrl: null },
-    headers: { [forwardedForHeaderName]: clientIp, [TENANT_HOST_HEADER]: "localhost", [REQUEST_ID_HEADER]: `e2e-source-block-${attempt}-${Date.now()}` },
+    headers: { [forwardedForHeaderName]: clientIp, [TENANT_HOST_HEADER]: new URL(twoHostE2eSignInOrigin).host, [REQUEST_ID_HEADER]: `e2e-source-block-${attempt}-${Date.now()}` },
     ignoreHTTPSErrors: true,
   });
   return response.status();
@@ -197,6 +200,7 @@ async function login(page: Page, username: string, origin = "", clientIp = "198.
     page.locator('button[type="submit"]').click(),
   ]);
   expect(response.status()).toBe(200);
+  await expect(page).toHaveURL(url => url.origin === platformOrigin && !url.pathname.startsWith(AuthenticationWebRoutes.SignIn) && url.pathname !== AuthenticationWebRoutes.Handoff, { timeout: 120_000 });
 }
 
 async function platformAuditResponse(page: Page, event: AuditEventExpectation): Promise<{ status: number; body: unknown }> {
@@ -826,7 +830,7 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     const anonymousReview = { ...auditEvents.auditReview, operation: anonymousOperation, outcome: "denied" };
     const anonymousBefore = await platformAuditQuery(administratorPage, anonymousReview);
     const anonymousStatus = await request.get(`${apiOrigin}${anonymousEndpoint}${testInfo.retry === 0 ? "?page=1&pageSize=1&sortBy=1&descending=true&uncataloguedOnly=false" : ""}`, {
-      headers: { [TENANT_HOST_HEADER]: "localhost", [forwardedForHeaderName]: auditClientIp },
+      headers: { [TENANT_HOST_HEADER]: new URL(defaultClinicOrigin).host, [forwardedForHeaderName]: auditClientIp },
       ignoreHTTPSErrors: true,
     });
     expect(anonymousStatus.status()).toBe(401);
@@ -978,6 +982,7 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     await hideDevelopmentIndicator(page);
     await page.screenshot({ path: join(evidenceDirectory, "tenant-file-download-audit.png"), fullPage: true });
 
+    await page.goto(twoHostE2eSignInOrigin + ClinicRoutes.Account.Security, { waitUntil: "domcontentloaded" });
     const accessHistory = await page.evaluate(async (origin) => {
       const response = await fetch(`${origin}/api/modules/authentication/access-history`, { credentials: "include" });
       return { status: response.status, body: await response.json().catch(() => null) };
@@ -1154,11 +1159,10 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     const platformSession = platformSessionResponse.body as AuthenticationSessionDto;
     expect(platformSession.isAuthenticated).toBe(true);
     expect(platformSession.user?.userId).toEqual(expect.any(String));
-    // The preceding serial auth-grid scenario already recorded this same actor,
-    // tenant scope, and IP; review events deduplicate within the configured window.
+    // The admin host has its own provisioned tenant, distinct from the clinic.
     const platformReviewRecord = platformReviewRecords.items.find((item) =>
       item.actorKind === "user" && item.actorId === platformSession.user?.userId &&
-      item.sourceIpAddress === platformAdminClientIp && item.tenantId === ownerTenantId,
+      item.sourceIpAddress === platformAdminClientIp,
     );
     expect(platformReviewRecord).toMatchObject({
       eventName: auditEvents.auditReview.name,
@@ -1166,15 +1170,16 @@ test("real actions create visible platform security-audit evidence", async ({ pa
       outcome: "succeeded",
       actorKind: "user",
       actorId: platformSession.user!.userId,
-      tenantId: ownerTenantId,
+      tenantId: expect.any(String),
       operation: platformAuditListOperation,
       resource: `endpoint/${platformAuditListOperation}`,
       sourceIpAddress: platformAdminClientIp,
     });
+    expect(platformReviewRecord!.tenantId).not.toBe(ownerTenantId);
     expect(platformReviewRecord?.id).toEqual(expect.any(String));
     await captureAuditReviewDetail(administratorPage, platformReviewRecord!.id!, [
       platformReviewRecord!.actorId!,
-      ownerTenantId,
+      platformReviewRecord!.tenantId!,
       platformAdminClientIp,
     ], "audit-review-platform-detail.png");
     await captureAuditSortOrders(administratorPage);
@@ -1231,7 +1236,7 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     try {
       const response = await request.post(`${apiOrigin}/api/modules/authentication/login/password`, {
         data: { userNameOrEmail: `e2e-outage-${Date.now()}@example.invalid`, password: "E2E-Outage-Wrong-Password", returnUrl: null },
-        headers: { [forwardedForHeaderName]: "203.0.113.67", [TENANT_HOST_HEADER]: "localhost", [REQUEST_ID_HEADER]: `e2e-audit-outage-${Date.now()}` },
+        headers: { [forwardedForHeaderName]: "203.0.113.67", [TENANT_HOST_HEADER]: new URL(twoHostE2eSignInOrigin).host, [REQUEST_ID_HEADER]: `e2e-audit-outage-${Date.now()}` },
         ignoreHTTPSErrors: true,
       });
       statusDuringOutage = response.status();
@@ -1261,8 +1266,13 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     await administratorPage.screenshot({ path: join(evidenceDirectory, "audit-storage-outage-detail.png") });
     await administratorPage.keyboard.press("Escape");
 
+    // File metadata is tenant-scoped; the administrator host needs its own file.
+    const adminUploaded = await uploadEvidenceFile(administratorPage);
+    expect(adminUploaded.status).toBe(200);
+    const adminFileId = (adminUploaded.body as { file?: { id?: string } } | null)?.file?.id;
+    expect(adminFileId).toBeTruthy();
     const verifiedIntegrityEvent = { ...auditEvents.integrityVerification, outcome: "succeeded" };
-    expect((await postJson(administratorPage, integrityVerificationPath(uploadedFileId!))).status).toBe(204);
+    expect((await postJson(administratorPage, integrityVerificationPath(adminFileId!))).status).toBe(204);
     await expect.poll(
       async () => (await platformAuditQuery(administratorPage, verifiedIntegrityEvent)).items.length,
       { timeout: 30_000 },
@@ -1270,8 +1280,8 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     await captureAuditEvidence(administratorPage, verifiedIntegrityEvent, "integrity-verification.png");
 
     const failedIntegrityEvent = { ...auditEvents.integrityVerification, outcome: "failed" };
-    expect((await postJson(administratorPage, integrityTamperPath(uploadedFileId!))).status).toBe(204);
-    expect((await postJson(administratorPage, integrityVerificationPath(uploadedFileId!))).status).toBe(204);
+    expect((await postJson(administratorPage, integrityTamperPath(adminFileId!))).status).toBe(204);
+    expect((await postJson(administratorPage, integrityVerificationPath(adminFileId!))).status).toBe(204);
     await expect.poll(
       async () => (await platformAuditQuery(administratorPage, failedIntegrityEvent)).items.length,
       { timeout: 30_000 },
@@ -1297,7 +1307,7 @@ async function completeEmailOtp(request: APIRequestContext): Promise<void> {
   expect(smtpCapturePath, "VITARISH_E2E_SMTP_CAPTURE_PATH must be supplied for OTP evidence").toBeTruthy();
   const begin = await request.post(`${apiOrigin}/api/modules/authentication/login/email/begin`, {
     data: { email: "e2e-owner@example.test", returnUrl: "/home" },
-    headers: { [TENANT_HOST_HEADER]: "localhost", [forwardedForHeaderName]: "198.51.100.63", [REQUEST_ID_HEADER]: `e2e-audit-otp-${Date.now()}` },
+    headers: { [TENANT_HOST_HEADER]: new URL(twoHostE2eSignInOrigin).host, [forwardedForHeaderName]: "198.51.100.63", [REQUEST_ID_HEADER]: `e2e-audit-otp-${Date.now()}` },
     ignoreHTTPSErrors: true,
   });
   expect(begin.status()).toBe(200);
@@ -1309,7 +1319,7 @@ async function completeEmailOtp(request: APIRequestContext): Promise<void> {
   expect(code).toEqual(expect.any(String));
   const complete = await request.post(`${apiOrigin}/api/modules/authentication/login/email/complete`, {
     data: { challengeId: challenge.challengeId, code, returnUrl: "/home" },
-    headers: { [TENANT_HOST_HEADER]: "localhost", [forwardedForHeaderName]: "198.51.100.63", [REQUEST_ID_HEADER]: `e2e-audit-otp-complete-${Date.now()}` },
+    headers: { [TENANT_HOST_HEADER]: new URL(twoHostE2eSignInOrigin).host, [forwardedForHeaderName]: "198.51.100.63", [REQUEST_ID_HEADER]: `e2e-audit-otp-complete-${Date.now()}` },
     ignoreHTTPSErrors: true,
   });
   expect(complete.status()).toBe(200);

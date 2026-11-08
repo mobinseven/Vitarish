@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import AccountSecurityPage from "@/app/account/security/page";
 
 vi.mock("@vitarish/auth", () => ({
+  AuthenticationBrowserSessions: () => null,
   AuthenticationSessionNoticeType: { parallel_session_established: "parallel_session_established" },
   useAuthSession: () => ({ isAuthenticated: true }),
   useAuthenticationAccessHistory: () => ({

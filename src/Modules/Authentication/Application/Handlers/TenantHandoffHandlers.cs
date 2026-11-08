@@ -17,7 +17,7 @@ namespace Vitarish.Authentication.Application.Handlers;
 /// When true, the session that asked for the ticket is signed out once the ticket is stored, so the
 /// issuing host keeps no session of its own (the shared sign-in host, ADR-0018).
 /// </param>
-public sealed record IssueTenantHandoffCommand(string UserId, string TargetHost, bool EndsIssuingSession = false);
+public sealed record IssueTenantHandoffCommand(string UserId, string TargetHost, bool EndsIssuingSession = false, bool LinkIssuingSession = false, string? CorrelationHash = null, string? ReturnPath = null, Guid? PriorCentralSessionId = null, string? ReturnOrigin = null);
 
 public sealed record RedeemTenantHandoffCommand(string Token);
 
@@ -42,7 +42,8 @@ public sealed class IssueTenantHandoffHandler(
     IAuthenticationUtcClock clock,
     AuthenticationAttemptAuditor auditor,
     IAuthenticationSignInService signInService,
-    IAuthenticationSessionRegistry sessionRegistry)
+    IAuthenticationSessionRegistry sessionRegistry,
+    IAuthenticationHostDirectory? hosts = null)
 {
     /// <returns>The raw token, shown once, or null when the handoff is not allowed.</returns>
     public async Task<string?> Handle(IssueTenantHandoffCommand command, CancellationToken cancellationToken)
@@ -61,10 +62,27 @@ public sealed class IssueTenantHandoffHandler(
             return null;
         }
 
+        if (hosts?.SignInOrigin is not null && !command.LinkIssuingSession && command.PriorCentralSessionId is null)
+        {
+            await auditor.RecordAsync(AuthenticationSecurityAuditEvents.TenantHandoffIssue, AuthenticationSecurityAuditEvents.TenantHandoffIssueOperation, command.UserId, SecurityAuditReasonCatalog.MutationRejected, cancellationToken);
+            return null;
+        }
         string token = TenantHandoffTokens.Create();
         DateTime now = clock.UtcNow;
         DateTime? authenticatedAt = await sessionRegistry.GetCurrentAuthenticationAtAsync(command.UserId, cancellationToken);
-        await tickets.AddAsync(TenantHandoffTicket.Issue(TenantHandoffTokens.Hash(token), command.UserId, command.TargetHost, now, authenticatedAt), now, cancellationToken);
+        TenantHandoffTicket ticket = TenantHandoffTicket.Issue(TenantHandoffTokens.Hash(token), command.UserId, command.TargetHost, now, authenticatedAt);
+        ticket.CorrelationHash = command.CorrelationHash;
+        ticket.ReturnPath = command.ReturnPath;
+        ticket.PriorCentralSessionId = command.PriorCentralSessionId;
+        ticket.ReturnOrigin = command.ReturnOrigin;
+        if (command.LinkIssuingSession)
+        {
+            string? sessionId = requestContext.User?.FindFirst(AuthenticationSessionClaimTypes.SessionId)?.Value;
+            if (!Guid.TryParse(sessionId, out Guid centralSessionId) || string.IsNullOrWhiteSpace(command.CorrelationHash))
+                return null;
+            ticket.CentralSessionId = centralSessionId;
+        }
+        await tickets.AddAsync(ticket, now, cancellationToken);
         await auditor.RecordAsync(AuthenticationSecurityAuditEvents.TenantHandoffIssue, AuthenticationSecurityAuditEvents.TenantHandoffIssueOperation, command.UserId, null, cancellationToken);
         // A failed sign-out throws, so the caller never follows a ticket that left this session open.
         if (command.EndsIssuingSession)
@@ -91,7 +109,11 @@ public sealed class RedeemTenantHandoffHandler(
     IAuthenticationUserDirectory users,
     IAuthenticationRedirectResolver redirects,
     IAuthenticationUtcClock clock,
-    AuthenticationAttemptAuditor auditor)
+    AuthenticationAttemptAuditor auditor,
+    AuthenticationSessionLinkContext? sessionLink = null,
+    IAuthenticationBrowserCorrelation? correlation = null,
+    IAuthenticationPreviousSessionCookie? previousCookie = null,
+    IAuthenticationHostDirectory? hostDirectory = null)
 {
     public const string RefusalMessage = "The sign-in link is invalid or has expired. Sign in to continue.";
 
@@ -109,6 +131,22 @@ public sealed class RedeemTenantHandoffHandler(
         if (ticket is null || host is null || !ticket.CanBeRedeemedOn(host, now))
             return await RefuseAsync(ticket?.UserId, AuthenticationFailureReason.InvalidCredential, RefusalMessage, SecurityAuditReasonCatalog.AuthenticationFailed, cancellationToken);
 
+        if (hostDirectory?.SignInOrigin is not null && ticket.CorrelationHash is null && ticket.PriorCentralSessionId is null)
+            return await RefuseAsync(ticket.UserId, AuthenticationFailureReason.InvalidCredential, RefusalMessage, SecurityAuditReasonCatalog.AuthenticationFailed, cancellationToken);
+
+        if (ticket.CorrelationHash is not null &&
+            (correlation?.Read(ticket.CorrelationHash) is not string browserCorrelation || !TenantHandoffTokens.IsWellFormed(browserCorrelation) ||
+             !CryptographicOperations.FixedTimeEquals(Encoding.ASCII.GetBytes(ticket.CorrelationHash), Encoding.ASCII.GetBytes(TenantHandoffTokens.Hash(browserCorrelation)))))
+            return await RefuseAsync(ticket.UserId, AuthenticationFailureReason.InvalidCredential, RefusalMessage, SecurityAuditReasonCatalog.AuthenticationFailed, cancellationToken);
+
+        if (ticket.CorrelationHash is not null) correlation?.Clear(ticket.CorrelationHash);
+
+        if (ticket.PriorCentralSessionId is Guid prior &&
+            (previousCookie?.Read(ticket.UserId) != prior || hostDirectory is null ||
+             !await hostDirectory.IsCentralHostAsync(cancellationToken) || ticket.ReturnOrigin is null ||
+             !await hostDirectory.CanOpenAsync(ticket.ReturnOrigin, ticket.UserId, cancellationToken)))
+            return await RefuseAsync(ticket.UserId, AuthenticationFailureReason.InvalidCredential, RefusalMessage, SecurityAuditReasonCatalog.AuthenticationFailed, cancellationToken);
+
         if (await sourceAttemptGuard.IsBlockedAsync(cancellationToken) || await IsDeniedAsync(policy, ticket.UserId, cancellationToken))
         {
             AuthenticationFailure denied = policy.FailedAttemptResponse is FailedAttemptResponse.Lockout
@@ -120,13 +158,28 @@ public sealed class RedeemTenantHandoffHandler(
         if (!await tickets.TryMarkRedeemedAsync(ticket, now, cancellationToken))
             return await RefuseAsync(ticket.UserId, AuthenticationFailureReason.InvalidCredential, RefusalMessage, SecurityAuditReasonCatalog.AuthenticationFailed, cancellationToken);
 
-        AuthenticationSessionSignInResult session = await signInService.SignInFromTenantHandoffAsync(ticket.UserId, ticket.AuthenticatedAt, cancellationToken);
+        if (ticket.CentralSessionId is not null && sessionLink is null)
+            return await RefuseAsync(ticket.UserId, AuthenticationFailureReason.ProviderFailure, RefusalMessage, SecurityAuditReasonCatalog.AuthenticationFailed, cancellationToken);
+        if (sessionLink is not null)
+            sessionLink.CentralSessionId = ticket.CentralSessionId;
+        AuthenticationSessionSignInResult session;
+        try
+        {
+            session = await signInService.SignInFromTenantHandoffAsync(ticket.UserId, ticket.AuthenticatedAt, cancellationToken);
+        }
+        finally
+        {
+            if (sessionLink is not null)
+                sessionLink.CentralSessionId = null;
+        }
         if (!session.Succeeded)
             return await RefuseAsync(ticket.UserId, session.Failure!.Reason, session.Failure.Message, SecurityAuditReasonCatalog.AuthenticationFailed, cancellationToken);
 
         await auditor.RecordAsync(AuthenticationSecurityAuditEvents.TenantHandoffRedeem, AuthenticationSecurityAuditEvents.TenantHandoffRedeemOperation, ticket.UserId, null, cancellationToken);
         bool requiresProfileCompletion = (await users.FindByIdAsync(ticket.UserId, cancellationToken))?.RequiresProfileCompletion ?? false;
-        string returnUrl = await redirects.ResolveAsync(null, requiresProfileCompletion, ticket.UserId, cancellationToken);
+        string returnUrl = await redirects.ResolveAsync(ticket.ReturnPath, requiresProfileCompletion, ticket.UserId, cancellationToken);
+        if (ticket.PriorCentralSessionId is not null && ticket.ReturnOrigin is not null)
+            returnUrl = ticket.ReturnOrigin + Vitarish.Authentication.Domain.ReturnUrls.AuthenticationBrowserPaths.Login;
         return new AuthenticationResult<LoginResult>.Success(new LoginResult(ticket.UserId, returnUrl, requiresProfileCompletion));
     }
 

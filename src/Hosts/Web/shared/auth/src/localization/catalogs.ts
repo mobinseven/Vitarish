@@ -3,6 +3,12 @@ export const authMessageCatalogs = {
     auth: {
       // Not under "login": apps merge this catalog one level deep into their own
       // auth section, so a shared "login" object would replace their sign-in labels.
+      browserSessions: {
+        title: "Browser sessions",
+        description: "Each browser includes Auth and the applications opened from it. Ending a session signs that browser out across the platform.",
+        current: "This browser", other: "Another browser", end: "Sign out this browser",
+        started: "Signed in: {time}", active: "Last activity: {time}",
+      },
       accountStatus: {
         disabled: "This account is disabled. Contact a platform administrator.",
         noAccess: "This account has no access level. Contact a platform administrator.",
@@ -62,6 +68,12 @@ export const authMessageCatalogs = {
   },
   fa: {
     auth: {
+      browserSessions: {
+        title: "نشست‌های ورود",
+        description: "هر نشست شامل ورود مرکزی و برنامه‌های بازشده در همان مرورگر است. با پایان نشست، آن مرورگر از همهٔ برنامه‌ها خارج می‌شود.",
+        current: "این مرورگر", other: "مرورگر دیگر", end: "خروج این مرورگر",
+        started: "زمان ورود: {time}", active: "آخرین فعالیت: {time}",
+      },
       accountStatus: {
         disabled: "این حساب غیرفعال شده است. با مدیر پلتفرم تماس بگیرید.",
         noAccess: "این حساب سطح دسترسی ندارد. با مدیر پلتفرم تماس بگیرید.",

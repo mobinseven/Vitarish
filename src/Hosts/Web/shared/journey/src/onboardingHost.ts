@@ -1,3 +1,4 @@
+import { AuthenticationWebRoutes } from "@vitarish/auth/routes";
 /**
  * The runtime environment variable naming the onboarding host's address, where people create
  * their own clinic. Hosts read it on the server per request, so one image serves every
@@ -24,7 +25,7 @@ export function isOnboardingHost(host: string | null | undefined, onboardingUrl:
 }
 
 /** Where a one-time handoff ticket is redeemed on the onboarding host and on every clinic host. */
-export const tenantHandoffPath = "/handoff";
+export const tenantHandoffPath = AuthenticationWebRoutes.Handoff;
 
 /**
  * The onboarding host's handoff address for a ticket. The ticket travels in the fragment, so it is

@@ -12,4 +12,5 @@ public interface ITenantHandoffIssuer
     /// </summary>
     /// <returns>The token, or null when no handoff was issued or the session could not be ended.</returns>
     Task<string?> IssueEndingSessionAsync(string userId, string hostname, CancellationToken cancellationToken = default);
+    Task<string?> IssueCentralCreationAsync(string userId, string hostname, CancellationToken cancellationToken = default) => Task.FromResult<string?>(null);
 }

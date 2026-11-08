@@ -171,9 +171,9 @@ public static class PartiesApiEndpointMapping
             ? Results.Stream(logo.Content, logo.ContentType)
             : NotFound("This clinic has no logo.");
 
-    private static async Task<IResult> GetSignInClinicsAsync([FromServices] ISender sender, CancellationToken cancellationToken) =>
+    private static async Task<IResult> GetSignInClinicsAsync([FromServices] ISender sender, [FromServices] IOptions<OnboardingHostOptions> onboarding, CancellationToken cancellationToken) =>
         await sender.Send(new ListSignInClinicsQuery(), cancellationToken) is { } clinics
-            ? Results.Ok(new C.SignInClinicsResponse([.. clinics.Select(clinic => new C.SignInClinicDto(clinic.TenantId, clinic.AppId, clinic.Name, clinic.Hostname, clinic.Role, clinic.HasLogo ? PartiesApiRoutes.PublicLogoPath : null))]))
+            ? Results.Ok(new C.SignInClinicsResponse([.. clinics.Select(clinic => new C.SignInClinicDto(clinic.TenantId, clinic.AppId, clinic.Name, clinic.Hostname, clinic.Role, clinic.HasLogo ? PartiesApiRoutes.PublicLogoPath : null))], onboarding.Value.IsAvailable ? onboarding.Value.OnboardingUrl : null))
             : Results.Unauthorized();
 
     // A clinic that is not the user's answers the same as one that does not exist.
@@ -185,11 +185,11 @@ public static class PartiesApiEndpointMapping
 
     private static async Task<IResult> IssueSignInHomeHandoffAsync(C.SignInHomeHandoffRequest request, [FromServices] ISender sender, CancellationToken cancellationToken) =>
         await sender.Send(new IssueSignInHandoffCommand(null, SignInHandoffTarget.Home, request.ReturnTo), cancellationToken) is { } handoff
-            ? Results.Ok(new C.SignInHomeHandoffResponse(handoff.Hostname, handoff.Token, handoff.ReturnTo))
+            ? Results.Ok(new C.SignInHomeHandoffResponse(handoff.Hostname, handoff.Token, handoff.ReturnTo, handoff.HandoffUrl))
             : NotFound("Platform home is not available.");
 
     private static IResult ToHandoffResult(SignInHandoff? handoff, string notFound) =>
-        handoff is null ? NotFound(notFound) : Results.Ok(new C.SignInHandoffResponse(handoff.Hostname, handoff.Token));
+        handoff is null || handoff.HandoffUrl is not null ? NotFound(notFound) : Results.Ok(new C.SignInHandoffResponse(handoff.Hostname, handoff.Token));
 
     private static ValueTask<object?> RequireTenantOnboardingAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
     {
@@ -234,8 +234,8 @@ public static class PartiesApiEndpointMapping
             cancellationToken);
         return result.Status switch
         {
-            CreateOwnTenantStatus.Created => Results.Created((string?)null, new C.CreateOwnTenantResponse(result.TenantId!.Value, result.Hostname!, result.HandoffToken)),
-            CreateOwnTenantStatus.Replayed => Results.Ok(new C.CreateOwnTenantResponse(result.TenantId!.Value, result.Hostname!, result.HandoffToken)),
+            CreateOwnTenantStatus.Created => Results.Created((string?)null, new C.CreateOwnTenantResponse(result.TenantId!.Value, result.Hostname!, result.HandoffToken, result.HandoffUrl)),
+            CreateOwnTenantStatus.Replayed => Results.Ok(new C.CreateOwnTenantResponse(result.TenantId!.Value, result.Hostname!, result.HandoffToken, result.HandoffUrl)),
             CreateOwnTenantStatus.Invalid => BadRequest(result.Error ?? "The request is invalid."),
             CreateOwnTenantStatus.AddressMalformed => BadRequest("The subdomain must be 3 to 30 lowercase letters, digits, or inner single hyphens."),
             CreateOwnTenantStatus.AddressReserved => BadRequest("This subdomain is reserved."),

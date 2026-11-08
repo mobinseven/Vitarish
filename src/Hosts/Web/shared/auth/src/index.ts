@@ -153,6 +153,7 @@ export { AuthenticatedRedirectBoundary, SessionRedirect, resolveSessionRedirectT
 export { usePasswordLogin } from "./hooks/usePasswordLogin";
 export { useAuthErrorDisplay } from "./hooks/useAuthErrorDisplay";
 export { usePasswordRecovery } from "./hooks/usePasswordRecovery";
+export { AuthenticationBrowserSessions } from "./components/AuthenticationBrowserSessions";
 export { usePhoneLogin } from "./hooks/usePhoneLogin";
 export type { PhoneLoginStep } from "./hooks/usePhoneLogin";
 export { useEmailLogin } from "./hooks/useEmailLogin";

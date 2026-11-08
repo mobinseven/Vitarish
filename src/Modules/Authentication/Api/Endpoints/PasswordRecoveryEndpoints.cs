@@ -1,3 +1,4 @@
+using Vitarish.Authentication.Application.Abstractions;
 using Vitarish.Authentication.Api.Mapping;
 using Vitarish.Authentication.Application.Commands;
 using Vitarish.Authentication.Application.Handlers;
@@ -18,6 +19,7 @@ public static class PasswordRecoveryEndpoints
         group.MapModulePost(AuthenticationRoutes.BeginPasswordRecoveryPath, async (
             BeginPasswordRecoveryRequest request,
             [Microsoft.AspNetCore.Mvc.FromServices] BeginPasswordRecoveryHandler handler,
+            [Microsoft.AspNetCore.Mvc.FromServices] IPendingAuthenticationChallenge pending,
             CancellationToken cancellationToken) =>
         {
             if (!Enum.IsDefined(request.Channel))
@@ -31,6 +33,8 @@ public static class PasswordRecoveryEndpoints
             };
             AuthenticationResult<ChallengeResult> result = await handler.Handle(
                 new BeginPasswordRecoveryCommand(channel, request.Contact), cancellationToken);
+            if (result is AuthenticationResult<ChallengeResult>.Success begun)
+                pending.Store(begun.Value, null);
             return result is AuthenticationResult<ChallengeResult>.Success success
                 ? Results.Ok(AuthenticationEndpointMapper.ToDto(success.Value))
                 : AuthenticationProblemHttpMapper.ToProblem(((AuthenticationResult<ChallengeResult>.Failure)result).Error);
@@ -48,10 +52,12 @@ public static class PasswordRecoveryEndpoints
         group.MapModulePost(AuthenticationRoutes.CompletePasswordRecoveryPath, async (
             CompletePasswordRecoveryRequest request,
             [Microsoft.AspNetCore.Mvc.FromServices] CompletePasswordRecoveryHandler handler,
+            [Microsoft.AspNetCore.Mvc.FromServices] IPendingAuthenticationChallenge pending,
             CancellationToken cancellationToken) =>
         {
             AuthenticationResult<bool> result = await handler.Handle(
                 new CompletePasswordRecoveryCommand(request.ChallengeId, request.Code, request.NewPassword), cancellationToken);
+            pending.Clear();
             return result is AuthenticationResult<bool>.Success success && success.Value
                 ? Results.Ok(new AuthenticationActionResultDto(true))
                 : AuthenticationProblemHttpMapper.ToProblem(((AuthenticationResult<bool>.Failure)result).Error);

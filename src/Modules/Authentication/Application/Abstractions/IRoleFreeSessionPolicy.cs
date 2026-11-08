@@ -9,5 +9,8 @@ namespace Vitarish.Authentication.Application.Abstractions;
 /// </summary>
 public interface IRoleFreeSessionPolicy
 {
+    /// <summary>Checks a registered destination without changing the current request tenant.</summary>
+    Task<bool> AllowsRoleFreeSessionForTenantAsync(Guid tenantId, CancellationToken cancellationToken = default) => Task.FromResult(false);
+
     Task<bool> AllowsRoleFreeSessionAsync(CancellationToken cancellationToken = default);
 }

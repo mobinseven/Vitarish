@@ -32,12 +32,12 @@ export function SignInContinuePage({ signInPath }: SignInContinuePageProps) {
     const requested = new URLSearchParams(window.location.search).get(signInReturnUrlQueryKey);
     setSafeReturnUrl(isSafeRelativeReturnTo(requested) ? requested : undefined);
     partiesIssueSignInHomeHandoff({ returnTo: requested })
-      .then((handoff) => window.location.assign(handoffUrl(handoff.hostname, tenantHandoffPath, handoff.token, handoff.returnTo)))
+      .then((handoff) => window.location.assign(handoff.handoffUrl ?? handoffUrl(handoff.hostname, tenantHandoffPath, handoff.token, handoff.returnTo)))
       .catch(() => setFailed(true));
   }, []);
 
   useEffect(() => {
-    // Issuing the link ends the session here, so a second effect run (React strict mode) must not repeat it.
+    // Start one home entry per mount, including React strict-mode effect replay.
     if (started.current) return;
     started.current = true;
     continueHome();

@@ -212,12 +212,17 @@ public sealed class SecurityConfigurationValidatorTests
         IConfiguration configuration = StrictConfiguration(
             ("Vitarish:LandingUrl", "https://vitarish.example/"),
             ("Vitarish:OnboardingUrl", "https://start.clinic.example"),
-            ("Vitarish:SignInUrl", "https://auth.vitarish.example:8443/"));
+            ("Vitarish:SignInUrl", "https://auth.vitarish.example:8443/"),
+            ("Vitarish:PlatformAdminUrl", "https://admin.vitarish.example"),
+            ("Vitarish:PatientsUrl", "https://patients.vitarish.example"),
+            ("Vitarish:ProjectManagementUrl", "https://pm.vitarish.example"),
+            ("Vitarish:KnowledgeQaUrl", "https://knowledge.vitarish.example"));
 
         SecurityConfigurationOptions options = SecurityConfigurationValidator.Validate(configuration, Environment("Production"));
 
         options.AllowedCorsOrigins.Should().BeEquivalentTo(
-            "https://app.example", "https://vitarish.example", "https://start.clinic.example", "https://auth.vitarish.example:8443");
+            "https://app.example", "https://vitarish.example", "https://start.clinic.example", "https://auth.vitarish.example:8443", "https://admin.vitarish.example",
+            "https://patients.vitarish.example", "https://pm.vitarish.example", "https://knowledge.vitarish.example");
     }
 
     [Fact]

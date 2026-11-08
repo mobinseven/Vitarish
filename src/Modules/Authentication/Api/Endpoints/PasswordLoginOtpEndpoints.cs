@@ -3,8 +3,8 @@ using Vitarish.Authentication.Application.Commands;
 using Vitarish.Authentication.Application.Handlers;
 using Vitarish.Authentication.Application.Results;
 using Vitarish.Authentication.Contracts.Requests;
-using Vitarish.Authentication.Contracts.Responses;
 using Vitarish.Authentication.Contracts.Routes;
+using Vitarish.Authentication.Contracts.Responses;
 using Vitarish.Modules.Base.Core.Endpoints;
 
 namespace Vitarish.Authentication.Api.Endpoints;

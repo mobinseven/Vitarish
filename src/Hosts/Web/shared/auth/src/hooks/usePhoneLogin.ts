@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { usePendingAuthenticationChallenge } from "./usePendingAuthenticationChallenge";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useAuthenticationLoginPhoneBegin,
@@ -29,8 +30,17 @@ export function usePhoneLogin({ navigate = ignoreAuthNavigation, returnUrlSearch
     undefined
   );
 
+  const pending = usePendingAuthenticationChallenge((value) => {
+    if (!value.isPhoneLogin) return;
+    setChallenge(value.challenge);
+    setPhoneNumber(value.destination);
+    setPendingReturnUrl(value.returnUrl ?? undefined);
+    setStep("code");
+  }, (error) => setError(parseAuthError(error)));
+
   const begin = useCallback(
     async (phone: string, returnUrl?: string) => {
+      pending.cancelRestore();
       setError(null);
       setStatusCode(null);
       try {
@@ -98,6 +108,7 @@ export function usePhoneLogin({ navigate = ignoreAuthNavigation, returnUrlSearch
   }, [phoneNumber, beginMutation, pendingReturnUrl, returnUrlSearchParams]);
 
   const reset = useCallback(() => {
+    pending.clear();
     setStep("phone");
     setChallenge(null);
     setError(null);
@@ -114,7 +125,7 @@ export function usePhoneLogin({ navigate = ignoreAuthNavigation, returnUrlSearch
     complete,
     resend,
     reset,
-    isLoading: beginMutation.isPending || completeMutation.isPending,
+    isLoading: pending.isRestoring || beginMutation.isPending || completeMutation.isPending,
     error,
     errorMessage: error ? getErrorMessage(error) : null,
     statusCode,

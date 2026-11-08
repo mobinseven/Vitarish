@@ -65,8 +65,10 @@ and repeat the step.
    secret.
    - Any account, and the only place for `smoke-no-workspace`: on the platform
      home, the **Account** button next to Sign out, which opens
-     `https://vitarish.com/account`. It also holds the email and phone changes.
-   - Clinic accounts can instead use a clinic host, `/account/password`.
+     `https://vitarish.com/account`, which redirects to Auth's personal account
+     area. It also holds the email and phone changes.
+   - Clinic accounts can instead open `/account/password`; it redirects to the
+     same path on Auth. Personal credentials are changed only there.
    - `smoke-admin`: do this in step 7.
 4. **Confirm the phone (optional).** As `smoke-one-clinic`, open account
    settings, then Phone, and confirm the owner's phone with the SMS code.
@@ -87,7 +89,8 @@ and repeat the step.
    `smoke-one-clinic`. Only the roles move.
 7. **Make the admin.** In platform admin, on `smoke-admin`, use End all
    sessions, then Grant global role: platform administrator. Then sign in to
-   platform admin as `smoke-admin` with the email code and open My account:
+   platform admin as `smoke-admin` with the email code and open My account,
+   which redirects to Auth; open Password there:
    1. Set a password.
    2. Turn on two-step sign-in. The code channel shows "email", because the
       account has no phone.

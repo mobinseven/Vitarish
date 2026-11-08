@@ -1,8 +1,9 @@
 import { expect, test, type Browser, type Page } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { Routes as OwnerRoutes } from "../../apps/private-practice-owner/src/app/routes";
 import { Routes } from "../../apps/platform-admin/src/app/routes";
-import { getMessages } from "../../apps/platform-admin/src/localization/messages";
+import { catalogs } from "../../apps/private-practice-owner/src/localization/messages";
 import {
   authenticationLoginPassword,
   getAuthenticationSessionGetQueryKey,
@@ -18,6 +19,7 @@ import {
   twoHostE2ePasswordEnvironmentKey,
   twoHostE2ePlatformAdminClientIp,
   twoHostE2ePlatformAdminOrigin,
+  twoHostE2eSignInOrigin,
 } from "../../scripts/two-host-e2e-artifacts.mjs";
 import { generatedOperationPath } from "./generatedOperationPath";
 
@@ -41,6 +43,7 @@ async function newPlatformAdminPage(browser: Browser, locale: string): Promise<P
       url: twoHostE2ePlatformAdminOrigin,
     },
   ]);
+  await context.addCookies([{ name: localeCookieName, value: locale, url: twoHostE2eSignInOrigin }]);
   return context.newPage();
 }
 
@@ -62,7 +65,7 @@ const platformAdminUserName = sourceString(fixtureSource, "PlatformAdminUserName
 const platformOrigin = twoHostE2ePlatformAdminOrigin;
 const loginPath = generatedOperationPath(authenticationLoginPassword);
 const locale = toSupportedLocale(process.env[twoHostE2eLocaleEnvironmentKey]) ?? defaultLocale;
-const messages = getMessages(locale);
+const messages = catalogs[locale];
 const password = process.env[twoHostE2ePasswordEnvironmentKey];
 
 test(`platform administrator reviews the My account sign-in settings ${locale}`, async ({ browser }, testInfo) => {
@@ -83,13 +86,13 @@ test(`platform administrator reviews the My account sign-in settings ${locale}`,
     ]);
     expect(loginResponse.status()).toBe(200);
 
+    await page.waitForURL(url => url.origin === platformOrigin && !url.pathname.startsWith(Routes.Login));
     await page.goto(`${platformOrigin}${Routes.Settings.MyAccount}`, {
       waitUntil: "domcontentloaded",
     });
+    await page.waitForURL(twoHostE2eSignInOrigin + OwnerRoutes.Account.Index);
     await expect.poll(() => getSessionStatus(page)).toBe(200);
-    await expect(
-      page.getByRole("heading", { name: messages.admin.myAccount.title, exact: true }),
-    ).toBeVisible();
+    await page.goto(twoHostE2eSignInOrigin + OwnerRoutes.Account.Password);
     await expect(
       page.getByLabel(messages.account.password.currentPassword, { exact: true }),
     ).toBeVisible();

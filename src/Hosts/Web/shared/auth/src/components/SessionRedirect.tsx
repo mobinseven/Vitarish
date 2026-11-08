@@ -127,7 +127,10 @@ export function AuthenticatedRedirectBoundary({
     }
   }, [redirectTarget, onNavigate]);
 
-  if (isLoading || redirectTarget) {
+  // Anonymous session queries can return to loading while a focus refetch is
+  // in flight after a 401. Only initial discovery may replace the form:
+  // unmounting it here destroys the pending OTP challenge and entered values.
+  if ((isLoading && arrivedSignedIn.current === null) || redirectTarget) {
     return <SessionRedirectMessage label={loadingLabel} fallback={loadingFallback} />;
   }
 

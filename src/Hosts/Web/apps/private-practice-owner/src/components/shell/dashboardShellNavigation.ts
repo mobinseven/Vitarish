@@ -40,6 +40,14 @@ const appFeatureGroup: DashboardShellNavGroup = {
 
 export const mainDashboardNavGroups = [appFeatureGroup] as const satisfies readonly DashboardShellNavGroup[];
 
+export const centralAccountNavGroups = [{
+  labelKey: "appShell.navigation.mainGroup",
+  items: [
+    { href: Routes.Account.Index, icon: "user-shield", labelKey: "appShell.userMenu.account", exactMatch: true },
+    { href: Routes.SignInContinue, icon: "house", labelKey: "appShell.navigation.home", exactMatch: true },
+  ],
+}] as const satisfies readonly DashboardShellNavGroup[];
+
 const clinicOwnerGroup: DashboardShellNavGroup = {
   labelKey: "appShell.navigation.mainGroup",
   items: [homeItem, ...clinicOwnerItems] as const satisfies readonly DashboardShellItem[],
