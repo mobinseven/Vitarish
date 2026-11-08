@@ -279,12 +279,19 @@ try {
       });
       const response = await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60000 });
       const uiStatus = response?.status() ?? null;
-      await page.waitForTimeout(1500);
+      const documentHtml = response ? await response.text() : "";
+      await page.waitForLoadState("networkidle", { timeout: 30000 });
+      await page.waitForFunction(() => document.body?.innerText.trim().length > 0, null, { timeout: 30000 });
       const pageTextLength = await page.locator("body").innerText().then((text) => text.trim().length);
       await page.screenshot({ path: resolve(runDirectory, screenshotName), fullPage: true });
-      const api = await page.evaluate(async ({ profilePath, sessionPath }) => {
-        const staticAsset = document.querySelector('script[src*="/_next/static/"]')?.getAttribute("src")
-          ?? document.querySelector('link[rel="stylesheet"][href*="/_next/static/"]')?.getAttribute("href");
+      // The app may redirect to central sign-in while evidence is captured. Use a
+      // stable same-origin API document so that navigation cannot interrupt probes.
+      const probePage = await context.newPage();
+      await probePage.goto(new URL(authenticationRoutes.profile, url).href, { waitUntil: "domcontentloaded", timeout: 60000 });
+      const api = await probePage.evaluate(async ({ profilePath, sessionPath, html }) => {
+        const initialDocument = new DOMParser().parseFromString(html, "text/html");
+        const staticAsset = initialDocument.querySelector('script[src*="/_next/static/"]')?.getAttribute("src")
+          ?? initialDocument.querySelector('link[rel="stylesheet"][href*="/_next/static/"]')?.getAttribute("href");
         const staticAssetPath = staticAsset ? new URL(staticAsset, window.location.origin).pathname : null;
         const requests = [
           { name: "authentication-profile", path: profilePath, expectedStatus: 200 },
@@ -301,9 +308,10 @@ try {
           }
         }
         return results;
-      }, { profilePath: authenticationRoutes.profile, sessionPath: authenticationRoutes.session });
+      }, { profilePath: authenticationRoutes.profile, sessionPath: authenticationRoutes.session, html: documentHtml });
+      await probePage.close();
 
-      uiResults.push({ environment: host.environment, configuredHost: host.name, hostname: host.hostname, wildcardProbe: host.wildcard, request: url, status: uiStatus, pageTextLength, cspViolationCount, tlsVerified: page.url().startsWith("https://") && await page.evaluate(() => window.isSecureContext), screenshot: screenshotName, capturedAtUtc: new Date().toISOString() });
+      uiResults.push({ environment: host.environment, configuredHost: host.name, hostname: host.hostname, wildcardProbe: host.wildcard, request: url, status: uiStatus, pageTextLength, cspViolationCount, tlsVerified: page.url().startsWith("https://") && api.every(({ tlsVerified }) => tlsVerified), screenshot: screenshotName, capturedAtUtc: new Date().toISOString() });
       const apiResult = {
         environment: host.environment, configuredHost: host.name, hostname: host.hostname, wildcardProbe: host.wildcard,
         tlsVerified: api.every(({ tlsVerified }) => tlsVerified),
