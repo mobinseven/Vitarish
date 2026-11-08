@@ -7,7 +7,7 @@ import {
   AccountBackLink,
   AccountSurface,
 } from "@/components/account/AccountSurface";
-import { HeaderIcon } from "@vitarish/ui";
+import { HeaderIcon, PageHeader } from "@vitarish/ui";
 import type { ReactNode } from "react";
 
 function SecurityValue({ label, value, detail }: { label: string; value: string; detail?: ReactNode }) {
@@ -39,15 +39,7 @@ export default function AccountSecurityPage() {
   return (
     <AccountSurface>
       <div className="space-y-6">
-        <div>
-          <div className="flex items-center gap-4">
-            <HeaderIcon icon="shield-halved" level="page" />
-            <div className="min-w-0">
-              <h1 className="text-xl font-semibold text-foreground">{t("account.security.title")}</h1>
-              <p className="mt-2 text-sm text-foreground-muted">{t("account.security.description")}</p>
-            </div>
-          </div>
-        </div>
+        <PageHeader icon="shield-halved" title={t("account.security.title")} details={t("account.security.description")} />
 
         <Surface className="flex flex-col gap-6 rounded-3xl p-6" role="region" aria-labelledby="access-history-heading">
           <div className="flex flex-col items-start gap-1">

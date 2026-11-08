@@ -10,7 +10,7 @@ import {
 } from "@internationalized/date";
 import { VisitDateStepper } from "@vitarish/clinic";
 import { TenantLogoPrompt } from "@vitarish/journey";
-import { AnchorPageHeader } from "@vitarish/ui";
+import { PageHeader } from "@vitarish/ui";
 import { useClinicNavigation } from "@/components/clinic-navigation";
 import { getDateCalendar, useLocalizedText } from "@/localization";
 import { SurgeriesPanel } from "./SurgeriesPanel";
@@ -28,7 +28,7 @@ export function HomeDashboard() {
 
   return (
     <div className="flex flex-col gap-6">
-      <AnchorPageHeader
+      <PageHeader
         icon="house"
         title={t("home.dashboard.title")}
         actions={

@@ -2,6 +2,10 @@ import { surgeriesEnMessages } from "./surgeries";
 
 export const clinicEnMessages = {
   clinic: {
+    navigation: {
+      pageLocation: "Page location",
+      backTo: "Back to {name}",
+    },
     // The specialty codes come from the clinic app (ClinicSpecialties); sign-up and the landing page show these labels.
     specialties: {
       "plastic-surgery": "Plastic surgery",

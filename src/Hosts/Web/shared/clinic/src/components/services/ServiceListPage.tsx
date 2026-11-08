@@ -1,12 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import {
-  ErrorStateSurface as ClinicErrorState,
-  LoadingStateSurface as ClinicLoadingState,
-  HeaderIcon,
-} from "@vitarish/ui";
+import { useState, type ReactNode } from "react";
+import { ErrorStateSurface as ClinicErrorState, LoadingStateSurface as ClinicLoadingState, PageHeader } from "@vitarish/ui";
+import { pageAncestors, usePageBack } from "../navigation/usePageBack";
 import { useLocalizedText } from "../../localization/index";
+import type { NavigationIntent } from "../../navigation";
 import { ServiceDeleteDialog } from "./ServiceDeleteDialog";
 import { ServiceList } from "./ServiceList";
 import {
@@ -14,8 +12,9 @@ import {
   useServices,
 } from "../../hooks/services/useServices";
 
-export function ServiceListPage() {
+export function ServiceListPage({ onNavigate, tabs }: { onNavigate?: (intent: NavigationIntent) => void; tabs?: ReactNode }) {
   const { t } = useLocalizedText();
+  const back = usePageBack([pageAncestors.settings], onNavigate);
   const services = useServices();
   const deleteService = useDeleteService();
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -30,17 +29,14 @@ export function ServiceListPage() {
       className="flex flex-col gap-6"
       aria-labelledby="clinic-services-title"
     >
-      <header>
-        <div className="flex items-center gap-4">
-          <HeaderIcon icon="briefcase-medical" level="page" />
-          <div className="min-w-0">
-            <h1 id="clinic-services-title" className="text-2xl font-bold">
-              {t("clinic.services.title")}
-            </h1>
-            <p className="text-sm text-muted">{t("clinic.services.description")}</p>
-          </div>
-        </div>
-      </header>
+      <PageHeader
+        icon="briefcase-medical"
+        title={t("clinic.services.title")}
+        titleId="clinic-services-title"
+        details={t("clinic.services.description")}
+        back={back}
+        tabs={tabs}
+      />
       {services.isLoading ? (
         <ClinicLoadingState label={t("common.states.loading")} />
       ) : null}

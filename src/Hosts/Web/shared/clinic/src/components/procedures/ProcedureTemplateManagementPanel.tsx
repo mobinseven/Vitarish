@@ -3,18 +3,21 @@
 import { useEffect, useState } from "react";
 import { Alert, Button, Spinner, Tooltip } from "@heroui/react";
 import { Widget } from "@heroui-pro/react";
-import { FaIcon } from "@vitarish/ui";
+import { FaIcon, PageHeader } from "@vitarish/ui";
 import {
   useSeaEvents,
   useSeaProcedures,
   useSeaTemplateProjects,
 } from "@vitarish/sea";
 import { useLocalizedText } from "../../localization";
+import type { NavigationIntent } from "../../navigation";
+import { pageAncestors, usePageBack } from "../navigation/usePageBack";
 import { TemplateProjectListPane } from "./TemplateProjectListPane";
 import { TemplateProjectDetailPane } from "./TemplateProjectDetailPane";
 
-export function ProcedureTemplateManagementPanel() {
+export function ProcedureTemplateManagementPanel({ onNavigate }: { onNavigate?: (intent: NavigationIntent) => void }) {
   const { t } = useLocalizedText();
+  const back = usePageBack([pageAncestors.settings], onNavigate);
   const projectsQuery = useSeaTemplateProjects();
   const projects = projectsQuery.data ?? [];
   const [projectId, setProjectId] = useState<string | null>(null);
@@ -68,39 +71,47 @@ export function ProcedureTemplateManagementPanel() {
   const backLabel = t("clinic.procedures.templateManagement.projects");
 
   return (
-    <div className="flex h-full min-h-0 gap-3">
-      <div className={`${isProjectOpen ? "hidden" : "flex"} min-h-0 w-full md:flex md:w-72 md:shrink-0`}>
-        <Widget className="w-full overflow-auto">
-          <TemplateProjectListPane
-            projects={projects}
-            selectedProjectId={projectId}
-            onSelect={openProject}
-          />
-        </Widget>
-      </div>
-      <div className={`${isProjectOpen ? "flex" : "hidden"} min-h-0 min-w-0 flex-1 flex-col items-start gap-3 md:flex`}>
-        <Tooltip>
-          <Button
-            className="md:hidden"
-            variant="tertiary"
-            onPress={() => setIsProjectOpen(false)}
-          >
-            <FaIcon icon="arrow-left" aria-hidden="true" className="rtl:rotate-180" />
-            {backLabel}
-          </Button>
-          <Tooltip.Content>{backLabel}</Tooltip.Content>
-        </Tooltip>
-        <Widget className="w-full min-w-0 flex-1 overflow-auto">
-          <TemplateProjectDetailPane
-            projectId={projectId}
-            procedures={procedures}
-            selectedProcedureId={procedureId}
-            onSelectProcedure={setProcedureId}
-            events={events}
-            selectedEventId={eventId}
-            onSelectEvent={setEventId}
-          />
-        </Widget>
+    <div className="flex h-full min-h-0 flex-col gap-4">
+      <PageHeader
+        icon="folder-tree"
+        title={t("clinic.settings.sections.procedureTemplates.title")}
+        details={t("clinic.settings.sections.procedureTemplates.description")}
+        back={back}
+      />
+      <div className="flex min-h-0 flex-1 gap-3">
+        <div className={`${isProjectOpen ? "hidden" : "flex"} min-h-0 w-full md:flex md:w-72 md:shrink-0`}>
+          <Widget className="w-full overflow-auto">
+            <TemplateProjectListPane
+              projects={projects}
+              selectedProjectId={projectId}
+              onSelect={openProject}
+            />
+          </Widget>
+        </div>
+        <div className={`${isProjectOpen ? "flex" : "hidden"} min-h-0 min-w-0 flex-1 flex-col items-start gap-3 md:flex`}>
+          <Tooltip>
+            <Button
+              className="md:hidden"
+              variant="tertiary"
+              onPress={() => setIsProjectOpen(false)}
+            >
+              <FaIcon icon="arrow-left" aria-hidden="true" className="rtl:rotate-180" />
+              {backLabel}
+            </Button>
+            <Tooltip.Content>{backLabel}</Tooltip.Content>
+          </Tooltip>
+          <Widget className="w-full min-w-0 flex-1 overflow-auto">
+            <TemplateProjectDetailPane
+              projectId={projectId}
+              procedures={procedures}
+              selectedProcedureId={procedureId}
+              onSelectProcedure={setProcedureId}
+              events={events}
+              selectedEventId={eventId}
+              onSelectEvent={setEventId}
+            />
+          </Widget>
+        </div>
       </div>
     </div>
   );

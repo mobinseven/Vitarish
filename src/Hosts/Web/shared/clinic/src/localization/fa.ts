@@ -2,6 +2,10 @@ import { surgeriesFaMessages } from "./surgeries";
 
 export const clinicFaMessages = {
   clinic: {
+    navigation: {
+      pageLocation: "موقعیت صفحه",
+      backTo: "بازگشت به {name}",
+    },
     // The specialty codes come from the clinic app (ClinicSpecialties); sign-up and the landing page show these labels.
     specialties: {
       "plastic-surgery": "جراحی پلاستیک",

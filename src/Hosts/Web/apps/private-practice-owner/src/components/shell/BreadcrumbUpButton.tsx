@@ -3,6 +3,7 @@
 import { useCallback, useMemo } from "react";
 import { Button, Tooltip } from "@heroui/react";
 import { usePathname, useRouter } from "next/navigation";
+import { Routes } from "@/app/routes";
 import { useLocalizedText } from "@/localization";
 import { FaIcon } from "@vitarish/ui";
 import type {
@@ -25,7 +26,8 @@ export function BreadcrumbUpButton({ navGroups }: BreadcrumbUpButtonProps) {
     [navGroups],
   );
 
-  const parentHref = getParentPathname(pathname);
+  // Every other page shows its own back trail in its header; the patient record pages still rely on this button.
+  const parentHref = pathname.startsWith(`${Routes.Clinic.Patients.Index}/`) ? getParentPathname(pathname) : undefined;
   const href =
     parentHref && !sidebarHrefs.has(parentHref) ? parentHref : undefined;
 
@@ -59,18 +61,6 @@ function getParentPathname(pathname: string): string | undefined {
     /^\/patients\/([^/]+)\/procedures\/[^/]+\/?$/,
   );
   if (procedureMatch) return `/patients/${procedureMatch[1]}`;
-
-  const surgeryEditMatch = pathname.match(/^\/surgeries\/([^/]+)\/edit\/?$/);
-  if (surgeryEditMatch) return `/surgeries/${surgeryEditMatch[1]}`;
-
-  const surgeryNewMatch = pathname.match(/^\/surgeries\/new\/?$/);
-  if (surgeryNewMatch) return "/surgeries";
-
-  const surgeryDetailMatch = pathname.match(/^\/surgeries\/([^/]+)\/?$/);
-  if (surgeryDetailMatch) return "/surgeries";
-
-  const surgeryTypesMatch = pathname.match(/^\/settings\/surgery-types\/?$/);
-  if (surgeryTypesMatch) return "/settings";
 
   const segments = pathname.split("/").filter(Boolean);
   if (segments.length < 2) return undefined;

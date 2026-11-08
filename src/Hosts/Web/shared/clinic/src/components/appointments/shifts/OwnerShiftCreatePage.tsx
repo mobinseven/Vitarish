@@ -4,7 +4,8 @@ import type { NavigationIntent } from "../../../navigation";
 import { useLocalizedText } from "../../../localization/index";
 import { ShiftEditor } from "./ShiftEditor";
 import { useCreateShift } from "../../../hooks/appointments/shifts/useOwnerShifts";
-import { HeaderIcon } from "@vitarish/ui";
+import { PageHeader } from "@vitarish/ui";
+import { pageAncestors, usePageBack } from "../../navigation/usePageBack";
 export interface OwnerShiftCreatePageProps {
   onNavigate: (intent: NavigationIntent) => void;
 }
@@ -12,19 +13,15 @@ export function OwnerShiftCreatePage({
   onNavigate,
 }: OwnerShiftCreatePageProps) {
   const { t } = useLocalizedText();
+  const back = usePageBack([pageAncestors.settings, pageAncestors.shifts], onNavigate);
   const mutation = useCreateShift();
   return (
     <section className="flex flex-col gap-6">
-      <header>
-        <div className="flex items-center gap-4">
-          <HeaderIcon icon="clock" level="page" />
-          <div className="min-w-0">
-            <h1 className="text-2xl font-bold">
-              {t("clinic.appointments.shifts.createTitle")}
-            </h1>
-          </div>
-        </div>
-      </header>
+      <PageHeader
+        icon="clock"
+        title={t("clinic.appointments.shifts.createTitle")}
+        back={back}
+      />
       <ShiftEditor
         initialValue={{
           dayOfWeek: 1,

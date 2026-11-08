@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Segment } from "@heroui-pro/react";
-import { AnchorPageHeader, FaIcon } from "@vitarish/ui";
+import { FaIcon, PageHeader } from "@vitarish/ui";
 import type { NavigationIntent } from "../../../navigation";
 import { useLocalizedText } from "../../../localization";
 import { OwnerReservationsAgenda } from "../agenda/OwnerReservationsAgenda";
@@ -23,7 +23,7 @@ export function OwnerReservationListPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <AnchorPageHeader
+      <PageHeader
         icon="calendar-check"
         title={t("clinic.appointments.reservations.title")}
         details={t("clinic.appointments.reservations.description")}

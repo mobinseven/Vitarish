@@ -1,11 +1,9 @@
 "use client";
-import { useState } from "react";
-import {
-  ErrorStateSurface as ClinicErrorState,
-  LoadingStateSurface as ClinicLoadingState,
-  HeaderIcon,
-} from "@vitarish/ui";
+import { useState, type ReactNode } from "react";
+import { ErrorStateSurface as ClinicErrorState, LoadingStateSurface as ClinicLoadingState, PageHeader } from "@vitarish/ui";
+import { pageAncestors, usePageBack } from "../navigation/usePageBack";
 import { useLocalizedText } from "../../localization/index";
+import type { NavigationIntent } from "../../navigation";
 import { ServiceTypeDeleteDialog } from "./ServiceTypeDeleteDialog";
 import { ServiceTypeList } from "./ServiceTypeList";
 import {
@@ -13,8 +11,9 @@ import {
   useServiceTypes,
 } from "../../hooks/service-types/useServiceTypes";
 
-export function ServiceTypeListPage() {
+export function ServiceTypeListPage({ onNavigate, tabs }: { onNavigate?: (intent: NavigationIntent) => void; tabs?: ReactNode }) {
   const { t } = useLocalizedText();
+  const back = usePageBack([pageAncestors.settings], onNavigate);
   const query = useServiceTypes();
   const deletion = useDeleteServiceType();
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -27,19 +26,14 @@ export function ServiceTypeListPage() {
       className="flex flex-col gap-6"
       aria-labelledby="clinic-service-types-title"
     >
-      <header>
-        <div className="flex items-center gap-4">
-          <HeaderIcon icon="tags" level="page" />
-          <div className="min-w-0">
-            <h1 id="clinic-service-types-title" className="text-2xl font-bold">
-              {t("clinic.serviceTypes.title")}
-            </h1>
-            <p className="text-sm text-muted">
-              {t("clinic.serviceTypes.description")}
-            </p>
-          </div>
-        </div>
-      </header>
+      <PageHeader
+        icon="tags"
+        title={t("clinic.serviceTypes.title")}
+        titleId="clinic-service-types-title"
+        details={t("clinic.serviceTypes.description")}
+        back={back}
+        tabs={tabs}
+      />
       {query.isLoading ? (
         <ClinicLoadingState label={t("common.states.loading")} />
       ) : null}

@@ -4,12 +4,8 @@ import { useCallback } from "react";
 import { Button } from "@heroui/react";
 import { ListView } from "@heroui-pro/react";
 import type { NavigationIntent } from "../../../navigation";
-import {
-  EmptyStateSurface as ClinicEmptyState,
-  ErrorStateSurface as ClinicErrorState,
-  LoadingStateSurface as ClinicLoadingState,
-  HeaderIcon,
-} from "@vitarish/ui";
+import { EmptyStateSurface as ClinicEmptyState, ErrorStateSurface as ClinicErrorState, LoadingStateSurface as ClinicLoadingState, PageHeader } from "@vitarish/ui";
+import { pageAncestors, usePageBack } from "../../navigation/usePageBack";
 import { useOwnerShifts } from "../../../hooks/appointments/shifts/useOwnerShifts";
 import { formatNumber, formatTimeOfDay, useLocalizedText, type MessageKey } from "../../../localization/index";
 
@@ -29,6 +25,7 @@ interface OwnerShiftsListProps {
 
 export function OwnerShiftsList({ onNavigate }: OwnerShiftsListProps) {
   const { t, locale } = useLocalizedText();
+  const back = usePageBack([pageAncestors.settings], onNavigate);
   const { data: shifts, isLoading, error } = useOwnerShifts();
 
   const handleSelect = useCallback(
@@ -38,22 +35,19 @@ export function OwnerShiftsList({ onNavigate }: OwnerShiftsListProps) {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <HeaderIcon icon="clock" level="page" />
-          <div className="min-w-0">
-            <h1 className="text-2xl font-bold">
-              {t("clinic.appointments.shifts.title")}
-            </h1>
-          </div>
-        </div>
-        <Button
-          variant="primary"
-          onPress={() => onNavigate?.({ kind: "ownerShiftCreate" })}
-        >
-          {t("clinic.appointments.shifts.new")}
-        </Button>
-      </div>
+      <PageHeader
+        icon="clock"
+        title={t("clinic.appointments.shifts.title")}
+        back={back}
+        actions={
+          <Button
+            variant="primary"
+            onPress={() => onNavigate?.({ kind: "ownerShiftCreate" })}
+          >
+            {t("clinic.appointments.shifts.new")}
+          </Button>
+        }
+      />
 
       {isLoading && <ClinicLoadingState label={t("common.states.loading")} />}
 

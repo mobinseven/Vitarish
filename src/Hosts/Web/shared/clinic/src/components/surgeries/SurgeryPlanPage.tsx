@@ -4,7 +4,7 @@ import { useCallback, useState } from "react";
 import { Alert, Button, Surface, Tooltip } from "@heroui/react";
 import { getLocalTimeZone } from "@internationalized/date";
 import {
-  AnchorPageHeader,
+  PageHeader,
   ErrorStateSurface,
   FaIcon,
   HeaderIcon,
@@ -12,6 +12,7 @@ import {
 } from "@vitarish/ui";
 import { ApiError } from "../../api/client/apiFetch";
 import { localizeApiError, useLocalizedText } from "../../localization/index";
+import { pageAncestors, usePageBack } from "../navigation/usePageBack";
 import {
   emptySurgeryPlanForm,
   surgeryPlanFormFromSurgery,
@@ -57,6 +58,7 @@ export function SurgeryPlanPage({
   onNavigate,
 }: SurgeryPlanPageProps) {
   const { t, direction } = useLocalizedText();
+  const back = usePageBack([pageAncestors.surgeries], onNavigate);
   const canPlan = useCanPlanSurgeries();
   const timeZone = getLocalTimeZone();
   const [idempotencyKey, setIdempotencyKey] = useState(() => crypto.randomUUID());
@@ -148,13 +150,14 @@ export function SurgeryPlanPage({
 
   // Once the patient is known, the header names both the task and the patient it is for.
   const header = (
-    <AnchorPageHeader
+    <PageHeader
       icon="scissors"
+      back={back}
       title={mode === "create"
         ? t("clinic.surgeries.plan.createTitle")
         : t("clinic.surgeries.plan.editTitle")}
       details={lookupPatientId ? (
-        <p className="mt-1 flex items-center gap-2 text-base font-medium text-anchor-foreground">
+        <p className="mt-1 flex items-center gap-2 text-base font-medium">
           <FaIcon aria-hidden="true" icon="user" />
           <span className="sr-only">{t("clinic.surgeries.plan.patientSectionTitle")}: </span>
           {patientName ?? (patientQuery.isPending ? null : <UnnamedPatient />)}

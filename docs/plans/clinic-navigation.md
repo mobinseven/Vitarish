@@ -106,6 +106,19 @@ Each slice is independently mergeable and leaves the app working.
    destination or horizontal overflow; wire it into `npm run test` or the
    screenshots pipeline. Set the map's status to Active and delete this plan.
 
+## Progress
+
+- Slices 1 to 3 are merged on `feat/clinic-navigation`.
+- Slice 4 is done for the clinic pages outside the patient record: a plain header
+  (`PageHeader`) on lists, forms and settings, the anchor band only on record
+  pages, one `h1` per page, and a back trail (breadcrumb on desktop, a single
+  "Back to X" link on mobile). The patient record, edit and procedure pages keep
+  their current headers and the top-bar up button until slice 5. The account
+  sub-pages (name, email, phone, passkeys, language) still use `SettingsSection`
+  headers; unify them when the account area is next touched.
+- `components/user-appointments/*` in the shared clinic package has no consumer in
+  any app; remove it or give it one.
+
 ## Validation
 
 - Per slice: `npm run typecheck`, `npm run test`, `npm run lint:layout`,

@@ -12,6 +12,7 @@ import {
   removeButtonClassName,
 } from "@vitarish/ui";
 import { ApiError } from "../../api/client/apiFetch";
+import { pageAncestors, usePageBack } from "../navigation/usePageBack";
 import { formatDateTime, formatNumber, useLocalizedText } from "../../localization";
 import { useCanPlanSurgeries } from "../../hooks/surgeries/useCanPlanSurgeries";
 import { useSurgery } from "../../hooks/surgeries/useSurgery";
@@ -64,6 +65,7 @@ export function SurgeryDetailPage({
   onNavigate,
 }: SurgeryDetailPageProps) {
   const { t, locale, direction } = useLocalizedText();
+  const back = usePageBack([pageAncestors.surgeries], onNavigate);
   const canPlan = useCanPlanSurgeries();
   const [dialogAction, setDialogAction] = useState<SurgeryStatusAction | null>(
     null,
@@ -161,6 +163,7 @@ export function SurgeryDetailPage({
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
       <AnchorPageHeader
         icon="scissors"
+        back={back}
         title={surgery.name}
         details={
           <div className="mt-1 flex flex-wrap items-center gap-2">

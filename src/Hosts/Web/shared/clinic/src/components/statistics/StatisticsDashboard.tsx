@@ -1,23 +1,21 @@
 "use client";
 
-import { EmptyStateSurface as ClinicEmptyState, HeaderIcon } from "@vitarish/ui";
+import { EmptyStateSurface as ClinicEmptyState, PageHeader } from "@vitarish/ui";
+import { pageAncestors, usePageBack } from "../navigation/usePageBack";
 import { useLocalizedText } from "../../localization/index";
+import type { NavigationIntent } from "../../navigation";
 
-export function StatisticsDashboard() {
+export function StatisticsDashboard({ onNavigate }: { onNavigate?: (intent: NavigationIntent) => void }) {
   const { t } = useLocalizedText();
+  const back = usePageBack([pageAncestors.settings], onNavigate);
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <div className="flex items-center gap-4">
-          <HeaderIcon icon="chart-line" level="page" />
-          <div className="min-w-0">
-            <h1 className="text-2xl font-bold">{t("clinic.statistics.title")}</h1>
-            <p className="text-sm text-muted">
-              {t("clinic.statistics.description")}
-            </p>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        icon="chart-line"
+        title={t("clinic.statistics.title")}
+        details={t("clinic.statistics.description")}
+        back={back}
+      />
 
       <ClinicEmptyState title={t("clinic.statistics.comingSoon")} />
     </div>

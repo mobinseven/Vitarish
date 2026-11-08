@@ -4,13 +4,8 @@ import { useState, useCallback, useId, useMemo } from "react";
 import { getLocalTimeZone } from "@internationalized/date";
 import { Button, Input, Label, Surface, TextField } from "@heroui/react";
 import { ListView } from "@heroui-pro/react";
-import {
-  EmptyStateSurface as ClinicEmptyState,
-  ErrorStateSurface as ClinicErrorState,
-  LoadingStateSurface as ClinicLoadingState,
-  HeaderIcon,
-  removeButtonClassName,
-} from "@vitarish/ui";
+import { EmptyStateSurface as ClinicEmptyState, ErrorStateSurface as ClinicErrorState, HeaderIcon, LoadingStateSurface as ClinicLoadingState, PageHeader, removeButtonClassName } from "@vitarish/ui";
+import { pageAncestors, usePageBack } from "../../navigation/usePageBack";
 import type { NavigationIntent } from "../../../navigation";
 import { formatNumber, useLocalizedText } from "../../../localization/index";
 import {
@@ -47,6 +42,7 @@ export function ServiceConfigurationWorkspace({
   onNavigate,
 }: ServiceConfigurationWorkspaceProps) {
   const { t } = useLocalizedText();
+  const back = usePageBack([pageAncestors.settings], onNavigate);
   const [activeSection, setActiveSection] = useState<ActiveSection>("types");
 
   // Data queries
@@ -103,19 +99,13 @@ export function ServiceConfigurationWorkspace({
 
   return (
     <section className="flex flex-col gap-6" aria-labelledby="workspace-title">
-      <header>
-        <div className="flex items-center gap-4">
-          <HeaderIcon icon="sliders" level="page" />
-          <div className="min-w-0">
-            <h1 id="workspace-title" className="text-2xl font-bold">
-              {t("clinic.appointments.settings.title")}
-            </h1>
-            <p className="text-sm text-muted">
-              {t("clinic.appointments.settings.description")}
-            </p>
-          </div>
-        </div>
-      </header>
+      <PageHeader
+        icon="sliders"
+        title={t("clinic.appointments.settings.title")}
+        titleId="workspace-title"
+        details={t("clinic.appointments.settings.description")}
+        back={back}
+      />
 
       {/* Summary cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

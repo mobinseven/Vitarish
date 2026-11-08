@@ -1,10 +1,8 @@
 "use client";
 import { useState } from "react";
 import { Button } from "@heroui/react";
-import {
-  DetailGrid,
-  HeaderIcon,
-} from "@vitarish/ui";
+import { DetailGrid, PageHeader } from "@vitarish/ui";
+import { pageAncestors, usePageBack } from "../../navigation/usePageBack";
 import type { NavigationIntent } from "../../../navigation";
 import {
   formatDateTime,
@@ -40,6 +38,7 @@ export function OwnerShiftDetailPage({
   onNavigate,
 }: OwnerShiftDetailPageProps) {
   const { t, locale } = useLocalizedText();
+  const back = usePageBack([pageAncestors.settings, pageAncestors.shifts], onNavigate);
   const query = useOwnerShiftDetail(shiftId);
   const deletion = useDeleteShift();
   const [deleting, setDeleting] = useState(false);
@@ -56,35 +55,25 @@ export function OwnerShiftDetailPage({
       className="flex flex-col gap-6"
       aria-labelledby="clinic-owner-shift-title"
     >
-      <header className="flex items-center justify-between">
-        <div>
-          <Button
-            variant="ghost"
-            onPress={() => onNavigate({ kind: "ownerShiftIndex" })}
-          >
-            {t("common.actions.previous")}
-          </Button>
-          <div className="flex items-center gap-4">
-            <HeaderIcon icon="clock" level="page" />
-            <div className="min-w-0">
-              <h1 id="clinic-owner-shift-title" className="text-2xl font-bold">
-                {day} {formatTimeOfDay(shift.startTime, locale)} - {formatTimeOfDay(shift.endTime, locale)}
-              </h1>
-            </div>
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            variant="ghost"
-            onPress={() => onNavigate({ kind: "ownerShiftEdit", shiftId })}
-          >
-            {t("common.actions.edit")}
-          </Button>
-          <Button variant="danger" onPress={() => setDeleting(true)}>
-            {t("common.actions.delete")}
-          </Button>
-        </div>
-      </header>
+      <PageHeader
+        icon="clock"
+        title={`${day} ${formatTimeOfDay(shift.startTime, locale)} - ${formatTimeOfDay(shift.endTime, locale)}`}
+        titleId="clinic-owner-shift-title"
+        back={back}
+        actions={
+          <>
+            <Button
+              variant="ghost"
+              onPress={() => onNavigate({ kind: "ownerShiftEdit", shiftId })}
+            >
+              {t("common.actions.edit")}
+            </Button>
+            <Button variant="danger" onPress={() => setDeleting(true)}>
+              {t("common.actions.delete")}
+            </Button>
+          </>
+        }
+      />
       <DetailGrid
         items={[
           { label: t("clinic.fields.day"), value: day },

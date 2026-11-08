@@ -6,7 +6,7 @@ import {
 } from "../navigation/NavigationGrid";
 import type { NavigationIntent } from "../../navigation";
 import { useLocalizedText } from "../../localization/index";
-import { HeaderIcon } from "@vitarish/ui";
+import { PageHeader } from "@vitarish/ui";
 
 interface SettingsDashboardProps {
   onNavigate?: (intent: NavigationIntent) => void;
@@ -72,15 +72,11 @@ export function SettingsDashboard({ onNavigate }: SettingsDashboardProps) {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <div className="flex items-center gap-4">
-          <HeaderIcon icon="gear" level="page" />
-          <div className="min-w-0">
-            <h1 className="text-2xl font-bold">{t("clinic.settings.title")}</h1>
-            <p className="text-sm text-muted">{t("clinic.settings.description")}</p>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        icon="gear"
+        title={t("clinic.settings.title")}
+        details={t("clinic.settings.description")}
+      />
 
       <NavigationGrid items={settingsLinks} onNavigate={onNavigate} />
     </div>

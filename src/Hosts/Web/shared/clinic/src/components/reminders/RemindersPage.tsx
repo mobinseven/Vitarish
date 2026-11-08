@@ -1,10 +1,6 @@
 "use client";
 import { useState } from "react";
-import {
-  ErrorStateSurface as ClinicErrorState,
-  LoadingStateSurface as ClinicLoadingState,
-  HeaderIcon,
-} from "@vitarish/ui";
+import { ErrorStateSurface as ClinicErrorState, LoadingStateSurface as ClinicLoadingState, PageHeader } from "@vitarish/ui";
 import { useLocalizedText } from "../../localization";
 import { ReminderDeleteDialog } from "./ReminderDeleteDialog";
 import { ReminderList } from "./ReminderList";
@@ -21,17 +17,11 @@ export function RemindersPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   return (
     <section className="flex flex-col gap-6">
-      <header>
-        <div className="flex items-center gap-4">
-          <HeaderIcon icon="bell" level="page" />
-          <div className="min-w-0">
-            <h1 className="text-2xl font-bold">{t("clinic.reminders.title")}</h1>
-            <p className="text-sm text-muted">
-              {t("clinic.reminders.description")}
-            </p>
-          </div>
-        </div>
-      </header>
+      <PageHeader
+        icon="bell"
+        title={t("clinic.reminders.title")}
+        details={t("clinic.reminders.description")}
+      />
       {query.isLoading ? (
         <ClinicLoadingState label={t("common.states.loading")} />
       ) : null}
