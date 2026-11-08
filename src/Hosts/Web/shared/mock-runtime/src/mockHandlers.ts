@@ -501,6 +501,13 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
       const resource = Object.keys(store.appointments).find((key) => path.endsWith(`/${key}`)) as keyof typeof store.appointments | undefined;
       return HttpResponse.json(resource ? store.appointments[resource] : []);
     }),
+    http.get(/\/api\/modules\/appointments\/(reservations|shifts|service-types|services|service-providers)\/[^/?]+(?:\?|$)/, async ({ request }) => {
+      await withDelay();
+      if (activeScenario === "error") return unavailable();
+      const [resource, id] = new URL(request.url).pathname.split("/").slice(-2) as [keyof typeof store.appointments, string];
+      const record = store.appointments[resource].find((item) => item.id === id);
+      return record ? HttpResponse.json(record) : notFound(`Mock ${resource} ${id} not found.`);
+    }),
     http.all(/\/api\/modules\/appointments\/.*(?:\/create|\/status)?(?:\?|$)/, async ({ request }) => {
       await withDelay();
       if (activeScenario === "error") return unavailable();
