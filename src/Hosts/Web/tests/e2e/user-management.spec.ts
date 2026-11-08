@@ -518,9 +518,11 @@ test("platform administrator creates, edits, assigns access, and reviews a user'
   await page.getByRole("spinbutton", { name: "Inactivity timeout (minutes)" }).fill("");
   const [inheritResponse] = await Promise.all([
     page.waitForResponse((response) => response.request().method() === "PUT" && response.url().includes(`/api/modules/authentication/security/users/${createdUser.id}/inactivity-timeout`)),
+    page.waitForResponse((response) => response.request().method() === "GET" && response.url().includes(`/api/modules/authentication/security/users/${createdUser.id}/inactivity-timeout`)),
     page.getByRole("button", { name: "Save inactivity timeout" }).click(),
   ]);
   expect(inheritResponse.ok()).toBe(true);
+  await expect(inactivityInput).toHaveValue("");
 
   // Each saved timeout records security events, so these push the security history past
   // its first page of 25 and give the pager something real to page through.

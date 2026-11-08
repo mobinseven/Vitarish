@@ -1266,8 +1266,13 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     await administratorPage.screenshot({ path: join(evidenceDirectory, "audit-storage-outage-detail.png") });
     await administratorPage.keyboard.press("Escape");
 
+    // File metadata is tenant-scoped; the administrator host needs its own file.
+    const adminUploaded = await uploadEvidenceFile(administratorPage);
+    expect(adminUploaded.status).toBe(200);
+    const adminFileId = (adminUploaded.body as { file?: { id?: string } } | null)?.file?.id;
+    expect(adminFileId).toBeTruthy();
     const verifiedIntegrityEvent = { ...auditEvents.integrityVerification, outcome: "succeeded" };
-    expect((await postJson(administratorPage, integrityVerificationPath(uploadedFileId!))).status).toBe(204);
+    expect((await postJson(administratorPage, integrityVerificationPath(adminFileId!))).status).toBe(204);
     await expect.poll(
       async () => (await platformAuditQuery(administratorPage, verifiedIntegrityEvent)).items.length,
       { timeout: 30_000 },
@@ -1275,8 +1280,8 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     await captureAuditEvidence(administratorPage, verifiedIntegrityEvent, "integrity-verification.png");
 
     const failedIntegrityEvent = { ...auditEvents.integrityVerification, outcome: "failed" };
-    expect((await postJson(administratorPage, integrityTamperPath(uploadedFileId!))).status).toBe(204);
-    expect((await postJson(administratorPage, integrityVerificationPath(uploadedFileId!))).status).toBe(204);
+    expect((await postJson(administratorPage, integrityTamperPath(adminFileId!))).status).toBe(204);
+    expect((await postJson(administratorPage, integrityVerificationPath(adminFileId!))).status).toBe(204);
     await expect.poll(
       async () => (await platformAuditQuery(administratorPage, failedIntegrityEvent)).items.length,
       { timeout: 30_000 },
