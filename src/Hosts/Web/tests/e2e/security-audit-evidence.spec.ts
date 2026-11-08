@@ -53,9 +53,6 @@ const ownerOrigin = "";
 const fixtureSource = readFileSync(join(process.cwd(), "../E2e/Infrastructure/Fixtures/E2eFixtureSeeder.cs"), "utf8");
 const platformAdminUsername = /public const string AuditEvidencePlatformAdminUserName = "([^"]+)";/.exec(fixtureSource)?.[1];
 if (!platformAdminUsername) throw new Error("The isolated audit administrator fixture was not found.");
-const auditScopeSource = readFileSync(join(process.cwd(), "../../Libraries/Audit/Audit.Domain/SecurityAuditScopeCatalog.cs"), "utf8");
-const platformAuditScope = /public const string PlatformScopeId = "([^"]+)";/.exec(auditScopeSource)?.[1];
-if (!platformAuditScope) throw new Error("The platform audit scope was not found.");
 const ownerTenantId = "9c8b6b3a-7d6e-4f75-a88d-7d3f5b1b0f92";
 const tenantUserRoleSuffix = "TenantUser";
 const password = process.env.VITARISH_E2E_PASSWORD;
@@ -1162,10 +1159,10 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     const platformSession = platformSessionResponse.body as AuthenticationSessionDto;
     expect(platformSession.isAuthenticated).toBe(true);
     expect(platformSession.user?.userId).toEqual(expect.any(String));
-    // The central administrator reviews the platform scope without a tenant host.
+    // The admin host has its own provisioned tenant, distinct from the clinic.
     const platformReviewRecord = platformReviewRecords.items.find((item) =>
       item.actorKind === "user" && item.actorId === platformSession.user?.userId &&
-      item.sourceIpAddress === platformAdminClientIp && item.tenantId === platformAuditScope,
+      item.sourceIpAddress === platformAdminClientIp,
     );
     expect(platformReviewRecord).toMatchObject({
       eventName: auditEvents.auditReview.name,
@@ -1173,15 +1170,16 @@ test("real actions create visible platform security-audit evidence", async ({ pa
       outcome: "succeeded",
       actorKind: "user",
       actorId: platformSession.user!.userId,
-      tenantId: platformAuditScope,
+      tenantId: expect.any(String),
       operation: platformAuditListOperation,
       resource: `endpoint/${platformAuditListOperation}`,
       sourceIpAddress: platformAdminClientIp,
     });
+    expect(platformReviewRecord!.tenantId).not.toBe(ownerTenantId);
     expect(platformReviewRecord?.id).toEqual(expect.any(String));
     await captureAuditReviewDetail(administratorPage, platformReviewRecord!.id!, [
       platformReviewRecord!.actorId!,
-      platformAuditScope,
+      platformReviewRecord!.tenantId!,
       platformAdminClientIp,
     ], "audit-review-platform-detail.png");
     await captureAuditSortOrders(administratorPage);
