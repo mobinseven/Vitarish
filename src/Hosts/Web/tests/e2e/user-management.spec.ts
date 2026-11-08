@@ -21,6 +21,7 @@ import {
   twoHostE2eProofScreenshotEnvironmentKey,
   twoHostE2eSecurityPolicyScreenshotEnvironmentKey,
   twoHostE2eProofStorageStateEnvironmentKey,
+  twoHostE2eSignInOrigin,
 } from "../../scripts/two-host-e2e-artifacts.mjs";
 
 const platformOrigin = process.env.PLAYWRIGHT_PLATFORM_ADMIN_ORIGIN ?? "http://localhost:3006";
@@ -70,7 +71,8 @@ async function signOutThroughPublicApi(page: Page): Promise<void> {
   globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
     const headers = new Headers(init?.headers);
     headers.set(TENANT_HOST_HEADER, tenantHost);
-    const response = await page.request.fetch(input.toString(), {
+    const target = new URL(input.toString(), page.url());
+    const response = await page.request.fetch(new URL(target.pathname + target.search, page.url()).toString(), {
       method: init?.method,
       headers: Object.fromEntries(headers.entries()),
       data: typeof init?.body === "string" ? init.body : undefined,
@@ -200,7 +202,7 @@ test("authenticated platform administrator retains global search and membership 
   });
   await expect(authenticationHistory.getByText("Password login", { exact: true }).first()).toBeVisible();
   const passwordLoginEvent = authenticationHistory.getByRole("row").filter({ hasText: "Password login" }).first();
-  await expect(passwordLoginEvent.getByText(new URL(platformOrigin).hostname, { exact: true })).toBeVisible();
+  await expect(passwordLoginEvent.getByText(new URL(twoHostE2eSignInOrigin).hostname, { exact: true })).toBeVisible();
   await signOutThroughPublicApi(page);
 });
 
@@ -364,7 +366,7 @@ test("platform administrator manages profile-constrained authentication policy t
   await expect(page.getByRole("spinbutton", { name: "Failed authentication threshold", exact: true })).toHaveValue("5");
   await expect(page.getByText("Required by deployment profile").first()).toBeVisible();
 
-  const loadedPolicyResponse = await page.request.get(`${apiOrigin}/api/modules/authentication/security/authentication-policy`, {
+  const loadedPolicyResponse = await page.request.get(`${platformOrigin}/api/modules/authentication/security/authentication-policy`, {
     headers: { [TENANT_HOST_HEADER]: new URL(platformOrigin).host },
     ignoreHTTPSErrors: true,
   });
@@ -614,7 +616,7 @@ test("platform administrator creates, edits, assigns access, and reviews a user'
   await expect(authenticationHistory.getByText("Password login", { exact: true })).toBeVisible({ timeout: 30_000 });
   const failedAttempt = authenticationHistory.getByRole("row").filter({ hasText: "Password login" }).first();
   await expect(failedAttempt.getByText("Denied", { exact: true })).toBeVisible();
-  await expect(failedAttempt.getByText(new URL(platformOrigin).hostname, { exact: true })).toBeVisible();
+  await expect(failedAttempt.getByText(new URL(twoHostE2eSignInOrigin).hostname, { exact: true })).toBeVisible();
   await expect(page.getByRole("textbox", { name: "Email address" })).toHaveValue(changedContact);
 
   const securityHistory = page.locator("section").filter({ has: page.getByRole("heading", { name: "Security history", exact: true }) });

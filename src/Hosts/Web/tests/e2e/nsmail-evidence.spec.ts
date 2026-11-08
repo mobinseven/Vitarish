@@ -4,15 +4,17 @@ import { TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
 import { Routes } from "../../apps/private-practice-owner/src/app/routes";
 import { securityMessageCatalogs } from "../../shared/security/src/localization";
 import { dirname, resolve } from "node:path";
-import { mkdirSync } from "node:fs";
+import { mkdirSync, readFileSync } from "node:fs";
 import {
   twoHostE2eApiOriginEnvironmentKey,
   twoHostE2eArtifactDirectoryEnvironmentKey,
   twoHostE2eSignInOrigin,
+  twoHostE2eClinicOrigin,
 } from "../../scripts/two-host-e2e-artifacts.mjs";
 import { forwardedForHeaderName, signInToClinic } from "./signInHost";
 import { authenticationLoginPassword } from "../../shared/auth/src/api/generated/authentication/authentication";
 import { generatedOperationPath } from "./generatedOperationPath";
+import { getAuditSecurityEventsListQueryKey } from "../../shared/security/src/api/generated/audit/audit";
 
 // Main itself, for API-boundary checks made without the browser.
 const apiOrigin = process.env[twoHostE2eApiOriginEnvironmentKey] ?? "https://localhost:7272";
@@ -27,7 +29,15 @@ const screenshotDirectory = artifactDirectory
   ? resolve(artifactDirectory, nsmailEvidenceDirectoryName, "screenshots")
   : resolve(process.cwd(), "..", "artifacts", nsmailEvidenceDirectoryName, "screenshots");
 const auditEvidenceScreenshot = process.env.VITARISH_NMAIL_EVIDENCE_SCREENSHOT
-  ?? resolve(screenshotDirectory, "audit-authentication-password-login.png");
+  ?? resolve(screenshotDirectory, "audit-security-review.png");
+const auditCatalogSource = readFileSync(resolve(process.cwd(), "../../../src/Libraries/Audit/Audit.Domain/SecurityAuditEventCatalog.cs"), "utf8");
+function auditCatalogValue(member: string): string {
+  const value = new RegExp(`public const string ${member} = "([^"]+)";`).exec(auditCatalogSource)?.[1];
+  if (!value) throw new Error(`Audit catalog constant ${member} was not found.`);
+  return value;
+}
+const auditReviewEvent = auditCatalogValue("AuditReviewEvent");
+const auditReviewCategory = auditCatalogValue("ReviewCategory");
 
 async function login(page: Page, loginUsername = username): Promise<void> {
   expect(password, "VITARISH_E2E_PASSWORD must be supplied by the disposable E2E environment").toBeTruthy();
@@ -100,14 +110,13 @@ test.describe("NSMAIL-1 evidence execution coverage", () => {
 
   test("AUD-09: authorized audit review exposes filtered, attributable records", async ({ page, request }) => {
     test.setTimeout(300_000);
-    // Shared sign-in records password events in platform scope. Create this tenant's own event
-    // through the public API so review filtering never depends on an earlier spec's attempts.
-    const deniedLogin = await request.post(new URL(generatedOperationPath(authenticationLoginPassword), apiOrigin).href, {
-      data: { userNameOrEmail: `e2e-audit-review-${Date.now()}@example.invalid`, password: "E2E-Audit-Review-Wrong-Password", returnUrl: null },
-      headers: { [forwardedForHeaderName]: "203.0.113.69", [TENANT_HOST_HEADER]: "localhost" },
+    // Auth owns sign-in events. A denied review creates this clinic's own audit
+    // record without relying on any earlier scenario's sign-in attempts.
+    const deniedReview = await request.get(new URL(getAuditSecurityEventsListQueryKey()[0], apiOrigin).href, {
+      headers: { [forwardedForHeaderName]: "203.0.113.69", [TENANT_HOST_HEADER]: new URL(twoHostE2eClinicOrigin).host },
       ignoreHTTPSErrors: true,
     });
-    expect(deniedLogin.status()).toBe(401);
+    expect(deniedReview.status()).toBe(401);
     await login(page);
     const initialAuditRequest = page.waitForResponse(
       (response) => response.url().includes("/api/audit/security-events") && response.request().method() === "GET",
@@ -122,27 +131,28 @@ test.describe("NSMAIL-1 evidence execution coverage", () => {
     expect(review.body).toMatchObject({ items: expect.any(Array), capacityThresholdReached: expect.any(Boolean) });
     expect((review.body as { items: unknown[] }).items.length).toBeGreaterThan(0);
 
-    await page.getByLabel("Event type").fill("authentication.password.login");
-    await page.getByLabel("Category").fill("authentication");
+    await page.getByLabel("Event type").fill(auditReviewEvent);
+    await page.getByLabel("Category").fill(auditReviewCategory);
     await page.getByRole("button", { name: "Apply filters" }).click();
     await expect(page.locator("tbody tr").first()).toBeVisible();
-    const filteredReview = await get(page, "/api/audit/security-events?page=1&pageSize=25&eventName=authentication.password.login&eventCategory=authentication&sortBy=1&descending=true");
+    const reviewQuery = new URLSearchParams({ page: "1", pageSize: "25", eventName: auditReviewEvent, eventCategory: auditReviewCategory, sortBy: "1", descending: "true" });
+    const filteredReview = await get(page, `${getAuditSecurityEventsListQueryKey()[0]}?${reviewQuery}`);
     expect(filteredReview.status).toBe(200);
     const filteredItems = (filteredReview.body as { items: Array<{ eventName?: string; eventCategory?: string }> }).items;
     expect(filteredItems.length).toBeGreaterThan(0);
-    expect(filteredItems.every((item) => item.eventName === "authentication.password.login" && item.eventCategory === "authentication")).toBe(true);
+    expect(filteredItems.every((item) => item.eventName === auditReviewEvent && item.eventCategory === auditReviewCategory)).toBe(true);
 
     mkdirSync(dirname(auditEvidenceScreenshot), { recursive: true });
     await page.screenshot({ path: auditEvidenceScreenshot, fullPage: true });
     await captureAuditEvidence(page, "02-audit-date-scoped-records.png", {
-      eventName: "authentication.password.login",
-      eventCategory: "authentication",
+      eventName: auditReviewEvent,
+      eventCategory: auditReviewCategory,
       fromDate: new Date().toISOString().slice(0, 10),
       toDate: new Date().toISOString().slice(0, 10),
     });
 
-    await page.getByLabel("Event type").fill("authentication.password.login");
-    await page.getByLabel("Category").fill("authentication");
+    await page.getByLabel("Event type").fill(auditReviewEvent);
+    await page.getByLabel("Category").fill(auditReviewCategory);
     await page.getByRole("button", { name: "Sort by" }).click();
     await page.getByRole("menuitem", { name: securityMessageCatalogs.en.security.audit.sortActor }).click();
     await page.getByRole("button", { name: "Apply filters" }).click();
@@ -154,7 +164,7 @@ test.describe("NSMAIL-1 evidence execution coverage", () => {
     await captureSurface(page, Routes.Account.Password, "Change Password", "05-account-password-controls.png");
     await captureSurface(page, Routes.Account.Passkeys, "Passkeys", "06-account-passkey-enrollment.png");
 
-    await captureSurface(page, Routes.Clinic.Settings.Index, "Clinic Settings", "07-authenticated-clinic-settings.png");
+    await captureSurface(page, new URL(Routes.Clinic.Settings.Index, twoHostE2eClinicOrigin).href, "Clinic Settings", "07-authenticated-clinic-settings.png");
 
     const healthResponse = await page.goto(`${apiOrigin}/api/modules/appointments/health`, { waitUntil: "domcontentloaded" });
     expect(healthResponse?.status()).toBe(200);

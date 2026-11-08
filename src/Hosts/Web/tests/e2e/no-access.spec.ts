@@ -1,16 +1,13 @@
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { expect, test } from "@playwright/test";
-import { twoHostE2eApiOriginEnvironmentKey, twoHostE2eClinicOrigin } from "../../scripts/two-host-e2e-artifacts.mjs";
+import { twoHostE2eApiOriginEnvironmentKey, twoHostE2eClinicOrigin, twoHostE2eSignInOrigin } from "../../scripts/two-host-e2e-artifacts.mjs";
 import { REQUEST_ID_HEADER, TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
-import { authenticationLoginEmailBegin, authenticationLoginEmailComplete, getAuthenticationSessionGetQueryKey } from "../../shared/auth/src/api/generated/authentication/authentication";
+import { authenticationContinuationBegin, authenticationContinuationComplete, authenticationLoginEmailBegin, authenticationLoginEmailComplete, getAuthenticationAntiforgeryGetQueryKey, getAuthenticationSessionGetQueryKey } from "../../shared/auth/src/api/generated/authentication/authentication";
 import { generatedOperationPath } from "./generatedOperationPath";
 import { forwardedForHeaderName } from "./signInHost";
 
 const apiOrigin = process.env[twoHostE2eApiOriginEnvironmentKey];
-// The E2E clinic's own host; its sign-in pages redirect to the shared sign-in host, which admits
-// accounts without a role and sends them on to create a clinic (ADR-0018), so the clinic host's
-// refusal is proven at its API.
-const clinicHost = new URL(twoHostE2eClinicOrigin).hostname;
+const clinicHost = new URL(twoHostE2eClinicOrigin).host;
 const smtpCapturePath = process.env.VITARISH_E2E_SMTP_CAPTURE_PATH;
 const clientIp = "198.51.100.95";
 
@@ -32,7 +29,19 @@ async function readDeliveredCode(previousModifiedAt: number): Promise<string> {
 test("an account with no role or tenant membership is refused on a clinic host after the code verifies", async ({ request }) => {
   expect(smtpCapturePath, "VITARISH_E2E_SMTP_CAPTURE_PATH must be supplied by the two-host runner").toBeTruthy();
   expect(apiOrigin, "the two-host runner supplies the real API origin").toBeTruthy();
-  const headers = { [TENANT_HOST_HEADER]: clinicHost, [forwardedForHeaderName]: clientIp };
+  const headers = { [TENANT_HOST_HEADER]: new URL(twoHostE2eSignInOrigin).host, [forwardedForHeaderName]: clientIp };
+  const clinicHeaders = { ...headers, [TENANT_HOST_HEADER]: clinicHost };
+  const anonymousProofResponse = await request.get(new URL(getAuthenticationAntiforgeryGetQueryKey()[0], apiOrigin).href, {
+    headers: clinicHeaders, ignoreHTTPSErrors: true,
+  });
+  expect(anonymousProofResponse.status()).toBe(200);
+  const anonymousProof = await anonymousProofResponse.json() as { headerName: string; requestToken: string };
+
+  const continuation = await request.post(new URL(generatedOperationPath(authenticationContinuationBegin), apiOrigin).href, {
+    data: { returnPath: null }, headers: { ...clinicHeaders, Origin: twoHostE2eClinicOrigin, [anonymousProof.headerName]: anonymousProof.requestToken, [REQUEST_ID_HEADER]: `e2e-no-access-continuation-${Date.now()}` }, ignoreHTTPSErrors: true,
+  });
+  expect(continuation.status()).toBe(200);
+  const { token } = await continuation.json() as { token: string };
 
   const email = `e2e-no-access-${Date.now()}@example.test`;
   const previousModifiedAt = existsSync(smtpCapturePath!) ? statSync(smtpCapturePath!).mtimeMs : 0;
@@ -50,12 +59,24 @@ test("an account with no role or tenant membership is refused on a clinic host a
     headers: { ...headers, [REQUEST_ID_HEADER]: `e2e-no-access-complete-${Date.now()}` },
     ignoreHTTPSErrors: true,
   });
-  // The code was accepted; the account itself is refused, and no session starts.
-  expect(complete.status()).toBe(403);
-  await expect(complete.json()).resolves.toMatchObject({ code: "no_access" });
+  expect(complete.status()).toBe(200);
+  const centralSession = await request.get(new URL(getAuthenticationSessionGetQueryKey()[0], apiOrigin).href, {
+    headers, ignoreHTTPSErrors: true,
+  });
+  expect(centralSession.status()).toBe(200);
+  const antiforgery = await request.get(new URL(getAuthenticationAntiforgeryGetQueryKey()[0], apiOrigin).href, {
+    headers, ignoreHTTPSErrors: true,
+  });
+  expect(antiforgery.status()).toBe(200);
+  const proof = await antiforgery.json() as { headerName: string; requestToken: string };
+  const refused = await request.post(new URL(generatedOperationPath(authenticationContinuationComplete), apiOrigin).href, {
+    data: { token }, headers: { ...headers, [proof.headerName]: proof.requestToken, [REQUEST_ID_HEADER]: `e2e-no-access-admission-${Date.now()}` }, ignoreHTTPSErrors: true,
+  });
+  // The person is authenticated on Auth, but cannot acquire a clinic session.
+  expect(refused.status()).toBe(404);
 
   const session = await request.get(new URL(getAuthenticationSessionGetQueryKey()[0], apiOrigin).href, {
-    headers: { [TENANT_HOST_HEADER]: clinicHost },
+    headers: clinicHeaders,
     ignoreHTTPSErrors: true,
   });
   expect(session.status()).toBe(401);

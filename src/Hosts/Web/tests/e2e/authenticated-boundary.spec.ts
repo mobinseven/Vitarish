@@ -6,17 +6,19 @@ import { dirname, join } from "node:path";
 import { usersGetProfile } from "../../shared/auth/src/api/generated/users/users";
 import {
   authenticationAccessHistoryGet,
+  authenticationContinuationComplete,
   authenticationLoginPasswordOtpResend,
   authenticationLogoutPost,
   authenticationSessionGet,
   authenticationSessionNoticesGet,
 } from "../../shared/auth/src/api/generated/authentication/authentication";
-import { auditPlatformSecurityEventsList, auditSecurityEventsList, getAuditPlatformSecurityEventCatalogGetQueryKey, getAuditPlatformSecurityEventsExportQueryKey } from "../../shared/security/src/api/generated/audit/audit";
+import { auditPlatformSecurityEventsList, auditSecurityEventsList, getAuditPlatformSecurityEventCatalogGetQueryKey, getAuditPlatformSecurityEventsExportQueryKey, getAuditSecurityEventsListQueryKey } from "../../shared/security/src/api/generated/audit/audit";
 import type { AuditPlatformSecurityEventsListParams, SecurityAuditPageReadDto } from "../../shared/security/src/api/generated/audit/model";
 import { auditSortFields } from "../../shared/security/src/api/securityAuditSortFields";
 import { ApiError, ANTIFORGERY_VALIDATION_FAILED_CODE, REQUEST_ID_HEADER, TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
 import { localizePlatformAuditCategory, localizePlatformAuditEvent, localizePlatformAuditOperation } from "../../shared/security/src/localization";
 import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
+import { enMessages } from "../../apps/private-practice-owner/src/localization/messages/en";
 import { twoHostE2eApiOriginEnvironmentKey, twoHostE2ePlatformAdminClientIp, twoHostE2eProofScreenshotEnvironmentKey, twoHostE2eTenantBClinicOrigin, twoHostE2eTenantBOwnerUsername, twoHostE2eTenantBOwnerUsernameEnvironmentKey } from "../../scripts/two-host-e2e-artifacts.mjs";
 import { agentEnvelopeCanonical, base64UrlHmac } from "./agentCallback";
 import { generatedOperationPath } from "./generatedOperationPath";
@@ -239,7 +241,7 @@ async function generatedAuthenticationRequest<T>(
   }
 }
 
-async function login(page: Page, username: string, origin = "", password = e2ePassword, clientIp = "198.51.100.10") {
+async function login(page: Page, username: string, origin = "", password = e2ePassword, clientIp = "198.51.100.10", admitted = true) {
   expect(password).toBeTruthy();
   await page.setExtraHTTPHeaders({ [forwardedForHeaderName]: clientIp });
   // Clinic hosts sign in only on the shared sign-in host; platform administration follows central Auth too.
@@ -252,11 +254,18 @@ async function login(page: Page, username: string, origin = "", password = e2ePa
   await expect(page.locator('button[type="submit"]')).toBeEnabled({ timeout: 30_000 });
   await page.locator('input[name="username"]').fill(username);
   await page.locator('input[name="password"]').fill(password!);
+  const deniedEntry = admitted ? null : page.waitForResponse(response =>
+    response.url().endsWith(generatedOperationPath(authenticationContinuationComplete))
+    && response.request().method() === "POST" && response.status() !== 400);
   const [loginResponse] = await Promise.all([
     page.waitForResponse((response) => response.url().endsWith("/api/modules/authentication/login/password")),
     page.locator('button[type="submit"]').click(),
   ]);
   expect(loginResponse.status()).toBe(200);
+  if (deniedEntry) {
+    expect((await deniedEntry).status(), "central admission refuses a non-administrator").toBe(404);
+    return;
+  }
   await expect(page).toHaveURL(url => url.origin === platformAdminOrigin && !url.pathname.startsWith(AuthenticationWebRoutes.SignIn) && url.pathname !== AuthenticationWebRoutes.Handoff, { timeout: 120_000 });
 }
 
@@ -282,7 +291,7 @@ test("uses the real Web and Main hosts for an authenticated tenant-scoped reques
     isAuthenticated: true,
     tenantAccess: { canAccessTenantOwner: true },
   });
-  const browserCookies = await page.context().cookies();
+  const browserCookies = await page.context().cookies(webOrigin);
   const cookieHeader = browserCookies.map(cookie => `${cookie.name}=${cookie.value}`).join("; ");
   const tenantHost = await page.evaluate(() => window.location.host);
   const accessHistory = await generatedAuthenticationRequest(
@@ -377,8 +386,8 @@ test("uses the real Web and Main hosts for an authenticated tenant-scoped reques
     const isRenewal = request.method === "GET" && url.origin === twoHostE2eSignInOrigin
       && url.pathname === generatedOperationPath(authenticationSessionGet) && request.tenantHost === undefined;
     if (isRenewal) {
-      expect(request.origin, "opaque Auth renewal has no Origin").toBeUndefined();
-      expect(request.referer, "opaque Auth renewal has no Referer").toBeUndefined();
+      expect([undefined, ""], "opaque Auth renewal has no Origin").toContain(request.origin);
+      expect([undefined, ""], "opaque Auth renewal has no Referer").toContain(request.referer);
     } else {
       expect(request.tenantHost, `${request.method} ${url.origin}${url.pathname}`).toBe(url.host);
     }
@@ -1200,15 +1209,11 @@ test("keeps two tenants isolated across identifiers, alternate routes, search, a
     const adminTenant = await fetchJson(adminPage, `/api/modules/parties/administration/tenants/${tenantBId}`);
     expect(adminTenant.status).toBe(200);
     expect(adminTenant.body).toMatchObject({ id: tenantBId, name: "E2E Clinic B" });
-    await adminPage.goto(tenantBOrigin, { waitUntil: "domcontentloaded" });
-    const adminTenantB = await fetchJson(adminPage, `/api/modules/clinic/patients/${tenantBPatientId}`);
-    await adminPage.goto("http://localhost:3005", { waitUntil: "domcontentloaded" });
-    const adminTenantAPage = await adminContext.newPage();
-    await adminTenantAPage.goto("http://localhost:3005", { waitUntil: "domcontentloaded" });
-    const adminTenantA = await fetchJson(adminTenantAPage, `/api/modules/clinic/patients/${tenantAPatientId}`);
-    expect(adminTenantA.status).toBe(200);
-    expect(adminTenantB.status).toBe(401);
-    await adminTenantAPage.close();
+    // A host-only administrator session grants neither clinic an app session.
+    const adminTenantB = await adminContext.request.get(new URL(`/api/modules/clinic/patients/${tenantBPatientId}`, tenantBOrigin).href);
+    const adminTenantA = await adminContext.request.get(new URL(`/api/modules/clinic/patients/${tenantAPatientId}`, webOrigin).href);
+    expect(adminTenantA.status()).toBe(401);
+    expect(adminTenantB.status()).toBe(401);
   } finally {
     if (tenantBRoleRevoked) {
       const restore = await putJson(
@@ -1253,9 +1258,17 @@ test("enforces platform-admin authorization through the API", async ({ page }) =
 
 });
 
-test("shows a generic 403 page while recording each denied audit review once", async ({ page, request }, testInfo) => {
+test("refuses administration entry while recording each denied audit review once", async ({ page, request }, testInfo) => {
   test.setTimeout(120_000);
-  await login(page, tenantBOwnerUsername, platformAdminOrigin, e2ePassword, "198.51.100.23");
+  await login(page, tenantBOwnerUsername, platformAdminOrigin, e2ePassword, "198.51.100.23", false);
+  await expect(page.getByText(enMessages.auth.failures.providerFailure, { exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: enMessages.auth.login.signInAction, exact: true })).toHaveAttribute("href", AuthenticationWebRoutes.SignIn);
+  expect((await page.request.get(platformAdminOrigin + generatedOperationPath(authenticationSessionGet))).status()).toBe(401);
+  if (forbiddenScreenshotPath) {
+    mkdirSync(dirname(forbiddenScreenshotPath), { recursive: true });
+    await page.screenshot({ path: forbiddenScreenshotPath, fullPage: true });
+  }
+  await page.goto(twoHostE2eSignInOrigin + ClinicRoutes.Account.Index, { waitUntil: "domcontentloaded" });
 
   const administratorContext = await page.context().browser()!.newContext();
   const administratorPage = await administratorContext.newPage();
@@ -1280,7 +1293,7 @@ test("shows a generic 403 page while recording each denied audit review once", a
       descending: true,
       uncataloguedOnly: false,
     };
-    const administratorCookieHeader = (await administratorContext.cookies())
+    const administratorCookieHeader = (await administratorContext.cookies(platformAdminOrigin))
       .map(cookie => `${cookie.name}=${cookie.value}`)
       .join("; ");
     const platformAdminTenantHost = new URL(platformAdminOrigin).hostname;
@@ -1311,15 +1324,6 @@ test("shows a generic 403 page while recording each denied audit review once", a
     expect(reviewEventsBefore.status).toBe(200);
     const reviewEventCountBefore = (reviewEventsBefore.body as { totalCount: number }).totalCount;
 
-    await page.goto(`${platformAdminOrigin}/`, { waitUntil: "domcontentloaded" });
-    await expect(page.getByRole("heading", { name: "Forbidden" })).toBeVisible({ timeout: 30_000 });
-    await expect(page.getByText("403", { exact: true })).toBeVisible();
-
-    if (forbiddenScreenshotPath) {
-      mkdirSync(dirname(forbiddenScreenshotPath), { recursive: true });
-      await page.screenshot({ path: forbiddenScreenshotPath, fullPage: true });
-    }
-
     const deniedAuditRead = await fetchJson(page, "/api/audit/platform/security-events?page=1&pageSize=25&sortBy=1&descending=true&uncataloguedOnly=false");
     expect(deniedAuditRead.status).toBe(403);
 
@@ -1336,7 +1340,7 @@ test("shows a generic 403 page while recording each denied audit review once", a
       expect.objectContaining({
         eventName: "authentication.password.login",
         subjectId: tenantBOwnerUserId,
-        clientInterfaceHost: new URL(platformAdminOrigin).hostname,
+        clientInterfaceHost: new URL(twoHostE2eSignInOrigin).hostname,
       }),
     ]));
   } finally {
@@ -1347,7 +1351,8 @@ test("shows a generic 403 page while recording each denied audit review once", a
 
 test("audits denied user creation and editing requests", async ({ page }) => {
   test.setTimeout(120_000);
-  await login(page, tenantBOwnerUsername, platformAdminOrigin, e2ePassword, "198.51.100.25");
+  await login(page, tenantBOwnerUsername, platformAdminOrigin, e2ePassword, "198.51.100.25", false);
+  await page.goto(twoHostE2eSignInOrigin + ClinicRoutes.Account.Index, { waitUntil: "domcontentloaded" });
 
   const deniedCreate = await postJson(page, "/api/modules/users/create/email", {
     email: `unauthorized-create-${Date.now()}@example.test`,
@@ -1419,6 +1424,13 @@ test("proves the global audit grid across a separate platform-admin origin", asy
 
   try {
     await login(tenantBPage, tenantBOwnerUsername, tenantBOrigin, e2ePassword, "198.51.100.22");
+    await login(ownerPage, e2eUsername, webOrigin, e2ePassword, "198.51.100.23");
+    // Sign-in events belong to Auth now. Generate each clinic's own audited
+    // review immediately before checking that the global view includes both.
+    const tenantReviewQuery = new URLSearchParams({ page: "1", pageSize: "1", sortBy: String(auditSortFields.occurredAt), descending: "true" });
+    const tenantReviewPath = `${getAuditSecurityEventsListQueryKey()[0]}?${tenantReviewQuery}`;
+    expect((await fetchJson(tenantBPage, tenantReviewPath)).status).toBe(200);
+    expect((await fetchJson(ownerPage, tenantReviewPath)).status).toBe(200);
     await page.goto(`${platformAdminOrigin}/audit`, { waitUntil: "domcontentloaded" });
     await expect(page).toHaveURL(/localhost:3006\/audit(?:\?|$)/);
     await expect(page.getByRole("heading", { name: "Global security audit" })).toBeVisible({ timeout: 30_000 });
@@ -1528,8 +1540,7 @@ test("proves the global audit grid across a separate platform-admin origin", asy
     }
     await detailDialog.getByRole("button", { name: "Close event details" }).click();
 
-    await login(ownerPage, e2eUsername, webOrigin, e2ePassword, "198.51.100.23");
-    await ownerPage.goto(`${platformAdminOrigin}/audit`, { waitUntil: "domcontentloaded" });
+    await ownerPage.goto(twoHostE2eSignInOrigin + ClinicRoutes.Account.Index, { waitUntil: "domcontentloaded" });
     const deniedTenants = await fetchJson(ownerPage, "/api/modules/parties/platform/tenants");
     expect(deniedTenants.status).toBe(403);
     expect(JSON.stringify(deniedTenants.body ?? "")).not.toContain(tenantAId);

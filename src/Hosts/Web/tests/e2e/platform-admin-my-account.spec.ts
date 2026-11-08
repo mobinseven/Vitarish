@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { Routes as OwnerRoutes } from "../../apps/private-practice-owner/src/app/routes";
 import { Routes } from "../../apps/platform-admin/src/app/routes";
-import { getMessages } from "../../apps/platform-admin/src/localization/messages";
+import { catalogs } from "../../apps/private-practice-owner/src/localization/messages";
 import {
   authenticationLoginPassword,
   getAuthenticationSessionGetQueryKey,
@@ -65,7 +65,7 @@ const platformAdminUserName = sourceString(fixtureSource, "PlatformAdminUserName
 const platformOrigin = twoHostE2ePlatformAdminOrigin;
 const loginPath = generatedOperationPath(authenticationLoginPassword);
 const locale = toSupportedLocale(process.env[twoHostE2eLocaleEnvironmentKey]) ?? defaultLocale;
-const messages = getMessages(locale);
+const messages = catalogs[locale];
 const password = process.env[twoHostE2ePasswordEnvironmentKey];
 
 test(`platform administrator reviews the My account sign-in settings ${locale}`, async ({ browser }, testInfo) => {

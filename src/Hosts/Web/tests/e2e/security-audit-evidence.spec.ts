@@ -828,7 +828,7 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     const anonymousReview = { ...auditEvents.auditReview, operation: anonymousOperation, outcome: "denied" };
     const anonymousBefore = await platformAuditQuery(administratorPage, anonymousReview);
     const anonymousStatus = await request.get(`${apiOrigin}${anonymousEndpoint}${testInfo.retry === 0 ? "?page=1&pageSize=1&sortBy=1&descending=true&uncataloguedOnly=false" : ""}`, {
-      headers: { [TENANT_HOST_HEADER]: new URL(twoHostE2eSignInOrigin).host, [forwardedForHeaderName]: auditClientIp },
+      headers: { [TENANT_HOST_HEADER]: new URL(defaultClinicOrigin).host, [forwardedForHeaderName]: auditClientIp },
       ignoreHTTPSErrors: true,
     });
     expect(anonymousStatus.status()).toBe(401);

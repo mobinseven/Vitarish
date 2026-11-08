@@ -446,13 +446,17 @@ async function run() {
   for (const host of additionalHosts) await waitForHttp(host.name, host.process, `${host.origin}/`, nextReadinessTimeoutMs);
 
   webEnvironment.PLAYWRIGHT_PLATFORM_ADMIN_ORIGIN = platformAdminOrigin;
+  const playwrightEnvironment = {
+    ...webEnvironment,
+    NODE_OPTIONS: `${webEnvironment.NODE_OPTIONS} --require "${resolve(scriptDirectory, "two-host-loopback-dns.cjs").replaceAll("\\", "/")}"`,
+  };
 
   const playwright = startProcess(
     "playwright",
     process.execPath,
     [resolve(webRoot, "node_modules", "@playwright", "test", "cli.js"), "test", "--config", playwrightConfig, ...(process.env[twoHostE2eGrepEnvironmentKey] ? ["--grep", process.env[twoHostE2eGrepEnvironmentKey]] : []), ...playwrightArguments],
     webRoot,
-    webEnvironment,
+    playwrightEnvironment,
   );
 
   const result = await Promise.race([

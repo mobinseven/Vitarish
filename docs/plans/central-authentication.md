@@ -43,6 +43,31 @@ No backend, public contract, generated schema or production configuration
 changed in this correction. The new collective E2E is running; its runtime
 passkey and central session evidence remain unproven until results are read.
 
+The 2026-11-08 collective run completed 55 passed, 18 failed and 14 existing
+skips. Real passkey registration, administrator entry, antiforgery, the complete
+operation matrix, onboarding and account changes passed. Email tab switching,
+reload, one delivery and successful code redemption completed before that
+scenario's later Node request failed on DNS. The Persian account screenshot
+was inspected and the localized home label and two-step state are readable.
+The suite is not passed and is not release evidence.
+
+Remaining corrections keep production unchanged: the disposable Playwright
+process receives native loopback resolution for the reserved .localhost
+namespace, preserving original URLs and host-only cookie behavior. A real
+Playwright request against a temporary HTTP server verified original Host,
+cookie retention on Auth, and no cookie transfer to administration. Both DNS
+callback and promise forms are covered by that process configuration.
+Tests distinguish absent headers from Playwright's empty representation, use
+host-bound cookies at the actual endpoint owner, assert central sign-in audit
+attribution, seed tenant-owned audit reviews independently of sign-in events,
+and verify central admission denial plus downstream API authorization. The
+non-administrator Forbidden presentation remains covered by the focused guard
+test; ordinary non-administrator entry is now refused by Auth before any
+administration session exists. Exact new source values derive from typed
+routes/query keys, the audit catalog and localization owners. No assertions,
+rate limits, authorization, antiforgery or diagnostics are suppressed.
+Unrelated navigation docs appeared concurrently and are excluded from staging.
+
 Owner correction: do not stop at a completed slice. Continue until the update is
 deployed; the owner reports no active server sessions. E2E remains deferred until
 all implementation and faster checks are ready, with necessary fixes/reruns
