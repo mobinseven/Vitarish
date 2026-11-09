@@ -129,7 +129,9 @@ public sealed class AddItemHandler(
             CreatedAt = DateTime.UtcNow
         };
 
-        prescription.Items.Add(item);
+        // Add through the set: an item with a preassigned key reached only through the tracked parent's collection
+        // is treated as existing, and saving it fails with a concurrency error.
+        _ = dbContext.PrescriptionItems.Add(item);
         prescription.UpdatedAt = DateTime.UtcNow;
         _ = await dbContext.SaveChangesAsync(cancellationToken);
 

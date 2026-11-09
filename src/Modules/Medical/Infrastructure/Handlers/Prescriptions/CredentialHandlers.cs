@@ -99,6 +99,7 @@ public sealed class SaveCredentialHandler(
 
         await auditWriter.WriteAsync(new AuditEntry
         {
+            TenantId = requestContext.TenantId ?? string.Empty,
             EntityType = nameof(DoctorProviderCredential),
             EntityId = credential.Id,
             Action = request.CredentialId.HasValue ? "Updated" : AuditAction.Created,
@@ -163,6 +164,7 @@ public sealed class TestCredentialHandler(
 
             await auditWriter.WriteAsync(new AuditEntry
             {
+                TenantId = requestContext.TenantId ?? string.Empty,
                 EntityType = nameof(DoctorProviderCredential),
                 EntityId = credential.Id,
                 Action = "TestSucceeded",
@@ -180,6 +182,7 @@ public sealed class TestCredentialHandler(
 
         await auditWriter.WriteAsync(new AuditEntry
         {
+            TenantId = requestContext.TenantId ?? string.Empty,
             EntityType = nameof(DoctorProviderCredential),
             EntityId = credential.Id,
             Action = "TestFailed",
@@ -221,6 +224,7 @@ public sealed class RevokeCredentialHandler(
 
         await auditWriter.WriteAsync(new AuditEntry
         {
+            TenantId = requestContext.TenantId ?? string.Empty,
             EntityType = nameof(DoctorProviderCredential),
             EntityId = credential.Id,
             Action = "Revoked",
@@ -324,6 +328,7 @@ public sealed class CompleteProviderAuthorizationHandler(
 
         await auditWriter.WriteAsync(new AuditEntry
         {
+            TenantId = requestContext.TenantId ?? string.Empty,
             EntityType = nameof(DoctorProviderCredential),
             EntityId = credential.Id,
             Action = "AuthorizationCompleted",

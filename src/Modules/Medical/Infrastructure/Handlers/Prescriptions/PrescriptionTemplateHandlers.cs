@@ -97,7 +97,7 @@ public sealed class AddPrescriptionTemplateItemHandler(PrescriptionDbContext dbC
         PrescriptionItemIdentity requestedIdentity = new(request.Category, request.ReferenceCode, request.DisplayName);
         if (template.Items.Any(item => PrescriptionItemIdentityComparer.AreSame(new PrescriptionItemIdentity(item.Category, item.ReferenceCode, item.DisplayName), requestedIdentity))) return PrescriptionTemplateCommandResult.Failure("آیتم تکراری در قالب نسخه مجاز نیست.");
         PrescriptionTemplateItem item = new() { Id = Guid.NewGuid(), PrescriptionTemplateId = template.Id, Category = request.Category, ReferenceCode = request.ReferenceCode, DisplayName = request.DisplayName, DosageJson = request.DosageJson, Quantity = request.Quantity, DurationDays = request.DurationDays, MetadataJson = request.MetadataJson, SortOrder = NextSortOrder(template.Items), CreatedAt = DateTime.UtcNow };
-        template.Items.Add(item); template.UpdatedAt = DateTime.UtcNow;
+        _ = dbContext.PrescriptionTemplateItems.Add(item); template.UpdatedAt = DateTime.UtcNow;
         _ = await dbContext.SaveChangesAsync(cancellationToken);
         return PrescriptionTemplateCommandResult.Success(item.Id);
     }
@@ -167,7 +167,7 @@ public sealed class LoadPrescriptionTemplateIntoDraftHandler(PrescriptionDbConte
         DateTime copiedAt = DateTime.UtcNow;
         foreach (PrescriptionTemplateItem templateItem in template.Items)
         {
-            prescription.Items.Add(new PrescriptionItem { Id = Guid.NewGuid(), PrescriptionRecordId = prescription.Id, Category = templateItem.Category, ReferenceCode = templateItem.ReferenceCode, DisplayName = templateItem.DisplayName, DosageJson = templateItem.DosageJson, Quantity = templateItem.Quantity, DurationDays = templateItem.DurationDays, MetadataJson = templateItem.MetadataJson, SortOrder = ++sortOrder, CreatedAt = copiedAt });
+            _ = dbContext.PrescriptionItems.Add(new PrescriptionItem { Id = Guid.NewGuid(), PrescriptionRecordId = prescription.Id, Category = templateItem.Category, ReferenceCode = templateItem.ReferenceCode, DisplayName = templateItem.DisplayName, DosageJson = templateItem.DosageJson, Quantity = templateItem.Quantity, DurationDays = templateItem.DurationDays, MetadataJson = templateItem.MetadataJson, SortOrder = ++sortOrder, CreatedAt = copiedAt });
         }
         prescription.UpdatedAt = DateTime.UtcNow;
         _ = await dbContext.SaveChangesAsync(cancellationToken);
