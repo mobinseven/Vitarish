@@ -3583,6 +3583,72 @@
         }
       }
     },
+    "/api/modules/medical/providers/drug-consumption-options": {
+      "post": {
+        "tags": [
+          "Medical"
+        ],
+        "operationId": "MedicalGetDrugConsumptionOptions",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetDrugConsumptionOptionsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DrugConsumptionOptionsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/modules/medical/credentials/list": {
       "post": {
         "tags": [
@@ -4909,6 +4975,12 @@
               "string"
             ],
             "format": "int32"
+          },
+          "metadataJson": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -5395,6 +5467,12 @@
               "string"
             ]
           },
+          "providerDoctorMobile": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
           "providerClinicIdentifier": {
             "type": [
               "null",
@@ -5440,6 +5518,87 @@
           "releaseId": {
             "type": "string",
             "format": "uuid"
+          }
+        }
+      },
+      "DrugConsumptionOptionResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "nameLatin": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "DrugConsumptionOptionsResponse": {
+        "type": "object",
+        "properties": {
+          "isSupported": {
+            "type": "boolean"
+          },
+          "isSuccess": {
+            "type": "boolean"
+          },
+          "errorMessage": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "units": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DrugConsumptionUnitResponse"
+            }
+          },
+          "instructions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DrugConsumptionOptionResponse"
+            }
+          },
+          "usages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DrugConsumptionOptionResponse"
+            }
+          },
+          "methods": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DrugConsumptionOptionResponse"
+            }
+          }
+        }
+      },
+      "DrugConsumptionUnitResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "nameLatin": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "amounts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DrugConsumptionOptionResponse"
+            }
           }
         }
       },
@@ -5612,6 +5771,21 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "GetDrugConsumptionOptionsRequest": {
+        "required": [
+          "providerKey",
+          "formCode"
+        ],
+        "type": "object",
+        "properties": {
+          "providerKey": {
+            "type": "string"
+          },
+          "formCode": {
+            "type": "string"
           }
         }
       },
