@@ -77,6 +77,14 @@ public sealed class TaminPrescriptionMapperTests
     }
 
     [Fact]
+    public async Task Doctor_mobile_is_sent_as_the_doctor_contact()
+    {
+        PrescriptionCreateInput sent = await RegisterAsync(Item(PrescriptionItemCategory.Drug, "1", null));
+
+        sent.DocMobileNo.Should().Be("09121111111");
+    }
+
+    [Fact]
     public async Task Missing_patient_mobile_is_omitted_instead_of_blocking_submission()
     {
         PrescriptionCreateInput sent = await RegisterAsync(Item(PrescriptionItemCategory.Drug, "1", null), mobile: null);
@@ -129,7 +137,7 @@ public sealed class TaminPrescriptionMapperTests
         };
 
         _ = await _mapper.RegisterPrescriptionAsync(
-            client.Object, prescription, "doc", "doc-national", "siam", mobile, new TaminDateFormatter(), CancellationToken.None);
+            client.Object, prescription, "doc", "doc-national", "09121111111", "siam", mobile, new TaminDateFormatter(), CancellationToken.None);
 
         return sent!;
     }

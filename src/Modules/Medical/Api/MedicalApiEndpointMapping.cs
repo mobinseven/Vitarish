@@ -263,6 +263,7 @@ public static class MedicalApiEndpointMapping
         ProviderKey = request.ProviderKey,
         ProviderDoctorIdentifier = GetConfigurationValue(request.ConfigurationValues, "providerDoctorIdentifier"),
         ProviderUsername = GetConfigurationValue(request.ConfigurationValues, "providerUsername"),
+        ProviderDoctorMobile = GetConfigurationValue(request.ConfigurationValues, "providerDoctorMobile"),
         ProviderClinicIdentifier = GetConfigurationValue(request.ConfigurationValues, "providerClinicIdentifier"),
         CredentialSecretRef = GetConfigurationValue(request.ConfigurationValues, "credentialSecretRef")
     }, ct));
@@ -347,6 +348,7 @@ public static class MedicalApiEndpointMapping
         ProviderKey = value.ProviderKey,
         ProviderDoctorIdentifier = value.ProviderDoctorIdentifier,
         ProviderUsername = value.ProviderUsername,
+        ProviderDoctorMobile = value.ProviderDoctorMobile,
         ProviderClinicIdentifier = value.ProviderClinicIdentifier,
         ExpiresAt = value.ExpiresAt,
         DaysUntilExpiry = value.DaysUntilExpiry,

@@ -28,7 +28,8 @@ internal sealed record TaminSessionResult(
     IntegrationError? Error,
     string? DoctorTaminId = null,
     string? DoctorNationalCode = null,
-    string? ClinicSiamId = null)
+    string? ClinicSiamId = null,
+    string? DoctorMobile = null)
 {
     public bool IsSuccess => Client is not null && Error is null;
 
@@ -36,7 +37,8 @@ internal sealed record TaminSessionResult(
         ITaminClient client,
         string? doctorTaminId = null,
         string? doctorNationalCode = null,
-        string? clinicSiamId = null) => new(client, null, doctorTaminId, doctorNationalCode, clinicSiamId);
+        string? clinicSiamId = null,
+        string? doctorMobile = null) => new(client, null, doctorTaminId, doctorNationalCode, clinicSiamId, doctorMobile);
 
     public static TaminSessionResult Failure(IntegrationError error) => new(null, error);
 }

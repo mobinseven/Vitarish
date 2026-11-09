@@ -18,6 +18,9 @@ public sealed class DoctorProviderCredential : Entity
     /// <summary>Provider-specific username.</summary>
     public string? ProviderUsername { get; set; }
 
+    /// <summary>Doctor mobile number as registered with the provider; some providers require it on every prescription.</summary>
+    public string? ProviderDoctorMobile { get; set; }
+
     /// <summary>Provider-specific clinic identifier registered outside this system.</summary>
     public string? ProviderClinicIdentifier { get; set; }
 

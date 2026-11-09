@@ -23,6 +23,7 @@ internal sealed class TaminPrescriptionMapper
         PrescriptionRecord prescription,
         string doctorTaminId,
         string doctorNationalCode,
+        string? doctorMobile,
         string? clinicSiamId,
         string? mobile,
         ITaminDateFormatter dateFormatter,
@@ -32,6 +33,7 @@ internal sealed class TaminPrescriptionMapper
             prescription,
             doctorTaminId,
             doctorNationalCode,
+            doctorMobile,
             clinicSiamId,
             mobile,
             dateFormatter);
@@ -153,6 +155,7 @@ internal sealed class TaminPrescriptionMapper
         PrescriptionRecord prescription,
         string doctorTaminId,
         string doctorNationalCode,
+        string? doctorMobile,
         string? clinicSiamId,
         string? mobile,
         ITaminDateFormatter dateFormatter)
@@ -193,7 +196,7 @@ internal sealed class TaminPrescriptionMapper
             Comments: null,
             CreatorType: null,
             DocId: doctorTaminId,
-            DocMobileNo: null,
+            DocMobileNo: doctorMobile,
             DocNationalCode: doctorNationalCode,
             ExpireDate: null,
             Mobile: mobile,

@@ -203,6 +203,14 @@ internal sealed class TaminInsuranceAdapter(
             return AdapterResult<SubmissionResponse>.Failure(sessionResult.Error!);
         }
 
+        // The provider requires the doctor's registered mobile on every prescription.
+        if (string.IsNullOrWhiteSpace(sessionResult.DoctorMobile))
+        {
+            return AdapterResult<SubmissionResponse>.Failure(ValidationError(
+                "شماره همراه پزشک در تنظیمات تامین اجتماعی ثبت نشده است.",
+                "ProviderDoctorMobile is required on the Tamin credential."));
+        }
+
         try
         {
             ITaminClient client = sessionResult.Client!;
@@ -211,6 +219,7 @@ internal sealed class TaminInsuranceAdapter(
                 prescription,
                 sessionResult.DoctorTaminId ?? string.Empty,
                 sessionResult.DoctorNationalCode ?? sessionResult.DoctorTaminId ?? string.Empty,
+                sessionResult.DoctorMobile,
                 sessionResult.ClinicSiamId,
                 fallbackMobile,
                 _dateFormatter,

@@ -133,7 +133,7 @@ internal sealed class TaminCredentialSessionStore(
                 "Tamin OAuth authorization completed for doctor {DoctorId} in clinic {ClinicId}",
                 credential.DoctorId,
                 credential.ClinicId);
-            return TaminSessionResult.Success(client, ResolveDoctorTaminId(credential), credential.ProviderUsername, credential.ProviderClinicIdentifier);
+            return TaminSessionResult.Success(client, ResolveDoctorTaminId(credential), credential.ProviderUsername, credential.ProviderClinicIdentifier, credential.ProviderDoctorMobile);
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or ArgumentException or InvalidOperationException)
         {
@@ -168,7 +168,8 @@ internal sealed class TaminCredentialSessionStore(
                 _clientFactory.Create(CreateTokenStore(credential)),
                 ResolveDoctorTaminId(credential),
                 credential.ProviderUsername,
-                credential.ProviderClinicIdentifier);
+                credential.ProviderClinicIdentifier,
+                credential.ProviderDoctorMobile);
         }
         catch (InvalidOperationException ex)
         {
