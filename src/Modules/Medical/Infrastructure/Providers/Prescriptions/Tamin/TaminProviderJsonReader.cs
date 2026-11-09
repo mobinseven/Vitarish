@@ -21,6 +21,20 @@ internal static class TaminProviderJsonReader
         return new TaminReferencePageResult(codeSystem, page, pageSize, total, hasNext, version, items, root.GetRawText());
     }
 
+    /// <summary>The dosage form of a drug item, which selects its consumption options.</summary>
+    public static string? ReadFormCode(string rawItemJson)
+    {
+        try
+        {
+            using JsonDocument document = JsonDocument.Parse(rawItemJson);
+            return GetFirstString(document.RootElement, ["formCode", "form_code"]);
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
+    }
+
     private static TaminReferenceItem ToReferenceItem(string codeSystem, JsonElement item) => new(
         GetFirstString(item, ["drug_code", "drugCode", "service_code", "serviceCode", "srvCode", "code", "id"]) ?? string.Empty,
         GetFirstString(item, ["drug_name", "drugName", "service_name", "serviceName", "srvName", "name", "title"]) ?? string.Empty,

@@ -490,7 +490,8 @@ internal sealed class TaminInsuranceAdapter(
             IsActive = item.IsActive,
             SafeMetadata = new Dictionary<string, string?>
             {
-                ["providerKind"] = item.ProviderKind
+                ["providerKind"] = item.ProviderKind,
+                [TaminProviderOperationNames.FormCodeMetadataKey] = TaminProviderJsonReader.ReadFormCode(item.RawJson)
             }
         }).ToList()
     };

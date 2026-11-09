@@ -17,7 +17,7 @@ public sealed record ListPatientPrescriptionsRequest(Guid? PatientId = null, Gui
 public sealed record GetPatientPrescriptionDashboardRequest(Guid PatientId, Guid? ClinicId = null, int AttentionTake = 8);
 public sealed record CreatePrescriptionDraftRequest(Guid PatientId, string? PatientNationalId, Guid DoctorId, Guid ClinicId);
 public sealed record UpdatePrescriptionDraftRequest(Guid PrescriptionId, string? PatientNationalId);
-public sealed record AddPrescriptionItemRequest { public Guid PrescriptionId { get; init; } public MedicalPrescriptionItemCategory Category { get; init; } public string? ReferenceCode { get; init; } public string? DisplayName { get; init; } public string? DosageJson { get; init; } public int Quantity { get; init; } public int? DurationDays { get; init; } }
+public sealed record AddPrescriptionItemRequest { public Guid PrescriptionId { get; init; } public MedicalPrescriptionItemCategory Category { get; init; } public string? ReferenceCode { get; init; } public string? DisplayName { get; init; } public string? DosageJson { get; init; } public int Quantity { get; init; } public int? DurationDays { get; init; } public string? MetadataJson { get; init; } }
 public sealed record UpdatePrescriptionItemRequest { public Guid PrescriptionId { get; init; } public Guid ItemId { get; init; } public string? DosageJson { get; init; } public int Quantity { get; init; } public int? DurationDays { get; init; } }
 public sealed record RemovePrescriptionItemRequest(Guid PrescriptionId, Guid ItemId);
 public sealed record SelectPrescriptionProviderRequest(Guid PrescriptionId, string ProviderKey);
