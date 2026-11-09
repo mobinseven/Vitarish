@@ -8,7 +8,8 @@
 .topBarBrand { color: var(--foreground); font-family: var(--font-heading); font-size: 1rem; white-space: nowrap; }
 .topBarNav { display: flex; gap: 2rem; margin-inline-start: auto; }
 .topBarNav a { color: var(--foreground); font-size: 0.75rem; white-space: nowrap; }
-.hero { overflow: hidden; }
+/* clip, not hidden: a scroll container would stop the manifesto stage from sticking. */
+.hero { overflow: clip; }
 .heroScene { position: relative; isolation: isolate; min-height: min(52rem, 85svh); display: flex; flex-direction: column; justify-content: space-between; }
 .fibers { position: absolute; z-index: -2; inset: 0; opacity: 0.65; filter: invert(1); pointer-events: none; }
 :global([data-theme="dark"]) .fibers { filter: none; }
@@ -17,15 +18,14 @@
 .heroSignature { display: flex; flex-direction: column; padding: 2rem var(--gutter) 0; }
 .heroLogotype { display: block; width: 100%; }
 .heroLogotype img { width: 100%; height: auto; }
-.heroText { display: grid; grid-template-columns: 1fr; align-items: end; padding: 5rem var(--gutter) 6rem; }
+.heroText { display: grid; grid-template-columns: 1fr; align-items: end; justify-items: start; gap: 2rem; padding: 5rem var(--gutter) 6rem; }
 .heroTitle { font-family: var(--font-heading); max-width: 11ch; font-size: clamp(2.25rem, 4.7vw, 5rem); font-weight: 400; line-height: 1.25; text-wrap: balance; }
 .heroLead { color: inherit; }
 .eyebrow { font-size: 0.75rem; line-height: 1.8; }
-.motionControl { position: absolute; inset-inline-end: var(--gutter); bottom: 1rem; color: var(--foreground); }
-.statement { display: grid; grid-template-columns: 1fr 2fr; gap: 2rem 4rem; padding: 6rem var(--gutter); }
-.statement h2 { max-width: 23ch; font-family: var(--font-heading); font-size: clamp(1.75rem, 3.1vw, 3.25rem); line-height: 1.5; text-wrap: balance; }
-.statement > .sectionText { grid-column: 2; max-width: 52ch; }
-.statement > .storyLink { grid-column: 2; justify-self: start; color: var(--foreground); font-size: 0.875rem; }
+/* The control takes the ink of the ground it sits on. */
+.motionControl { color: inherit; }
+.heroControl { position: absolute; inset-inline-end: var(--gutter); bottom: 1rem; color: var(--foreground); }
+.storyLink { color: var(--foreground); font-size: 0.875rem; }
 .band { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); align-items: start; gap: clamp(2rem, 6vw, 7rem); margin-inline: var(--gutter); padding-block: 6rem; border-top: 1px solid var(--border); }
 .sectionIntro { display: flex; flex-direction: column; align-items: flex-start; gap: 1.75rem; }
 .display { font-family: var(--font-heading); font-size: clamp(1.875rem, 3.2vw, 3.5rem); font-weight: 400; line-height: 1.35; text-wrap: balance; }
@@ -65,9 +65,6 @@
   .heroText { padding-block: 5rem; }
   .heroTitle { max-width: 13ch; font-size: clamp(2rem, 7vw, 3rem); }
   .eyebrow { font-size: 0.6875rem; }
-  .statement { grid-template-columns: 1fr; padding-block: 4rem; gap: 1.5rem; }
-  .statement > .sectionText { grid-column: auto; }
-  .statement > .storyLink { grid-column: auto; }
   .band { grid-template-columns: 1fr; padding-block: 4rem; gap: 2.5rem; }
 }
 @media (prefers-reduced-motion: reduce) { .fibers { opacity: 0.45; } }

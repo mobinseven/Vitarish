@@ -8,6 +8,7 @@ import { FaIcon, FeatureItemCard, MarketingActionLink, RevealHeader, ViewportRev
 import { chromaChipClassName } from "@vitarish/ui/chroma";
 import { LandingRoutes } from "../../app/routes";
 import { WelcomeBackPill } from "./welcome-back-pill";
+import { Manifesto } from "./manifesto";
 import { whatsappChatUrl } from "./whatsapp";
 import styles from "./front-door.module.css";
 
@@ -26,7 +27,7 @@ const logotypes = {
 
 const GhostFibers = dynamic(() => import("./ghost-fibers"), { ssr: false });
 
-const sectionIds = { apps: "landing-apps", questions: "landing-questions", purpose: "brand-statement-title" } as const;
+const sectionIds = { apps: "landing-apps", questions: "landing-questions" } as const;
 
 const upcomingBusinessKeys = ["gym", "salon"] as const;
 const upcomingIndividualKeys = ["etymology", "converter"] as const;
@@ -84,6 +85,15 @@ export function FrontDoorPage({ onboardingUrl, whatsappNumber }: FrontDoorPagePr
     setLocaleCookie(otherLocale);
     window.location.reload();
   };
+  const motionLabel = t(backgroundPaused ? "landing.hero.play" : "landing.hero.pause");
+  const motionControl = (
+    <Tooltip>
+      <Button isIconOnly aria-label={motionLabel} className={styles.motionControl} variant="ghost" onPress={() => setBackgroundPaused((value) => !value)}>
+        <i aria-hidden="true" className={backgroundPaused ? "fa-light fa-play" : "fa-light fa-pause"} />
+      </Button>
+      <Tooltip.Content>{motionLabel}</Tooltip.Content>
+    </Tooltip>
+  );
 
   return (
     <div className={styles.page}>
@@ -118,6 +128,7 @@ export function FrontDoorPage({ onboardingUrl, whatsappNumber }: FrontDoorPagePr
       />
       <main className={styles.main} id="vitarish-landing-main">
         <section aria-labelledby="landing-hero" className={styles.hero}>
+          <Manifesto motionControl={motionControl} paused={backgroundPaused} />
           <div className={styles.heroScene}>
             <div className={styles.fibers} aria-hidden="true">
               <GhostFibers glowColor="white" lineColor="white" secondaryColor="white" threads={36} density={0.6} layers={2} dpr={1} speed={0.3} mouseInteraction={false} pulseOnClick={false} paused={backgroundPaused} />
@@ -129,22 +140,12 @@ export function FrontDoorPage({ onboardingUrl, whatsappNumber }: FrontDoorPagePr
               <h1 className={styles.heroTitle} id="landing-hero">
                 <span className={styles.heroLead}>{t("landing.hero.lead")}</span>
               </h1>
+              <Link className={styles.storyLink} href={LandingRoutes.Purpose}>{t("landing.purpose.readMore")}</Link>
             </div>
-            <Tooltip>
-              <Button isIconOnly aria-label={t(backgroundPaused ? "landing.hero.play" : "landing.hero.pause")} className={styles.motionControl} variant="ghost" onPress={() => setBackgroundPaused((value) => !value)}>
-                <i aria-hidden="true" className={backgroundPaused ? "fa-light fa-play" : "fa-light fa-pause"} />
-              </Button>
-              <Tooltip.Content>{t(backgroundPaused ? "landing.hero.play" : "landing.hero.pause")}</Tooltip.Content>
-            </Tooltip>
+            <div className={styles.heroControl}>{motionControl}</div>
           </div>
         </section>
         <RevealHeader.Boundary />
-        <ViewportReveal as="section" className={styles.statement} aria-labelledby={sectionIds.purpose}>
-          <p className={styles.eyebrow}>{t("landing.purpose.eyebrow")}</p>
-          <h2 id={sectionIds.purpose}>{t("landing.purpose.title")}</h2>
-          <p className={styles.sectionText}>{t("landing.purpose.description")}</p>
-          <Link className={styles.storyLink} href={LandingRoutes.Purpose}>{t("landing.purpose.readMore")}</Link>
-        </ViewportReveal>
         <ViewportReveal as="section" aria-labelledby={sectionIds.apps} className={styles.band}>
           <div className={styles.sectionIntro}>
             <p className={styles.eyebrow}>{t("landing.apps.eyebrow")}</p>
