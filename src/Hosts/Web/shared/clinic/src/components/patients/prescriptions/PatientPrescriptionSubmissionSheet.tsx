@@ -9,13 +9,21 @@ import { clinicStartVisitPrescriptionDraft } from "../../../api/generated/clinic
 import {
   medicalAddPrescriptionItem,
   medicalApplyPrescriptionTemplate,
+  medicalCheckDraftEligibility,
   medicalGetAvailableProviders,
+  medicalGetDrugConsumptionOptions,
   medicalListPrescriptionTemplates,
   medicalSearchPrescriptionReferenceCodes,
   medicalSubmitPrescription,
   medicalValidatePrescriptionDraft,
 } from "../../../api/generated/medical/medical";
+import type { DrugConsumptionOptionsResponse } from "../../../api/generated/medical/model";
 import type { PatientViewDto } from "../../../models/patients/patientSearchModels";
+import {
+  dosageFormMetadataKey,
+  drugItemCategory,
+} from "../../../models/prescriptions/drugConsumption";
+import { DrugConsumptionPicker } from "./DrugConsumptionPicker";
 import { useLocalizedText } from "../../../localization";
 import { prescriptionEventFeedQueryKey } from "../procedures/eventFeedPlugins";
 
@@ -30,6 +38,8 @@ type CatalogItem = {
   prescriptionCategory: number;
   referenceCode: string;
   displayName: string;
+  formCode?: string;
+  consumptionSummary?: string;
 };
 
 export function PatientPrescriptionSubmissionSheet({
@@ -49,6 +59,10 @@ export function PatientPrescriptionSubmissionSheet({
   const [items, setItems] = useState<CatalogItem[]>([]);
   const [message, setMessage] = useState("");
   const [isWorking, setIsWorking] = useState(false);
+  const [pendingDrug, setPendingDrug] = useState<{
+    item: CatalogItem;
+    options: DrugConsumptionOptionsResponse;
+  }>();
   const providers = useQuery({
     queryKey: ["medical", "prescription-providers"],
     enabled: isOpen,
@@ -97,22 +111,58 @@ export function PatientPrescriptionSubmissionSheet({
             activeOnly: true,
             limit: 20,
           })
-        )
-          .filter((item): item is CatalogItem =>
-            Boolean(item.providerKey && item.referenceCode && item.displayName),
-          )
-          .map((item) => ({
-            providerKey: item.providerKey!,
-            prescriptionCategory: item.prescriptionCategory ?? 0,
-            referenceCode: item.referenceCode!,
-            displayName: item.displayName!,
-          })),
+        ).flatMap((item): CatalogItem[] =>
+          item.providerKey && item.referenceCode && item.displayName
+            ? [
+                {
+                  providerKey: item.providerKey,
+                  prescriptionCategory: item.prescriptionCategory ?? 0,
+                  referenceCode: item.referenceCode,
+                  displayName: item.displayName,
+                  formCode: item.metadata?.[dosageFormMetadataKey] ?? undefined,
+                },
+              ]
+            : [],
+        ),
       );
     } catch {
       setMessage(t("clinic.prescriptionSubmission.searchFailed"));
     }
   }
-  async function add(item: CatalogItem) {
+  async function choose(item: CatalogItem) {
+    if (!prescriptionId) return;
+    if (item.prescriptionCategory !== drugItemCategory) {
+      await add(item, null);
+      return;
+    }
+    setIsWorking(true);
+    setMessage("");
+    try {
+      // The provider decides whether a drug needs consumption values; none means add it directly.
+      const options = await medicalGetDrugConsumptionOptions({
+        providerKey,
+        formCode: item.formCode ?? "",
+      });
+      if (!options.isSupported) {
+        await add(item, null);
+      } else if (!options.isSuccess) {
+        setMessage(
+          item.formCode
+            ? (options.errorMessage ??
+                t("clinic.prescriptionSubmission.consumption.loadFailed"))
+            : t("clinic.prescriptionSubmission.consumption.resyncRequired"),
+        );
+      } else {
+        setPendingDrug({ item, options });
+        setResults([]);
+      }
+    } catch {
+      setMessage(t("clinic.prescriptionSubmission.consumption.loadFailed"));
+    } finally {
+      setIsWorking(false);
+    }
+  }
+  async function add(item: CatalogItem, metadataJson: string | null) {
     if (!prescriptionId) return;
     setIsWorking(true);
     try {
@@ -124,8 +174,10 @@ export function PatientPrescriptionSubmissionSheet({
         dosageJson: null,
         quantity: 1,
         durationDays: null,
+        metadataJson,
       });
       setItems((current) => [...current, item]);
+      setPendingDrug(undefined);
       setResults([]);
       setQuery("");
     } catch {
@@ -155,6 +207,15 @@ export function PatientPrescriptionSubmissionSheet({
     setIsWorking(true);
     setMessage("");
     try {
+      // Submission requires a recorded entitlement answer; the provider is asked under the doctor's own login.
+      const eligibility = await medicalCheckDraftEligibility(prescriptionId);
+      if (!eligibility.isSuccess) {
+        setMessage(
+          eligibility.errorMessage ??
+            t("clinic.prescriptionSubmission.eligibilityFailed"),
+        );
+        return;
+      }
       const validation = await medicalValidatePrescriptionDraft(prescriptionId);
       if (!validation.isValid) {
         setMessage(
@@ -279,7 +340,7 @@ export function PatientPrescriptionSubmissionSheet({
                           <ListBox.Item
                             key={`${item.providerKey}:${item.referenceCode}`}
                             id={item.referenceCode}
-                            onAction={() => void add(item)}
+                            onAction={() => void choose(item)}
                           >
                             {item.displayName}
                             <span className="ms-auto text-xs text-muted">
@@ -289,6 +350,23 @@ export function PatientPrescriptionSubmissionSheet({
                         ))}
                       </ListBox>
                     ) : null}
+                    {pendingDrug ? (
+                      <DrugConsumptionPicker
+                        drugName={pendingDrug.item.displayName}
+                        options={pendingDrug.options}
+                        isBusy={isWorking}
+                        onCancel={() => setPendingDrug(undefined)}
+                        onConfirm={(metadataJson, summary) =>
+                          void add(
+                            {
+                              ...pendingDrug.item,
+                              consumptionSummary: summary,
+                            },
+                            metadataJson,
+                          )
+                        }
+                      />
+                    ) : null}
                     <ul className="mt-3 space-y-2">
                       {items.map((item, index) => (
                         <li
@@ -297,7 +375,7 @@ export function PatientPrescriptionSubmissionSheet({
                         >
                           {item.displayName}
                           <span className="ms-2 text-muted">
-                            {item.referenceCode}
+                            {item.consumptionSummary ?? item.referenceCode}
                           </span>
                         </li>
                       ))}

@@ -29,8 +29,10 @@ public static class MedicalApiRoutes
     public const string UpdateLocalDrug = "/reference/drugs/update";
     public const string RetireDrug = "/reference/drugs/retire";
     public const string PrescriptionDraftValidation = "/prescriptions/{prescriptionId:guid}/validation";
+    public const string PrescriptionDraftEligibility = "/prescriptions/{prescriptionId:guid}/eligibility-check";
     public const string PrescriptionEdit = "/prescriptions/{prescriptionId:guid}/edit";
     public const string AvailableProviders = "/providers/available";
+    public const string DrugConsumptionOptions = "/providers/drug-consumption-options";
     public const string CredentialSetupGrid = "/credentials/setup-grid";
     public const string CredentialSetupContext = "/credentials/setup-context";
     public const string CredentialTest = "/credentials/test";

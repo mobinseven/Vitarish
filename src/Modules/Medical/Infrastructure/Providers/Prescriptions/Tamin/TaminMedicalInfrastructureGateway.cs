@@ -1,33 +1,31 @@
 using System.Runtime.CompilerServices;
-using System.Text.Json;
+using Tamin.Integration;
 using Tamin.Integration.Mapping;
 
 namespace Vitarish.Medical.Infrastructure.Providers.Prescriptions.Tamin;
 
-internal sealed class TaminMedicalInfrastructureGateway(
-    TaminProviderSessionFactory sessionFactory,
-    TaminMappingService mappingService) : ITaminMedicalInfrastructureGateway
+internal sealed class TaminMedicalInfrastructureGateway : ITaminMedicalInfrastructureGateway
 {
-    private readonly TaminProviderSessionFactory _sessionFactory = sessionFactory;
-    private readonly TaminMappingService _mappingService = mappingService;
-
     public async Task<TaminReferencePageResult> SearchDrugsAsync(
+        ITaminClient client,
         TaminDrugSearchOperationRequest request,
         CancellationToken cancellationToken)
     {
-        JsonElement payload = await GetServicesAsync("01", cancellationToken);
+        UnconstrainedResponse response = await client.ListServicesAsync(TaminServiceTypeCodes.Drug, cancellationToken);
         return TaminProviderJsonReader.ToReferencePage(
             TaminProviderOperationNames.Drug,
-            payload,
+            response.Payload,
             request.Page,
             request.PageSize);
     }
 
     public async IAsyncEnumerable<TaminReferencePageResult> ListAllDrugPagesAsync(
+        ITaminClient client,
         TaminDrugListAllOperationRequest request,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         yield return await SearchDrugsAsync(
+            client,
             new TaminDrugSearchOperationRequest(
                 request.SearchText,
                 request.DrugCode,
@@ -38,24 +36,27 @@ internal sealed class TaminMedicalInfrastructureGateway(
     }
 
     public async Task<TaminReferencePageResult> SearchServicesAsync(
+        ITaminClient client,
         TaminServiceSearchOperationRequest request,
         CancellationToken cancellationToken)
     {
-        JsonElement payload = await GetServicesAsync(
-            string.IsNullOrWhiteSpace(request.ServiceType) ? "02" : request.ServiceType,
+        UnconstrainedResponse response = await client.ListServicesAsync(
+            string.IsNullOrWhiteSpace(request.ServiceType) ? TaminServiceTypeCodes.Laboratory : request.ServiceType,
             cancellationToken);
         return TaminProviderJsonReader.ToReferencePage(
             TaminProviderOperationNames.Service,
-            payload,
+            response.Payload,
             request.Page,
             request.PageSize);
     }
 
     public async IAsyncEnumerable<TaminReferencePageResult> ListAllServicePagesAsync(
+        ITaminClient client,
         TaminServiceListAllOperationRequest request,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         yield return await SearchServicesAsync(
+            client,
             new TaminServiceSearchOperationRequest(
                 request.ServiceType,
                 request.ServiceGroup,
@@ -67,121 +68,57 @@ internal sealed class TaminMedicalInfrastructureGateway(
     }
 
     public async Task<TaminReferencePageResult> GetAllServicesAsync(
+        ITaminClient client,
         TaminRawReferenceQueryOperationRequest request,
         CancellationToken cancellationToken)
     {
-        request.Query.TryGetValue("service-type", out string? serviceType);
-        JsonElement payload = await GetServicesAsync(
-            string.IsNullOrWhiteSpace(serviceType) ? "02" : serviceType,
+        request.Query.TryGetValue(TaminProviderOperationNames.ServiceTypeQuery, out string? serviceType);
+        UnconstrainedResponse response = await client.ListServicesAsync(
+            string.IsNullOrWhiteSpace(serviceType) ? TaminServiceTypeCodes.Laboratory : serviceType,
             cancellationToken);
         return TaminProviderJsonReader.ToReferencePage(
             TaminProviderOperationNames.AllServices,
-            payload,
+            response.Payload,
             null,
             null);
     }
 
-    public async Task<TaminReferencePageResult> GetPrescriptionTypesAsync(
-        TaminRawReferenceQueryOperationRequest request,
-        CancellationToken cancellationToken)
-    {
-        using TaminProviderSession session = _sessionFactory.CreateAnonymous();
-        JsonElement payload;
-        if (session.Production is { } production)
-        {
-            var response = await production.Soa.Interface.Epresc.SendEpresc.V2.PrescriptionType
-                .GetAsync(cancellationToken: cancellationToken)
-                ?? throw new InvalidOperationException("Tamin prescription-type response was empty.");
-            payload = _mappingService.MapPrescriptionTypes(response).Payload;
-        }
-        else
-        {
-            var response = await session.Pilot!.Soa.Api.V2.WsPrescriptionType
-                .GetAsync(cancellationToken: cancellationToken)
-                ?? throw new InvalidOperationException("Tamin pilot prescription-type response was empty.");
-            payload = _mappingService.MapPilotReferenceData(response).Payload;
-        }
-
-        return TaminProviderJsonReader.ToReferencePage(
-            TaminProviderOperationNames.PrescriptionType,
-            payload,
-            null,
-            null);
-    }
+    public Task<TaminReferencePageResult> GetPrescriptionTypesAsync(
+        ITaminClient client,
+        CancellationToken cancellationToken) =>
+        ReadReferenceAsync(TaminProviderOperationNames.PrescriptionType, client.ListPrescriptionTypesAsync, cancellationToken);
 
     public Task<TaminReferencePageResult> GetParaclinicTariffsAsync(
-        TaminRawReferenceQueryOperationRequest request,
+        ITaminClient client,
         CancellationToken cancellationToken) =>
-        GetSimpleReferenceAsync(
-            TaminProviderOperationNames.ParaclinicTariff,
-            static (session, ct) => session.Production!.Soa.Interface.Epresc.SendEpresc.V2.ParTaref.GetAsync(cancellationToken: ct),
-            static (session, ct) => session.Pilot!.Soa.Api.V2.WsParTaref.GetAsync(cancellationToken: ct),
-            cancellationToken);
+        ReadReferenceAsync(TaminProviderOperationNames.ParaclinicTariff, client.ListLaboratoryTariffGroupsAsync, cancellationToken);
 
     public Task<TaminReferencePageResult> GetDrugAmountsAsync(
-        TaminRawReferenceQueryOperationRequest request,
+        ITaminClient client,
         CancellationToken cancellationToken) =>
-        GetSimpleReferenceAsync(
-            TaminProviderOperationNames.DrugAmount,
-            static (session, ct) => session.Production!.Soa.Interface.Epresc.SendEpresc.V2.DrugAmount.GetAsync(cancellationToken: ct),
-            static (session, ct) => session.Pilot!.Soa.Api.V2.WsDrugAmount.GetAsync(cancellationToken: ct),
-            cancellationToken);
+        ReadReferenceAsync(TaminProviderOperationNames.DrugAmount, client.ListDrugAmountsAsync, cancellationToken);
 
     public Task<TaminReferencePageResult> GetDrugInstructionsAsync(
-        TaminRawReferenceQueryOperationRequest request,
+        ITaminClient client,
         CancellationToken cancellationToken) =>
-        GetSimpleReferenceAsync(
-            TaminProviderOperationNames.DrugInstruction,
-            static (session, ct) => session.Production!.Soa.Interface.Epresc.SendEpresc.V2.DrugInstruction.GetAsync(cancellationToken: ct),
-            static (session, ct) => session.Pilot!.Soa.Api.V2.WsDrugInstruction.GetAsync(cancellationToken: ct),
-            cancellationToken);
+        ReadReferenceAsync(TaminProviderOperationNames.DrugInstruction, client.ListDrugInstructionsAsync, cancellationToken);
 
-    private async Task<JsonElement> GetServicesAsync(string serviceType, CancellationToken cancellationToken)
-    {
-        using TaminProviderSession session = _sessionFactory.CreateAnonymous();
-        if (session.Production is { } production)
-        {
-            var response = await production.Soa.Interface.Epresc.SendEpresc.V2.Services.GetAsync(
-                configuration => configuration.QueryParameters.ServiceType = serviceType,
-                cancellationToken)
-                ?? throw new InvalidOperationException("Tamin services response was empty.");
-            return _mappingService.MapServices(response).Payload;
-        }
+    public Task<TaminReferencePageResult> GetDrugUsagesAsync(
+        ITaminClient client,
+        CancellationToken cancellationToken) =>
+        ReadReferenceAsync(TaminProviderOperationNames.DrugUsage, client.ListDrugUsagesAsync, cancellationToken);
 
-        var pilotResponse = await session.Pilot!.Soa.Api.V2.WsServices.GetAsync(
-            configuration => configuration.QueryParameters.ServiceType = serviceType,
-            cancellationToken)
-            ?? throw new InvalidOperationException("Tamin pilot services response was empty.");
-        return _mappingService.MapPilotReferenceData(pilotResponse).Payload;
-    }
+    public Task<TaminReferencePageResult> GetDosageFormsAsync(
+        ITaminClient client,
+        CancellationToken cancellationToken) =>
+        ReadReferenceAsync(TaminProviderOperationNames.DosageForm, client.ListDosageFormsAsync, cancellationToken);
 
-    private async Task<TaminReferencePageResult> GetSimpleReferenceAsync(
+    private static async Task<TaminReferencePageResult> ReadReferenceAsync(
         string operationName,
-        Func<TaminProviderSession, CancellationToken, Task<global::Tamin.Client.Soa.Prod.Models.JsonObject?>> productionCall,
-        Func<TaminProviderSession, CancellationToken, Task<global::Tamin.Client.Soa.Pilot.Models.JsonObject?>> pilotCall,
+        Func<CancellationToken, Task<UnconstrainedResponse>> call,
         CancellationToken cancellationToken)
     {
-        using TaminProviderSession session = _sessionFactory.CreateAnonymous();
-        JsonElement payload;
-        if (session.Production is not null)
-        {
-            var response = await productionCall(session, cancellationToken)
-                ?? throw new InvalidOperationException($"Tamin {operationName} response was empty.");
-            payload = operationName switch
-            {
-                TaminProviderOperationNames.ParaclinicTariff => _mappingService.MapLaboratoryTariffGroups(response).Payload,
-                TaminProviderOperationNames.DrugAmount => _mappingService.MapDrugAmounts(response).Payload,
-                TaminProviderOperationNames.DrugInstruction => _mappingService.MapDrugInstructions(response).Payload,
-                _ => throw new NotSupportedException($"Tamin reference operation '{operationName}' is not supported.")
-            };
-        }
-        else
-        {
-            var response = await pilotCall(session, cancellationToken)
-                ?? throw new InvalidOperationException($"Tamin pilot {operationName} response was empty.");
-            payload = _mappingService.MapPilotReferenceData(response).Payload;
-        }
-
-        return TaminProviderJsonReader.ToReferencePage(operationName, payload, null, null);
+        UnconstrainedResponse response = await call(cancellationToken);
+        return TaminProviderJsonReader.ToReferencePage(operationName, response.Payload, null, null);
     }
 }

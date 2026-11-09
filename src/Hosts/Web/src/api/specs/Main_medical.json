@@ -2750,6 +2750,73 @@
         }
       }
     },
+    "/api/modules/medical/prescriptions/{prescriptionId}/eligibility-check": {
+      "post": {
+        "tags": [
+          "Medical"
+        ],
+        "operationId": "MedicalCheckDraftEligibility",
+        "parameters": [
+          {
+            "name": "prescriptionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EligibilityResultDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/modules/medical/prescriptions/{prescriptionId}/submission": {
       "post": {
         "tags": [
@@ -3540,6 +3607,72 @@
                   "items": {
                     "$ref": "#/components/schemas/AvailableProviderDto"
                   }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/modules/medical/providers/drug-consumption-options": {
+      "post": {
+        "tags": [
+          "Medical"
+        ],
+        "operationId": "MedicalGetDrugConsumptionOptions",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetDrugConsumptionOptionsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DrugConsumptionOptionsResponse"
                 }
               }
             }
@@ -4909,6 +5042,12 @@
               "string"
             ],
             "format": "int32"
+          },
+          "metadataJson": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -5395,6 +5534,12 @@
               "string"
             ]
           },
+          "providerDoctorMobile": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
           "providerClinicIdentifier": {
             "type": [
               "null",
@@ -5443,6 +5588,87 @@
           }
         }
       },
+      "DrugConsumptionOptionResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "nameLatin": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "DrugConsumptionOptionsResponse": {
+        "type": "object",
+        "properties": {
+          "isSupported": {
+            "type": "boolean"
+          },
+          "isSuccess": {
+            "type": "boolean"
+          },
+          "errorMessage": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "units": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DrugConsumptionUnitResponse"
+            }
+          },
+          "instructions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DrugConsumptionOptionResponse"
+            }
+          },
+          "usages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DrugConsumptionOptionResponse"
+            }
+          },
+          "methods": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DrugConsumptionOptionResponse"
+            }
+          }
+        }
+      },
+      "DrugConsumptionUnitResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "nameLatin": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "amounts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DrugConsumptionOptionResponse"
+            }
+          }
+        }
+      },
       "DrugIdentifierType": {
         "type": "integer"
       },
@@ -5483,6 +5709,42 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "EligibilityResultDto": {
+        "type": "object",
+        "properties": {
+          "isSuccess": {
+            "type": "boolean"
+          },
+          "status": {
+            "$ref": "#/components/schemas/MedicalEligibilityStatus"
+          },
+          "trackingCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "coverageIdentifier": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "errorMessage": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "expiresAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
           }
         }
       },
@@ -5612,6 +5874,21 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "GetDrugConsumptionOptionsRequest": {
+        "required": [
+          "providerKey",
+          "formCode"
+        ],
+        "type": "object",
+        "properties": {
+          "providerKey": {
+            "type": "string"
+          },
+          "formCode": {
+            "type": "string"
           }
         }
       },
@@ -6112,6 +6389,9 @@
         }
       },
       "MedicalCredentialStatus": {
+        "type": "integer"
+      },
+      "MedicalEligibilityStatus": {
         "type": "integer"
       },
       "MedicalImportSourceType": {

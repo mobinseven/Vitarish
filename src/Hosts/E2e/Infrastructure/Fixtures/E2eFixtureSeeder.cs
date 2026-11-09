@@ -1,4 +1,8 @@
 using System.Security.Claims;
+using Vitarish.E2e.Infrastructure.Tamin;
+using Vitarish.Entities.Contracts.Models;
+using Vitarish.Medical.Application.Commands;
+using Vitarish.Medical.Application.Contracts;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -720,6 +724,33 @@ internal static class E2eFixtureSeeder
                 throw new InvalidOperationException("E2E email two-factor platform-admin role assignment failed.");
         }
 
+        await SeedTaminDrugCatalogAsync(scope.ServiceProvider.GetRequiredService<ISender>(), cancellationToken);
+    }
+
+    /// <summary>
+    /// One synced Tamin drug with its dosage form, through the real provider-code import, so the prescription
+    /// sheet's catalog search returns it. Provider codes are not tenant data.
+    /// </summary>
+    private static async Task SeedTaminDrugCatalogAsync(ISender sender, CancellationToken cancellationToken)
+    {
+        Console.WriteLine("E2E fixture seeding: Tamin drug catalog.");
+        EntityResult<ImportResult> result = await sender.Send(new SyncProviderCodesCommand
+        {
+            ProviderKey = "TAMIN",
+            CodeSystem = "drug",
+            DataVersion = "e2e-1",
+            Codes =
+            [
+                new SyncProviderCodeItem(
+                    E2eTaminStubHandler.DrugCode,
+                    "E2E Ibuprofen 400 mg",
+                    "drug",
+                    true,
+                    $$"""{"providerKind":"drug","formCode":"{{E2eTaminStubHandler.DosageFormCode}}"}""")
+            ]
+        }, cancellationToken);
+        if (!result.IsSuccess)
+            throw new InvalidOperationException($"E2E Tamin drug catalog seeding failed: {result.Errors?.FirstOrDefault()?.Message}");
     }
 
     private static async Task<User> EnsureUserAsync(

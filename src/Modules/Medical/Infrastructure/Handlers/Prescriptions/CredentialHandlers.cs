@@ -37,6 +37,12 @@ public sealed class SaveCredentialHandler(
             return SaveCredentialResult.Failure("بیمه‌گر انتخاب شده در سیستم موجود نیست.");
         }
 
+        string? doctorMobile = string.IsNullOrWhiteSpace(request.ProviderDoctorMobile) ? null : request.ProviderDoctorMobile.Trim();
+        if (doctorMobile is not null && !IsValidMobile(doctorMobile))
+        {
+            return SaveCredentialResult.Failure("شماره همراه پزشک معتبر نیست.");
+        }
+
         DoctorProviderCredential? credential;
 
         if (request.CredentialId.HasValue)
@@ -51,6 +57,7 @@ public sealed class SaveCredentialHandler(
 
             credential.ProviderDoctorIdentifier = request.ProviderDoctorIdentifier;
             credential.ProviderUsername = request.ProviderUsername;
+            credential.ProviderDoctorMobile = doctorMobile;
             credential.ProviderClinicIdentifier = request.ProviderClinicIdentifier;
             credential.CredentialSecretRef = request.CredentialSecretRef;
             credential.Status = CredentialStatus.Pending;
@@ -78,6 +85,7 @@ public sealed class SaveCredentialHandler(
                 ClinicId = request.ClinicId,
                 ProviderDoctorIdentifier = request.ProviderDoctorIdentifier,
                 ProviderUsername = request.ProviderUsername,
+                ProviderDoctorMobile = doctorMobile,
                 ProviderClinicIdentifier = request.ProviderClinicIdentifier,
                 CredentialSecretRef = request.CredentialSecretRef,
                 Status = CredentialStatus.Pending,
@@ -91,6 +99,7 @@ public sealed class SaveCredentialHandler(
 
         await auditWriter.WriteAsync(new AuditEntry
         {
+            TenantId = requestContext.TenantId ?? string.Empty,
             EntityType = nameof(DoctorProviderCredential),
             EntityId = credential.Id,
             Action = request.CredentialId.HasValue ? "Updated" : AuditAction.Created,
@@ -100,6 +109,13 @@ public sealed class SaveCredentialHandler(
 
         logger.LogInformation("Credential {CredentialId} saved for doctor {DoctorId}", credential.Id, request.DoctorId);
         return SaveCredentialResult.Success(credential.Id);
+    }
+
+    /// <summary>A mobile number is 10 to 15 digits with an optional leading plus sign.</summary>
+    private static bool IsValidMobile(string value)
+    {
+        ReadOnlySpan<char> digits = value.StartsWith('+') ? value.AsSpan(1) : value.AsSpan();
+        return digits.Length is >= 10 and <= 15 && digits.IndexOfAnyExceptInRange('0', '9') < 0;
     }
 }
 
@@ -148,6 +164,7 @@ public sealed class TestCredentialHandler(
 
             await auditWriter.WriteAsync(new AuditEntry
             {
+                TenantId = requestContext.TenantId ?? string.Empty,
                 EntityType = nameof(DoctorProviderCredential),
                 EntityId = credential.Id,
                 Action = "TestSucceeded",
@@ -165,6 +182,7 @@ public sealed class TestCredentialHandler(
 
         await auditWriter.WriteAsync(new AuditEntry
         {
+            TenantId = requestContext.TenantId ?? string.Empty,
             EntityType = nameof(DoctorProviderCredential),
             EntityId = credential.Id,
             Action = "TestFailed",
@@ -206,6 +224,7 @@ public sealed class RevokeCredentialHandler(
 
         await auditWriter.WriteAsync(new AuditEntry
         {
+            TenantId = requestContext.TenantId ?? string.Empty,
             EntityType = nameof(DoctorProviderCredential),
             EntityId = credential.Id,
             Action = "Revoked",
@@ -309,6 +328,7 @@ public sealed class CompleteProviderAuthorizationHandler(
 
         await auditWriter.WriteAsync(new AuditEntry
         {
+            TenantId = requestContext.TenantId ?? string.Empty,
             EntityType = nameof(DoctorProviderCredential),
             EntityId = credential.Id,
             Action = "AuthorizationCompleted",
@@ -353,6 +373,7 @@ public sealed class GetCredentialSetupGridHandler(
                 ClinicId = c.ClinicId,
                 ProviderDoctorIdentifier = c.ProviderDoctorIdentifier,
                 ProviderUsername = c.ProviderUsername,
+                ProviderDoctorMobile = c.ProviderDoctorMobile,
                 ProviderClinicIdentifier = c.ProviderClinicIdentifier,
                 Status = c.Status,
                 ExpiresAt = c.ExpiresAt,

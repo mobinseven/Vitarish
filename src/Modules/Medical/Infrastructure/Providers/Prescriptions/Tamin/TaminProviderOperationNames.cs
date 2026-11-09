@@ -9,6 +9,10 @@ internal static class TaminProviderOperationNames
     public const string ParaclinicTariff = "paraclinic-tariff";
     public const string DrugAmount = "drug-amount";
     public const string DrugInstruction = "drug-instruction";
+    public const string DrugUsage = "drug-usage";
+    public const string DosageForm = "dosage-form";
+    public const string ServiceTypeQuery = "service-type";
+    public const string FormCodeMetadataKey = "formCode";
 
     public const string PrescriptionWarning = "prescription-warning";
     public const string DentalRules = "dental-rules";

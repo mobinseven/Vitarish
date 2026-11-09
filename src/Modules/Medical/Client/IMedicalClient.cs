@@ -68,8 +68,10 @@ public interface IMedicalClient
     Task<MedicalResult<MedicalCommandResult>> UpdateLocalDrugAsync(UpdateLocalDrugCommand request, CancellationToken cancellationToken);
     Task<MedicalResult<MedicalCommandResult>> RetireDrugAsync(RetireDrugCommand request, CancellationToken cancellationToken);
     Task<MedicalResult<ValidationResultDto>> ValidatePrescriptionDraftAsync(ValidatePrescriptionDraftRequest request, CancellationToken cancellationToken);
+    Task<MedicalResult<EligibilityResultDto>> CheckDraftEligibilityAsync(CheckDraftEligibilityRequest request, CancellationToken cancellationToken);
     Task<MedicalResult<MedicalCommandResult>> EditPrescriptionAsync(EditPrescriptionRequest request, CancellationToken cancellationToken);
     Task<MedicalResult<IReadOnlyList<AvailableProviderDto>>> GetAvailableProvidersAsync(GetAvailableProvidersRequest request, CancellationToken cancellationToken);
+    Task<MedicalResult<DrugConsumptionOptionsResponse>> GetDrugConsumptionOptionsAsync(GetDrugConsumptionOptionsRequest request, CancellationToken cancellationToken);
     Task<MedicalResult<IReadOnlyList<CredentialSetupDto>>> GetCredentialSetupGridAsync(GetCredentialSetupGridRequest request, CancellationToken cancellationToken);
     Task<MedicalResult<MedicalCommandResult>> TestCredentialAsync(TestCredentialRequest request, CancellationToken cancellationToken);
     Task<MedicalResult<MedicalCommandResult>> RevokeCredentialAsync(RevokeCredentialRequest request, CancellationToken cancellationToken);

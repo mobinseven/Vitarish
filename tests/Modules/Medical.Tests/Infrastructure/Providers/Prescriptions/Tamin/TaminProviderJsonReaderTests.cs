@@ -94,4 +94,14 @@ public sealed class TaminProviderJsonReaderTests
         result.HasNextPage.Should().BeFalse();
         result.DataVersion.Should().Be("v1");
     }
+
+    [Theory]
+    [InlineData("""{ "srvCode": "00125", "formCode": 17 }""", "17")]
+    [InlineData("""{ "srvCode": "00125", "form_code": "24" }""", "24")]
+    [InlineData("""{ "srvCode": "00125" }""", null)]
+    [InlineData("not json", null)]
+    public void ReadFormCode_returns_the_dosage_form_when_present(string rawItemJson, string? expected)
+    {
+        TaminProviderJsonReader.ReadFormCode(rawItemJson).Should().Be(expected);
+    }
 }

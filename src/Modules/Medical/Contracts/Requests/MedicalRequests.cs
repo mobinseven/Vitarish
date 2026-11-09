@@ -17,7 +17,7 @@ public sealed record ListPatientPrescriptionsRequest(Guid? PatientId = null, Gui
 public sealed record GetPatientPrescriptionDashboardRequest(Guid PatientId, Guid? ClinicId = null, int AttentionTake = 8);
 public sealed record CreatePrescriptionDraftRequest(Guid PatientId, string? PatientNationalId, Guid DoctorId, Guid ClinicId);
 public sealed record UpdatePrescriptionDraftRequest(Guid PrescriptionId, string? PatientNationalId);
-public sealed record AddPrescriptionItemRequest { public Guid PrescriptionId { get; init; } public MedicalPrescriptionItemCategory Category { get; init; } public string? ReferenceCode { get; init; } public string? DisplayName { get; init; } public string? DosageJson { get; init; } public int Quantity { get; init; } public int? DurationDays { get; init; } }
+public sealed record AddPrescriptionItemRequest { public Guid PrescriptionId { get; init; } public MedicalPrescriptionItemCategory Category { get; init; } public string? ReferenceCode { get; init; } public string? DisplayName { get; init; } public string? DosageJson { get; init; } public int Quantity { get; init; } public int? DurationDays { get; init; } public string? MetadataJson { get; init; } }
 public sealed record UpdatePrescriptionItemRequest { public Guid PrescriptionId { get; init; } public Guid ItemId { get; init; } public string? DosageJson { get; init; } public int Quantity { get; init; } public int? DurationDays { get; init; } }
 public sealed record RemovePrescriptionItemRequest(Guid PrescriptionId, Guid ItemId);
 public sealed record SelectPrescriptionProviderRequest(Guid PrescriptionId, string ProviderKey);
@@ -69,9 +69,11 @@ public sealed record ResolveServiceCodeRequest(string SystemKey, string Code, Gu
 public sealed record GetServiceValuationRequest(Guid ServiceCodeId, int Year, string? Locality = null, string? FacilityIndicator = null, DateOnly? AsOfDate = null);
 public sealed record GetCodeMapsRequest(Guid SourceCodeId, string? TargetSystemKey = null, string? MappingType = null, DateOnly? AsOfDate = null);
 public sealed record ValidatePrescriptionDraftRequest(Guid PrescriptionId);
+public sealed record CheckDraftEligibilityRequest(Guid PrescriptionId);
 public sealed record PrescriptionEditItemRequest(MedicalPrescriptionItemCategory Category, string? ReferenceCode, string? DisplayName, string? DosageJson, int Quantity, int? DurationDays, string? MetadataJson = null);
 public sealed record EditPrescriptionRequest(Guid PrescriptionId, int ExpectedVersion, IReadOnlyList<PrescriptionEditItemRequest> Items, string? IdempotencyKey = null, string? Reason = null);
 public sealed record GetAvailableProvidersRequest;
+public sealed record GetDrugConsumptionOptionsRequest(string ProviderKey, string FormCode);
 public sealed record GetCredentialSetupGridRequest(Guid ClinicId, string? ProviderKey = null);
 public sealed record TestCredentialRequest(Guid CredentialId);
 public sealed record RevokeCredentialRequest(Guid CredentialId);
@@ -109,7 +111,7 @@ public sealed record ArchivePrescriptionTemplateCommand { public Guid TemplateId
 public sealed record AddPrescriptionTemplateItemCommand { public Guid TemplateId { get; init; } public string TenantId { get; init; } = string.Empty; public MedicalPrescriptionItemCategory Category { get; init; } public string? ReferenceCode { get; init; } public string? DisplayName { get; init; } public string? DosageJson { get; init; } public int Quantity { get; init; } public int? DurationDays { get; init; } }
 public sealed record RemovePrescriptionTemplateItemCommand { public Guid TemplateId { get; init; } public Guid ItemId { get; init; } public string TenantId { get; init; } = string.Empty; }
 public sealed record LoadPrescriptionTemplateIntoDraftCommand { public Guid TemplateId { get; init; } public Guid PrescriptionId { get; init; } public string TenantId { get; init; } = string.Empty; }
-public sealed record SaveCredentialCommand { public Guid? CredentialId { get; init; } public required Guid DoctorId { get; init; } public required string ProviderKey { get; init; } public required Guid ClinicId { get; init; } public string? ProviderDoctorIdentifier { get; init; } public string? ProviderUsername { get; init; } public string? ProviderClinicIdentifier { get; init; } public string? CredentialSecretRef { get; init; } }
+public sealed record SaveCredentialCommand { public Guid? CredentialId { get; init; } public required Guid DoctorId { get; init; } public required string ProviderKey { get; init; } public required Guid ClinicId { get; init; } public string? ProviderDoctorIdentifier { get; init; } public string? ProviderUsername { get; init; } public string? ProviderDoctorMobile { get; init; } public string? ProviderClinicIdentifier { get; init; } public string? CredentialSecretRef { get; init; } }
 public sealed record TestCredentialCommand { public required Guid CredentialId { get; init; } }
 public sealed record RevokeCredentialCommand { public required Guid CredentialId { get; init; } }
 public sealed record GetCredentialSetupGridQuery { public required Guid ClinicId { get; init; } public string? ProviderKey { get; init; } }

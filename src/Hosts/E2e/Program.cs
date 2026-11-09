@@ -13,6 +13,8 @@ using Vitarish.Modules.Base.Core.Platform.Idempotency;
 using Vitarish.Files.Application.Abstractions;
 using Vitarish.E2e.Infrastructure.Audit;
 using Vitarish.E2e.Infrastructure.Storage;
+using Vitarish.E2e.Infrastructure.Tamin;
+using Vitarish.Medical.Infrastructure.Providers.Prescriptions.Tamin;
 using Vitarish.E2e.Infrastructure.Events;
 using Vitarish.Clinic.Application.Commands.Patients;
 using Vitarish.Clinic.Application.Events;
@@ -25,6 +27,8 @@ using Vitarish.Sea.Application.Abstractions;
 using Vitarish.Audit.Application;
 using Vitarish.Audit.Server;
 using Vitarish.Main.Infrastructure.BackgroundJobs;
+using Vitarish.Main.Infrastructure.Platform;
+using Vitarish.Modules.Base.Core.Platform.Transactions;
 using Vitarish.Communications.Application.Abstractions;
 using Vitarish.E2e.Infrastructure.Communications;
 using Vitarish.Parties.Application.Addresses;
@@ -86,6 +90,12 @@ builder.Configuration["Vitarish:Files:AccessKey"] = "e2e-access-key";
 builder.Configuration["Vitarish:Files:SecretKey"] = "e2e-secret-key";
 builder.Configuration["Vitarish:Files:BucketName"] = "e2e";
 builder.Configuration["Vitarish:Search:Url"] = "http://localhost:3997";
+// Tamin runs for real up to its HTTP boundary, where E2eTaminStubHandler answers. The redirect URI is the
+// clinic callback page; the scenario's browser follows the stubbed authorize redirect to the clinic origin.
+builder.Configuration[$"{TaminOptions.SectionName}:{nameof(TaminOptions.ApiKey)}"] = "e2e-tamin-client";
+builder.Configuration[$"{TaminOptions.SectionName}:{nameof(TaminOptions.Audience)}"] = "e2e-tamin-audience";
+builder.Configuration[$"{TaminOptions.SectionName}:{nameof(TaminOptions.OAuthRedirectUri)}"] =
+    new UriBuilder(webOrigin) { Scheme = Uri.UriSchemeHttps, Path = "/settings/insurance/callback" }.Uri.ToString();
 builder.Configuration["Vitarish:Communications:Notifications:ContactEmailRecipient"] = "e2e-contact@example.test";
 builder.Configuration["Vitarish:Features:SocialIntegrations"] = "true";
 builder.Configuration[BaseModule.TenantOnboardingFeatureKey] = "true";
@@ -130,6 +140,9 @@ _ = builder.Services.AddSingleton(
     typeof(IOperationReceiptStore<>),
     typeof(E2eInMemoryOperationReceiptStore<>));
 builder.Services.Replace(ServiceDescriptor.Singleton<IObjectStorageService, E2eObjectStorageService>());
+// Main registers the production outbound-call logger; the provider decorator needs it here too.
+_ = builder.Services.AddSingleton<IExternalApiTransactionLogger, LoggingApiTransactionLogger>();
+_ = builder.Services.AddHttpClient(TaminOptions.HttpClientName).AddHttpMessageHandler(() => new E2eTaminStubHandler());
 builder.Services.Replace(ServiceDescriptor.Singleton<ISmsProvider>(_ => new E2eSmsCapture(smsCapturePath)));
 _ = builder.Services.AddSingleton<E2eAuditCapacitySimulation>();
 builder.Services.Replace(ServiceDescriptor.Transient<IAuditStorageSizeReader, E2eAuditStorageSizeReader>());

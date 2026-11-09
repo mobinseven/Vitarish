@@ -109,6 +109,11 @@ public sealed class AddItemHandler(
             return AddItemResult.Failure("فقط نسخه‌های پیش‌نویس یا نیازمند اصلاح قابل ویرایش هستند.");
         }
 
+        if (!IsValidMetadata(request.MetadataJson))
+        {
+            return AddItemResult.Failure("اطلاعات تکمیلی قلم نسخه معتبر نیست.");
+        }
+
         PrescriptionItem item = new()
         {
             Id = Guid.NewGuid(),
@@ -124,7 +129,9 @@ public sealed class AddItemHandler(
             CreatedAt = DateTime.UtcNow
         };
 
-        prescription.Items.Add(item);
+        // Add through the set: an item with a preassigned key reached only through the tracked parent's collection
+        // is treated as existing, and saving it fails with a concurrency error.
+        _ = dbContext.PrescriptionItems.Add(item);
         prescription.UpdatedAt = DateTime.UtcNow;
         _ = await dbContext.SaveChangesAsync(cancellationToken);
 
@@ -132,6 +139,32 @@ public sealed class AddItemHandler(
             item.Id, prescription.Id);
 
         return AddItemResult.Success(item.Id);
+    }
+
+    private const int MaxMetadataLength = 2000;
+
+    /// <summary>Item metadata is optional, and when present must be a small JSON object.</summary>
+    private static bool IsValidMetadata(string? metadataJson)
+    {
+        if (string.IsNullOrWhiteSpace(metadataJson))
+        {
+            return true;
+        }
+
+        if (metadataJson.Length > MaxMetadataLength)
+        {
+            return false;
+        }
+
+        try
+        {
+            using System.Text.Json.JsonDocument document = System.Text.Json.JsonDocument.Parse(metadataJson);
+            return document.RootElement.ValueKind == System.Text.Json.JsonValueKind.Object;
+        }
+        catch (System.Text.Json.JsonException)
+        {
+            return false;
+        }
     }
 }
 

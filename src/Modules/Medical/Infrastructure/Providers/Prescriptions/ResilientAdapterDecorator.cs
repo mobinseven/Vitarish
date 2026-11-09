@@ -15,7 +15,7 @@ public sealed class ResilientAdapterDecorator(
     IProviderErrorMapper errorMapper,
     IProviderResiliencePipelineProvider resilienceProvider,
     IExternalApiTransactionLogger transactionLogger,
-    ILogger<ResilientAdapterDecorator> logger) : IInsuranceProviderAdapter
+    ILogger<ResilientAdapterDecorator> logger) : IInsuranceProviderAdapter, IInsuranceProviderAuthorizationAdapter, IInsuranceProviderDrugConsumptionAdapter
 {
     private readonly IInsuranceProviderAdapter _inner = inner;
     private readonly IProviderErrorMapper _errorMapper = errorMapper;
@@ -75,6 +75,23 @@ public sealed class ResilientAdapterDecorator(
             Guid.NewGuid().ToString(),
             ct => _inner.FetchReferenceDataAsync(request, ct),
             cancellationToken);
+
+    // Optional capabilities are forwarded to the wrapped adapter without retry here: an authorization code can be
+    // exchanged only once, and the Tamin SDK already retries its own GETs, so a second retry would stack.
+    public Task<AdapterResult<ProviderAuthorizationStartResponse>> BeginAuthorizationAsync(ProviderAuthorizationStartRequest request, CancellationToken cancellationToken = default)
+        => _inner is IInsuranceProviderAuthorizationAdapter authorization
+            ? authorization.BeginAuthorizationAsync(request, cancellationToken)
+            : Task.FromResult(AdapterResult<ProviderAuthorizationStartResponse>.NotSupported());
+
+    public Task<AdapterResult> CompleteAuthorizationAsync(ProviderAuthorizationCompleteRequest request, CancellationToken cancellationToken = default)
+        => _inner is IInsuranceProviderAuthorizationAdapter authorization
+            ? authorization.CompleteAuthorizationAsync(request, cancellationToken)
+            : Task.FromResult(AdapterResult.NotSupported());
+
+    public Task<AdapterResult<DrugConsumptionOptions>> GetDrugConsumptionOptionsAsync(DrugConsumptionOptionsRequest request, CancellationToken cancellationToken = default)
+        => _inner is IInsuranceProviderDrugConsumptionAdapter consumption
+            ? consumption.GetDrugConsumptionOptionsAsync(request, cancellationToken)
+            : Task.FromResult(AdapterResult<DrugConsumptionOptions>.NotSupported());
 
     private async Task<AdapterResult> ExecuteWithResilienceAsync(
         string operationName,

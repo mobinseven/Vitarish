@@ -52,6 +52,32 @@ public sealed class TaminTokenVaultTests
         stored.ExpiresAt.Should().BeCloseTo(expiresAt, TimeSpan.FromMilliseconds(1));
     }
 
+    [Fact]
+    public void Refresh_response_without_a_refresh_token_keeps_the_stored_one()
+    {
+        DoctorProviderCredential credential = CreateCredential();
+        _vault.Write(credential, "access-1", "refresh-1", DateTimeOffset.UtcNow.AddHours(1));
+
+        _vault.Write(credential, "access-2", null, DateTimeOffset.UtcNow.AddHours(2));
+
+        TaminStoredToken stored = _vault.Read(credential);
+        stored.AccessToken.Should().Be("access-2");
+        stored.RefreshToken.Should().Be("refresh-1");
+    }
+
+    [Fact]
+    public void Clear_removes_both_tokens()
+    {
+        DoctorProviderCredential credential = CreateCredential();
+        _vault.Write(credential, "access", "refresh", DateTimeOffset.UtcNow.AddHours(1));
+
+        _vault.Clear(credential);
+
+        TaminStoredToken stored = _vault.Read(credential);
+        stored.AccessToken.Should().BeNull();
+        stored.RefreshToken.Should().BeNull();
+    }
+
     private static DoctorProviderCredential CreateCredential() => new()
     {
         Id = Guid.NewGuid(),

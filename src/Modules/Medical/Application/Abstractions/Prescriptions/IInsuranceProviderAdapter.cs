@@ -166,6 +166,8 @@ public sealed record ReferenceDataRequest
 {
     public required string CodeSystem { get; init; }
     public string? SinceVersion { get; init; }
+    /// <summary>Provider credential whose login is used for the fetch, for providers that authenticate reference data per doctor.</summary>
+    public Guid? CredentialId { get; init; }
 }
 
 public sealed record ReferenceDataResponse

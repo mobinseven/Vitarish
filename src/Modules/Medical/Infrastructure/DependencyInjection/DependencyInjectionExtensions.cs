@@ -3,7 +3,6 @@ using Vitarish.Medical.Application.Abstractions.Prescriptions;
 using Vitarish.Medical.Infrastructure.Providers.Prescriptions;
 using Vitarish.Medical.Infrastructure.Providers.Prescriptions.Salamat;
 using Vitarish.Medical.Infrastructure.Providers.Prescriptions.Tamin;
-using Tamin.Integration.Mapping;
 using Vitarish.Medical.Infrastructure.Services.Prescriptions;
 using Vitarish.Modules.Base.Core.Platform.Transactions;
 using Vitarish.Modules.Base.Core.Platform.Retry;
@@ -48,13 +47,11 @@ public static class DependencyInjectionExtensions
     private static void RegisterTaminProvider(IServiceCollection services, IConfiguration configuration)
     {
         _ = services.Configure<TaminOptions>(configuration.GetSection(TaminOptions.SectionName));
-        _ = services.AddHttpClient("TaminOAuthClient");
+        _ = services.AddHttpClient(TaminOptions.HttpClientName).RemoveAllLoggers();
         _ = services.AddSingleton<ITaminDateFormatter, TaminDateFormatter>();
         _ = services.AddSingleton<TaminCredentialRefreshCoordinator>();
         _ = services.AddScoped<TaminTokenVault>();
-        _ = services.AddScoped<TaminProviderSessionFactory>();
-        _ = services.AddSingleton<TaminMappingService>();
-        _ = services.AddSingleton<PrescriptionRequestMapper>();
+        _ = services.AddScoped<TaminClientFactory>();
         _ = services.AddSingleton<TaminPrescriptionMapper>();
         _ = services.AddScoped<ITaminMedicalInfrastructureGateway, TaminMedicalInfrastructureGateway>();
         _ = services.AddScoped<ITaminCredentialSessionStore, TaminCredentialSessionStore>();
