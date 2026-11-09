@@ -285,6 +285,8 @@ jobs:
           npm run test:layout-lint
       - name: Validate production evidence checks
         run: npm run test:production-evidence
+      - name: Validate the two-host E2E build cache
+        run: npm run test:e2e-build-cache
 
   authentication_web:
     name: Shared authentication checks

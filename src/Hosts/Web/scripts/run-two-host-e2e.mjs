@@ -28,6 +28,13 @@ import {
   twoHostE2eSmsCapturePathEnvironmentKey,
   twoHostE2eOwnerUsernameEnvironmentKey,
 } from "./two-host-e2e-artifacts.mjs";
+import {
+  discardPrebuilt,
+  fingerprintApp,
+  fingerprintSharedInputs,
+  isPrebuilt,
+  markPrebuilt,
+} from "./two-host-e2e-web-build-cache.mjs";
 
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
 const webRoot = resolve(scriptDirectory, "..");
@@ -43,7 +50,8 @@ const artifactDirectory = resolve(artifactRoot, "runs", runId);
 const proofStorageStatePath = resolve(artifactDirectory, "authenticated-user-security-state.json");
 const appTsconfigPath = resolve(appRoot, "tsconfig.json");
 const appNextEnvPath = resolve(appRoot, "next-env.d.ts");
-const appNextDistDirectory = `.next-two-host-e2e-${runId}`;
+// A stable folder, not a per-run one: the build is reused until its inputs change (see the build cache module).
+const appNextDistDirectory = ".next-two-host-e2e-prebuilt";
 const appNextDistPath = resolve(appRoot, appNextDistDirectory);
 const platformAdminTsconfigPath = resolve(platformAdminAppRoot, "tsconfig.json");
 const platformAdminNextEnvPath = resolve(platformAdminAppRoot, "next-env.d.ts");
@@ -241,7 +249,16 @@ function waitForExit(child) {
   });
 }
 
-async function buildNextApp(label, cwd, environment) {
+// `computeFingerprint` is called again after a build: the app's own build steps copy vendor files and fonts into
+// its `public` folder, so the inputs later runs will see are those left behind by the build.
+async function ensureNextBuild(label, cwd, distPath, environment, computeFingerprint, restoreGeneratedFiles) {
+  const fingerprint = computeFingerprint();
+  if (isPrebuilt(distPath, fingerprint)) {
+    console.log(`[${label}-build] reusing the prebuilt output (inputs ${fingerprint.slice(0, 12)} unchanged).`);
+    return;
+  }
+  // Output from other inputs must not survive a failed rebuild looking current.
+  discardPrebuilt(distPath, cwd);
   const child = startProcess(`${label}-build`, process.execPath, [nextCli, "build"], cwd, environment);
   let result;
   try {
@@ -252,6 +269,9 @@ async function buildNextApp(label, cwd, environment) {
   if (result.code !== 0 || result.signal !== null) {
     throw new Error(`${label} build failed (exit=${result.code}, signal=${result.signal}). See ${child.logPath}.`);
   }
+  // `next build` rewrites tsconfig.json and next-env.d.ts; the fingerprint must see them as every later run will.
+  restoreGeneratedFiles();
+  markPrebuilt(distPath, computeFingerprint());
 }
 
 function waitForPrematureHostExit(child) {
@@ -294,18 +314,18 @@ function restoreNextTsconfig(tsconfigPath, originalTsconfig) {
   }
 }
 
-function restoreNextGeneratedFiles(nextEnvPath, originalNextEnv, nextDistPath) {
+// Only the tracked files `next build` rewrites are restored; the prebuilt output itself is kept for the next run.
+function restoreNextGeneratedFiles(nextEnvPath, originalNextEnv) {
   const currentNextEnv = readFileSync(nextEnvPath, "utf8");
   const generatedRoutesReference = `${appNextDistDirectory}/types/routes.d.ts`;
   if (!originalNextEnv.includes(generatedRoutesReference) && currentNextEnv.includes(generatedRoutesReference)) {
     writeFileSync(nextEnvPath, originalNextEnv);
   }
+}
 
-  if (!resolve(nextDistPath).startsWith(resolve(dirname(nextEnvPath)) + sep))
-    throw new Error("The generated Next output escaped its owning app.");
-  if (existsSync(nextDistPath)) {
-    rmSync(nextDistPath, { recursive: true, force: true });
-  }
+function restoreBuildRewrites(tsconfigPath, originalTsconfig, nextEnvPath, originalNextEnv) {
+  restoreNextTsconfig(tsconfigPath, originalTsconfig);
+  restoreNextGeneratedFiles(nextEnvPath, originalNextEnv);
 }
 
 function createEnvironment(overrides) {
@@ -385,9 +405,30 @@ async function run() {
   });
   const nextEnvironment = { ...webEnvironment, NODE_ENV: "production" };
   const buildEnvironment = { ...nextEnvironment };
-  delete buildEnvironment.VITARISH_E2E_PASSWORD;
-  delete buildEnvironment.VITARISH_E2E_AGENT_SHARED_SECRET;
-  delete buildEnvironment[twoHostE2eFileTransferAuditKeyEnvironmentKey];
+  // The build sees nothing that changes per run (secrets, capture paths, the artifact folder), so its output
+  // can be reused by any later run; those values reach the servers only when they start.
+  for (const key of [
+    "VITARISH_E2E_PASSWORD",
+    "VITARISH_E2E_AGENT_SHARED_SECRET",
+    "VITARISH_E2E_SMTP_CAPTURE_PATH",
+    twoHostE2eFileTransferAuditKeyEnvironmentKey,
+    twoHostE2eSmsCapturePathEnvironmentKey,
+    twoHostE2eArtifactDirectoryEnvironmentKey,
+    twoHostE2eProofStorageStateEnvironmentKey,
+    twoHostE2eProofScreenshotEnvironmentKey,
+  ]) {
+    delete buildEnvironment[key];
+  }
+  // Fingerprint only what is set for this runner or steers Next, not the developer's whole shell.
+  const buildInputs = Object.fromEntries(
+    Object.entries(buildEnvironment).filter(([key]) => key.startsWith("NEXT_") || key.startsWith("VITARISH_") || key === "NODE_ENV" || key.startsWith("Vitarish__") || key.startsWith("WebAuthn__")),
+  );
+  const appFingerprint = (appRootPath) => () => fingerprintApp({
+    webRoot,
+    appRoot: appRootPath,
+    sharedFingerprint: fingerprintSharedInputs(webRoot),
+    buildEnvironment: buildInputs,
+  });
 
   const collection = startProcess("playwright-collection", process.execPath,
     [resolve(webRoot, "node_modules", "@playwright", "test", "cli.js"), "test", "--config", playwrightConfig, "--list", ...playwrightArguments],
@@ -418,9 +459,14 @@ async function run() {
   // Fail on backend composition/fixture errors before spending time building every Web app.
   await waitForHttp("E2e", main, `${mainOrigin}/api/modules/authentication/antiforgery`);
 
-  await buildNextApp("web", appRoot, buildEnvironment);
-  await buildNextApp("platform-admin", platformAdminAppRoot, buildEnvironment);
-  for (const app of additionalApps) await buildNextApp(app.name, app.root, buildEnvironment);
+  await ensureNextBuild("web", appRoot, appNextDistPath, buildEnvironment, appFingerprint(appRoot),
+    () => restoreBuildRewrites(appTsconfigPath, originalAppTsconfig, appNextEnvPath, originalAppNextEnv));
+  await ensureNextBuild("platform-admin", platformAdminAppRoot, platformAdminNextDistPath, buildEnvironment, appFingerprint(platformAdminAppRoot),
+    () => restoreBuildRewrites(platformAdminTsconfigPath, originalPlatformAdminTsconfig, platformAdminNextEnvPath, originalPlatformAdminNextEnv));
+  for (const app of additionalApps) {
+    await ensureNextBuild(app.name, app.root, app.nextDist, buildEnvironment, appFingerprint(app.root),
+      () => restoreBuildRewrites(app.tsconfig, app.originalTsconfig, app.nextEnv, app.originalNextEnv));
+  }
 
   const web = startProcess(
     "web",
@@ -490,11 +536,11 @@ try {
   await stopSmtpCapture();
   restoreNextTsconfig(appTsconfigPath, originalAppTsconfig);
   restoreNextTsconfig(platformAdminTsconfigPath, originalPlatformAdminTsconfig);
-  restoreNextGeneratedFiles(appNextEnvPath, originalAppNextEnv, appNextDistPath);
-  restoreNextGeneratedFiles(platformAdminNextEnvPath, originalPlatformAdminNextEnv, platformAdminNextDistPath);
+  restoreNextGeneratedFiles(appNextEnvPath, originalAppNextEnv);
+  restoreNextGeneratedFiles(platformAdminNextEnvPath, originalPlatformAdminNextEnv);
   for (const app of additionalApps) {
     restoreNextTsconfig(app.tsconfig, app.originalTsconfig);
-    restoreNextGeneratedFiles(app.nextEnv, app.originalNextEnv, app.nextDist);
+    restoreNextGeneratedFiles(app.nextEnv, app.originalNextEnv);
   }
   if (existsSync(proofStorageStatePath)) {
     rmSync(proofStorageStatePath, { force: true });
