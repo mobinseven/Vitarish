@@ -15,15 +15,13 @@ internal sealed class TaminClientFactory(
     ILoggerFactory loggerFactory,
     IOptionsMonitor<TaminOptions> optionsMonitor)
 {
-    public const string HttpClientName = "Tamin";
-
     public ITaminClient Create(ITaminTokenStore tokenStore)
     {
         TaminOptions options = optionsMonitor.CurrentValue;
         TaminClientOptions clientOptions = new(
             Require(options.ApiKey, nameof(options.ApiKey)),
             Require(options.Audience, nameof(options.Audience)),
-            handlerFactory.CreateHandler(HttpClientName),
+            handlerFactory.CreateHandler(TaminOptions.HttpClientName),
             loggerFactory,
             tokenStore);
 

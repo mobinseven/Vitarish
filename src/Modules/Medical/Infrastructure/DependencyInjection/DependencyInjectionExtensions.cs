@@ -47,7 +47,7 @@ public static class DependencyInjectionExtensions
     private static void RegisterTaminProvider(IServiceCollection services, IConfiguration configuration)
     {
         _ = services.Configure<TaminOptions>(configuration.GetSection(TaminOptions.SectionName));
-        _ = services.AddHttpClient(TaminClientFactory.HttpClientName).RemoveAllLoggers();
+        _ = services.AddHttpClient(TaminOptions.HttpClientName).RemoveAllLoggers();
         _ = services.AddSingleton<ITaminDateFormatter, TaminDateFormatter>();
         _ = services.AddSingleton<TaminCredentialRefreshCoordinator>();
         _ = services.AddScoped<TaminTokenVault>();

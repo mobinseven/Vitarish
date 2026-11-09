@@ -7,6 +7,9 @@ public sealed class TaminOptions
 {
     public const string SectionName = "Prescription:Providers:Tamin";
 
+    /// <summary>Name of the outbound HTTP client used for every Tamin call.</summary>
+    public const string HttpClientName = "Tamin";
+
     /// <summary>Client identifier for Tamin. The pilot environment accepts only the value the SDK documents.</summary>
     public string ApiKey { get; set; } = string.Empty;
 
