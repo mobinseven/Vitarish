@@ -7376,13 +7376,6 @@
           "forceRefresh": {
             "type": "boolean",
             "default": false
-          },
-          "credentialId": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "uuid"
           }
         }
       },

@@ -1,9 +1,12 @@
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Vitarish.Medical.Application.Commands.Prescriptions;
 using Vitarish.Medical.Application.Contracts;
 using Vitarish.Medical.Application.Abstractions.Prescriptions;
+using Vitarish.Medical.Domain.Entities.Prescriptions;
 using Vitarish.Medical.Domain.Enums.Prescriptions;
 using Vitarish.Entities.Contracts.Models;
+using Vitarish.Requests.Application.Abstractions;
 using System.Text.Json;
 
 namespace Vitarish.Medical.Infrastructure.Handlers.Prescriptions;
@@ -14,6 +17,8 @@ namespace Vitarish.Medical.Infrastructure.Handlers.Prescriptions;
 /// </summary>
 public sealed class SyncReferenceDataHandler(
     IInsuranceProviderRegistry providerRegistry,
+    PrescriptionDbContext dbContext,
+    IRequestContext requestContext,
     IMediator mediator)
     : IRequestHandler<SyncReferenceDataCommand, SyncReferenceDataResult>
 {
@@ -46,10 +51,21 @@ public sealed class SyncReferenceDataHandler(
             return SyncReferenceDataResult.Failure("Provider does not support service code sync");
         }
 
+        // Providers that authenticate reference data per doctor use the caller's own login for this provider.
+        // The credential is resolved from the authenticated doctor and clinic, never from the request body.
+        Guid? credentialId = null;
+        if (CredentialRequestScope.TryResolve(requestContext, out Guid doctorId, out Guid clinicId))
+        {
+            credentialId = await dbContext.DoctorProviderCredentials
+                .Where(item => item.ProviderKey == request.ProviderKey && item.DoctorId == doctorId && item.ClinicId == clinicId)
+                .Select(item => (Guid?)item.Id)
+                .FirstOrDefaultAsync(cancellationToken);
+        }
+
         ReferenceDataRequest fetchRequest = new()
         {
             CodeSystem = request.CodeSystem,
-            CredentialId = request.CredentialId
+            CredentialId = credentialId
         };
 
         AdapterResult<ReferenceDataResponse> fetchResult =

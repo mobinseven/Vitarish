@@ -8,8 +8,6 @@ public sealed record SyncReferenceDataCommand : IRequest<SyncReferenceDataResult
     public required string ProviderKey { get; init; }
     public required string CodeSystem { get; init; }
     public string? TriggeredBy { get; init; }
-    /// <summary>Provider credential whose login is used to fetch the codes, for providers that authenticate reference data per doctor.</summary>
-    public Guid? CredentialId { get; init; }
 }
 
 public sealed record SyncReferenceDataResult
