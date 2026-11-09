@@ -1,6 +1,19 @@
 # Central authentication implementation
 
-Status: implementation authorized; release incomplete.
+Status: deployed and production workflow passed on 2026-11-08 at commit
+`ebe2ed62beec67448faf4e9524b06181c7bb46b5`. The full active-app two-host
+proof passed 72 tests with 15 skips; production browser evidence passed in
+[run 42481734974](https://github.com/mobinseven/Vitarish/actions/runs/42481734974).
+An authenticated production login was not performed. The checkpoint notes
+below are historical; see the updated handoff for current status.
+
+## Historical checkpoint
+
+Current continuation instructions and evidence are in
+[the checkpoint handoff](central-authentication-handoff.md). The owner stopped
+the latest run during the owner Web build on 2026-11-08. Its runner and all
+proof listeners are stopped; no browser scenario ran in that invocation. No
+merge or deployment occurred. Product source is committed at 302ba4dce.
 
 Owner scope correction on 2026-11-08: skip Knowledge because the app is obsolete.
 Knowledge is excluded from authentication acceptance and future E2E runner

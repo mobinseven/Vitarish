@@ -40,17 +40,18 @@ Use Darman as the concrete expression of that purpose today. Avoid broad capabil
 
 ## Visitor Narrative
 
-1. Vitarish identity, animated artwork, slogan, and a short introduction.
-2. A concise statement of the brand's purpose.
-3. Darman: what it is, who it serves, and where to discover it.
-4. Essential brand questions and configured human contact.
-5. A compact, muted footer inspired by the supplied Apple reference, with product columns and a copyright row; no oversized wordmark or repeated product CTA.
+1. A scroll-driven brand manifesto: one short line per scroll step, staged with minimal dot and line artwork on alternating light and inverted grounds. It ends on the signature: the Vitarish logotype over the fiber artwork, the slogan, and a link to the purpose article.
+2. Darman: what it is, who it serves, and where to discover it.
+3. Essential brand questions and configured human contact.
+4. A compact, muted footer inspired by the supplied Apple reference, with product columns and a copyright row; no oversized wordmark or repeated product CTA.
 
 The primary visitor decision is whether to explore Darman. The page is not a product roadmap or an operational dashboard.
 
 ## Visual Direction
 
 Owner decision, 2026-10-27: expressive animated artwork and a strong Vitarish identity.
+
+Owner decision, 2026-11-04: the opening is a web adaptation of a supplied kinetic-typography reference: scroll-driven, monochrome scenes with the brand lime accent only at key moments (the focus disc, the single "yes" point, the closing disc). The manifesto words are Vitarish's own and await owner review; do not reuse the reference's text or sign-off. The front-door feature owns scene order and staging; the catalogs own the words.
 
 Use the existing logotypes, theme, typography, and fiber artwork. Give the wordmark a prominent role, keep generous space around the brand statement, and use a focused product presentation rather than a catalog grid. Art must support readable content in both themes.
 
