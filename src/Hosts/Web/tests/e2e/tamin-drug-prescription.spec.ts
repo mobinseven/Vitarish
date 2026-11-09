@@ -9,8 +9,6 @@ import { defaultClinicOrigin, forwardedForHeaderName, signInToClinic } from "./s
 const ownerUsername = process.env.VITARISH_E2E_USERNAME ?? "e2e-owner";
 const password = process.env.VITARISH_E2E_PASSWORD;
 const apiOrigin = process.env[twoHostE2eApiOriginEnvironmentKey] ?? "https://localhost:7272";
-// Seeded by the E2E host (E2eFixtureSeeder) for tenant A.
-const seededPatientId = "2d7a3eb9-1d47-4c63-9a45-19d7e6a0fb18";
 const medicalApi = "/api/modules/medical";
 // Seeded Tamin catalog drug and the values the E2E Tamin stub accepts for its dosage form.
 const drugName = "E2E Ibuprofen 400 mg";
@@ -69,13 +67,23 @@ test("a doctor connects Tamin and prescribes a drug with its consumption values"
   await expect(page.getByText(messages.settings.insurance.completed)).toBeVisible({ timeout: 120_000 });
   await captureProof(page, "tamin-connected");
 
+  // The scenario prescribes for its own patient, so it leaves the shared fixture patient untouched.
+  const stamp = Date.now().toString().slice(-6);
+  await page.goto(`${defaultClinicOrigin}${ClinicRoutes.Clinic.Patients.New}`, { waitUntil: "domcontentloaded" });
+  await page.getByRole("textbox", { name: new RegExp(messages.patient.fields.firstName) }).fill("Rx");
+  await page.getByRole("textbox", { name: new RegExp(messages.patient.fields.lastName) }).fill(`Patient ${stamp}`);
+  await page.getByRole("textbox", { name: new RegExp(messages.patient.fields.identificationCode) }).fill(`E2E-RX-${stamp}`);
+  await page.getByRole("button", { name: messages.patient.edit.save }).click();
+  await expect(page).toHaveURL(/\/patients\/[0-9a-f-]{36}/, { timeout: 120_000 });
+  const patientId = /\/patients\/([0-9a-f-]{36})/.exec(page.url())![1];
+
   // Prescribe: pick the drug, choose its consumption values from the provider's lists, submit.
-  await page.goto(`${defaultClinicOrigin}${ClinicRoutes.Clinic.Patients.Detail(seededPatientId, "prescription")}`, { waitUntil: "domcontentloaded" });
+  await page.goto(`${defaultClinicOrigin}${ClinicRoutes.Clinic.Patients.Detail(patientId, "prescription")}`, { waitUntil: "domcontentloaded" });
   await page.getByRole("button", { name: "TAMIN" }).click();
   await page.getByPlaceholder(messages.prescriptionSubmission.search).fill("Ibuprofen");
   await page.getByRole("option", { name: new RegExp(drugName) }).click();
 
-  await expect(page.getByRole("heading", { name: `Drug usage for ${drugName}` })).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByRole("heading", { name: messages.prescriptionSubmission.consumption.title.replace("{drug}", drugName) })).toBeVisible({ timeout: 60_000 });
   const add = page.getByRole("button", { name: messages.prescriptionSubmission.consumption.add });
   await expect(add, "a drug cannot be added before its consumption values are chosen").toBeDisabled();
   await selectOption(page, messages.prescriptionSubmission.consumption.amount, "One quarter");

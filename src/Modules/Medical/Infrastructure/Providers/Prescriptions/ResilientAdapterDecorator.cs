@@ -76,8 +76,8 @@ public sealed class ResilientAdapterDecorator(
             ct => _inner.FetchReferenceDataAsync(request, ct),
             cancellationToken);
 
-    // Optional capabilities are forwarded to the wrapped adapter. Authorization is never retried here:
-    // an authorization code can be exchanged only once.
+    // Optional capabilities are forwarded to the wrapped adapter without retry here: an authorization code can be
+    // exchanged only once, and the Tamin SDK already retries its own GETs, so a second retry would stack.
     public Task<AdapterResult<ProviderAuthorizationStartResponse>> BeginAuthorizationAsync(ProviderAuthorizationStartRequest request, CancellationToken cancellationToken = default)
         => _inner is IInsuranceProviderAuthorizationAdapter authorization
             ? authorization.BeginAuthorizationAsync(request, cancellationToken)
@@ -90,11 +90,7 @@ public sealed class ResilientAdapterDecorator(
 
     public Task<AdapterResult<DrugConsumptionOptions>> GetDrugConsumptionOptionsAsync(DrugConsumptionOptionsRequest request, CancellationToken cancellationToken = default)
         => _inner is IInsuranceProviderDrugConsumptionAdapter consumption
-            ? ExecuteWithResilienceAsync(
-                nameof(GetDrugConsumptionOptionsAsync),
-                Guid.NewGuid().ToString(),
-                ct => consumption.GetDrugConsumptionOptionsAsync(request, ct),
-                cancellationToken)
+            ? consumption.GetDrugConsumptionOptionsAsync(request, cancellationToken)
             : Task.FromResult(AdapterResult<DrugConsumptionOptions>.NotSupported());
 
     private async Task<AdapterResult> ExecuteWithResilienceAsync(

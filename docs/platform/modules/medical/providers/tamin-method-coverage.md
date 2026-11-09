@@ -27,13 +27,13 @@ Supersedes the earlier `Vorn.Tamin` 2.0.0 matrix. [tamin-implementation-plan.md]
 | `UpdatePrescriptionAsync` | `EditPrescriptionAsync` | Used. |
 | `DeletePrescriptionAsync` | `CancelPrescriptionAsync` | Used. |
 | `GetPrescriptionDetailsAsync` | `FetchPrescriptionAsync` | Used. |
-| `GetPatientEntitlementAsync` | `CheckEntitlementAsync` | Used. |
+| `GetPatientEntitlementAsync` | `CheckEntitlementAsync`, run by `CheckDraftEligibility` when the sheet submits | Used. The response shape is not documented by the guide; the mapper reads `status` / `statusCode` / `status_code`. |
 | `ListServicesAsync` (`01` drugs, `02` laboratory, others) | Reference sync, code systems `drug`, `service`, `all-services` | Used. |
 | `ListPrescriptionTypesAsync` | Code system `prescription-type` | Used. |
 | `ListLaboratoryTariffGroupsAsync` | Code system `paraclinic-tariff` | Used. |
 | `ListDrugAmountsAsync`, `ListDrugInstructionsAsync` | Code systems `drug-amount`, `drug-instruction` | Used. |
 | `ListDrugUsagesAsync`, `ListDosageFormsAsync` | Code systems `drug-usage`, `dosage-form` | Used. |
-| `GetMedicationInstructionsByDosageFormAsync` | None | Deferred: needs an Application query and a UI picker for the dosage-form dependent values. |
+| `GetMedicationInstructionsByDosageFormAsync` | `IInsuranceProviderDrugConsumptionAdapter` (Tamin), served by `GetDrugConsumptionOptions` under the caller's own login | Used. Feeds the per-drug consumption picker in the prescription sheet. |
 | `CheckDentistRulesAsync`, dentist service lists | None | Deferred. |
 | Referral, hospitalization, family-doctor, patient-disease operations | None | Deferred. |
 | Nursing operations | None | Not supported by the SDK yet (see the SDK changelog). |
@@ -43,11 +43,14 @@ Supersedes the earlier `Vorn.Tamin` 2.0.0 matrix. [tamin-implementation-plan.md]
 - **Every Tamin call carries a doctor's token, including the coding lists.** Reference sync therefore needs `CredentialId` (the doctor/clinic login to use). Without it the adapter returns a validation error. There is no anonymous or shared sync credential.
 - **A credential with no stored token fails fast** with an authentication error. An expired but refreshable token is refreshed lazily by the SDK on the first call, under the credential's lease; a rejected refresh clears the stored token and surfaces as `TaminReauthorizationRequiredException`, mapped to an authentication error. A network or 5xx failure during refresh keeps the refresh token.
 - **`AuthenticateAsync` / credential test no longer performs a network refresh.** It confirms a token is stored; the first real call proves it.
+- **The sheet checks eligibility itself.** Submit first runs `CheckDraftEligibility`, which asks the provider under the caller's own login (doctor and clinic from the authenticated scope) and records the answer on the draft; validation then gates on it.
+- **Drug items need their consumption values.** `drugAmntId` and `drugInstId` are mandatory in the guide, so `SubmitPrescriptionAsync` and `EditPrescriptionAsync` reject a drug item without them by name. Templates that add drugs without them must be completed before submitting.
+- **The doctor's mobile is stored on the credential** (`ProviderDoctorMobile`, set in insurance settings) and sent as `docMobileNo`. A credential without it cannot submit; existing credentials must be re-saved.
+- **Each drug's dosage form** (`formCode`) is stored in the synced item metadata. Drugs synced before this change need a re-sync before the picker works for them.
 - **Patient mobile is optional.** `FallbackMobileNumber` is sent only when configured.
 - **Item metadata keys read by the mapper:** `illnessId`, `planId`, `toothId`, `serviceType` (overrides the category default `srvType`), and for drugs `drugAmntId`, `drugInstId`, `doseCode`, `methodUsageId`. A drug with `doseCode` marks the prescription `terminology: SNOMED` and sends the route as `doseCode` instead of free-text `dose`.
 - **Removed configuration keys:** `BaseUrl`, `AccountBaseUrl`, `SoaBaseUrl`, `ApiBaseUrl`, `SandboxBaseUrl`, `TokenEndpoint`, `AllowedHosts`, `ReferenceDataRequiresToken`, `TokenSkew`. The SDK takes hosts from its OpenAPI contract, binds tokens to those hosts, and refreshes two minutes before expiry. Pilot versus production is still chosen by `Endpoint` / `UseSandbox`.
 
 ## Known gaps
 
-- `docMobileNo` (the doctor's mobile) is required by the guide but no stored field exists, so it is still not sent.
 - The SDK has not been validated against the live Tamin service (see its changelog); response shapes for most operations are untyped.
