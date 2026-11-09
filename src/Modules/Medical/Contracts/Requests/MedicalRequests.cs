@@ -72,6 +72,7 @@ public sealed record ValidatePrescriptionDraftRequest(Guid PrescriptionId);
 public sealed record PrescriptionEditItemRequest(MedicalPrescriptionItemCategory Category, string? ReferenceCode, string? DisplayName, string? DosageJson, int Quantity, int? DurationDays, string? MetadataJson = null);
 public sealed record EditPrescriptionRequest(Guid PrescriptionId, int ExpectedVersion, IReadOnlyList<PrescriptionEditItemRequest> Items, string? IdempotencyKey = null, string? Reason = null);
 public sealed record GetAvailableProvidersRequest;
+public sealed record GetDrugConsumptionOptionsRequest(string ProviderKey, string FormCode);
 public sealed record GetCredentialSetupGridRequest(Guid ClinicId, string? ProviderKey = null);
 public sealed record TestCredentialRequest(Guid CredentialId);
 public sealed record RevokeCredentialRequest(Guid CredentialId);

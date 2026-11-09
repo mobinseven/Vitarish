@@ -25,7 +25,7 @@ internal sealed class TaminInsuranceAdapter(
     IOptionsMonitor<TaminOptions> taminOptions,
     PrescriptionDbContext dbContext,
     TaminErrorMapper errorMapper,
-    ILogger<TaminInsuranceAdapter> logger) : IInsuranceProviderAdapter, IInsuranceProviderAuthorizationAdapter
+    ILogger<TaminInsuranceAdapter> logger) : IInsuranceProviderAdapter, IInsuranceProviderAuthorizationAdapter, IInsuranceProviderDrugConsumptionAdapter
 {
     public const string ProviderKeyConst = "TAMIN";
 
@@ -189,6 +189,14 @@ internal sealed class TaminInsuranceAdapter(
             ? null
             : _taminOptions.CurrentValue.FallbackMobileNumber;
 
+        string? incompleteDrug = TaminPrescriptionMapper.FindDrugMissingConsumption(prescription.Items);
+        if (incompleteDrug is not null)
+        {
+            return AdapterResult<SubmissionResponse>.Failure(ValidationError(
+                $"مقدار مصرف و زمان مصرف داروی «{incompleteDrug}» برای تامین اجتماعی مشخص نشده است.",
+                "Drug items need drugAmntId and drugInstId item metadata."));
+        }
+
         TaminSessionResult sessionResult = await _sessionStore.GetOrRefreshSessionAsync(prescription.DoctorId, prescription.ClinicId, cancellationToken);
         if (!sessionResult.IsSuccess)
         {
@@ -315,6 +323,14 @@ internal sealed class TaminInsuranceAdapter(
             });
         }
 
+        string? incompleteDrug = TaminPrescriptionMapper.FindDrugMissingConsumption(prescription.Items);
+        if (incompleteDrug is not null)
+        {
+            return AdapterResult<SubmissionResponse>.Failure(ValidationError(
+                $"مقدار مصرف و زمان مصرف داروی «{incompleteDrug}» برای تامین اجتماعی مشخص نشده است.",
+                "Drug items need drugAmntId and drugInstId item metadata."));
+        }
+
         TaminSessionResult sessionResult = await _sessionStore.GetOrRefreshSessionAsync(prescription.DoctorId, prescription.ClinicId, cancellationToken);
         if (!sessionResult.IsSuccess)
         {
@@ -396,6 +412,33 @@ internal sealed class TaminInsuranceAdapter(
         {
             _logger.LogWarning(ex, "Tamin cancel failed for {RemoteId}", request.RemotePrescriptionId);
             return AdapterResult.Failure(MapProviderException(ex));
+        }
+    }
+
+    public async Task<AdapterResult<DrugConsumptionOptions>> GetDrugConsumptionOptionsAsync(
+        DrugConsumptionOptionsRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(request.FormCode))
+        {
+            return AdapterResult<DrugConsumptionOptions>.Failure(ValidationError("شکل دارویی مشخص نشده است.", "FormCode is required."));
+        }
+
+        TaminSessionResult sessionResult = await _sessionStore.GetOrRefreshSessionAsync(request.DoctorId, request.ClinicId, cancellationToken);
+        if (!sessionResult.IsSuccess)
+        {
+            return AdapterResult<DrugConsumptionOptions>.Failure(sessionResult.Error!);
+        }
+
+        try
+        {
+            return AdapterResult<DrugConsumptionOptions>.Success(
+                await _prescriptionMapper.GetDrugConsumptionOptionsAsync(sessionResult.Client!, request.FormCode, cancellationToken));
+        }
+        catch (Exception ex) when (IsProviderException(ex))
+        {
+            _logger.LogWarning(ex, "Tamin drug consumption options failed for form {FormCode}", request.FormCode);
+            return AdapterResult<DrugConsumptionOptions>.Failure(MapProviderException(ex));
         }
     }
 

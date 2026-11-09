@@ -93,6 +93,26 @@ public sealed class TaminPrescriptionMapperTests
         sent.NoteDetailEprscs.Should().BeEmpty();
     }
 
+    [Theory]
+    [InlineData("""{ "drugAmntId": 580, "drugInstId": 2546009 }""", null)]
+    [InlineData("""{ "drugAmntId": 580 }""", "Drug A")]
+    [InlineData("""{ "drugInstId": 2546009 }""", "Drug A")]
+    [InlineData(null, "Drug A")]
+    public void Drug_without_amount_and_time_is_reported_by_name(string? metadataJson, string? expected)
+    {
+        PrescriptionItem drug = Item(PrescriptionItemCategory.Drug, "1", metadataJson);
+        drug.DisplayName = "Drug A";
+
+        TaminPrescriptionMapper.FindDrugMissingConsumption([drug]).Should().Be(expected);
+    }
+
+    [Fact]
+    public void Non_drug_items_never_need_consumption_values()
+    {
+        TaminPrescriptionMapper.FindDrugMissingConsumption(
+            [Item(PrescriptionItemCategory.MedicalService, "S1", null)]).Should().BeNull();
+    }
+
     private async Task<PrescriptionCreateInput> RegisterAsync(PrescriptionItem item, string? mobile = "09120000000")
     {
         PrescriptionCreateInput? sent = null;

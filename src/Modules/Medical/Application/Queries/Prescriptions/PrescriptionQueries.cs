@@ -95,3 +95,26 @@ public sealed record AvailableProviderDto
 {
     public string ProviderKey { get; init; } = string.Empty;
 }
+
+/// <summary>Gets the consumption values a provider accepts for a drug's dosage form, using the caller's own provider login.</summary>
+public sealed record GetDrugConsumptionOptionsQuery : IRequest<DrugConsumptionOptionsResultDto>
+{
+    public required string ProviderKey { get; init; }
+    public required string FormCode { get; init; }
+}
+
+public sealed record DrugConsumptionOptionDto(string Id, string Name, string? NameLatin);
+
+public sealed record DrugConsumptionUnitDto(string Id, string Name, string? NameLatin, IReadOnlyList<DrugConsumptionOptionDto> Amounts);
+
+public sealed record DrugConsumptionOptionsResultDto
+{
+    /// <summary>False when the provider has no consumption lists, so no consumption values are needed.</summary>
+    public bool IsSupported { get; init; }
+    public bool IsSuccess { get; init; }
+    public string? ErrorMessage { get; init; }
+    public IReadOnlyList<DrugConsumptionUnitDto> Units { get; init; } = [];
+    public IReadOnlyList<DrugConsumptionOptionDto> Instructions { get; init; } = [];
+    public IReadOnlyList<DrugConsumptionOptionDto> Usages { get; init; } = [];
+    public IReadOnlyList<DrugConsumptionOptionDto> Methods { get; init; } = [];
+}

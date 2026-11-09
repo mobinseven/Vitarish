@@ -82,6 +82,7 @@ public static class MedicalApiEndpointMapping
         _ = group.MapModulePost(MedicalApiRoutes.PrescriptionTemplateItems, AddPrescriptionTemplateItemAsync, "MedicalAddPrescriptionTemplateItem");
         _ = group.MapModulePost(MedicalApiRoutes.PrescriptionTemplateItemRemove, RemovePrescriptionTemplateItemAsync, "MedicalRemovePrescriptionTemplateItem");
         _ = group.MapModulePost(MedicalApiRoutes.AvailableProviders, GetAvailableProvidersAsync, "MedicalGetAvailableProviders", typeof(IReadOnlyList<AvailableProviderDto>));
+        _ = group.MapModulePost(MedicalApiRoutes.DrugConsumptionOptions, GetDrugConsumptionOptionsAsync, "MedicalGetDrugConsumptionOptions", typeof(DrugConsumptionOptionsResponse));
         _ = group.MapModulePost(MedicalApiRoutes.Credentials + "/list", ListProviderCredentialsAsync, "MedicalListProviderCredentials");
         _ = group.MapModulePost(MedicalApiRoutes.Credentials, ConfigureProviderCredentialAsync, "MedicalConfigureProviderCredential", typeof(MedicalCommandResult));
         _ = group.MapModulePost(MedicalApiRoutes.CredentialSetupGrid, GetCredentialSetupGridAsync, "MedicalGetCredentialSetupGrid", typeof(IReadOnlyList<CredentialSetupDto>));
@@ -240,6 +241,18 @@ public static class MedicalApiEndpointMapping
     private static async Task<IResult> ArchivePrescriptionTemplateAsync(ArchivePrescriptionTemplateRequest request, IMediator mediator, CancellationToken ct) => Command(await mediator.Send(new AP.ArchivePrescriptionTemplateCommand { TemplateId = request.TemplateId, TenantId = request.TenantId }, ct));
     private static async Task<IResult> AddPrescriptionTemplateItemAsync(AddPrescriptionTemplateItemRequest request, IMediator mediator, CancellationToken ct) => Command(await mediator.Send(new AP.AddPrescriptionTemplateItemCommand { TemplateId = request.TemplateId, TenantId = request.TenantId, Category = (DEP.PrescriptionItemCategory)request.Category, ReferenceCode = request.ReferenceCode, DisplayName = request.DisplayName, DosageJson = request.DosageJson, Quantity = request.Quantity, DurationDays = request.DurationDays, MetadataJson = request.MetadataJson }, ct));
     private static async Task<IResult> RemovePrescriptionTemplateItemAsync(RemovePrescriptionTemplateItemRequest request, IMediator mediator, CancellationToken ct) => Command(await mediator.Send(new AP.RemovePrescriptionTemplateItemCommand { TemplateId = request.TemplateId, ItemId = request.ItemId, TenantId = request.TenantId }, ct));
+    private static async Task<IResult> GetDrugConsumptionOptionsAsync(GetDrugConsumptionOptionsRequest request, IMediator mediator, CancellationToken ct) => Ok(ToContract(await mediator.Send(new AQ.GetDrugConsumptionOptionsQuery { ProviderKey = request.ProviderKey, FormCode = request.FormCode }, ct)));
+    private static DrugConsumptionOptionResponse ToContract(AQ.DrugConsumptionOptionDto e) => new() { Id = e.Id, Name = e.Name, NameLatin = e.NameLatin };
+    private static DrugConsumptionOptionsResponse ToContract(AQ.DrugConsumptionOptionsResultDto e) => new()
+    {
+        IsSupported = e.IsSupported,
+        IsSuccess = e.IsSuccess,
+        ErrorMessage = e.ErrorMessage,
+        Units = e.Units.Select(unit => new DrugConsumptionUnitResponse { Id = unit.Id, Name = unit.Name, NameLatin = unit.NameLatin, Amounts = unit.Amounts.Select(ToContract).ToArray() }).ToArray(),
+        Instructions = e.Instructions.Select(ToContract).ToArray(),
+        Usages = e.Usages.Select(ToContract).ToArray(),
+        Methods = e.Methods.Select(ToContract).ToArray()
+    };
     private static async Task<IResult> GetAvailableProvidersAsync(GetAvailableProvidersRequest request, IMediator mediator, CancellationToken ct) => Ok(await mediator.Send(new AQ.GetAvailableProvidersQuery(), ct));
     private static async Task<IResult> ListProviderCredentialsAsync(OperationalDashboardRequest request, IMediator mediator, CancellationToken ct) => Ok(await mediator.Send(new AQ.GetCredentialHealthQuery { ProviderKey = request.ProviderKey, ClinicId = request.ClinicId }, ct));
     private static async Task<IResult> ConfigureProviderCredentialAsync(ConfigureProviderCredentialRequest request, IMediator mediator, CancellationToken ct) => Command(await mediator.Send(new AP.SaveCredentialCommand

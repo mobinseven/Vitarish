@@ -15,6 +15,9 @@ internal sealed class TaminPrescriptionMapper
     /// <summary>Coding system the guide asks for on drug prescriptions that carry SNOMED consumption values.</summary>
     private const string SnomedTerminology = "SNOMED";
 
+    private static readonly string[] DrugAmountMetadataKeys = ["drugAmntId", "drug_amnt_id"];
+    private static readonly string[] DrugInstructionMetadataKeys = ["drugInstId", "drug_inst_id"];
+
     public async Task<SubmissionResponse> RegisterPrescriptionAsync(
         ITaminClient client,
         PrescriptionRecord prescription,
@@ -47,6 +50,43 @@ internal sealed class TaminPrescriptionMapper
                 : DomainPrescriptionStatus.RejectedByProvider
         };
     }
+
+    /// <summary>
+    /// The guide makes the consumption amount and time mandatory on every drug item. Returns the display name of
+    /// the first drug item without them, so the doctor sees which drug to complete instead of a provider rejection.
+    /// </summary>
+    public static string? FindDrugMissingConsumption(IEnumerable<PrescriptionItem> items) =>
+        items
+            .Where(item => item.Category == PrescriptionItemCategory.Drug &&
+                (TaminPrescriptionItemMetadataReader.ReadPositiveInt(item, DrugAmountMetadataKeys) is null ||
+                 TaminPrescriptionItemMetadataReader.ReadPositiveInt(item, DrugInstructionMetadataKeys) is null))
+            .Select(item => item.DisplayName ?? item.ReferenceCode ?? string.Empty)
+            .FirstOrDefault();
+
+    public async Task<DrugConsumptionOptions> GetDrugConsumptionOptionsAsync(
+        ITaminClient client,
+        string formCode,
+        CancellationToken cancellationToken)
+    {
+        TaminEnvelope<MedicationInstructionsDto> response = await client.GetMedicationInstructionsByDosageFormAsync(formCode, cancellationToken);
+        MedicationInstructionsDto data = response.Data;
+        return new DrugConsumptionOptions
+        {
+            Units = (data.FormAmounts ?? [])
+                .Where(unit => !string.IsNullOrWhiteSpace(unit.Id))
+                .Select(unit => new DrugConsumptionUnit(unit.Id!, unit.Name ?? unit.Id!, unit.NameLatin, ToOptions(unit.DrugAmounts)))
+                .ToList(),
+            Instructions = ToOptions(data.DrugInstructions),
+            Usages = ToOptions(data.DrugUsages),
+            Methods = ToOptions(data.MethodUsages)
+        };
+    }
+
+    private static IReadOnlyList<DrugConsumptionOption> ToOptions(IReadOnlyList<MedicationInstructionOptionDto>? options) =>
+        (options ?? [])
+            .Where(option => !string.IsNullOrWhiteSpace(option.Id))
+            .Select(option => new DrugConsumptionOption(option.Id!, option.Name ?? option.Id!, option.NameLatin))
+            .ToList();
 
     public async Task<EntitlementResponse> CheckEntitlementAsync(
         ITaminClient client,
@@ -175,8 +215,8 @@ internal sealed class TaminPrescriptionMapper
     private static PrescriptionDetailInput ToDetailInput(PrescriptionItem item)
     {
         string? doseCode = ReadDoseCode(item);
-        int? drugAmountId = TaminPrescriptionItemMetadataReader.ReadPositiveInt(item, "drugAmntId", "drug_amnt_id");
-        int? drugInstructionId = TaminPrescriptionItemMetadataReader.ReadPositiveInt(item, "drugInstId", "drug_inst_id");
+        int? drugAmountId = TaminPrescriptionItemMetadataReader.ReadPositiveInt(item, DrugAmountMetadataKeys);
+        int? drugInstructionId = TaminPrescriptionItemMetadataReader.ReadPositiveInt(item, DrugInstructionMetadataKeys);
         int? methodUsageId = TaminPrescriptionItemMetadataReader.ReadPositiveInt(item, "methodUsageId", "method_usage_id");
 
         return new PrescriptionDetailInput(
