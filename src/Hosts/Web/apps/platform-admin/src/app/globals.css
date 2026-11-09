@@ -1,9 +1,10 @@
-@import "tailwindcss";
+@import "tailwindcss" source(none);
 @import "@heroui/styles";
 @import "@heroui-pro/react/css";
 @import "@vitarish/ui/layout.css";
 @import "@vitarish/ui/typography.css";
 
+@source "../";
 @source "../../../../shared/platform/src/**/*.{ts,tsx}";
 @source "../../../../shared/security/src/**/*.{ts,tsx}";
 @source "../../../../shared/ui/src/**/*.{ts,tsx}";
