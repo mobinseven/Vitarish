@@ -1,10 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System.Net;
 using System.Security.Cryptography;
 using System.Text;
-using Tamin.Integration.Auth;
+using Tamin.Integration;
 using Vitarish.Medical.Application.Abstractions.Prescriptions;
 using Vitarish.Medical.Domain.Entities;
 using Vitarish.Modules.Base.Core.Platform.Errors;
@@ -13,18 +12,16 @@ namespace Vitarish.Medical.Infrastructure.Providers.Prescriptions.Tamin;
 
 internal sealed class TaminCredentialSessionStore(
     PrescriptionDbContext dbContext,
-    TaminProviderSessionFactory sessionFactory,
+    TaminClientFactory clientFactory,
     TaminTokenVault tokenVault,
-    IHttpClientFactory httpClientFactory,
     IOptionsMonitor<TaminOptions> taminOptions,
     TaminCredentialRefreshCoordinator refreshCoordinator,
     TaminErrorMapper errorMapper,
     ILogger<TaminCredentialSessionStore> logger) : ITaminCredentialSessionStore
 {
     private readonly PrescriptionDbContext _dbContext = dbContext;
-    private readonly TaminProviderSessionFactory _sessionFactory = sessionFactory;
+    private readonly TaminClientFactory _clientFactory = clientFactory;
     private readonly TaminTokenVault _tokenVault = tokenVault;
-    private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
     private readonly IOptionsMonitor<TaminOptions> _taminOptions = taminOptions;
     private readonly TaminCredentialRefreshCoordinator _refreshCoordinator = refreshCoordinator;
     private readonly TaminErrorMapper _errorMapper = errorMapper;
@@ -38,35 +35,17 @@ internal sealed class TaminCredentialSessionStore(
     public async Task<TaminSessionResult> GetOrRefreshSessionAsync(Guid doctorId, Guid clinicId, CancellationToken cancellationToken = default)
     {
         DoctorProviderCredential? credential = await FindCredentialAsync(doctorId, clinicId, cancellationToken);
-        if (credential is null)
-        {
-            return TaminSessionResult.Failure(MissingCredentialError(doctorId));
-        }
+        return credential is null
+            ? TaminSessionResult.Failure(MissingCredentialError(doctorId))
+            : CreateSession(credential);
+    }
 
-        try
-        {
-            TaminCredentialAccessTokenProvider tokenProvider = CreateTokenProvider(credential);
-            Uri soaBaseUri = RequireAbsoluteHttpsUri(
-                _taminOptions.CurrentValue.EffectiveSoaBaseUrl,
-                nameof(TaminOptions.SoaBaseUrl));
-            _ = await tokenProvider.GetAuthorizationTokenAsync(soaBaseUri, cancellationToken: cancellationToken);
-            TaminProviderSession session = _sessionFactory.Create(tokenProvider);
-            return TaminSessionResult.Success(session, ResolveDoctorTaminId(credential), credential.ProviderUsername, credential.ProviderClinicIdentifier);
-        }
-        catch (TaminReauthorizationRequiredException ex)
-        {
-            _logger.LogInformation(ex, "Tamin authorization is required for doctor {DoctorId} in clinic {ClinicId}", doctorId, clinicId);
-            return TaminSessionResult.Failure(AuthenticationRequiredError(ex.Message));
-        }
-        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or InvalidOperationException)
-        {
-            _logger.LogWarning(ex, "Tamin token refresh failed for doctor {DoctorId} in clinic {ClinicId}", doctorId, clinicId);
-            return TaminSessionResult.Failure(_errorMapper.MapError(new ProviderErrorContext
-            {
-                Exception = ex,
-                ProviderErrorMessage = ex.Message
-            }));
-        }
+    public async Task<TaminSessionResult> GetOrRefreshSessionAsync(Guid credentialId, CancellationToken cancellationToken = default)
+    {
+        DoctorProviderCredential? credential = await FindCredentialAsync(credentialId, cancellationToken);
+        return credential is null
+            ? TaminSessionResult.Failure(MissingCredentialError(Guid.Empty))
+            : CreateSession(credential);
     }
 
     public async Task<TaminAuthorizationStartResult> BeginAuthorizationAsync(
@@ -82,16 +61,12 @@ internal sealed class TaminCredentialSessionStore(
         try
         {
             TaminOptions options = _taminOptions.CurrentValue;
-            Uri accountBaseUri = RequireAbsoluteHttpsUri(
-                options.EffectiveAccountBaseUrl,
-                nameof(TaminOptions.AccountBaseUrl));
             Uri redirectUri = RequireAbsoluteHttpsUri(
                 options.OAuthRedirectUri,
                 nameof(TaminOptions.OAuthRedirectUri));
-            string clientId = Require(options.ApiKey, nameof(TaminOptions.ApiKey));
-            string codeVerifier = TaminTokenProvider.CreateCodeVerifier();
+            ITaminClient client = _clientFactory.Create(CreateTokenStore(credential));
+            string codeVerifier = TaminClient.CreateCodeVerifier();
             string state = Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
-            string codeChallenge = Base64UrlEncode(SHA256.HashData(Encoding.ASCII.GetBytes(codeVerifier)));
 
             _tokenVault.WriteAuthorizationState(
                 credential,
@@ -100,17 +75,12 @@ internal sealed class TaminCredentialSessionStore(
                 DateTimeOffset.UtcNow.AddMinutes(10));
             _ = await _dbContext.SaveChangesAsync(cancellationToken);
 
-            UriBuilder authorizationUri = new(new Uri(accountBaseUri, "/auth/server/authorize"))
-            {
-                Query = string.Join('&',
-                    $"redirect_uri={WebUtility.UrlEncode(redirectUri.ToString())}",
-                    $"code_challenge={WebUtility.UrlEncode(codeChallenge)}",
-                    $"client_id={WebUtility.UrlEncode(clientId)}",
-                    "response_type=code",
-                    "code_challenge_method=S256",
-                    $"state={WebUtility.UrlEncode(state)}")
-            };
-            return new TaminAuthorizationStartResult(authorizationUri.Uri, null);
+            return new TaminAuthorizationStartResult(
+                client.CreateAuthorizationUri(
+                    redirectUri.ToString(),
+                    TaminClient.CreateCodeChallenge(codeVerifier),
+                    state),
+                null);
         }
         catch (Exception ex) when (ex is ArgumentException or InvalidOperationException)
         {
@@ -146,32 +116,24 @@ internal sealed class TaminCredentialSessionStore(
             return TaminSessionResult.Failure(AuthenticationRequiredError("Tamin OAuth state is invalid or expired."));
         }
 
-        TaminOptions options = _taminOptions.CurrentValue;
         try
         {
-            TaminDoctorTokenExchange exchange = new(
-                _httpClientFactory.CreateClient("TaminOAuthClient"),
-                RequireAbsoluteHttpsUri(options.TokenEndpoint, nameof(TaminOptions.TokenEndpoint)),
-                options.EffectiveEndpoint == TaminEndpointMode.Sandbox);
-            DoctorToken token = await exchange.ExchangeAuthorizationCodeAsync(
-                new DoctorAuthorizationCode(
-                    authorizationCode,
-                    Require(options.ApiKey, nameof(TaminOptions.ApiKey)),
-                    Require(options.Audience, nameof(TaminOptions.Audience)),
-                    Require(options.OAuthRedirectUri, nameof(TaminOptions.OAuthRedirectUri)),
-                    authorizationState.CodeVerifier),
+            TaminOptions options = _taminOptions.CurrentValue;
+            ITaminClient client = _clientFactory.Create(CreateTokenStore(credential));
+            // The SDK exchanges the code and writes the token through the credential's token store.
+            await client.CompleteAuthorizationAsync(
+                authorizationCode,
+                RequireAbsoluteHttpsUri(options.OAuthRedirectUri, nameof(TaminOptions.OAuthRedirectUri)).ToString(),
+                authorizationState.CodeVerifier,
                 cancellationToken);
-            _tokenVault.Write(credential, token.AccessToken, token.RefreshToken, token.ExpiresAt);
             credential.SessionId = null;
             _ = await _dbContext.SaveChangesAsync(cancellationToken);
 
-            TaminCredentialAccessTokenProvider tokenProvider = CreateTokenProvider(credential);
-            TaminProviderSession session = _sessionFactory.Create(tokenProvider);
             _logger.LogInformation(
                 "Tamin OAuth authorization completed for doctor {DoctorId} in clinic {ClinicId}",
                 credential.DoctorId,
                 credential.ClinicId);
-            return TaminSessionResult.Success(session, ResolveDoctorTaminId(credential), credential.ProviderUsername, credential.ProviderClinicIdentifier);
+            return TaminSessionResult.Success(client, ResolveDoctorTaminId(credential), credential.ProviderUsername, credential.ProviderClinicIdentifier);
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or ArgumentException or InvalidOperationException)
         {
@@ -184,16 +146,46 @@ internal sealed class TaminCredentialSessionStore(
         }
     }
 
-    private TaminCredentialAccessTokenProvider CreateTokenProvider(DoctorProviderCredential credential) => new(
+    /// <summary>
+    /// A credential with no stored token needs a new login. The token itself is read and, when expired,
+    /// refreshed lazily by the SDK on the first call, under the credential's refresh lease.
+    /// </summary>
+    private TaminSessionResult CreateSession(DoctorProviderCredential credential)
+    {
+        TaminStoredToken stored = _tokenVault.Read(credential);
+        if (string.IsNullOrWhiteSpace(stored.AccessToken) && string.IsNullOrWhiteSpace(stored.RefreshToken))
+        {
+            _logger.LogInformation(
+                "Tamin authorization is required for doctor {DoctorId} in clinic {ClinicId}",
+                credential.DoctorId,
+                credential.ClinicId);
+            return TaminSessionResult.Failure(AuthenticationRequiredError("Doctor authorization must be completed again."));
+        }
+
+        try
+        {
+            return TaminSessionResult.Success(
+                _clientFactory.Create(CreateTokenStore(credential)),
+                ResolveDoctorTaminId(credential),
+                credential.ProviderUsername,
+                credential.ProviderClinicIdentifier);
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "Tamin client could not be created for doctor {DoctorId} in clinic {ClinicId}", credential.DoctorId, credential.ClinicId);
+            return TaminSessionResult.Failure(_errorMapper.MapError(new ProviderErrorContext
+            {
+                Exception = ex,
+                ProviderErrorMessage = ex.Message
+            }));
+        }
+    }
+
+    private TaminCredentialTokenStore CreateTokenStore(DoctorProviderCredential credential) => new(
         credential,
         _dbContext,
         _tokenVault,
-        _httpClientFactory,
-        _taminOptions,
         _refreshCoordinator);
-
-    private static string Require(string? value, string name) =>
-        string.IsNullOrWhiteSpace(value) ? throw new InvalidOperationException($"Tamin {name} is required.") : value;
 
     private static Uri RequireAbsoluteHttpsUri(string? value, string name) =>
         Uri.TryCreate(value, UriKind.Absolute, out Uri? uri) && uri.Scheme == Uri.UriSchemeHttps
@@ -216,9 +208,6 @@ internal sealed class TaminCredentialSessionStore(
             credential => credential.Id == credentialId &&
                 credential.ProviderKey == TaminInsuranceAdapter.ProviderKeyConst,
             cancellationToken);
-
-    private static string Base64UrlEncode(byte[] value) =>
-        Convert.ToBase64String(value).TrimEnd('=').Replace('+', '-').Replace('/', '_');
 
     private static IntegrationError MissingCredentialError(Guid doctorId) => new()
     {

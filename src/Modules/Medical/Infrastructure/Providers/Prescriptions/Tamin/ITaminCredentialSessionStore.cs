@@ -1,3 +1,4 @@
+using Tamin.Integration;
 using Vitarish.Modules.Base.Core.Platform.Errors;
 
 namespace Vitarish.Medical.Infrastructure.Providers.Prescriptions.Tamin;
@@ -6,6 +7,7 @@ internal interface ITaminCredentialSessionStore
 {
     Task<TaminSessionResult> AuthenticateAsync(Guid doctorId, Guid clinicId, CancellationToken cancellationToken = default);
     Task<TaminSessionResult> GetOrRefreshSessionAsync(Guid doctorId, Guid clinicId, CancellationToken cancellationToken = default);
+    Task<TaminSessionResult> GetOrRefreshSessionAsync(Guid credentialId, CancellationToken cancellationToken = default);
     Task<TaminAuthorizationStartResult> BeginAuthorizationAsync(
         Guid credentialId,
         CancellationToken cancellationToken = default);
@@ -22,19 +24,19 @@ internal sealed record TaminAuthorizationStartResult(Uri? AuthorizationUri, Inte
 }
 
 internal sealed record TaminSessionResult(
-    TaminProviderSession? Session,
+    ITaminClient? Client,
     IntegrationError? Error,
     string? DoctorTaminId = null,
     string? DoctorNationalCode = null,
     string? ClinicSiamId = null)
 {
-    public bool IsSuccess => Session is not null && Error is null;
+    public bool IsSuccess => Client is not null && Error is null;
 
     public static TaminSessionResult Success(
-        TaminProviderSession session,
+        ITaminClient client,
         string? doctorTaminId = null,
         string? doctorNationalCode = null,
-        string? clinicSiamId = null) => new(session, null, doctorTaminId, doctorNationalCode, clinicSiamId);
+        string? clinicSiamId = null) => new(client, null, doctorTaminId, doctorNationalCode, clinicSiamId);
 
     public static TaminSessionResult Failure(IntegrationError error) => new(null, error);
 }

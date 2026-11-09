@@ -1,3 +1,5 @@
+using Tamin.Integration.Auth;
+using Tamin.Integration.Mapping;
 using Vitarish.Medical.Application.Abstractions.Prescriptions;
 using Vitarish.Modules.Base.Core.Platform.Errors;
 
@@ -80,6 +82,31 @@ public sealed class TaminErrorMapper : IProviderErrorMapper
                     ProviderErrorMessage = context.ProviderErrorMessage,
                     IsRetryable = false
                 }
+            };
+        }
+
+        // The SDK refreshes the doctor token lazily, so a rejected refresh surfaces from any operation.
+        if (context.Exception is TaminReauthorizationRequiredException)
+        {
+            return new IntegrationError
+            {
+                Category = ErrorCategory.Authentication,
+                UserMessage = "نیاز به ورود مجدد به سامانه تامین اجتماعی است.",
+                TechnicalDetail = context.Exception.Message,
+                ProviderErrorCode = context.ProviderErrorCode,
+                ProviderErrorMessage = context.ProviderErrorMessage,
+                IsRetryable = false
+            };
+        }
+
+        if (context.Exception is TaminRequestValidationException)
+        {
+            return new IntegrationError
+            {
+                Category = ErrorCategory.Validation,
+                UserMessage = "اطلاعات ارسالی به تامین اجتماعی نامعتبر است.",
+                TechnicalDetail = context.Exception.Message,
+                IsRetryable = false
             };
         }
 

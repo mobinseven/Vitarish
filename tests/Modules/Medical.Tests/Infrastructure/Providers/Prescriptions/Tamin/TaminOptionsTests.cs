@@ -6,31 +6,20 @@ namespace Medical.Tests.Infrastructure.Providers.Prescriptions.Tamin;
 public sealed class TaminOptionsTests
 {
     [Fact]
-    public void V3_specific_base_urls_override_legacy_base_url()
+    public void Production_is_the_default_endpoint()
     {
-        TaminOptions options = new()
-        {
-            BaseUrl = "https://legacy.example",
-            AccountBaseUrl = "https://account.example",
-            SoaBaseUrl = "https://soa.example",
-            ApiBaseUrl = "https://api.example"
-        };
-
-        options.EffectiveAccountBaseUrl.Should().Be("https://account.example");
-        options.EffectiveSoaBaseUrl.Should().Be("https://soa.example");
-        options.EffectiveApiBaseUrl.Should().Be("https://api.example");
+        new TaminOptions().EffectiveEndpoint.Should().Be(TaminEndpointMode.Production);
     }
 
     [Fact]
-    public void Legacy_sandbox_base_url_remains_a_compatibility_fallback()
+    public void Legacy_sandbox_flag_selects_the_pilot_endpoint()
     {
-        TaminOptions options = new()
-        {
-            BaseUrl = "https://production.example",
-            SandboxBaseUrl = "https://pilot.example",
-            UseSandbox = true
-        };
+        new TaminOptions { UseSandbox = true }.EffectiveEndpoint.Should().Be(TaminEndpointMode.Sandbox);
+    }
 
-        options.EffectiveSoaBaseUrl.Should().Be("https://pilot.example");
+    [Fact]
+    public void Explicit_endpoint_is_honoured_without_the_legacy_flag()
+    {
+        new TaminOptions { Endpoint = TaminEndpointMode.Sandbox }.EffectiveEndpoint.Should().Be(TaminEndpointMode.Sandbox);
     }
 }

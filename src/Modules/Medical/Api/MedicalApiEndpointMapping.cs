@@ -273,7 +273,7 @@ public static class MedicalApiEndpointMapping
             AuthorizationCode = request.AuthorizationCode,
             State = request.State
         }, ct));
-    private static async Task<IResult> SyncProviderReferenceDataAsync(SyncProviderReferenceDataRequest request, IMediator mediator, CancellationToken ct) => Command(await mediator.Send(new AP.SyncReferenceDataCommand { ProviderKey = request.ProviderKey, CodeSystem = request.CodeSystem }, ct));
+    private static async Task<IResult> SyncProviderReferenceDataAsync(SyncProviderReferenceDataRequest request, IMediator mediator, CancellationToken ct) => Command(await mediator.Send(new AP.SyncReferenceDataCommand { ProviderKey = request.ProviderKey, CodeSystem = request.CodeSystem, CredentialId = request.CredentialId }, ct));
     private static async Task<IResult> GetPrescriptionOperationalDashboardAsync(OperationalDashboardRequest request, IMediator mediator, CancellationToken ct) => Ok(await mediator.Send(new AQ.GetOperationalAlertsQuery { ProviderKey = request.ProviderKey }, ct));
     private static async Task<IResult> GetProviderTransactionMetricsAsync(GetProviderTransactionMetricsRequest request, IMediator mediator, CancellationToken ct) => Ok(await mediator.Send(new AQ.GetProviderTransactionMetricsQuery { ProviderKey = request.ProviderKey, From = request.From, To = request.To }, ct));
     private static async Task<IResult> GetRejectionDistributionAsync(GetRejectionDistributionRequest request, IMediator mediator, CancellationToken ct) => Ok(await mediator.Send(new AQ.GetRejectionDistributionQuery { ProviderKey = request.ProviderKey, From = request.From, To = request.To }, ct));

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Tamin.Integration;
 using Tamin.Integration.Auth;
 using Tamin.Integration.Http;
 using Tamin.Integration.Mapping;
@@ -97,7 +98,6 @@ internal sealed class TaminInsuranceAdapter(
             request.AuthorizationCode,
             request.State,
             cancellationToken);
-        result.Session?.Dispose();
         return result.IsSuccess ? AdapterResult.Success() : AdapterResult.Failure(result.Error!);
     }
 
@@ -110,7 +110,6 @@ internal sealed class TaminInsuranceAdapter(
         }
 
         TaminSessionResult sessionResult = await _sessionStore.AuthenticateAsync(request.DoctorId, request.ClinicId, cancellationToken);
-        sessionResult.Session?.Dispose();
         return sessionResult.IsSuccess ? AdapterResult.Success() : AdapterResult.Failure(sessionResult.Error!);
     }
 
@@ -129,15 +128,14 @@ internal sealed class TaminInsuranceAdapter(
 
         if (string.IsNullOrWhiteSpace(sessionResult.ClinicSiamId))
         {
-            sessionResult.Session!.Dispose();
             return AdapterResult<EntitlementResponse>.Failure(MissingClinicSiamIdError(request.ClinicId));
         }
 
         try
         {
-            using TaminProviderSession session = sessionResult.Session!;
+            ITaminClient client = sessionResult.Client!;
             EntitlementResponse result = await _prescriptionMapper.CheckEntitlementAsync(
-                session,
+                client,
                 sessionResult.ClinicSiamId,
                 sessionResult.DoctorTaminId ?? string.Empty,
                 sessionResult.DoctorNationalCode ?? sessionResult.DoctorTaminId ?? string.Empty,
@@ -186,14 +184,10 @@ internal sealed class TaminInsuranceAdapter(
             });
         }
 
-        string fallbackMobile = _taminOptions.CurrentValue.FallbackMobileNumber;
-        if (string.IsNullOrWhiteSpace(fallbackMobile))
-        {
-            return AdapterResult<SubmissionResponse>.Failure(
-                ValidationError(
-                    "شماره همراه بیمار برای ارسال نسخه تامین اجتماعی پیکربندی نشده است.",
-                    "Tamin FallbackMobileNumber is required until prescriptions carry a patient mobile number."));
-        }
+        // The provider no longer requires the patient mobile; send the configured fallback only when there is one.
+        string? fallbackMobile = string.IsNullOrWhiteSpace(_taminOptions.CurrentValue.FallbackMobileNumber)
+            ? null
+            : _taminOptions.CurrentValue.FallbackMobileNumber;
 
         TaminSessionResult sessionResult = await _sessionStore.GetOrRefreshSessionAsync(prescription.DoctorId, prescription.ClinicId, cancellationToken);
         if (!sessionResult.IsSuccess)
@@ -203,9 +197,9 @@ internal sealed class TaminInsuranceAdapter(
 
         try
         {
-            using TaminProviderSession session = sessionResult.Session!;
+            ITaminClient client = sessionResult.Client!;
             SubmissionResponse result = await _prescriptionMapper.RegisterPrescriptionAsync(
-                session,
+                client,
                 prescription,
                 sessionResult.DoctorTaminId ?? string.Empty,
                 sessionResult.DoctorNationalCode ?? sessionResult.DoctorTaminId ?? string.Empty,
@@ -260,9 +254,9 @@ internal sealed class TaminInsuranceAdapter(
                 return AdapterResult<FetchResponse>.Failure(InvalidHeaderIdError(request.RemotePrescriptionId));
             }
 
-            using TaminProviderSession session = sessionResult.Session!;
+            ITaminClient client = sessionResult.Client!;
             FetchResponse result = await _prescriptionMapper.FetchPrescriptionAsync(
-                session,
+                client,
                 headerId,
                 sessionResult.DoctorTaminId ?? string.Empty,
                 sessionResult.DoctorNationalCode ?? sessionResult.DoctorTaminId ?? string.Empty,
@@ -334,9 +328,9 @@ internal sealed class TaminInsuranceAdapter(
                 return AdapterResult<SubmissionResponse>.Failure(InvalidHeaderIdError(submission.RemotePrescriptionId));
             }
 
-            using TaminProviderSession session = sessionResult.Session!;
+            ITaminClient client = sessionResult.Client!;
             SubmissionResponse result = await _prescriptionMapper.EditPrescriptionAsync(
-                session,
+                client,
                 headerId,
                 sessionResult.DoctorTaminId ?? string.Empty,
                 sessionResult.DoctorNationalCode ?? sessionResult.DoctorTaminId ?? string.Empty,
@@ -388,9 +382,9 @@ internal sealed class TaminInsuranceAdapter(
                 return AdapterResult.Failure(InvalidHeaderIdError(request.RemotePrescriptionId));
             }
 
-            using TaminProviderSession session = sessionResult.Session!;
+            ITaminClient client = sessionResult.Client!;
             await _prescriptionMapper.CancelPrescriptionAsync(
-                session,
+                client,
                 headerId,
                 sessionResult.DoctorTaminId ?? string.Empty,
                 sessionResult.DoctorNationalCode ?? sessionResult.DoctorTaminId ?? string.Empty,
@@ -412,9 +406,22 @@ internal sealed class TaminInsuranceAdapter(
             return AdapterResult<ReferenceDataResponse>.Failure(ValidationError("سامانه کد داده مرجع مشخص نشده است.", "CodeSystem is required."));
         }
 
+        // Tamin authenticates every call with a doctor's login, including the coding lists.
+        if (request.CredentialId is not { } credentialId || credentialId == Guid.Empty)
+        {
+            return AdapterResult<ReferenceDataResponse>.Failure(
+                ValidationError("برای دریافت کدهای تامین اجتماعی، ابتدا حساب تامین اجتماعی پزشک را متصل کنید.", "CredentialId is required to fetch Tamin reference data."));
+        }
+
+        TaminSessionResult sessionResult = await _sessionStore.GetOrRefreshSessionAsync(credentialId, cancellationToken);
+        if (!sessionResult.IsSuccess)
+        {
+            return AdapterResult<ReferenceDataResponse>.Failure(sessionResult.Error!);
+        }
+
         try
         {
-            TaminReferencePageResult result = await FetchReferencePageAsync(request.CodeSystem, cancellationToken);
+            TaminReferencePageResult result = await FetchReferencePageAsync(sessionResult.Client!, request.CodeSystem, cancellationToken);
             return AdapterResult<ReferenceDataResponse>.Success(ToReferenceDataResponse(request.CodeSystem, result));
         }
         catch (Exception ex) when (IsProviderException(ex))
@@ -424,7 +431,7 @@ internal sealed class TaminInsuranceAdapter(
         }
     }
 
-    private async Task<TaminReferencePageResult> FetchReferencePageAsync(string codeSystem, CancellationToken cancellationToken)
+    private async Task<TaminReferencePageResult> FetchReferencePageAsync(ITaminClient client, string codeSystem, CancellationToken cancellationToken)
     {
         string normalized = NormalizeCodeSystem(codeSystem);
         TaminOptions options = _taminOptions.CurrentValue;
@@ -434,17 +441,19 @@ internal sealed class TaminInsuranceAdapter(
         {
             TaminProviderOperationNames.Drug => await CombinePagesAsync(
                 TaminProviderOperationNames.Drug,
-                _gateway.ListAllDrugPagesAsync(new TaminDrugListAllOperationRequest(null, null, pageSize, true), cancellationToken),
+                _gateway.ListAllDrugPagesAsync(client, new TaminDrugListAllOperationRequest(null, null, pageSize, true), cancellationToken),
                 cancellationToken),
             TaminProviderOperationNames.Service => await CombinePagesAsync(
                 TaminProviderOperationNames.Service,
-                _gateway.ListAllServicePagesAsync(new TaminServiceListAllOperationRequest(null, null, null, pageSize, true), cancellationToken),
+                _gateway.ListAllServicePagesAsync(client, new TaminServiceListAllOperationRequest(null, null, null, pageSize, true), cancellationToken),
                 cancellationToken),
-            TaminProviderOperationNames.AllServices => await _gateway.GetAllServicesAsync(new TaminRawReferenceQueryOperationRequest(normalized, EmptyQuery), cancellationToken),
-            TaminProviderOperationNames.PrescriptionType => await _gateway.GetPrescriptionTypesAsync(new TaminRawReferenceQueryOperationRequest(normalized, EmptyQuery), cancellationToken),
-            TaminProviderOperationNames.ParaclinicTariff => await _gateway.GetParaclinicTariffsAsync(new TaminRawReferenceQueryOperationRequest(normalized, EmptyQuery), cancellationToken),
-            TaminProviderOperationNames.DrugAmount => await _gateway.GetDrugAmountsAsync(new TaminRawReferenceQueryOperationRequest(normalized, EmptyQuery), cancellationToken),
-            TaminProviderOperationNames.DrugInstruction => await _gateway.GetDrugInstructionsAsync(new TaminRawReferenceQueryOperationRequest(normalized, EmptyQuery), cancellationToken),
+            TaminProviderOperationNames.AllServices => await _gateway.GetAllServicesAsync(client, new TaminRawReferenceQueryOperationRequest(normalized, EmptyQuery), cancellationToken),
+            TaminProviderOperationNames.PrescriptionType => await _gateway.GetPrescriptionTypesAsync(client, cancellationToken),
+            TaminProviderOperationNames.ParaclinicTariff => await _gateway.GetParaclinicTariffsAsync(client, cancellationToken),
+            TaminProviderOperationNames.DrugAmount => await _gateway.GetDrugAmountsAsync(client, cancellationToken),
+            TaminProviderOperationNames.DrugInstruction => await _gateway.GetDrugInstructionsAsync(client, cancellationToken),
+            TaminProviderOperationNames.DrugUsage => await _gateway.GetDrugUsagesAsync(client, cancellationToken),
+            TaminProviderOperationNames.DosageForm => await _gateway.GetDosageFormsAsync(client, cancellationToken),
             _ => throw new NotSupportedException($"Tamin reference code system '{codeSystem}' is not supported.")
         };
     }
@@ -498,6 +507,8 @@ internal sealed class TaminInsuranceAdapter(
             "paraclinic-tariffs" => TaminProviderOperationNames.ParaclinicTariff,
             "drug-amounts" => TaminProviderOperationNames.DrugAmount,
             "drug-instructions" => TaminProviderOperationNames.DrugInstruction,
+            "drug-usages" => TaminProviderOperationNames.DrugUsage,
+            "dosage-forms" => TaminProviderOperationNames.DosageForm,
             _ => normalized
         };
     }
@@ -556,6 +567,7 @@ internal sealed class TaminInsuranceAdapter(
             : exception is TaminReauthorizationRequiredException
             ? _errorMapper.MapError(new ProviderErrorContext
             {
+                Exception = exception,
                 ProviderErrorCode = "reauthorization_required",
                 ProviderErrorMessage = exception.Message
             })

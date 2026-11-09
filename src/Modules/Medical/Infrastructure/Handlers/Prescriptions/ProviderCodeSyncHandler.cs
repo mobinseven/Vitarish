@@ -48,7 +48,8 @@ public sealed class SyncReferenceDataHandler(
 
         ReferenceDataRequest fetchRequest = new()
         {
-            CodeSystem = request.CodeSystem
+            CodeSystem = request.CodeSystem,
+            CredentialId = request.CredentialId
         };
 
         AdapterResult<ReferenceDataResponse> fetchResult =

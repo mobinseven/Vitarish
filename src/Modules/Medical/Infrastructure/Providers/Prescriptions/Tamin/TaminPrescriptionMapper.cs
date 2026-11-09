@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Tamin.Integration;
 using Tamin.Integration.Mapping;
 using Vitarish.Medical.Application.Abstractions.Prescriptions;
 using Vitarish.Medical.Domain.Entities;
@@ -9,17 +10,18 @@ using PrescriptionItemCategory = Vitarish.Medical.Domain.Enums.Prescriptions.Pre
 
 namespace Vitarish.Medical.Infrastructure.Providers.Prescriptions.Tamin;
 
-internal sealed class TaminPrescriptionMapper(
-    PrescriptionRequestMapper requestMapper,
-    TaminMappingService responseMapper)
+internal sealed class TaminPrescriptionMapper
 {
+    /// <summary>Coding system the guide asks for on drug prescriptions that carry SNOMED consumption values.</summary>
+    private const string SnomedTerminology = "SNOMED";
+
     public async Task<SubmissionResponse> RegisterPrescriptionAsync(
-        TaminProviderSession session,
+        ITaminClient client,
         PrescriptionRecord prescription,
         string doctorTaminId,
         string doctorNationalCode,
         string? clinicSiamId,
-        string mobile,
+        string? mobile,
         ITaminDateFormatter dateFormatter,
         CancellationToken cancellationToken)
     {
@@ -31,27 +33,7 @@ internal sealed class TaminPrescriptionMapper(
             mobile,
             dateFormatter);
 
-        PrescriptionMutationResult result;
-        if (session.Production is { } production)
-        {
-            var request = requestMapper.MapProduction(input);
-            ApplyProductionServiceTypes(request.NoteDetailEprscs, prescription.Items);
-            var response = await production.Soa.Interface.Epresc.SendEpresc.V7.PostAsync(
-                request,
-                cancellationToken: cancellationToken)
-                ?? throw new InvalidOperationException("Tamin create-prescription response was empty.");
-            result = responseMapper.MapCreatePrescription(response);
-        }
-        else
-        {
-            var request = requestMapper.MapPilot(input);
-            ApplyPilotServiceTypes(request.NoteDetailEprscs, prescription.Items);
-            var response = await session.Pilot!.Soa.Api.V2.SendEpresc.PostAsync(
-                request,
-                cancellationToken: cancellationToken)
-                ?? throw new InvalidOperationException("Tamin pilot create-prescription response was empty.");
-            result = responseMapper.MapCreatePrescription(response);
-        }
+        PrescriptionMutationResult result = await client.CreatePrescriptionAsync(input, cancellationToken);
 
         string? statusCode = result.ErrorCode;
         return new SubmissionResponse
@@ -67,113 +49,72 @@ internal sealed class TaminPrescriptionMapper(
     }
 
     public async Task<EntitlementResponse> CheckEntitlementAsync(
-        TaminProviderSession session,
+        ITaminClient client,
         string siamId,
         string doctorId,
         string doctorNationalCode,
         string patientNationalId,
         CancellationToken cancellationToken)
     {
-        JsonElement payload;
-        if (session.Production is { } production)
-        {
-            var response = await production.Soa.Interface.Epresc.Patient.V2.DeserveInfo[siamId][doctorId][patientNationalId]
-                .GetAsync(cancellationToken: cancellationToken)
-                ?? throw new InvalidOperationException("Tamin entitlement response was empty.");
-            payload = responseMapper.MapPatientEntitlement(response).Payload;
-        }
-        else
-        {
-            var response = await session.Pilot!.Soa.Api.V2.Patients.DeserveInfo[doctorNationalCode][siamId][doctorId][patientNationalId]
-                .GetAsync(cancellationToken: cancellationToken)
-                ?? throw new InvalidOperationException("Tamin pilot entitlement response was empty.");
-            payload = responseMapper.MapPilotUndocumentedMutation(response).Payload;
-        }
-
-        return ToEntitlementResponse(payload);
+        UnconstrainedResponse response = await client.GetPatientEntitlementAsync(
+            siamId,
+            doctorId,
+            patientNationalId,
+            doctorNationalCode,
+            cancellationToken);
+        return ToEntitlementResponse(response.Payload);
     }
 
     public async Task<FetchResponse> FetchPrescriptionAsync(
-        TaminProviderSession session,
+        ITaminClient client,
         long remotePrescriptionId,
         string doctorId,
         string doctorNationalCode,
         CancellationToken cancellationToken)
     {
-        JsonElement payload;
-        if (session.Production is { } production)
-        {
-            var response = await production.Soa.Interface.Epresc.SendEpresc.V2[remotePrescriptionId][doctorId]
-                .GetAsync(cancellationToken: cancellationToken)
-                ?? throw new InvalidOperationException("Tamin prescription-details response was empty.");
-            payload = responseMapper.MapPrescriptionDetails(response).Payload;
-        }
-        else
-        {
-            var response = await session.Pilot!.Soa.Api.V2.Ep[remotePrescriptionId][doctorNationalCode][doctorId]
-                .Detail.GetAsync(cancellationToken: cancellationToken)
-                ?? throw new InvalidOperationException("Tamin pilot prescription-details response was empty.");
-            payload = responseMapper.MapPilotUndocumentedMutation(response).Payload;
-        }
-
-        return ToFetchResponse(payload);
+        UnconstrainedResponse response = await client.GetPrescriptionDetailsAsync(
+            remotePrescriptionId,
+            doctorNationalCode,
+            doctorId,
+            cancellationToken);
+        return ToFetchResponse(response.Payload);
     }
 
     public async Task<SubmissionResponse> EditPrescriptionAsync(
-        TaminProviderSession session,
+        ITaminClient client,
         long remotePrescriptionId,
         string doctorId,
         string doctorNationalCode,
         IEnumerable<PrescriptionItem> items,
         CancellationToken cancellationToken)
     {
-        JsonElement payload;
-        if (session.Production is { } production)
-        {
-            var body = items.Select(ToProductionDetail).ToList();
-            var response = await production.Soa.Interface.Epresc.SendEpresc.V2.Edit[remotePrescriptionId.ToString()][doctorId]
-                .PostAsync(body, cancellationToken: cancellationToken)
-                ?? throw new InvalidOperationException("Tamin edit-prescription response was empty.");
-            payload = responseMapper.MapUpdatePrescription(response).Payload;
-        }
-        else
-        {
-            var body = items.Select(ToPilotDetail).ToList();
-            var response = await session.Pilot!.Soa.Api.V2.Ep.Update[remotePrescriptionId][doctorNationalCode][doctorId]
-                .PostAsync(body, cancellationToken: cancellationToken)
-                ?? throw new InvalidOperationException("Tamin pilot edit-prescription response was empty.");
-            payload = responseMapper.MapPilotUndocumentedMutation(response).Payload;
-        }
-
-        return ToSubmissionResponse(payload, remotePrescriptionId.ToString());
+        UnconstrainedResponse response = await client.UpdatePrescriptionAsync(
+            remotePrescriptionId,
+            doctorNationalCode,
+            doctorId,
+            items.OrderBy(item => item.SortOrder).Select(ToDetailInput).ToList(),
+            cancellationToken);
+        return ToSubmissionResponse(response.Payload, remotePrescriptionId.ToString());
     }
 
     public async Task CancelPrescriptionAsync(
-        TaminProviderSession session,
+        ITaminClient client,
         long remotePrescriptionId,
         string doctorId,
         string doctorNationalCode,
-        CancellationToken cancellationToken)
-    {
-        if (session.Production is { } production)
-        {
-            _ = await production.Soa.Interface.Epresc.SendEpresc.V2.Remove[remotePrescriptionId.ToString()][doctorId]
-                .PostAsync(cancellationToken: cancellationToken)
-                ?? throw new InvalidOperationException("Tamin delete-prescription response was empty.");
-            return;
-        }
-
-        _ = await session.Pilot!.Soa.Api.V2.Ep[remotePrescriptionId][doctorNationalCode][doctorId]
-            .PostAsync(cancellationToken: cancellationToken)
-            ?? throw new InvalidOperationException("Tamin pilot delete-prescription response was empty.");
-    }
+        CancellationToken cancellationToken) =>
+        _ = await client.DeletePrescriptionAsync(
+            remotePrescriptionId,
+            doctorNationalCode,
+            doctorId,
+            cancellationToken);
 
     private static PrescriptionCreateInput CreateInput(
         PrescriptionRecord prescription,
         string doctorTaminId,
         string doctorNationalCode,
         string? clinicSiamId,
-        string mobile,
+        string? mobile,
         ITaminDateFormatter dateFormatter)
     {
         string patientNationalId = prescription.PatientNationalId ?? prescription.PatientId.ToString();
@@ -210,7 +151,6 @@ internal sealed class TaminPrescriptionMapper(
 
         return new PrescriptionCreateInput(
             Comments: null,
-            Complaint: null,
             CreatorType: null,
             DocId: doctorTaminId,
             DocMobileNo: null,
@@ -219,78 +159,58 @@ internal sealed class TaminPrescriptionMapper(
             Mobile: mobile,
             NoteDetailEprscs: details,
             NoteDetailsReferralList: referrals,
+            NoteHeadEprscSupplementary: null,
             Patient: patientNationalId,
             PrescDate: prescriptionDate,
             PrescType: new PrescriptionTypeInput(ToPrescriptionType(category)),
-            ReferralFeedbackId: null);
+            ReferralFeedbackId: null,
+            SiamId: null,
+            Terminology: prescription.Items.Any(IsSnomedDrug) ? SnomedTerminology : null);
     }
 
-    private static PrescriptionDetailInput ToDetailInput(PrescriptionItem item) => new(
-        DateDo: null,
-        DiagnosisID: null,
-        Dose: item.DosageJson,
-        DrugInstruction: null,
-        IllnessId: TaminPrescriptionItemMetadataReader.ReadString(item, "illnessId", "illness_id"),
-        IsDentalService: item.Category == PrescriptionItemCategory.Dental
-            ? DentalServiceFlag.One
-            : DentalServiceFlag.Zero,
-        NoteDetailDrug: null,
-        NoteDetailsEprscId: ParsePositiveLong(item.ProviderItemIdentifier),
-        PlanId: TaminPrescriptionItemMetadataReader.ReadString(item, "planId", "plan_id"),
-        ReferenceStatus: null,
-        Repeat: item.DurationDays?.ToString(),
-        SrvId: new ServiceInput(item.ReferenceCode, null),
-        SrvQty: item.Quantity,
-        TimesAday: null,
-        ToothId: TaminPrescriptionItemMetadataReader.ReadString(item, "toothId", "tooth_id"));
-
-    private static global::Tamin.Client.Soa.Prod.Models.NoteDetailEprsc ToProductionDetail(PrescriptionItem item)
+    /// <summary>
+    /// Maps one stored item. Drug consumption values (amount, time, route, method) are optional item metadata,
+    /// like the illness, plan and tooth ids; the provider rejects a drug whose values do not fit its dosage form.
+    /// </summary>
+    private static PrescriptionDetailInput ToDetailInput(PrescriptionItem item)
     {
-        PrescriptionDetailInput input = ToDetailInput(item);
-        return new()
-        {
-            DateDo = input.DateDo,
-            Dose = input.Dose,
-            IllnessId = input.IllnessId,
-            IsDentalService = input.IsDentalService == DentalServiceFlag.One
-                ? global::Tamin.Client.Soa.Prod.Models.NoteDetailEprsc_isDentalService.One
-                : global::Tamin.Client.Soa.Prod.Models.NoteDetailEprsc_isDentalService.Zero,
-            NoteDetailsEprscId = input.NoteDetailsEprscId,
-            PlanId = input.PlanId,
-            Repeat = input.Repeat,
-            SrvId = new global::Tamin.Client.Soa.Prod.Models.Service
-            {
-                SrvCode = input.SrvId?.SrvCode,
-                SrvType = new() { SrvType = ToProductionServiceType(item.Category) }
-            },
-            SrvQty = input.SrvQty,
-            ToothId = input.ToothId
-        };
+        string? doseCode = ReadDoseCode(item);
+        int? drugAmountId = TaminPrescriptionItemMetadataReader.ReadPositiveInt(item, "drugAmntId", "drug_amnt_id");
+        int? drugInstructionId = TaminPrescriptionItemMetadataReader.ReadPositiveInt(item, "drugInstId", "drug_inst_id");
+        int? methodUsageId = TaminPrescriptionItemMetadataReader.ReadPositiveInt(item, "methodUsageId", "method_usage_id");
+
+        return new PrescriptionDetailInput(
+            DateDo: null,
+            // For SNOMED drugs the route travels as doseCode instead of free-text dose.
+            Dose: doseCode is null ? item.DosageJson : null,
+            DoseCode: doseCode,
+            DrugInstruction: drugInstructionId is null ? null : new DrugInstructionInput(drugInstructionId),
+            IllnessId: TaminPrescriptionItemMetadataReader.ReadString(item, "illnessId", "illness_id"),
+            IsDentalService: item.Category == PrescriptionItemCategory.Dental
+                ? DentalServiceFlag.One
+                : DentalServiceFlag.Zero,
+            MethodUsage: methodUsageId is null ? null : new MethodUsageInput(methodUsageId),
+            NoteDetailDrug: null,
+            NoteDetailsEprscId: ParsePositiveLong(item.ProviderItemIdentifier),
+            PlanId: TaminPrescriptionItemMetadataReader.ReadString(item, "planId", "plan_id"),
+            ReferenceStatus: null,
+            Repeat: item.DurationDays?.ToString(),
+            SrvId: new ServiceInput(
+                item.ReferenceCode,
+                Terminology: null,
+                SrvType: TaminPrescriptionItemMetadataReader.ReadString(item, "serviceType", "service_type")
+                    ?? ToServiceType(item.Category)),
+            SrvQty: item.Quantity,
+            TimesAday: drugAmountId is null ? null : new DrugAmountInput(drugAmountId),
+            ToothId: TaminPrescriptionItemMetadataReader.ReadString(item, "toothId", "tooth_id"));
     }
 
-    private static global::Tamin.Client.Soa.Pilot.Models.NoteDetailEprsc ToPilotDetail(PrescriptionItem item)
-    {
-        PrescriptionDetailInput input = ToDetailInput(item);
-        return new()
-        {
-            DateDo = input.DateDo,
-            Dose = input.Dose,
-            IllnessId = input.IllnessId,
-            IsDentalService = input.IsDentalService == DentalServiceFlag.One
-                ? global::Tamin.Client.Soa.Pilot.Models.NoteDetailEprsc_isDentalService.One
-                : global::Tamin.Client.Soa.Pilot.Models.NoteDetailEprsc_isDentalService.Zero,
-            NoteDetailsEprscId = input.NoteDetailsEprscId,
-            PlanId = input.PlanId,
-            Repeat = input.Repeat,
-            SrvId = new global::Tamin.Client.Soa.Pilot.Models.Service
-            {
-                SrvCode = input.SrvId?.SrvCode,
-                SrvType = new() { SrvType = ToPilotServiceType(item.Category) }
-            },
-            SrvQty = input.SrvQty,
-            ToothId = input.ToothId
-        };
-    }
+    private static string? ReadDoseCode(PrescriptionItem item) =>
+        item.Category == PrescriptionItemCategory.Drug
+            ? TaminPrescriptionItemMetadataReader.ReadString(item, "doseCode", "dose_code")
+            : null;
+
+    private static bool IsSnomedDrug(PrescriptionItem item) => ReadDoseCode(item) is not null;
 
     private static int ToPrescriptionType(PrescriptionItemCategory category) => category switch
     {
@@ -301,54 +221,11 @@ internal sealed class TaminPrescriptionMapper(
         _ => 2
     };
 
-    private static void ApplyProductionServiceTypes(
-        IReadOnlyList<global::Tamin.Client.Soa.Prod.Models.NoteDetailEprsc>? details,
-        IEnumerable<PrescriptionItem> items)
+    private static string ToServiceType(PrescriptionItemCategory category) => category switch
     {
-        if (details is null)
-        {
-            return;
-        }
-
-        foreach ((global::Tamin.Client.Soa.Prod.Models.NoteDetailEprsc detail, PrescriptionItem item) in
-                 details.Zip(items.OrderBy(item => item.SortOrder)))
-        {
-            detail.SrvId ??= new();
-            detail.SrvId.SrvType = new() { SrvType = ToProductionServiceType(item.Category) };
-        }
-    }
-
-    private static void ApplyPilotServiceTypes(
-        IReadOnlyList<global::Tamin.Client.Soa.Pilot.Models.NoteDetailEprsc>? details,
-        IEnumerable<PrescriptionItem> items)
-    {
-        if (details is null)
-        {
-            return;
-        }
-
-        foreach ((global::Tamin.Client.Soa.Pilot.Models.NoteDetailEprsc detail, PrescriptionItem item) in
-                 details.Zip(items.OrderBy(item => item.SortOrder)))
-        {
-            detail.SrvId ??= new();
-            detail.SrvId.SrvType = new() { SrvType = ToPilotServiceType(item.Category) };
-        }
-    }
-
-    private static global::Tamin.Client.Soa.Prod.Models.ServiceType_srvType ToProductionServiceType(
-        PrescriptionItemCategory category) => category switch
-    {
-        PrescriptionItemCategory.Drug => global::Tamin.Client.Soa.Prod.Models.ServiceType_srvType.ZeroOne,
-        PrescriptionItemCategory.Visit => global::Tamin.Client.Soa.Prod.Models.ServiceType_srvType.OneSix,
-        _ => global::Tamin.Client.Soa.Prod.Models.ServiceType_srvType.OneSeven
-    };
-
-    private static global::Tamin.Client.Soa.Pilot.Models.ServiceType_srvType ToPilotServiceType(
-        PrescriptionItemCategory category) => category switch
-    {
-        PrescriptionItemCategory.Drug => global::Tamin.Client.Soa.Pilot.Models.ServiceType_srvType.ZeroOne,
-        PrescriptionItemCategory.Visit => global::Tamin.Client.Soa.Pilot.Models.ServiceType_srvType.OneSix,
-        _ => global::Tamin.Client.Soa.Pilot.Models.ServiceType_srvType.OneSeven
+        PrescriptionItemCategory.Drug => TaminServiceTypeCodes.Drug,
+        PrescriptionItemCategory.Visit => TaminServiceTypeCodes.Visit,
+        _ => TaminServiceTypeCodes.MedicalService
     };
 
     private static long? ParsePositiveLong(string? value) =>

@@ -1,40 +1,53 @@
 # Tamin SDK method coverage matrix
 
-Date: 2026-07-01
+Date: 2026-11-09
 Owner: Medical module / Infrastructure provider integration
-Status: Infrastructure-final for currently available `Vorn.Tamin` 2.0.0 public operations; public Application/API/client/UI exposure remains intentionally deferred until a user-facing use case needs it.
+Status: Infrastructure covers the prescription lifecycle and the coding lists through `Tamin.Integration` 4.1.0 (`ITaminClient`). Application/API/UI exposure of the remaining operations stays deferred until a user-facing use case needs it.
 
-This matrix is the source of truth for which `Vorn.Tamin` public operations have deliberate Vitarish coverage. Provider SDK DTOs and `JsonElement` payloads remain inside Medical Infrastructure until an application/API contract is intentionally added.
+This matrix is the source of truth for which `ITaminClient` operations have deliberate Vitarish coverage. SDK types and `JsonElement` payloads stay inside Medical Infrastructure.
 
-| SDK surface | SDK method/surface | Vitarish infrastructure method | Application abstraction | API route | Client method | UI surface | Status | Notes |
-|---|---|---|---|---|---|---|---|---|
-| `TaminSession` | constructor with token | `ITaminSessionFactory.CreateTokenSession` | Existing `IInsuranceProviderAdapter` session flows | Existing provider endpoints | Existing medical client flows | Existing provider UI | Implement now | Centralizes endpoint/base URI/token session construction. |
-| `TaminSession` | `CreateAsync` password login | `ITaminSessionFactory.CreatePasswordSessionAsync` via `TaminCredentialSessionStore` | `IInsuranceProviderAdapter.AuthenticateAsync` | Existing provider credential route | Existing credential client flow | Existing credential setup UI | Implement now | Credential store owns token persistence; factory owns SDK construction. |
-| `TaminSession` | `RefreshTokenAsync` | None | None | None | None | None | Implement later behind DTO | Requires refresh-token storage before safe exposure. |
-| `TaminSession` | `ValidateTokenAsync` | None | None | None | None | None | Implement later behind DTO | Useful for credential health once SDK signature is promoted. |
-| `AuthClient` | `CreateAuthorizationUrl` | `ITaminSessionFactory.CreateAuthClient` | None | None | None | None | Implement later behind DTO | PKCE state/verifier storage must be designed first. |
-| `AuthClient` | `ExchangeCodeAsync` | `ITaminSessionFactory.CreateAuthClient` | None | None | None | None | Implement later behind DTO | Requires secure verifier/state handling. |
-| `AuthClient` | `RefreshTokenV2Async` | `ITaminSessionFactory.CreateAuthClient` | None | None | None | None | Implement later behind DTO | Requires refresh token and audience/national-code ownership. |
-| `AuthClient` | `CreateSignOutUrl`/`SignOutAsync` | `ITaminSessionFactory.CreateAuthClient` | None | None | None | None | Implement later behind DTO | Requires cache invalidation and user-session decision. |
-| `PkceChallenge` | `Create`/`FromVerifier` | None | None | None | None | None | Implement later behind DTO | Belongs to future onboarding service, not adapter. |
-| `ServiceClient`/`ReferenceDataClient` | `GetDrugListAsync` | `ITaminMedicalInfrastructureGateway.SearchDrugsAsync`, `ListAllDrugPagesAsync` | `IInsuranceProviderAdapter.FetchReferenceDataAsync` for sync | Existing sync route | Existing sync client flow | Existing reference-data admin UI | Implement now | Sync lists all pages; search method is infrastructure-ready. |
-| `ServiceClient`/`ReferenceDataClient` | `GetServiceListAsync` | `ITaminMedicalInfrastructureGateway.SearchServicesAsync`, `ListAllServicePagesAsync` | `IInsuranceProviderAdapter.FetchReferenceDataAsync` for sync | Existing sync route | Existing sync client flow | Existing reference-data admin UI | Implement now | Sync lists all pages; search method is infrastructure-ready. |
-| `ServiceClient`/`ReferenceDataClient` | `GetAllServicesAsync` | `ITaminMedicalInfrastructureGateway.GetAllServicesAsync` | `IInsuranceProviderAdapter.FetchReferenceDataAsync` | Existing sync route | Existing sync client flow | Existing reference-data admin UI | Implement now | Code system aliases: `all-services`. |
-| `ServiceClient`/`ReferenceDataClient` | `GetPrescriptionTypeAsync` | `ITaminMedicalInfrastructureGateway.GetPrescriptionTypesAsync` | `IInsuranceProviderAdapter.FetchReferenceDataAsync` | Existing sync route | Existing sync client flow | Existing reference-data admin UI | Implement now | Code system aliases: `prescription-type`, `prescription-types`. |
-| `ServiceClient`/`ReferenceDataClient` | `GetParaclinicTarefAsync` | `ITaminMedicalInfrastructureGateway.GetParaclinicTariffsAsync` | `IInsuranceProviderAdapter.FetchReferenceDataAsync` | Existing sync route | Existing sync client flow | Existing reference-data admin UI | Implement now | Code system aliases include provider spelling `paraclinic-taref`. |
-| `ServiceClient`/`ReferenceDataClient` | `GetDrugAmountAsync` | `ITaminMedicalInfrastructureGateway.GetDrugAmountsAsync` | `IInsuranceProviderAdapter.FetchReferenceDataAsync` | Existing sync route | Existing sync client flow | Existing reference-data admin UI | Implement now | Code system aliases: `drug-amount`, `drug-amounts`. |
-| `ServiceClient`/`ReferenceDataClient` | `GetDrugInstructionAsync` | `ITaminMedicalInfrastructureGateway.GetDrugInstructionsAsync` | `IInsuranceProviderAdapter.FetchReferenceDataAsync` | Existing sync route | Existing sync client flow | Existing reference-data admin UI | Implement now | Code system aliases: `drug-instruction`, `drug-instructions`. |
-| `EligibilityClient` | `LookupPrivatePracticeAsync` | Existing `TaminInsuranceAdapter.CheckEntitlementAsync` | `IInsuranceProviderAdapter.CheckEntitlementAsync` | Existing provider route | Existing medical client flow | Existing eligibility UI | Implement now | Kept compatible. |
-| `PrescriptionClient` | visit/drug/paraclinic/medical-service/referral/physiotherapy registration | Existing `TaminPrescriptionMapper.RegisterPrescriptionAsync` | `IInsuranceProviderAdapter.SubmitPrescriptionAsync` | Existing prescription route | Existing medical client flow | Existing prescription UI | Implement now | Existing behavior preserved; outbound Tamin dates use Jalali `yyyyMMdd`. |
-| `PrescriptionClient` | referral registration | `TaminPrescriptionMapper.RegisterPrescriptionAsync` referral dispatch | `IInsuranceProviderAdapter.SubmitPrescriptionAsync` | Existing prescription route | Existing medical client flow | Existing prescription UI | Implement now | Uses existing prescription item reference/metadata fields until a richer referral DTO is introduced. |
-| `PrescriptionClient` | `GetRegisteredPrescriptionAsync` | Existing `TaminInsuranceAdapter.FetchPrescriptionAsync` | `IInsuranceProviderAdapter.FetchPrescriptionAsync` | Existing prescription route | Existing medical client flow | Existing prescription UI | Implement now | Existing behavior preserved. |
-| `PrescriptionClient` | `EditElectronicPrescriptionAsync` | Existing `TaminInsuranceAdapter.EditPrescriptionAsync` | `IInsuranceProviderAdapter.EditPrescriptionAsync` | Existing prescription route | Existing medical client flow | Existing prescription UI | Implement now | Existing behavior preserved. |
-| `PrescriptionClient` | `DeleteElectronicPrescriptionAsync` | Existing `TaminInsuranceAdapter.CancelPrescriptionAsync` | `IInsuranceProviderAdapter.CancelPrescriptionAsync` | Existing prescription route | Existing medical client flow | Existing prescription UI | Implement now | Existing behavior preserved. |
-| `PrescriptionClient`/`DentistryClient` | warning/dental rule checks | `ITaminMedicalInfrastructureGateway.CheckPrescriptionWarningAsync`, `CheckDentalRulesAsync` | None | None | None | None | Implement now in Infrastructure | Application/API DTO exposure remains later work. |
-| `ReferralClient` | count/feedback workflows | `ITaminMedicalInfrastructureGateway.GetReferralCountsAsync`, `RecordReferralFeedbackAsync` | None | None | None | None | Implement now in Infrastructure | Application/API DTO exposure remains later work. |
-| `ReferralClient` | list/cartable/note-detail workflows from original plan | None | None | None | None | None | Explicitly unsupported in current SDK | `Vorn.Tamin` 2.0.0 exposes `GetCountsAsync` and `RecordFeedbackAsync`; the larger referral query surface is not available in this package version. |
-| `NurseClient` | todo/action workflows | `ITaminMedicalInfrastructureGateway.GetNurseTodoListAsync`, `RecordNurseActionAsync` | None | None | None | None | Implement now in Infrastructure | Nurse action remains command-classified; Application/API idempotency policy is later work. |
-| `HospitalizationClient` | create/secretary list | `ITaminMedicalInfrastructureGateway.CreateHospitalizationAsync`, `GetHospitalizationSecretaryListAsync` | None | None | None | None | Implement now in Infrastructure | Application/API DTO exposure remains later work. |
-| `IdentityClient` | placeholder | None | None | None | None | None | Explicitly unsupported | SDK exposes no public operations. |
-| `PharmacyClient` | placeholder | None | None | None | None | None | Explicitly unsupported | SDK exposes no public operations. |
-| `ParaclinicClient` | placeholder | None | None | None | None | None | Explicitly unsupported | SDK exposes no public operations. |
+Supersedes the earlier `Vorn.Tamin` 2.0.0 matrix. [tamin-implementation-plan.md](tamin-implementation-plan.md) is the historical plan for that SDK and is not current.
+
+## Ownership split
+
+| Concern | Owner |
+|---|---|
+| Hosts (pilot/production), PKCE, token exchange and refresh, retry of GETs, wire models | `Tamin.Integration` 4.x. Vitarish configures none of them. |
+| Doctor token persistence and cross-request refresh lease | `TaminCredentialTokenStore` (implements the SDK's `ITaminTokenStore` over the encrypted credential row). |
+| Secure outbound transport | `TaminClientFactory`, through the shared `IHttpMessageHandlerFactory` policy. |
+| Item-to-request mapping, response-to-canonical mapping | `TaminPrescriptionMapper`. |
+| Coding-list reading | `TaminMedicalInfrastructureGateway` and `TaminProviderJsonReader`. |
+
+## Operations
+
+| `ITaminClient` operation | Vitarish use | Status |
+|---|---|---|
+| `CreateAuthorizationUri`, `CompleteAuthorizationAsync`, `TaminClient.CreateCodeVerifier/CreateCodeChallenge` | `TaminCredentialSessionStore.BeginAuthorizationAsync` / `CompleteAuthorizationAsync` | Used. |
+| `CreatePrescriptionAsync` | `TaminInsuranceAdapter.SubmitPrescriptionAsync` | Used. Sends `srvType` per item; SNOMED drug values and `terminology` come from item metadata. |
+| `UpdatePrescriptionAsync` | `EditPrescriptionAsync` | Used. |
+| `DeletePrescriptionAsync` | `CancelPrescriptionAsync` | Used. |
+| `GetPrescriptionDetailsAsync` | `FetchPrescriptionAsync` | Used. |
+| `GetPatientEntitlementAsync` | `CheckEntitlementAsync` | Used. |
+| `ListServicesAsync` (`01` drugs, `02` laboratory, others) | Reference sync, code systems `drug`, `service`, `all-services` | Used. |
+| `ListPrescriptionTypesAsync` | Code system `prescription-type` | Used. |
+| `ListLaboratoryTariffGroupsAsync` | Code system `paraclinic-tariff` | Used. |
+| `ListDrugAmountsAsync`, `ListDrugInstructionsAsync` | Code systems `drug-amount`, `drug-instruction` | Used. |
+| `ListDrugUsagesAsync`, `ListDosageFormsAsync` | Code systems `drug-usage`, `dosage-form` | Used. |
+| `GetMedicationInstructionsByDosageFormAsync` | None | Deferred: needs an Application query and a UI picker for the dosage-form dependent values. |
+| `CheckDentistRulesAsync`, dentist service lists | None | Deferred. |
+| Referral, hospitalization, family-doctor, patient-disease operations | None | Deferred. |
+| Nursing operations | None | Not supported by the SDK yet (see the SDK changelog). |
+
+## Behaviour to remember
+
+- **Every Tamin call carries a doctor's token, including the coding lists.** Reference sync therefore needs `CredentialId` (the doctor/clinic login to use). Without it the adapter returns a validation error. There is no anonymous or shared sync credential.
+- **A credential with no stored token fails fast** with an authentication error. An expired but refreshable token is refreshed lazily by the SDK on the first call, under the credential's lease; a rejected refresh clears the stored token and surfaces as `TaminReauthorizationRequiredException`, mapped to an authentication error. A network or 5xx failure during refresh keeps the refresh token.
+- **`AuthenticateAsync` / credential test no longer performs a network refresh.** It confirms a token is stored; the first real call proves it.
+- **Patient mobile is optional.** `FallbackMobileNumber` is sent only when configured.
+- **Item metadata keys read by the mapper:** `illnessId`, `planId`, `toothId`, `serviceType` (overrides the category default `srvType`), and for drugs `drugAmntId`, `drugInstId`, `doseCode`, `methodUsageId`. A drug with `doseCode` marks the prescription `terminology: SNOMED` and sends the route as `doseCode` instead of free-text `dose`.
+- **Removed configuration keys:** `BaseUrl`, `AccountBaseUrl`, `SoaBaseUrl`, `ApiBaseUrl`, `SandboxBaseUrl`, `TokenEndpoint`, `AllowedHosts`, `ReferenceDataRequiresToken`, `TokenSkew`. The SDK takes hosts from its OpenAPI contract, binds tokens to those hosts, and refreshes two minutes before expiry. Pilot versus production is still chosen by `Endpoint` / `UseSandbox`.
+
+## Known gaps
+
+- `docMobileNo` (the doctor's mobile) is required by the guide but no stored field exists, so it is still not sent.
+- The SDK has not been validated against the live Tamin service (see its changelog); response shapes for most operations are untyped.

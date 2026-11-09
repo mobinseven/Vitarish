@@ -33,7 +33,7 @@ public sealed record ApplyPrescriptionTemplateRequest(Guid TemplateId, Guid Pres
 public sealed record ConfigureProviderCredentialRequest(Guid? CredentialId, Guid DoctorId, Guid ClinicId, string ProviderKey, IReadOnlyDictionary<string,string> ConfigurationValues);
 public sealed record BeginProviderAuthorizationRequest(Guid CredentialId);
 public sealed record CompleteProviderAuthorizationRequest(Guid CredentialId, string AuthorizationCode, string State);
-public sealed record SyncProviderReferenceDataRequest(string ProviderKey, string CodeSystem, bool ForceRefresh = false);
+public sealed record SyncProviderReferenceDataRequest(string ProviderKey, string CodeSystem, bool ForceRefresh = false, Guid? CredentialId = null);
 public sealed record OperationalDashboardRequest(string? ProviderKey = null, DateTime? From = null, DateTime? To = null, Guid? ClinicId = null, int Take = 20);
 public sealed record ReconciliationQueueRequest(string? TenantId = null, string? ProviderKey = null, MedicalPrescriptionStatus? StatusFilter = null, int Skip = 0, int Take = 50);
 public sealed record OutboxStatusRequest(string? ProviderKey = null, string? TenantId = null);
