@@ -573,6 +573,7 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
         providerKey: "TAMIN",
         providerDoctorIdentifier: "ADA-001",
         providerUsername: "0012345678",
+        providerDoctorMobile: "09121111111",
         providerClinicIdentifier: "CLINIC-001",
         expiresAt: "2026-12-31T00:00:00.000Z",
         daysUntilExpiry: 146,

@@ -14,6 +14,7 @@ import {
 const emptyInput: TaminCredentialInput = {
   providerDoctorIdentifier: "",
   providerNationalCode: "",
+  providerDoctorMobile: "",
   providerClinicIdentifier: "",
 };
 
@@ -30,6 +31,7 @@ export function InsuranceProviderSettingsPage({ onNavigate }: { onNavigate?: (in
       credentialId: credential.credentialId,
       providerDoctorIdentifier: credential.providerDoctorIdentifier ?? "",
       providerNationalCode: credential.providerUsername ?? "",
+      providerDoctorMobile: credential.providerDoctorMobile ?? "",
       providerClinicIdentifier: credential.providerClinicIdentifier ?? "",
     });
   }, [credential]);
@@ -38,6 +40,7 @@ export function InsuranceProviderSettingsPage({ onNavigate }: { onNavigate?: (in
   const invalid =
     !input.providerDoctorIdentifier.trim() ||
     !input.providerNationalCode.trim() ||
+    !input.providerDoctorMobile.trim() ||
     !input.providerClinicIdentifier.trim();
 
   return (
@@ -125,6 +128,19 @@ export function InsuranceProviderSettingsPage({ onNavigate }: { onNavigate?: (in
               >
                 <Label>{t("clinic.settings.insurance.nationalCode")}</Label>
                 <Input inputMode="numeric" />
+              </TextField>
+              <TextField
+                isRequired
+                value={input.providerDoctorMobile}
+                onChange={(value) =>
+                  setInput((current) => ({
+                    ...current,
+                    providerDoctorMobile: value,
+                  }))
+                }
+              >
+                <Label>{t("clinic.settings.insurance.doctorMobile")}</Label>
+                <Input inputMode="tel" />
               </TextField>
               <TextField
                 isRequired

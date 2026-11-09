@@ -15,6 +15,7 @@ export interface TaminCredentialInput {
   credentialId?: string;
   providerDoctorIdentifier: string;
   providerNationalCode: string;
+  providerDoctorMobile: string;
   providerClinicIdentifier: string;
 }
 
@@ -60,6 +61,7 @@ export function useInsuranceProviderSetup() {
         configurationValues: {
           providerDoctorIdentifier: input.providerDoctorIdentifier.trim(),
           providerUsername: input.providerNationalCode.trim(),
+          providerDoctorMobile: input.providerDoctorMobile.trim(),
           providerClinicIdentifier: input.providerClinicIdentifier.trim(),
         },
       });
