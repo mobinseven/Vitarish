@@ -9,6 +9,7 @@ import { clinicStartVisitPrescriptionDraft } from "../../../api/generated/clinic
 import {
   medicalAddPrescriptionItem,
   medicalApplyPrescriptionTemplate,
+  medicalCheckDraftEligibility,
   medicalGetAvailableProviders,
   medicalGetDrugConsumptionOptions,
   medicalListPrescriptionTemplates,
@@ -206,6 +207,15 @@ export function PatientPrescriptionSubmissionSheet({
     setIsWorking(true);
     setMessage("");
     try {
+      // Submission requires a recorded entitlement answer; the provider is asked under the doctor's own login.
+      const eligibility = await medicalCheckDraftEligibility(prescriptionId);
+      if (!eligibility.isSuccess) {
+        setMessage(
+          eligibility.errorMessage ??
+            t("clinic.prescriptionSubmission.eligibilityFailed"),
+        );
+        return;
+      }
       const validation = await medicalValidatePrescriptionDraft(prescriptionId);
       if (!validation.isValid) {
         setMessage(

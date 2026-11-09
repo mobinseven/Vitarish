@@ -1008,6 +1008,7 @@ export const clinicEnMessages = {
       searchFailed: "Catalog search failed.",
       itemFailed: "The item could not be added.",
       validationFailed: "Review the prescription before submitting.",
+      eligibilityFailed: "The patient's insurance status could not be checked.",
       submit: "Submit prescription",
       submitted: "Prescription submitted.",
       submitFailed: "Prescription submission failed.",

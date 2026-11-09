@@ -1001,6 +1001,7 @@ export const clinicFaMessages = {
       searchFailed: "جستجوی فهرست ناموفق بود.",
       itemFailed: "افزودن قلم ناموفق بود.",
       validationFailed: "پیش از ارسال، نسخه را بررسی کنید.",
+      eligibilityFailed: "وضعیت بیمه بیمار بررسی نشد.",
       submit: "ارسال نسخه",
       submitted: "نسخه ارسال شد.",
       submitFailed: "ارسال نسخه ناموفق بود.",

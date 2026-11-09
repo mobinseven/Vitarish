@@ -87,6 +87,8 @@ test("a doctor connects Tamin and prescribes a drug with its consumption values"
   await expect(page.getByText("One quarter · Night")).toBeVisible();
 
   await page.getByRole("button", { name: messages.prescriptionSubmission.submit }).click();
-  await expect(page.getByText(messages.prescriptionSubmission.submitted)).toBeVisible({ timeout: 120_000 });
+  // On success the sheet closes and the patient feed shows the provider-accepted prescription with its tracking code.
+  await expect(page.getByText(/Tracking: 987654/)).toBeVisible({ timeout: 120_000 });
+  await expect(page.getByText("Accepted").first()).toBeVisible();
   await captureProof(page, "drug-prescription-submitted");
 });

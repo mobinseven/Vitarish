@@ -171,6 +171,23 @@ public sealed record SetProviderResult
     public static SetProviderResult Failure(string error) => new() { IsSuccess = false, ErrorMessage = error };
 }
 
+/// <summary>
+/// Asks the draft's insurance provider for the patient's entitlement under the caller's own provider login and
+/// records the answer on the draft, which submission requires.
+/// </summary>
+public sealed record CheckDraftEligibilityCommand : IRequest<CheckDraftEligibilityResult>
+{
+    public required Guid PrescriptionId { get; init; }
+}
+
+public sealed record CheckDraftEligibilityResult
+{
+    public bool IsSuccess { get; init; }
+    public EligibilityStatus Status { get; init; }
+    public string? TrackingCode { get; init; }
+    public string? ErrorMessage { get; init; }
+}
+
 /// <summary>Records eligibility check result on a prescription draft for submission gating.</summary>
 public sealed record RecordEligibilityCommand : IRequest<RecordEligibilityResult>
 {

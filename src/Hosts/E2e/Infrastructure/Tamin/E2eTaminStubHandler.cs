@@ -32,6 +32,11 @@ internal sealed class E2eTaminStubHandler : DelegatingHandler
             return Json(MedicationInstructions);
         }
 
+        if (request.Method == HttpMethod.Get && path.Contains("/interface/epresc/patient/v2/deserve-info/", StringComparison.Ordinal))
+        {
+            return Json("""{"status":"ELIGIBLE","trackingCode":"E2E-ENTITLEMENT"}""");
+        }
+
         if (request.Method == HttpMethod.Post && path.EndsWith("/interface/epresc/SendEpresc/v2", StringComparison.Ordinal))
         {
             string body = request.Content is null ? string.Empty : await request.Content.ReadAsStringAsync(cancellationToken);

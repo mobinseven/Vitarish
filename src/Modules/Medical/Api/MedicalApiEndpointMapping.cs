@@ -70,6 +70,7 @@ public static class MedicalApiEndpointMapping
         _ = group.MapModulePost(MedicalApiRoutes.PrescriptionProviderSelection, SelectPrescriptionProviderAsync, "MedicalSelectPrescriptionProvider", typeof(MedicalCommandResult));
         _ = group.MapModulePost(MedicalApiRoutes.PrescriptionEligibility, CheckPrescriptionEligibilityAsync, "MedicalCheckPrescriptionEligibility");
         _ = group.MapModulePost(MedicalApiRoutes.PrescriptionDraftValidation, ValidatePrescriptionDraftAsync, "MedicalValidatePrescriptionDraft", typeof(ValidationResultDto));
+        _ = group.MapModulePost(MedicalApiRoutes.PrescriptionDraftEligibility, CheckDraftEligibilityAsync, "MedicalCheckDraftEligibility", typeof(EligibilityResultDto));
         _ = group.MapModulePost(MedicalApiRoutes.PrescriptionSubmission, SubmitPrescriptionAsync, "MedicalSubmitPrescription", typeof(MedicalCommandResult));
         _ = group.MapModulePost(MedicalApiRoutes.PrescriptionEdit, EditPrescriptionAsync, "MedicalEditPrescription", typeof(MedicalCommandResult));
         _ = group.MapModulePost(MedicalApiRoutes.PrescriptionCancellation, CancelPrescriptionAsync, "MedicalCancelPrescription");
@@ -226,6 +227,13 @@ public static class MedicalApiEndpointMapping
     private static async Task<IResult> RemovePrescriptionItemAsync(Guid prescriptionId, Guid itemId, IMediator mediator, CancellationToken ct) => Command(await mediator.Send(new AP.RemoveItemCommand { PrescriptionId = prescriptionId, ItemId = itemId }, ct));
     private static async Task<IResult> SelectPrescriptionProviderAsync(Guid prescriptionId, SelectPrescriptionProviderRequest request, IMediator mediator, CancellationToken ct) => Command(await mediator.Send(new AP.SetProviderCommand { PrescriptionId = prescriptionId, ProviderKey = request.ProviderKey }, ct));
     private static async Task<IResult> CheckPrescriptionEligibilityAsync(CheckPrescriptionEligibilityRequest request, IMediator mediator, CancellationToken ct) => Ok(await mediator.Send(new AQ.GetEligibilityQuery { PatientNationalId = request.PatientNationalId, ProviderKey = request.ProviderKey, DoctorId = request.DoctorId, ClinicId = request.ClinicId }, ct));
+    private static async Task<IResult> CheckDraftEligibilityAsync(Guid prescriptionId, IMediator mediator, CancellationToken ct)
+    {
+        AP.CheckDraftEligibilityResult result = await mediator.Send(new AP.CheckDraftEligibilityCommand { PrescriptionId = prescriptionId }, ct);
+        // Contract and domain eligibility enums list their members in different orders, so map by name.
+        MedicalEligibilityStatus status = Enum.TryParse(result.Status.ToString(), out MedicalEligibilityStatus parsed) ? parsed : MedicalEligibilityStatus.Unknown;
+        return Ok(new EligibilityResultDto { IsSuccess = result.IsSuccess, Status = status, TrackingCode = result.TrackingCode, ErrorMessage = result.ErrorMessage });
+    }
     private static async Task<IResult> ValidatePrescriptionDraftAsync(Guid prescriptionId, IMediator mediator, CancellationToken ct) { var result = await mediator.Send(new AP.ValidateDraftCommand { PrescriptionId = prescriptionId }, ct); return Ok(new ValidationResultDto { IsValid = result.IsValid, Errors = result.Errors, Warnings = result.Warnings }); }
     private static async Task<IResult> SubmitPrescriptionAsync(Guid prescriptionId, SubmitPrescriptionRequest? request, IMediator mediator, CancellationToken ct) => Command(await mediator.Send(new AP.SubmitPrescriptionCommand { PrescriptionId = prescriptionId, CorrelationId = request?.IdempotencyKey ?? Guid.NewGuid().ToString("N") }, ct));
     private static async Task<IResult> EditPrescriptionAsync(Guid prescriptionId, EditPrescriptionRequest? request, IMediator mediator, CancellationToken ct) => request is null

@@ -69,6 +69,7 @@ public sealed record ResolveServiceCodeRequest(string SystemKey, string Code, Gu
 public sealed record GetServiceValuationRequest(Guid ServiceCodeId, int Year, string? Locality = null, string? FacilityIndicator = null, DateOnly? AsOfDate = null);
 public sealed record GetCodeMapsRequest(Guid SourceCodeId, string? TargetSystemKey = null, string? MappingType = null, DateOnly? AsOfDate = null);
 public sealed record ValidatePrescriptionDraftRequest(Guid PrescriptionId);
+public sealed record CheckDraftEligibilityRequest(Guid PrescriptionId);
 public sealed record PrescriptionEditItemRequest(MedicalPrescriptionItemCategory Category, string? ReferenceCode, string? DisplayName, string? DosageJson, int Quantity, int? DurationDays, string? MetadataJson = null);
 public sealed record EditPrescriptionRequest(Guid PrescriptionId, int ExpectedVersion, IReadOnlyList<PrescriptionEditItemRequest> Items, string? IdempotencyKey = null, string? Reason = null);
 public sealed record GetAvailableProvidersRequest;
