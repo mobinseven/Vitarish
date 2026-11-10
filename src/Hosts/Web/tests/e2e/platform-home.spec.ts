@@ -34,6 +34,7 @@ import {
   landingListWorkspaces,
 } from "../../shared/platform/src/api/generated/landing/landing";
 import { signInReturnUrlQueryKey } from "../../shared/journey/src/signInHost";
+import { authMessageCatalogs } from "../../shared/auth/src/localization/catalogs";
 import { localeCookieName } from "../../shared/localization/src/localeCookie";
 import type { SupportedLocale } from "../../shared/localization/src/locales";
 import { defaultClinicOrigin, forwardedForHeaderName } from "./signInHost";
@@ -43,6 +44,9 @@ const locale: SupportedLocale = process.env[twoHostE2eLocaleEnvironmentKey] === 
 const messages = { en: enMessages, fa: faMessages }[locale];
 const authMessages = messages.auth;
 const journeyMessages = messages.journey;
+const accountCreationNotice = authMessageCatalogs[locale].auth.signInMethods.accountCreationNotice;
+// The clinic call to action the central sign-in page no longer shows (exact retired wording, both locales).
+const retiredClinicCallToAction = /Create your clinic|Don't have a clinic yet|مطب خود را بسازید|هنوز مطب ندارید/;
 const clinicMessages = { en: clinicEnMessages, fa: clinicFaMessages }[locale].clinic;
 const smsCapturePath = process.env[twoHostE2eSmsCapturePathEnvironmentKey];
 const ownerUsername = process.env[twoHostE2eOwnerUsernameEnvironmentKey];
@@ -303,6 +307,28 @@ test("an anonymous visitor to the sign-in host root lands on login", async ({ br
     const page = await context.newPage();
     await page.goto(`${signInOrigin}${Routes.Root}`, { waitUntil: "domcontentloaded", timeout: pageCompileTimeoutMilliseconds });
     await expect(page).toHaveURL(`${signInOrigin}${Routes.Login.Index}`, { timeout: pageCompileTimeoutMilliseconds });
+  } finally {
+    await context.close();
+  }
+});
+
+test("the central sign-in page offers no clinic creation and explains that signing in creates an account", async ({ browser }) => {
+  test.setTimeout(180_000);
+  const context = await browser.newContext({ extraHTTPHeaders: { [forwardedForHeaderName]: anonymousClientIp } });
+  try {
+    await configureContext(context);
+    const page = await context.newPage();
+    const loginUrl = new URL(Routes.Login.Index, signInOrigin);
+    loginUrl.searchParams.set(signInReturnUrlQueryKey, returnIntent);
+    await page.goto(loginUrl.toString(), { waitUntil: "domcontentloaded", timeout: pageCompileTimeoutMilliseconds });
+    await expect(page.getByText(accountCreationNotice)).toBeVisible({ timeout: pageCompileTimeoutMilliseconds });
+    await expect(page.getByRole("link", { name: retiredClinicCallToAction })).toHaveCount(0);
+    await expect(page.getByText(retiredClinicCallToAction)).toHaveCount(0);
+    // The return intent still rides along to the chosen method.
+    await expect(page.getByRole("link", { name: authMessages.login.passwordMethod })).toHaveAttribute(
+      "href",
+      `${Routes.Login.Password}?${new URLSearchParams({ [signInReturnUrlQueryKey]: returnIntent })}`,
+    );
   } finally {
     await context.close();
   }

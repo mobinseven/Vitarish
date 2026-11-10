@@ -144,6 +144,8 @@ export { PasswordRecoveryPage } from "./components/PasswordRecoveryPage";
 export { OtpCodeInput } from "./components/OtpCodeInput";
 export { OtpVerificationStep } from "./components/OtpVerificationStep";
 export { PasskeyButton } from "./components/PasskeyButton";
+export { SignInMethodsPage } from "./components/SignInMethodsPage";
+export { SignInFrame, authenticatedSignInRedirectOptions } from "./components/SignInFrame";
 export { PhoneOtpForm } from "./components/PhoneOtpForm";
 export { InlinePhoneSignIn } from "./components/InlinePhoneSignIn";
 export type { InlinePhoneSignInProps } from "./components/InlinePhoneSignIn";
