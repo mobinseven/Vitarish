@@ -4,7 +4,7 @@ import { LocalizationProvider } from "@vitarish/localization";
 import { SignInMethodsPage } from "../../components/SignInMethodsPage";
 import { signInReturnUrlQueryKey } from "../../centralHost";
 import { authMessageCatalogs } from "../../localization/catalogs";
-import { AuthenticationWebRoutes } from "../../routes";
+import { AuthenticationSearchParams, AuthenticationWebRoutes } from "../../routes";
 
 const mocks = vi.hoisted(() => ({
   search: "",
@@ -58,7 +58,19 @@ describe("SignInMethodsPage", () => {
       .toHaveAttribute("href", `${AuthenticationWebRoutes.SignInPhone}?${expectedQuery}`);
   });
 
+  it("keeps the sign-in host's continuation request when another app sends a visitor to sign in", () => {
+    const continuation = `${AuthenticationWebRoutes.Continue}?${AuthenticationSearchParams.Request}=abc`;
+    mocks.search = new URLSearchParams({ [signInReturnUrlQueryKey]: continuation }).toString();
+    mocks.profile.mockReturnValue({ data: { allowPasswordlessEmailLogin: true } });
+
+    renderPage();
+
+    expect(screen.getByRole("link", { name: new RegExp(`^${appLoginLabels.emailMethod}`) }))
+      .toHaveAttribute("href", `${AuthenticationWebRoutes.SignInEmail}?${new URLSearchParams({ [signInReturnUrlQueryKey]: continuation })}`);
+  });
+
   it.each([
+    ["a continue path without a request", `${AuthenticationWebRoutes.Continue}?other=1`],
     ["an external host", "//evil.example"],
     ["a control character smuggling a host", "/\t/evil.example"],
     ["a backslash host", "/\\evil.example"],

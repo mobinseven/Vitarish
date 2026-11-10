@@ -1,4 +1,4 @@
-import { AuthenticationSearchParams } from "@vitarish/auth/routes";
+import { AuthenticationSearchParams, AuthenticationWebRoutes } from "@vitarish/auth/routes";
 /**
  * The runtime environment variable naming the shared sign-in host's address (ADR-0018), the one
  * place people sign in. Hosts read it on the server per request, so one image serves every
@@ -57,4 +57,13 @@ export function isSafeRelativeReturnTo(value: string | null | undefined): value 
     && !decoded.includes("\\")
     && !decoded.includes("?")
     && !decoded.includes("#");
+}
+
+/**
+ * True when `value` is the sign-in host's own continuation link, a relative `/continue` path whose
+ * query carries the issued request. It is the one return target allowed to hold a query.
+ */
+export function isCentralContinuationReturnTo(value: string | null | undefined): value is string {
+  if (!value?.startsWith(AuthenticationWebRoutes.Continue + "?")) return false;
+  return new URLSearchParams(value.slice(AuthenticationWebRoutes.Continue.length + 1)).has(AuthenticationSearchParams.Request);
 }

@@ -1,8 +1,7 @@
 "use client";
 
 import { Suspense, type ComponentType, type ReactNode } from "react";
-import { isSafeRelativeReturnTo, signInReturnUrlQueryKey } from "../centralHost";
-import { AuthenticationSearchParams, AuthenticationWebRoutes } from "../routes";
+import { isCentralContinuationReturnTo, isSafeRelativeReturnTo, signInReturnUrlQueryKey } from "../centralHost";
 import type { AuthNavigate } from "../hooks/navigation";
 import { AuthenticatedRedirectBoundary } from "./SessionRedirect";
 
@@ -15,7 +14,7 @@ interface SignInRedirectRoutes {
 
 function signInContinueHref(searchParams: Pick<URLSearchParams, "get">, continueHref: string): string {
   const requestedReturnUrl = searchParams.get(signInReturnUrlQueryKey);
-  if (requestedReturnUrl?.startsWith(AuthenticationWebRoutes.Continue + "?") && new URLSearchParams(requestedReturnUrl.split("?")[1]).has(AuthenticationSearchParams.Request)) return requestedReturnUrl;
+  if (isCentralContinuationReturnTo(requestedReturnUrl)) return requestedReturnUrl;
   if (!isSafeRelativeReturnTo(requestedReturnUrl)) return continueHref;
 
   const query = new URLSearchParams({ [signInReturnUrlQueryKey]: requestedReturnUrl });

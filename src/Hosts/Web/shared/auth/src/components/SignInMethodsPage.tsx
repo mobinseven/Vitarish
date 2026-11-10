@@ -11,7 +11,7 @@ import {
 } from "@vitarish/ui";
 import { useLocalizedText } from "@vitarish/localization";
 import { useAuthenticationProfileGet } from "../api/generated/authentication/authentication";
-import { isSafeRelativeReturnTo, signInReturnUrlQueryKey } from "../centralHost";
+import { isCentralContinuationReturnTo, isSafeRelativeReturnTo, signInReturnUrlQueryKey } from "../centralHost";
 import { AuthenticationWebRoutes } from "../routes";
 
 const authMethods: {
@@ -60,7 +60,10 @@ export function SignInMethodsPage({ searchParams }: { searchParams: Pick<URLSear
   const { t } = useLocalizedText();
   const { data: profile } = useAuthenticationProfileGet();
   const requestedReturnUrl = searchParams.get(signInReturnUrlQueryKey);
-  const safeReturnUrl = isSafeRelativeReturnTo(requestedReturnUrl) ? requestedReturnUrl : undefined;
+  // Another app's sign-in arrives with the host's own continuation link, which carries a query.
+  const safeReturnUrl = isSafeRelativeReturnTo(requestedReturnUrl) || isCentralContinuationReturnTo(requestedReturnUrl)
+    ? requestedReturnUrl
+    : undefined;
   const enabledMethods = authMethods.filter((method) =>
     method.id === "password" ||
     (method.id === "phone" && profile?.allowPasswordlessPhoneLogin === true) ||
