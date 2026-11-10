@@ -1,6 +1,6 @@
 import { defaultLocale, type SupportedLocale } from "@vitarish/localization";
 import { authMessageCatalogs } from "@vitarish/auth/localization";
-import { contentsStudioMessageCatalogs } from "@vitarish/contents/studio";
+import { contentsStudioMessageCatalogs } from "@vitarish/contents/studio/messages";
 import { enMessages } from "./en";
 import { faMessages } from "./fa";
 import { accountMessageCatalogs, authOtpMessages } from "../../features/home/accountMessages";

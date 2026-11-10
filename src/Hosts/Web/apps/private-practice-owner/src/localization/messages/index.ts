@@ -1,7 +1,7 @@
 import { defaultLocale, type SupportedLocale } from "../locales";
 import { authMessageCatalogs } from "@vitarish/auth/localization";
 import { clinicMessageCatalogs } from "@vitarish/clinic/localization";
-import { contentsStudioMessageCatalogs } from "@vitarish/contents/studio";
+import { contentsStudioMessageCatalogs } from "@vitarish/contents/studio/messages";
 import { intelligenceMessageCatalogs } from "@vitarish/intelligence/localization";
 import { securityMessageCatalogs } from "@vitarish/security/localization";
 import { usersMessageCatalogs } from "@vitarish/users/localization";

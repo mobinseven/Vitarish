@@ -152,3 +152,47 @@ for (const locale of supportedLocales) {
     await page.waitForTimeout(settleDelayMilliseconds);
   });
 }
+
+for (const locale of supportedLocales) {
+  test(`${scenario} ${locale} content studio`, async ({ context, page }, testInfo) => {
+    const text = catalogs[locale].contentsStudio;
+    const origin = new URL(testInfo.project.use.baseURL ?? "").origin;
+    const steps = path.join(outputRoot, scenario, `${locale}-${testInfo.project.name}`, "mock-content-studio");
+    await context.addCookies([{ name: localeCookieName, value: locale, url: origin }]);
+    await page.goto(LandingRoutes.Studio, { waitUntil: "load" });
+    await page.waitForFunction(() => navigator.serviceWorker.controller !== null);
+    await page.waitForLoadState("networkidle");
+    await page.locator(splashSelector).waitFor({ state: "detached" });
+    await page.addStyleTag({ content: "nextjs-portal { display: none !important; }" });
+    await expect(page.getByRole("heading", { level: 1, name: text.title })).toBeVisible();
+    // The studio is a working tool: it fits the viewport width whatever the locale.
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+    await page.waitForTimeout(settleDelayMilliseconds);
+    await page.screenshot({ fullPage: true, path: path.join(steps, "01-entries.png") });
+    if (scenario !== readyScenario) return;
+
+    // The type filter shows its All choice rather than an empty placeholder.
+    await expect(page.getByRole("button", { name: new RegExp(text.all) }).first()).toBeVisible();
+    const row = page.getByRole("listitem").filter({ hasText: "Our purpose" });
+    await row.getByRole("button", { name: text.edit }).click();
+    await expect(page.getByRole("button", { name: text.backToEntries })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 2, name: text.fields })).toBeVisible();
+    await page.waitForLoadState("networkidle");
+    await page.waitForTimeout(settleDelayMilliseconds);
+    await page.screenshot({ fullPage: true, path: path.join(steps, "02-entry-editor.png") });
+
+    await page.getByRole("button", { name: text.revisions }).click();
+    const history = page.getByRole("dialog");
+    await expect(history.getByText(text.revision.replace("{version}", "3"))).toBeVisible();
+    await page.waitForTimeout(settleDelayMilliseconds);
+    await page.screenshot({ path: path.join(steps, "03-revision-history.png") });
+    await page.keyboard.press("Escape");
+    await expect(history).toBeHidden();
+
+    await page.getByRole("button", { name: text.backToEntries }).click();
+    await page.getByRole("tab", { name: text.structure }).click();
+    await expect(page.getByRole("heading", { level: 2, name: text.types })).toBeVisible();
+    await page.waitForTimeout(settleDelayMilliseconds);
+    await page.screenshot({ fullPage: true, path: path.join(steps, "04-structure.png") });
+  });
+}

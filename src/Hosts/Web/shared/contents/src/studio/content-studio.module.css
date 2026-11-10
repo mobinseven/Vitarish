@@ -1,0 +1,25 @@
+/*
+ * The studio is a working tool inside a branded host. Brand themes may set display type (uppercase,
+ * tracked, display font) on headings, buttons, tabs, chips and list items; inside the studio only the
+ * page title keeps that voice and everything else reads as plain running text. Overlays the studio
+ * opens, such as the revision drawer, render outside it and take the same class.
+ */
+.studio {
+  --studio-font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: var(--foreground);
+  font-family: var(--studio-font);
+}
+
+:global(html[dir="rtl"]) .studio {
+  --studio-font: var(--font-sans, sans-serif);
+}
+
+.studio *:not(h1, h1 *, i) {
+  font-family: var(--studio-font);
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.studio :is(h2, h3, h4, legend, label, button) {
+  font-weight: 600;
+}

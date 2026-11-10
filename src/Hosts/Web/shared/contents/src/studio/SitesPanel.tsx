@@ -3,6 +3,7 @@
 import { Surface } from "@heroui/react";
 import { ApiError } from "@vitarish/api-client";
 import { useLocalizedText } from "@vitarish/localization";
+import { HeaderIcon } from "@vitarish/ui";
 import { useState } from "react";
 import type { ContentSite, ContentSiteRequest } from "./contentsStudioApi";
 import { StudioButton, StudioFailure, StudioInput, StudioState } from "./StudioControls";
@@ -93,10 +94,10 @@ export function SitesPanel() {
   return (
     <Surface className="flex flex-col gap-6 rounded-3xl p-6" role="region" aria-labelledby="contents-sites-title">
       <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:justify-between">
-        <h2 id="contents-sites-title" className="text-lg font-semibold text-foreground">
+        <h2 id="contents-sites-title" className="flex items-center gap-3 text-lg font-semibold text-foreground"><HeaderIcon icon="globe" />
           {t("contentsStudio.sites")}
         </h2>
-        <StudioButton label={t("contentsStudio.newSite")} icon="fa-plus" disabled={pending} onPress={openNewSite} />
+        <StudioButton label={t("contentsStudio.newSite")} icon="fa-plus" variant="primary" disabled={pending} onPress={openNewSite} />
       </div>
 
       {sites.isLoading && <StudioState>{t("contentsStudio.loading")}</StudioState>}
@@ -105,7 +106,7 @@ export function SitesPanel() {
       {sites.isSuccess && sites.data.length > 0 && (
         <div className="flex flex-col gap-3" aria-label={t("contentsStudio.sites")}>
           {sites.data.map((site) => (
-            <div key={site.id} className="flex flex-col gap-4 rounded-2xl p-4 sm:flex-row sm:items-center sm:justify-between">
+            <Surface key={site.id} variant="secondary" className="flex flex-col gap-4 rounded-2xl p-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex min-w-0 flex-col gap-2">
                 <h3 className="text-base font-semibold">{site.name}</h3>
                 <p className="text-base"><span>{t("contentsStudio.key")}:</span> <bdi dir="auto">{site.key}</bdi></p>
@@ -118,7 +119,7 @@ export function SitesPanel() {
                 disabled={pending}
                 onPress={() => openEditSite(site)}
               />
-            </div>
+            </Surface>
           ))}
         </div>
       )}
@@ -136,7 +137,7 @@ export function SitesPanel() {
           </div>
           {failure && <StudioFailure error={failure} />}
           <div className="flex flex-wrap gap-3">
-            <StudioButton label={t("contentsStudio.save")} icon="fa-floppy-disk" disabled={pending} onPress={saveSite} />
+            <StudioButton label={t("contentsStudio.save")} icon="fa-floppy-disk" variant="primary" disabled={pending} onPress={saveSite} />
             <StudioButton label={t("contentsStudio.cancel")} icon="fa-xmark" disabled={pending} onPress={clearEditor} />
           </div>
         </div>
