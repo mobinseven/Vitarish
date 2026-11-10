@@ -13,6 +13,9 @@ export const authMessageCatalogs = {
         disabled: "This account is disabled. Contact a platform administrator.",
         noAccess: "This account has no access level. Contact a platform administrator.",
       },
+      signInMethods: {
+        accountCreationNotice: "No account? Signing in with your phone or email creates one.",
+      },
       challenge: {
         expiresIn: "Expires in {time}",
         expired: "Code expired; request a new code",
@@ -77,6 +80,9 @@ export const authMessageCatalogs = {
       accountStatus: {
         disabled: "این حساب غیرفعال شده است. با مدیر پلتفرم تماس بگیرید.",
         noAccess: "این حساب سطح دسترسی ندارد. با مدیر پلتفرم تماس بگیرید.",
+      },
+      signInMethods: {
+        accountCreationNotice: "حساب کاربری ندارید؟ با ورود از طریق تلفن یا ایمیل، حساب شما ساخته می‌شود.",
       },
       challenge: {
         expiresIn: "اعتبار کد تا {time}",

@@ -85,8 +85,6 @@ export const faMessages = {
       emailMethod: "ورود با ایمیل",
       passkeyMethod: "ورود با کلید عبور",
       passwordMethodDescription: "با نام کاربری یا ایمیل و رمز عبور",
-      noClinicYet: "هنوز مطب ندارید؟",
-      createClinic: "مطب خود را بسازید",
       phoneMethodDescription: "دریافت کد یک‌بارمصرف با پیامک",
       emailMethodDescription: "دریافت کد یک‌بارمصرف با ایمیل",
       passkeyMethodDescription: "با اثر انگشت، چهره یا قفل صفحه‌ی دستگاه",

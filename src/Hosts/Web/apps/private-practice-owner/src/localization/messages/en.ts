@@ -85,8 +85,6 @@ export const enMessages = {
       emailMethod: "Sign in with Email",
       passkeyMethod: "Sign in with Passkey",
       passwordMethodDescription: "Use your username or email and password",
-      noClinicYet: "Don't have a clinic yet?",
-      createClinic: "Create your clinic",
       phoneMethodDescription: "Get a one-time code by text message",
       emailMethodDescription: "Get a one-time code by email",
       passkeyMethodDescription: "Use your fingerprint, face, or device screen lock",
