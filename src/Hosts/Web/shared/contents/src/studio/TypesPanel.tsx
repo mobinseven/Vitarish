@@ -3,6 +3,7 @@
 import { Surface } from "@heroui/react";
 import { ApiError } from "@vitarish/api-client";
 import { useLocalizedText } from "@vitarish/localization";
+import { HeaderIcon, removeButtonClassName } from "@vitarish/ui";
 import { useEffect, useState } from "react";
 import {
   contentFieldKind,
@@ -194,10 +195,10 @@ export function TypesPanel() {
   if (typesQuery.isError) return <StudioFailure error={typesQuery.error} />;
 
   return <div className="flex flex-col gap-6">
-    <Surface className="flex flex-col gap-5 rounded-3xl p-6">
+    <Surface className="flex flex-col gap-6 rounded-3xl p-6">
       <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-lg font-semibold">{t("contentsStudio.types")}</h2>
-        <StudioButton label={t("contentsStudio.newType")} icon="fa-plus" onPress={startCreate} />
+        <div className="flex items-center gap-3"><HeaderIcon icon="shapes" /><h2 className="text-lg font-semibold text-foreground">{t("contentsStudio.types")}</h2></div>
+        <StudioButton label={t("contentsStudio.newType")} icon="fa-plus" variant="primary" onPress={startCreate} />
       </div>
       {!creating && (typesQuery.data?.length ?? 0) > 0 && <StudioSelect
         label={t("contentsStudio.type")}
@@ -232,7 +233,7 @@ export function TypesPanel() {
               <div className="flex flex-wrap items-center gap-2">
                 <StudioButton label={t("contentsStudio.up")} icon="fa-arrow-up" disabled={index === 0} onPress={() => setFields((current) => move(current, index, -1))} />
                 <StudioButton label={t("contentsStudio.down")} icon="fa-arrow-down" disabled={index === fields.length - 1} onPress={() => setFields((current) => move(current, index, 1))} />
-                {!persisted && <StudioButton label={t("contentsStudio.remove")} icon="fa-trash" onPress={() => setFields((current) => current.filter((_item, currentIndex) => currentIndex !== index))} />}
+                {!persisted && <StudioButton label={t("contentsStudio.remove")} icon="fa-trash" className={removeButtonClassName} onPress={() => setFields((current) => current.filter((_item, currentIndex) => currentIndex !== index))} />}
               </div>
               <div className="grid gap-4 md:grid-cols-2">
                 <StudioInput label={t("contentsStudio.key")} value={field.key} readOnly={persisted} onChange={(value) => setField(index, (current) => ({ ...current, key: value, ...(!persisted && current.kind === contentFieldKind.list && current.item ? { item: { ...current.item, key: value } } : {}) }))} error={validationFor(`${errorPath}.key`)} />
@@ -255,11 +256,11 @@ export function TypesPanel() {
                 {(field.fields ?? []).map((child, childIndex) => {
                   const childPersisted = child.isPersisted;
                   const childPath = `${errorPath}.fields[${childIndex}]`;
-                  return <div key={child.editorId} className="flex flex-col gap-3 rounded-2xl p-3">
+                  return <div key={child.editorId} className="flex flex-col gap-3 border-t border-default pt-3">
                     <div className="flex flex-wrap items-center gap-2">
                       <StudioButton label={t("contentsStudio.up")} icon="fa-arrow-up" disabled={childIndex === 0} onPress={() => setField(index, (current) => ({ ...current, fields: move(current.fields ?? [], childIndex, -1) }))} />
                       <StudioButton label={t("contentsStudio.down")} icon="fa-arrow-down" disabled={childIndex === (field.fields?.length ?? 0) - 1} onPress={() => setField(index, (current) => ({ ...current, fields: move(current.fields ?? [], childIndex, 1) }))} />
-                      {!childPersisted && <StudioButton label={t("contentsStudio.remove")} icon="fa-trash" onPress={() => setField(index, (current) => ({ ...current, fields: (current.fields ?? []).filter((_item, currentIndex) => currentIndex !== childIndex) }))} />}
+                      {!childPersisted && <StudioButton label={t("contentsStudio.remove")} icon="fa-trash" className={removeButtonClassName} onPress={() => setField(index, (current) => ({ ...current, fields: (current.fields ?? []).filter((_item, currentIndex) => currentIndex !== childIndex) }))} />}
                     </div>
                     <div className="grid gap-4 md:grid-cols-2">
                       <StudioInput label={t("contentsStudio.key")} value={child.key} readOnly={childPersisted} onChange={(value) => setChild(index, childIndex, (current) => ({ ...current, key: value }))} error={validationFor(`${childPath}.key`)} />
@@ -281,7 +282,7 @@ export function TypesPanel() {
         </div>
         {failure && <StudioFailure error={failure} />}
         <div className="flex flex-wrap gap-3">
-          <StudioButton label={t("contentsStudio.save")} icon="fa-floppy-disk" disabled={pending} onPress={save} />
+          <StudioButton label={t("contentsStudio.save")} icon="fa-floppy-disk" variant="primary" disabled={pending} onPress={save} />
           {creating && <StudioButton label={t("contentsStudio.cancel")} icon="fa-xmark" disabled={pending} onPress={cancelCreate} />}
         </div>
       </>}

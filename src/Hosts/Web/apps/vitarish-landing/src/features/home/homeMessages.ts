@@ -13,6 +13,7 @@ export const homeMessageCatalogs = {
       retrySession: "Try again",
       account: "Account",
       signOut: "Sign out",
+      backToHome: "Back to home",
       startNewConversation: "Start a new conversation",
       workspaces: {
         title: "Your workspaces",
@@ -71,6 +72,7 @@ export const homeMessageCatalogs = {
       retrySession: "تلاش دوباره",
       account: "حساب کاربری",
       signOut: "خروج",
+      backToHome: "بازگشت به خانه",
       startNewConversation: "گفت‌وگوی تازه",
       workspaces: {
         title: "فضاهای کاری شما",

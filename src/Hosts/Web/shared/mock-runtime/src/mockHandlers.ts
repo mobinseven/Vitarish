@@ -5,6 +5,7 @@ import { isMockAnonymousSession } from "./mockSession";
 import { createAuthMockHandlers } from "./mockAuthHandlers";
 import { createMemoryMockHandlers } from "./mockMemoryHandlers";
 import { createOnboardingMockHandlers } from "./mockOnboardingHandlers";
+import { createContentsMockHandlers } from "./mockContentsHandlers";
 import { createSeaMockHandlers } from "./mockSeaHandlers";
 import { createSurgeryMockHandlers } from "./mockSurgeryHandlers";
 import { landingCatalog, landingHomeDirectory } from "./mockLandingCatalog";
@@ -548,6 +549,7 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
     }),
     ...createAuthMockHandlers({ isUnavailable: activeScenario === "error", withDelay, unavailable }),
     ...createSeaMockHandlers({ store, isUnavailable: activeScenario === "error", withDelay, unavailable, notFound }),
+    ...createContentsMockHandlers({ isEmpty: activeScenario === "empty", isUnavailable: activeScenario === "error", withDelay, unavailable, notFound }),
     ...createSurgeryMockHandlers({ store, isPersianRequest, isUnavailable: activeScenario === "error", withDelay, unavailable, notFound }),
     ...createOnboardingMockHandlers({ store, isPersianRequest, isUnavailable: activeScenario === "error", withDelay, unavailable, notFound }),
     ...createMemoryMockHandlers({ isPersianRequest, isEmpty: activeScenario === "empty", isUnavailable: activeScenario === "error", withDelay, unavailable, notFound }),
