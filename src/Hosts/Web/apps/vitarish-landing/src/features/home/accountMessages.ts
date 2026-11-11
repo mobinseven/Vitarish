@@ -152,6 +152,24 @@ export const accountMessageCatalogs = {
   },
 } as const;
 
+/** The access-denied screen shown by the shared authorization guard; merged into `auth.guard` by the landing catalogs. */
+export const authGuardMessages = {
+  en: {
+    loading: "Loading...",
+    accessDenied: "Access Denied",
+    noPermission: "You do not have permission to access this area.",
+    home: "Go to home",
+    signOut: "Sign out",
+  },
+  fa: {
+    loading: "در حال بارگذاری...",
+    accessDenied: "دسترسی غیرمجاز",
+    noPermission: "شما اجازه دسترسی به این بخش را ندارید.",
+    home: "رفتن به صفحه اصلی",
+    signOut: "خروج",
+  },
+} as const;
+
 export const authOtpMessages = {
   en: {
     codeLabel: "Verification Code",
