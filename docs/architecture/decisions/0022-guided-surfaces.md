@@ -1,7 +1,7 @@
 # ADR-0022: Guided Surfaces
 
 Date: 2026-11-12
-Status: Proposed
+Status: Accepted
 Scope: Intelligence module and `shared/intelligence`; every app that offers an assistant
 Owner: Architecture
 Supersedes:
