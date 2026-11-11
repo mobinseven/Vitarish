@@ -2736,7 +2736,10 @@
             "type": "string"
           },
           "subdomain": {
-            "type": "string"
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "description": {
             "type": [

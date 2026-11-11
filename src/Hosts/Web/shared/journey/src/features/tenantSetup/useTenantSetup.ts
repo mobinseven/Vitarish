@@ -97,7 +97,9 @@ export function useTenantSetup(locale: string) {
   const availabilityStatus: TenantSubdomainAvailabilityStatus | null =
     isChecking || subdomainToCheck.length < subdomainMinimumLength ? null : (availability.data?.status ?? null);
   const hostname = availabilityStatus === "Available" ? (availability.data?.hostname ?? null) : null;
-  const canContinue = values.name.trim() !== "" && availabilityStatus === "Available" && !availability.isFetching;
+  // An empty address is fine: the server makes one from the name.
+  const addressIsAcceptable = normalizedSubdomain === "" || (availabilityStatus === "Available" && !availability.isFetching);
+  const canContinue = values.name.trim() !== "" && addressIsAcceptable;
 
   const setField = useCallback(<TKey extends keyof TenantSetupValues>(key: TKey, value: TenantSetupValues[TKey]) => {
     setValues((current) => ({ ...current, [key]: value }));
@@ -112,7 +114,7 @@ export function useTenantSetup(locale: string) {
       const response: CreateOwnTenantResponse = await partiesCreateOwnTenant(
         {
           name: values.name.trim(),
-          subdomain: normalizedSubdomain,
+          subdomain: normalizedSubdomain === "" ? null : normalizedSubdomain,
           description: values.description.trim() === "" ? null : values.description.trim(),
           category: values.category,
           businessDetails: toBusinessDetailsDto(values.businessDetails),

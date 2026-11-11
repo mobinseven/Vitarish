@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using Moq;
 using Vitarish.Audit.Application;
 using Vitarish.Audit.Domain;
+using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Application.Addresses;
 using Vitarish.Parties.Application.Onboarding;
 using Vitarish.Parties.Domain.Profiles;
@@ -62,6 +63,55 @@ public sealed class CreateOwnTenantCommandHandlerTests
                 entry.EventName == PartiesSecurityAuditEvents.SelfServiceTenantCreation &&
                 entry.TenantId == captured.TenantId.ToString()),
             It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Makes_an_address_from_the_name_when_none_is_given_and_skips_one_that_is_claimed()
+    {
+        Mock<ITenantCreatorDirectory> creators = new();
+        creators.Setup(item => item.FindAsync(CreatorUserId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new TenantCreator(CreatorUserId, HasVerifiedContact: true, CanOwnTenant: true));
+        NewSelfServiceTenant? captured = null;
+        Mock<ISelfServiceTenantStore> store = new();
+        store.Setup(item => item.FindAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((ExistingSelfServiceTenant?)null);
+        store.Setup(item => item.CreateAsync(It.IsAny<NewSelfServiceTenant>(), It.IsAny<CancellationToken>()))
+            .Callback<NewSelfServiceTenant, CancellationToken>((tenant, _) => captured = tenant)
+            .ReturnsAsync(TenantProvisioningOutcome.Created);
+        List<string> asked = [];
+        Mock<ITenantHostnameRegistry> hostnames = new();
+        hostnames.Setup(item => item.IsClaimedAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((string hostname, CancellationToken _) =>
+            {
+                asked.Add(hostname);
+                return asked.Count == 1;
+            });
+
+        CreateOwnTenantResult result = await CreateHandler(creators.Object, store.Object, AuditWriter().Object, hostnames: hostnames.Object).Handle(
+            new CreateOwnTenantCommand(CreatorUserId, "Rezaei Clinic", "   ", null, IdempotencyKey),
+            CancellationToken.None);
+
+        result.Status.Should().Be(CreateOwnTenantStatus.Created);
+        asked.Should().HaveCount(2).And.OnlyHaveUniqueItems();
+        result.Hostname.Should().Be(asked[1]).And.MatchRegex(@"^rezaei-clinic-[a-z0-9]{5}\.clinic\.example\.test$");
+        captured!.Hostname.Should().Be(result.Hostname);
+    }
+
+    [Fact]
+    public async Task Replays_a_clinic_created_without_an_address_under_the_address_it_was_given()
+    {
+        Mock<ISelfServiceTenantStore> store = new();
+        store.Setup(item => item.FindAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Guid id, CancellationToken _) => new ExistingSelfServiceTenant(id, "Rezaei Clinic", null, "rezaei-clinic-ab12c.clinic.example.test"));
+        Mock<ITenantHostnameRegistry> hostnames = new();
+
+        CreateOwnTenantResult result = await CreateHandler(Mock.Of<ITenantCreatorDirectory>(), store.Object, AuditWriter().Object, hostnames: hostnames.Object).Handle(
+            new CreateOwnTenantCommand(CreatorUserId, "Rezaei Clinic", null, null, IdempotencyKey),
+            CancellationToken.None);
+
+        result.Status.Should().Be(CreateOwnTenantStatus.Replayed);
+        result.Hostname.Should().Be("rezaei-clinic-ab12c.clinic.example.test");
+        hostnames.VerifyNoOtherCalls();
     }
 
     [Fact]
@@ -407,6 +457,7 @@ public sealed class CreateOwnTenantCommandHandlerTests
             Mock.Of<ISelfServiceTenantStore>(),
             Mock.Of<ISecurityAuditWriter>(),
             Mock.Of<ITenantHandoffIssuer>(),
+            Mock.Of<ITenantHostnameRegistry>(),
             Mock.Of<IRequestContext>(),
             new FixedTimeProvider(FixedNow),
             Mock.Of<IOnboardingSetupDraftStore>(),
@@ -515,7 +566,8 @@ public sealed class CreateOwnTenantCommandHandlerTests
         ISelfServiceTenantStore store,
         ISecurityAuditWriter auditWriter,
         ITenantHandoffIssuer? handoffs = null,
-        IOnboardingSetupDraftStore? setupDrafts = null)
+        IOnboardingSetupDraftStore? setupDrafts = null,
+        ITenantHostnameRegistry? hostnames = null)
     {
         Mock<IRequestContext> requestContext = new();
         requestContext.SetupGet(context => context.UserId).Returns(CreatorUserId);
@@ -526,6 +578,7 @@ public sealed class CreateOwnTenantCommandHandlerTests
             store,
             auditWriter,
             handoffs ?? Mock.Of<ITenantHandoffIssuer>(),
+            hostnames ?? Mock.Of<ITenantHostnameRegistry>(),
             requestContext.Object,
             new FixedTimeProvider(FixedNow),
             setupDrafts ?? Mock.Of<IOnboardingSetupDraftStore>(),

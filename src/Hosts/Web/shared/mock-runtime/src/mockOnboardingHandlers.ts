@@ -98,7 +98,8 @@ export function createOnboardingMockHandlers({
         return HttpResponse.json({ code: "Validation", message: "Idempotency-Key header is required." }, { status: 400 });
       }
       const body = await readBody(request);
-      const subdomain = text(body, "subdomain");
+      // An empty address is allowed: the real server makes one from the clinic name.
+      const subdomain = text(body, "subdomain") || `clinic-${crypto.randomUUID().slice(0, 5)}`;
       const availability = checkSubdomain(subdomain);
       if (availability.status === "Taken") {
         return HttpResponse.json({ code: "Conflict", message: "This subdomain is already taken." }, { status: 409 });

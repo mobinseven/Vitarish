@@ -1,3 +1,5 @@
+using System.Text;
+
 namespace Vitarish.Parties.Domain.Addresses;
 
 /// <summary>Why a requested subdomain cannot become a tenant address.</summary>
@@ -37,6 +39,39 @@ public sealed record TenantSubdomain
 
         subdomain = new TenantSubdomain(value);
         return TenantSubdomainRejection.None;
+    }
+
+    /// <summary>
+    /// A well-formed, unreserved address for a clinic that did not choose one: the Latin letters
+    /// and digits of <paramref name="name"/> followed by a short code taken from
+    /// <paramref name="entropy"/>. The same inputs always give the same address, so a retried
+    /// creation finds the clinic it already made.
+    /// </summary>
+    public static TenantSubdomain Generate(string name, ReadOnlySpan<byte> entropy)
+    {
+        const string codeAlphabet = "abcdefghijklmnopqrstuvwxyz0123456789";
+        const int codeLength = 5;
+        const string fallbackStem = "clinic";
+        const int stemMaximumLength = MaximumLength - codeLength - 1;
+
+        StringBuilder stem = new();
+        foreach (char character in name.ToLowerInvariant())
+        {
+            if (character is (>= 'a' and <= 'z') or (>= '0' and <= '9'))
+                stem.Append(character);
+            else if (stem.Length > 0 && stem[^1] != '-')
+                stem.Append('-');
+        }
+        string label = stem.ToString().Trim('-');
+        if (label.Length > stemMaximumLength)
+            label = label[..stemMaximumLength].TrimEnd('-');
+        if (label.Length == 0)
+            label = fallbackStem;
+
+        char[] code = new char[codeLength];
+        for (int index = 0; index < codeLength; index++)
+            code[index] = codeAlphabet[entropy[index] % codeAlphabet.Length];
+        return new TenantSubdomain($"{label}-{new string(code)}");
     }
 
     /// <summary>The full hostname under <paramref name="baseDomain"/>.</summary>

@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Vitarish.Audit.Application;
 using Vitarish.Audit.Domain;
+using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Application.Addresses;
 using Vitarish.Parties.Domain.Addresses;
 using Vitarish.Parties.Domain.Profiles;
@@ -36,14 +37,15 @@ public sealed record CreateOwnTenantResult(CreateOwnTenantStatus Status, Guid? T
 
 /// <summary>
 /// A signed-in user creates their own tenant at <c>&lt;subdomain&gt;.&lt;base domain&gt;</c> and becomes
-/// its owner. <paramref name="CreatorUserId"/> comes from the session, never from the request body.
+/// its owner. A blank <paramref name="Subdomain"/> asks for an address made from the name.
+/// <paramref name="CreatorUserId"/> comes from the session, never from the request body.
 /// <paramref name="Category"/> must be one the app offers; photos come after creation, because
 /// files are stored per tenant.
 /// </summary>
 public sealed record CreateOwnTenantCommand(
     string CreatorUserId,
     string Name,
-    string Subdomain,
+    string? Subdomain,
     string? Description,
     string IdempotencyKey,
     string? Category = null,
@@ -56,6 +58,7 @@ public sealed partial class CreateOwnTenantCommandHandler(
     ISelfServiceTenantStore tenants,
     ISecurityAuditWriter securityAuditWriter,
     ITenantHandoffIssuer handoffs,
+    ITenantHostnameRegistry hostnames,
     IRequestContext requestContext,
     TimeProvider timeProvider,
     IOnboardingSetupDraftStore setupDrafts,
@@ -65,6 +68,7 @@ public sealed partial class CreateOwnTenantCommandHandler(
     public const int NameMaximumLength = 100;
     public const int DescriptionMaximumLength = 500;
     public const int CreationsPerWindow = 3;
+    private const int GeneratedAddressAttempts = 10;
     public static readonly TimeSpan CreationWindow = TimeSpan.FromDays(1);
 
     public async Task<CreateOwnTenantResult> Handle(CreateOwnTenantCommand request, CancellationToken cancellationToken)
@@ -85,15 +89,21 @@ public sealed partial class CreateOwnTenantCommandHandler(
         if (request.BusinessDetails?.HasPhotos == true)
             return new(CreateOwnTenantStatus.Invalid, Error: "Photos can be added after the tenant is created.");
 
-        TenantSubdomainRejection rejection = TenantSubdomain.TryCreate(request.Subdomain, out TenantSubdomain? subdomain);
-        if (subdomain is null)
-            return new(rejection == TenantSubdomainRejection.Reserved ? CreateOwnTenantStatus.AddressReserved : CreateOwnTenantStatus.AddressMalformed);
-        string hostname = subdomain.ToHostname(addresses.TenantBaseDomain!);
+        bool generateAddress = string.IsNullOrWhiteSpace(request.Subdomain);
+        string? hostname = null;
+        if (!generateAddress)
+        {
+            TenantSubdomainRejection rejection = TenantSubdomain.TryCreate(request.Subdomain, out TenantSubdomain? subdomain);
+            if (subdomain is null)
+                return new(rejection == TenantSubdomainRejection.Reserved ? CreateOwnTenantStatus.AddressReserved : CreateOwnTenantStatus.AddressMalformed);
+            hostname = subdomain.ToHostname(addresses.TenantBaseDomain!);
+        }
 
         (Guid tenantId, Guid ownerId) = DeriveIdentifiers(request.CreatorUserId, request.IdempotencyKey);
         NewTenantListing listing = new(name, description, hostname, category, request.BusinessDetails);
         if (await FindReplayAsync(tenantId, listing, cancellationToken) is { } replay)
             return await WithHandoffAsync(replay, request.CreatorUserId, cancellationToken);
+        hostname ??= await GenerateHostnameAsync(name, tenantId, addresses.TenantBaseDomain!, cancellationToken);
 
         TenantCreator? creator = await creators.FindAsync(request.CreatorUserId, cancellationToken);
         if (creator is null)
@@ -148,6 +158,20 @@ public sealed partial class CreateOwnTenantCommandHandler(
         return result with { HandoffToken = await handoffs.IssueAsync(creatorUserId, result.Hostname!, cancellationToken) };
     }
 
+    // Each attempt draws a different short code from the tenant identifier, so a retried request
+    // walks the same sequence and lands on the address the first attempt used.
+    private async Task<string> GenerateHostnameAsync(string name, Guid tenantId, string baseDomain, CancellationToken cancellationToken)
+    {
+        for (int attempt = 0; attempt < GeneratedAddressAttempts; attempt++)
+        {
+            byte[] entropy = SHA256.HashData(Encoding.UTF8.GetBytes($"{tenantId:N}\n{attempt}"));
+            string hostname = TenantSubdomain.Generate(name, entropy).ToHostname(baseDomain);
+            if (!await hostnames.IsClaimedAsync(hostname, cancellationToken))
+                return hostname;
+        }
+        throw new InvalidOperationException("No free address could be generated for the tenant.");
+    }
+
     private async Task<CreateOwnTenantResult?> FindReplayAsync(Guid tenantId, NewTenantListing listing, CancellationToken cancellationToken)
     {
         if (await tenants.FindAsync(tenantId, cancellationToken) is not { } existing)
@@ -157,15 +181,15 @@ public sealed partial class CreateOwnTenantCommandHandler(
             : existing.BusinessDetails.IsEquivalentTo(listing.BusinessDetails);
         return existing.Name == listing.Name
             && existing.Description == listing.Description
-            && existing.PrimaryHostname == listing.Hostname
+            && (listing.Hostname is null || existing.PrimaryHostname == listing.Hostname)
             && existing.Category == listing.Category
             && sameDetails
-            ? new(CreateOwnTenantStatus.Replayed, tenantId, listing.Hostname)
+            ? new(CreateOwnTenantStatus.Replayed, tenantId, existing.PrimaryHostname)
             : new(CreateOwnTenantStatus.IdempotencyConflict);
     }
 
     /// <summary>What a request asks the new tenant to be, compared against a replayed one.</summary>
-    private sealed record NewTenantListing(string Name, string? Description, string Hostname, string? Category, TenantBusinessDetails? BusinessDetails);
+    private sealed record NewTenantListing(string Name, string? Description, string? Hostname, string? Category, TenantBusinessDetails? BusinessDetails);
 
     /// <summary>
     /// The same creator and idempotency key always name the same tenant and owner, so a
