@@ -130,7 +130,7 @@ export const surgeryCommonMessages = {
       unavailable: "جراحی‌ها موقتاً در دسترس نیستند.",
       notFound: "جراحی یافت نشد.",
       forbidden: "برای مدیریت این جراحی دسترسی ندارید.",
-      ownerOnly: "فقط مالک مطب می‌تواند جراحی‌ها را برنامه‌ریزی و مدیریت کند.",
+      ownerOnly: "فقط مالک کلینیک می‌تواند جراحی‌ها را برنامه‌ریزی و مدیریت کند.",
     },
     durationValue: "{minutes} دقیقه",
     defaultType: {
@@ -150,7 +150,7 @@ export const surgeryCommonMessages = {
     defaultSettings: {
       cancellationSubject: "لغو جراحی",
       cancellationText:
-        "جراحی برنامه‌ریزی‌شده شما لغو شد. مطب برای مراحل بعدی با شما تماس خواهد گرفت.",
+        "جراحی برنامه‌ریزی‌شده شما لغو شد. کلینیک برای مراحل بعدی با شما تماس خواهد گرفت.",
     },
     validation: {
       patientRequired: "بیمار را انتخاب کنید.",

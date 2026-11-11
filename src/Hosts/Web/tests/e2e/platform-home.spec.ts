@@ -46,7 +46,7 @@ const authMessages = messages.auth;
 const journeyMessages = messages.journey;
 const accountCreationNotice = authMessageCatalogs[locale].auth.signInMethods.accountCreationNotice;
 // The clinic call to action the central sign-in page no longer shows (exact retired wording, both locales).
-const retiredClinicCallToAction = /Create your clinic|Don't have a clinic yet|مطب خود را بسازید|هنوز مطب ندارید/;
+const retiredClinicCallToAction = /Create your clinic|Don't have a clinic yet|کلینیک خود را بسازید|هنوز کلینیک ندارید/;
 const clinicMessages = { en: clinicEnMessages, fa: clinicFaMessages }[locale].clinic;
 const smsCapturePath = process.env[twoHostE2eSmsCapturePathEnvironmentKey];
 const ownerUsername = process.env[twoHostE2eOwnerUsernameEnvironmentKey];

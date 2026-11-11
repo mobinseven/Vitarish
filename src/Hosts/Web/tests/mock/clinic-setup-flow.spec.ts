@@ -20,7 +20,7 @@ const ownerMessages = { en: enMessages, fa: faMessages };
 
 const clinicNames: Record<SupportedLocale, string> = {
   en: "Rezaei Clinic",
-  fa: "مطب رضایی",
+  fa: "کلینیک رضایی",
 };
 const takenSubdomain = "rezaei-taken";
 const availableSubdomain = "rezaei";
