@@ -19,11 +19,11 @@ public static class LandingContentSeed
     private const string ApplicationsHeadingEnglish = "Our purpose. In practice.";
     private const string ApplicationsHeadingPersian = "هدف ما، در عمل.";
     private const string ApplicationsIntroductionEnglish = "Darman brings the daily work of a private practice together. One place for your schedule, your patients and your team.";
-    private const string ApplicationsIntroductionPersian = "درمان کارهای روزمرهٔ مطب را کنار هم می‌آورد؛ جایی برای برنامهٔ کاری، بیماران و همکاران شما.";
+    private const string ApplicationsIntroductionPersian = "درمان کارهای روزمرهٔ کلینیک را کنار هم می‌آورد؛ جایی برای برنامهٔ کاری، بیماران و همکاران شما.";
     private const string PracticeDescriptionEnglish = "Manage appointments, shifts and services. Keep patient records and your team connected to the work of your practice.";
     private const string PracticeDescriptionPersian = "نوبت‌ها، شیفت‌ها و خدمات را مدیریت کنید. پروندهٔ بیماران و کار همکاران را در کنار هم داشته باشید.";
     private const string PracticeNoteEnglish = "Free for your practice. No time limit.";
-    private const string PracticeNotePersian = "برای مطب شما رایگان است؛ بدون محدودیت زمانی.";
+    private const string PracticeNotePersian = "برای کلینیک شما رایگان است؛ بدون محدودیت زمانی.";
     private const string DiscoverDarmanEnglish = "Discover Darman";
     private const string DiscoverDarmanPersian = "آشنایی با درمان";
 

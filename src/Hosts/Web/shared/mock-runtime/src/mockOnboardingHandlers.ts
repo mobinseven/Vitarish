@@ -121,7 +121,7 @@ export function createOnboardingMockHandlers({
       const persian = isPersianRequest(request);
       return HttpResponse.json({
         clinics: [
-          { tenantId: signInClinicIds.owned, name: persian ? "مطب دکتر رضایی" : "Dr. Rezaei's Clinic", hostname: `rezaei.${baseDomain}`, role: "TenantOwner", logoPath: publicLogoPath },
+          { tenantId: signInClinicIds.owned, name: persian ? "کلینیک دکتر رضایی" : "Dr. Rezaei's Clinic", hostname: `rezaei.${baseDomain}`, role: "TenantOwner", logoPath: publicLogoPath },
           { tenantId: signInClinicIds.joined, name: persian ? "کلینیک زیبایی آرا" : "Ara Beauty Clinic", hostname: `ara.${baseDomain}`, role: "TenantUser", logoPath: null },
         ],
       });
@@ -137,7 +137,7 @@ export function createOnboardingMockHandlers({
     )),
     http.get(/\/api\/modules\/parties\/tenant-profile(?:\?|$)/, answer((request) =>
       HttpResponse.json({
-        name: isPersianRequest(request) ? "مطب دکتر رضایی" : "Dr. Rezaei's Clinic",
+        name: isPersianRequest(request) ? "کلینیک دکتر رضایی" : "Dr. Rezaei's Clinic",
         description: null,
         logoUrl,
         category: defaultSpecialty,
