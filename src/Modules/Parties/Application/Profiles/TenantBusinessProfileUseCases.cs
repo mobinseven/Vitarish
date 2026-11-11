@@ -12,7 +12,8 @@ public sealed record TenantBusinessProfileView(
     string? LogoUrl,
     string? Category,
     TenantBusinessDetails? Details,
-    bool LogoPromptDismissed);
+    bool LogoPromptDismissed,
+    bool SetupGuideDismissed = false);
 
 public interface ITenantBusinessProfileStore
 {
@@ -26,6 +27,9 @@ public interface ITenantBusinessProfileStore
 
     /// <summary>Records that the owner dismissed the logo prompt; keeps the first time. False when the tenant does not exist.</summary>
     Task<bool> DismissLogoPromptAsync(Guid tenantId, DateTime nowUtc, CancellationToken cancellationToken = default);
+
+    /// <summary>Records that the clinic chose to set up later; keeps the first time. False when the tenant does not exist.</summary>
+    Task<bool> DismissSetupGuideAsync(Guid tenantId, DateTime nowUtc, CancellationToken cancellationToken = default);
 }
 
 /// <summary>The current tenant's own uploaded images, as far as its business profile cares.</summary>
@@ -46,6 +50,13 @@ public interface ITenantImageFiles
 
 /// <summary>A verified image's content; the reader disposes <paramref name="Content"/>.</summary>
 public sealed record TenantImageContent(Stream Content, string ContentType, long Length);
+
+public enum TenantSetupGuideDismissalStatus
+{
+    Updated = 1,
+    Forbidden = 2,
+    NotFound = 3
+}
 
 public enum TenantBusinessProfileUpdateStatus
 {
@@ -74,6 +85,9 @@ public sealed record GetPublicTenantLogoQuery : IRequest<TenantImageContent?>;
 
 /// <summary>Stops prompting the current tenant's owner to add a logo.</summary>
 public sealed record DismissTenantLogoPromptCommand : IRequest<TenantBusinessProfileUpdateResult>;
+
+/// <summary>Sets the current clinic's setup aside for later. Only an owner of the tenant or a platform admin may.</summary>
+public sealed record DismissTenantSetupGuideCommand : IRequest<TenantSetupGuideDismissalStatus>;
 
 public sealed class GetTenantBusinessProfileQueryHandler(ITenantBusinessProfileStore profiles, IRequestContext requestContext)
     : IRequestHandler<GetTenantBusinessProfileQuery, TenantBusinessProfileView?>
@@ -160,5 +174,24 @@ public sealed class DismissTenantLogoPromptCommandHandler(
 
         bool saved = await profiles.DismissLogoPromptAsync(tenantId, timeProvider.GetUtcNow().UtcDateTime, cancellationToken);
         return new(saved ? TenantBusinessProfileUpdateStatus.Updated : TenantBusinessProfileUpdateStatus.NotFound);
+    }
+}
+
+public sealed class DismissTenantSetupGuideCommandHandler(
+    ITenantBusinessProfileStore profiles,
+    IRequestContext requestContext,
+    TimeProvider timeProvider)
+    : IRequestHandler<DismissTenantSetupGuideCommand, TenantSetupGuideDismissalStatus>
+{
+    /// <summary>Running it again keeps the first time and changes nothing.</summary>
+    public async Task<TenantSetupGuideDismissalStatus> Handle(DismissTenantSetupGuideCommand request, CancellationToken cancellationToken)
+    {
+        if (!Guid.TryParse(requestContext.TenantId, out Guid tenantId))
+            return TenantSetupGuideDismissalStatus.NotFound;
+        if (!requestContext.IsPlatformAdmin() && !requestContext.IsTenantOwner())
+            return TenantSetupGuideDismissalStatus.Forbidden;
+
+        bool saved = await profiles.DismissSetupGuideAsync(tenantId, timeProvider.GetUtcNow().UtcDateTime, cancellationToken);
+        return saved ? TenantSetupGuideDismissalStatus.Updated : TenantSetupGuideDismissalStatus.NotFound;
     }
 }

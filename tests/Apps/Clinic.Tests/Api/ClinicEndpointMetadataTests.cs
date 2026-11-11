@@ -39,6 +39,32 @@ public sealed class ClinicEndpointMetadataTests
     }
 
     [Theory]
+    [InlineData(ClinicApiOperations.GetSetupProgress, "GET", ClinicApiRoutes.SetupProgress, false)]
+    [InlineData(ClinicApiOperations.DismissSetupGuide, "POST", ClinicApiRoutes.SetupDismissal, true)]
+    public void Setup_endpoints_are_protected_and_only_dismissal_needs_the_manage_setup_policy(
+        string operationId,
+        string method,
+        string route,
+        bool requiresManageSetup)
+    {
+        WebApplicationBuilder builder = WebApplication.CreateBuilder();
+        builder.Services.AddAuthorization();
+        builder.Services.AddSingleton(Mock.Of<ISender>());
+        using WebApplication app = builder.Build();
+        _ = app.MapClinicApi();
+
+        Endpoint endpoint = ((IEndpointRouteBuilder)app).DataSources
+            .SelectMany(source => source.Endpoints)
+            .Single(candidate => candidate.Metadata.GetMetadata<IEndpointNameMetadata>()?.EndpointName == operationId);
+
+        endpoint.Metadata.GetMetadata<IHttpMethodMetadata>()!.HttpMethods.Should().ContainSingle().Which.Should().Be(method);
+        endpoint.Metadata.GetOrderedMetadata<IAuthorizeData>().Should().NotBeEmpty();
+        endpoint.Metadata.GetOrderedMetadata<IAuthorizeData>()
+            .Any(metadata => metadata.Policy == ClinicAuthorizationPolicies.ManageSetup).Should().Be(requiresManageSetup);
+        endpoint.Metadata.GetMetadata<IRouteDiagnosticsMetadata>()!.Route.Should().Contain(route);
+    }
+
+    [Theory]
     [InlineData("ClinicGetSurgeryCatalogs", "GET", SeaAuthorizationPolicies.Read, ClinicApiRoutes.SurgeryCatalogs)]
     [InlineData("ClinicCreateSurgeryCatalog", "POST", ClinicAuthorizationPolicies.PlanSurgeries, ClinicApiRoutes.SurgeryCatalogs)]
     [InlineData("ClinicUpdateSurgeryCatalog", "PUT", ClinicAuthorizationPolicies.PlanSurgeries, ClinicApiRoutes.SurgeryCatalogById)]

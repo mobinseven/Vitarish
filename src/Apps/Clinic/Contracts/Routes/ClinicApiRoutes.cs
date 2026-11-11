@@ -22,6 +22,8 @@ public static class ClinicApiRoutes
     public const string SurgeryConflicts = Surgeries + "/conflicts";
     public const string SurgerySuggestions = Surgeries + "/suggestions";
     public const string DashboardAppointments = "/dashboard/appointments";
+    public const string SetupProgress = "/setup/progress";
+    public const string SetupDismissal = "/setup/dismissal";
     public const string SurgeryById = Surgeries + "/{id:guid}";
     public const string SurgeryCancel = SurgeryById + "/cancel";
     public const string SurgeryComplete = SurgeryById + "/complete";

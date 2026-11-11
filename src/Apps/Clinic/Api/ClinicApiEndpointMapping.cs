@@ -12,6 +12,7 @@ using Vitarish.Clinic.Application.Commands.Patients;
 using Vitarish.Clinic.Application.Commands.Visits;
 using Vitarish.Clinic.Application.Queries.Patients;
 using Vitarish.Clinic.Application.Queries.Dashboard;
+using Vitarish.Clinic.Application.Setup;
 using Vitarish.Clinic.Application.Results;
 using Vitarish.Clinic.Application.Assistant;
 using Vitarish.Clinic.Application.Assistant.Actions;
@@ -91,6 +92,9 @@ public static class ClinicApiEndpointMapping
             .RequireAuthorization(SeaAuthorizationPolicies.Read);
         _ = group.MapModuleGet(ClinicApiRoutes.DashboardAppointments, ListDashboardAppointmentsAsync, "ClinicListDashboardAppointments", typeof(DashboardAppointmentResponse[]))
             .RequireAuthorization(SeaAuthorizationPolicies.Read);
+        _ = group.MapModuleGet(ClinicApiRoutes.SetupProgress, GetSetupProgressAsync, ClinicApiOperations.GetSetupProgress, typeof(ClinicSetupProgressResponse));
+        _ = group.MapModulePost(ClinicApiRoutes.SetupDismissal, DismissSetupGuideAsync, ClinicApiOperations.DismissSetupGuide, successStatusCode: StatusCodes.Status204NoContent)
+            .RequireAuthorization(ClinicAuthorizationPolicies.ManageSetup);
         _ = group.MapModuleGet(ClinicApiRoutes.PatientSurgeries, ListPatientSurgeriesAsync, "ClinicListPatientSurgeries", typeof(SurgeryResponse[]))
             .RequireAuthorization(SeaAuthorizationPolicies.Read);
         _ = group.MapModulePost(ClinicApiRoutes.PatientSurgeries, CreatePatientSurgeryAsync, "ClinicCreatePatientSurgery", typeof(SurgeryResponse))
@@ -274,6 +278,31 @@ public static class ClinicApiEndpointMapping
 
     private static Task<IResult> ListDashboardAppointmentsAsync([AsParameters] DashboardDateRangeRequest request, [FromServices] IClinicDashboardQueries queries, CancellationToken cancellationToken)
         => ListDashboardAsync(request, queries.ListAppointmentsAsync, values => values.Select(value => new DashboardAppointmentResponse(value.ReservationId, value.PatientId, value.PatientDisplayName, value.ServiceId, value.ServiceDisplayName, value.Date, value.StartTime, value.TimeZone, (Vitarish.Appointments.Contracts.Enums.ReservationStatus)value.Status, value.PatientTags)).ToArray(), cancellationToken);
+
+    private static async Task<IResult> GetSetupProgressAsync([FromServices] ISender sender, CancellationToken cancellationToken)
+    {
+        try
+        {
+            ClinicSetupProgress progress = await sender.Send(new GetClinicSetupProgressQuery(), cancellationToken);
+            return Results.Ok(new ClinicSetupProgressResponse(
+                progress.Applies,
+                progress.Goals.Select(goal => new ClinicSetupGoalStateResponse((Vitarish.Clinic.Contracts.Responses.ClinicSetupGoal)goal.Goal, goal.State == ClinicSetupGoalState.Done)).ToArray(),
+                progress.NextGoal is { } next ? (Vitarish.Clinic.Contracts.Responses.ClinicSetupGoal)next : null,
+                progress.Dismissed));
+        }
+        catch (InvalidOperationException exception)
+        {
+            return Results.Problem(exception.Message, statusCode: StatusCodes.Status503ServiceUnavailable);
+        }
+    }
+
+    private static async Task<IResult> DismissSetupGuideAsync([FromServices] ISender sender, CancellationToken cancellationToken) =>
+        await sender.Send(new DismissClinicSetupGuideCommand(), cancellationToken) switch
+        {
+            ClinicSetupGuideDismissal.Updated => Results.NoContent(),
+            ClinicSetupGuideDismissal.Forbidden => Results.Forbid(),
+            _ => Results.NotFound()
+        };
 
     private static async Task<IResult> ListDashboardAsync<T, TContract>(DashboardDateRangeRequest request, Func<DashboardDateRange, CancellationToken, Task<IReadOnlyList<T>>> query, Func<IReadOnlyList<T>, TContract[]> map, CancellationToken cancellationToken)
     {
