@@ -2,6 +2,7 @@ using Vitarish.Intelligence.Agents;
 using Vitarish.Intelligence.Application.Agents;
 using Vitarish.Clinic.Application.Assistant;
 using Vitarish.Clinic.Application.Assistant.Operations;
+using Vitarish.Clinic.Application.Assistant.Staff;
 using Vitarish.Search.Agents;
 using Vitarish.Contents.Agents;
 using Vitarish.Clinic.Application.Assistant.Capabilities;
@@ -25,12 +26,13 @@ public static class AssistantCapabilityKeys
     public const string Search = "Search";
     public const string Contents = "Contents";
     public const string Setup = Vitarish.Clinic.Application.Setup.ClinicSetupAssistant.CapabilityName;
+    public const string Staff = AssistantStaffInvitation.CapabilityKey;
 
     public static readonly string[] Patient =
     [Appointments, AppointmentReads, Prescriptions, PrescriptionReads, PatientReminderReads,
         ClinicPatientReads, SeaPatientReads, ClinicalEvents, Surgeries];
 
-    public static readonly string[] OperationsProfile = [Operations, SeaManagement, SurgeryOperations, Search, Contents, Setup];
+    public static readonly string[] OperationsProfile = [Operations, SeaManagement, SurgeryOperations, Search, Contents, Setup, Staff];
 
     /// <summary>Every key a profile composes; each one needs a registered capability pack.</summary>
     public static IEnumerable<string> All => Patient.Concat(OperationsProfile).Distinct(StringComparer.Ordinal);
