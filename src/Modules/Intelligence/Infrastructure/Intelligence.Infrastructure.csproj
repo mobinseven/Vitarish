@@ -10,6 +10,7 @@
 		<PackageReference Include="Google.Cloud.Speech.V2" />
 		<PackageReference Include="OllamaSharp.ModelContextProtocol" />
 		<PackageReference Include="OpenAI" />
+		<PackageReference Include="StackExchange.Redis" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\..\Base\Core\Modules.Base.Core.csproj" />

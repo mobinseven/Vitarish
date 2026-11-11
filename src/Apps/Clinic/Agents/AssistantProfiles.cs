@@ -80,7 +80,7 @@ internal sealed class ClinicPatientAssistantProfile(
     AssistantOptions options)
     : AssistantProfile(context, options, AssistantCapabilityKeys.Patient)
 {
-    protected override string AgentKey => "clinic.assistant.patient";
+    protected override string AgentKey => AssistantSubjects.PatientAgentKey;
     protected override string DisplayName => "Clinic patient workspace";
     protected override string ProfileLayerKey => "clinic.assistant.patient";
 }
@@ -90,7 +90,7 @@ internal sealed class ClinicOperationsAssistantProfile(
     AssistantOptions options)
     : AssistantProfile(context, options, AssistantCapabilityKeys.OperationsProfile)
 {
-    protected override string AgentKey => "clinic.assistant.operations";
+    protected override string AgentKey => AssistantSubjects.OperationsAgentKey;
     protected override string DisplayName => "Clinic operations workspace";
     protected override string ProfileLayerKey => "clinic.assistant.operations";
 }

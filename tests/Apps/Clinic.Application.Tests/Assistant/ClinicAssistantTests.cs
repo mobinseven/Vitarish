@@ -1,3 +1,5 @@
+using Vitarish.Intelligence.Application.PreparedActions;
+using Vitarish.Intelligence.Domain.PreparedActions;
 using FluentAssertions;
 using Vitarish.Clinic.Application.Assistant;
 using Vitarish.Clinic.Application.Assistant.Actions;
@@ -82,16 +84,12 @@ public sealed class ClinicAssistantTests
             Task.FromResult(result);
     }
 
-    private sealed class RecordingActionStore : IAssistantActionStore
+    private sealed class RecordingActionStore : IPreparedActionStore
     {
-        public List<AssistantAction> Saved { get; } = [];
-        public Task SaveAsync(AssistantAction action, CancellationToken cancellationToken) { Saved.Add(action); return Task.CompletedTask; }
-        public Task<AssistantAction?> GetAsync(Guid actionId, CancellationToken cancellationToken) => Task.FromResult<AssistantAction?>(null);
-        public Task<bool> TryBeginConfirmationAsync(Guid actionId, bool retryFailed, CancellationToken cancellationToken) => Task.FromResult(false);
-        public Task<bool> TryRejectAsync(Guid actionId, DateTimeOffset rejectedAt, string? reason, CancellationToken cancellationToken) => Task.FromResult(false);
-        public Task<bool> CompleteAsync(Guid actionId, DateTimeOffset confirmedAt, string confirmedByUserId, string completionPayload, CancellationToken cancellationToken) => Task.FromResult(false);
-        public Task<bool> FailAsync(Guid actionId, AssistantActionFailure failure, CancellationToken cancellationToken) => Task.FromResult(false);
-        public Task<bool> ExpireAsync(Guid actionId, CancellationToken cancellationToken) => Task.FromResult(false);
+        public List<PreparedAction> Saved { get; } = [];
+        public Task SaveNewAsync(PreparedAction action, CancellationToken cancellationToken) { Saved.Add(action); return Task.CompletedTask; }
+        public Task<StoredPreparedAction?> GetAsync(Guid actionId, CancellationToken cancellationToken) => Task.FromResult<StoredPreparedAction?>(null);
+        public Task<bool> TryReplaceAsync(StoredPreparedAction current, PreparedAction next, CancellationToken cancellationToken) => Task.FromResult(false);
     }
 
 }

@@ -18,7 +18,7 @@ using Vitarish.Medical.Infrastructure.Providers.Prescriptions.Tamin;
 using Vitarish.E2e.Infrastructure.Events;
 using Vitarish.Clinic.Application.Commands.Patients;
 using Vitarish.Clinic.Application.Events;
-using Vitarish.Clinic.Application.Assistant.Actions;
+using Vitarish.Intelligence.Application.PreparedActions;
 using Vitarish.Clinic.Application.Assistant.Surgeries;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Vitarish.Authentication.Application.Abstractions;
@@ -152,7 +152,7 @@ _ = builder.Services.AddSingleton<IAuditStorageOutageCounter, E2eAuditStorageOut
 _ = builder.Services.AddAuditStorageOutageReporting(openApiGeneration: false);
 builder.Services.AddSingleton<Hangfire.IBackgroundJobClient, E2eBackgroundJobClient>();
 builder.Services.Replace(ServiceDescriptor.Singleton<IClinicalEventProposalStore, E2eClinicalEventProposalStore>());
-builder.Services.Replace(ServiceDescriptor.Singleton<IAssistantActionStore, E2eAssistantActionStore>());
+builder.Services.Replace(ServiceDescriptor.Singleton<IPreparedActionStore, E2ePreparedActionStore>());
 builder.Services.Replace(ServiceDescriptor.Singleton<ISurgeryAssistantProposalStore, E2eSurgeryAssistantProposalStore>());
 
 ServiceDescriptor? productionSurgeryViewRefresher = builder.Services.SingleOrDefault(descriptor =>

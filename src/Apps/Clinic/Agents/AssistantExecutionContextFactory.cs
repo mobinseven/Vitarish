@@ -79,7 +79,7 @@ public sealed class AssistantExecutionContextFactory(TimeProvider timeProvider)
 
     public static string AgentKey(AssistantContext context) =>
         string.IsNullOrWhiteSpace(context.AgentKey)
-            ? context.SubjectKind == "practice" ? "clinic.assistant.operations" : "clinic.assistant.patient"
+            ? AssistantSubjects.CanonicalAgentKey(context)
             : context.AgentKey;
 
     public static string SubjectId(AssistantContext context) =>
