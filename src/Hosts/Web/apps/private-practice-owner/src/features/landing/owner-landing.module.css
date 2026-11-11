@@ -501,19 +501,6 @@
   border-top: 1px solid color-mix(in srgb, var(--anchor-foreground) 20%, transparent);
 }
 
-.byline {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.6875rem;
-}
-
-.bylineLogotype {
-  display: block;
-  height: 1rem;
-  width: auto;
-}
-
 .footerNote {
   margin-inline-start: auto;
   font-size: 0.6875rem;

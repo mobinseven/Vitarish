@@ -141,8 +141,8 @@ export function DashboardShell({
       onAsideOpenChange={setOperationsAssistantOpen}
       sidebarBrand={
         <div className="flex w-full justify-center">
-          <img src="/vitarish-logotype.svg" alt={t("appShell.brand")} className="h-5 w-auto dark:hidden" />
-          <img src="/vitarish-logotype-dark.svg" alt={t("appShell.brand")} className="hidden h-5 w-auto dark:block" />
+          <img src="/darman-logotype.svg" alt={t("practiceLanding.subBrand")} className="h-5 w-auto dark:hidden" />
+          <img src="/darman-logotype-dark.svg" alt={t("practiceLanding.subBrand")} className="hidden h-5 w-auto dark:block" />
         </div>
       }
       skipLinkLabel={t("appShell.navigation.skipToContent")}

@@ -873,7 +873,6 @@ export const faMessages = {
     closingEyebrow: "از همین‌جا شروع می‌شود",
     closingTitle: "برای یک روز\nآسوده‌تر.",
     closingDescription: "نوبت‌ها، پرونده‌ها و کارهای تیم را کنار هم بیاورید. جایی برای رسیدگی، با حواس جمع‌تر.",
-    byline: "محصولی از",
     otherLanguage: "English",
     otherLanguageTooltip: "نمایش این صفحه به انگلیسی",
     signIn: "ورود",
