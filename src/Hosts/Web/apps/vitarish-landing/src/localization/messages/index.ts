@@ -3,7 +3,7 @@ import { authMessageCatalogs } from "@vitarish/auth/localization";
 import { contentsStudioMessageCatalogs } from "@vitarish/contents/studio/messages";
 import { enMessages } from "./en";
 import { faMessages } from "./fa";
-import { accountMessageCatalogs, authOtpMessages } from "../../features/home/accountMessages";
+import { accountMessageCatalogs, authGuardMessages, authOtpMessages } from "../../features/home/accountMessages";
 import { homeMessageCatalogs } from "../../features/home/homeMessages";
 
 // The shared auth catalog owns most of `auth`; the account area adds the one-time-code wording under `auth.otp`.
@@ -13,7 +13,7 @@ export const catalogs = {
     ...homeMessageCatalogs.en,
     ...accountMessageCatalogs.en,
     ...authMessageCatalogs.en,
-    auth: { ...authMessageCatalogs.en.auth, otp: authOtpMessages.en },
+    auth: { ...authMessageCatalogs.en.auth, otp: authOtpMessages.en, guard: authGuardMessages.en },
     ...contentsStudioMessageCatalogs.en,
   },
   fa: {
@@ -21,7 +21,7 @@ export const catalogs = {
     ...homeMessageCatalogs.fa,
     ...accountMessageCatalogs.fa,
     ...authMessageCatalogs.fa,
-    auth: { ...authMessageCatalogs.fa.auth, otp: authOtpMessages.fa },
+    auth: { ...authMessageCatalogs.fa.auth, otp: authOtpMessages.fa, guard: authGuardMessages.fa },
     ...contentsStudioMessageCatalogs.fa,
   },
 } as const;

@@ -63,6 +63,8 @@ export const faMessages = {
       loading: "در حال بارگذاری...",
       accessDenied: "دسترسی غیرمجاز",
       noPermission: "شما اجازه دسترسی به این بخش را ندارید.",
+      home: "رفتن به صفحه اصلی",
+      signOut: "خروج",
     },
     login: {
       title: "ورود به ویتاریش",

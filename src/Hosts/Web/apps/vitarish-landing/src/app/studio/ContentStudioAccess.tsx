@@ -45,6 +45,7 @@ export function ContentStudioAccess({ loginHref }: { loginHref: string }) {
     <AuthorizationGuard
       requiredRole="owner"
       loginHref={loginHref}
+      homeHref={LandingRoutes.PlatformHome}
       onNavigate={navigate}
     >
       <StandaloneDocumentPage className="min-h-dvh bg-surface-secondary py-8 sm:py-12">

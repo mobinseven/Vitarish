@@ -63,6 +63,8 @@ export const enMessages = {
       loading: "Loading...",
       accessDenied: "Access Denied",
       noPermission: "You do not have permission to access this area.",
+      home: "Go to home",
+      signOut: "Sign out",
     },
     login: {
       title: "Sign in to Vitarish",

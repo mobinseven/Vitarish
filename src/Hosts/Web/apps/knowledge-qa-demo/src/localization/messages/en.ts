@@ -37,6 +37,8 @@ export const enMessages = {
       loading: "Checking your session...",
       accessDenied: "Access denied",
       noPermission: "You do not have permission to use this page.",
+      home: "Go to home",
+      signOut: "Sign out",
     },
   },
   knowledge: {
