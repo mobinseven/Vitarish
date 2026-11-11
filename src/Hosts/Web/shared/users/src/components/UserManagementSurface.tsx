@@ -1083,8 +1083,8 @@ function UserSecurityHistoryTable({ history, available, emptyMessage, label, pag
   }
 
   return <Table>
-    <Table.ScrollContainer>
-      <Table.Content aria-label={label} className="min-w-[760px]">
+    <Table.ScrollContainer className="w-full max-w-full overflow-x-auto">
+      <Table.Content aria-label={label} className="min-w-[960px]">
         <Table.Header>
           <Table.Column isRowHeader>{t("users.management.eventTimeUtc")}</Table.Column>
           <Table.Column>{t("users.management.eventName")}</Table.Column>
