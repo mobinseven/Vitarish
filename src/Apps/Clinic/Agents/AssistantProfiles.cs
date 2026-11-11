@@ -42,7 +42,7 @@ internal abstract class AssistantProfile(
         {
             profile.SetIdentity(AgentKey, DisplayName);
             profile.SetModel(options.Model);
-            profile.SetResult(new AgentResultDefinition("clinic_assistant_result", AssistantRuntime.ResultSchema));
+            profile.SetResult(new AgentResultDefinition("clinic_assistant_result", ResultSchema));
             profile.SetLimits(new AgentExecutionLimits(MaxTokens: 128_000));
             foreach (string capabilityKey in capabilityKeys) profile.AddCapability(capabilityKey);
         });
@@ -51,6 +51,7 @@ internal abstract class AssistantProfile(
     protected abstract string AgentKey { get; }
     protected abstract string DisplayName { get; }
     protected abstract string ProfileLayerKey { get; }
+    protected virtual string ResultSchema => AssistantRuntime.ResultSchema;
 
     private static string SubjectId(AssistantContext context) =>
         context.SubjectKind == "practice" ? context.PracticeId : context.PatientId.ToString("D");
@@ -93,6 +94,7 @@ internal sealed class ClinicOperationsAssistantProfile(
     protected override string AgentKey => AssistantSubjects.OperationsAgentKey;
     protected override string DisplayName => "Clinic operations workspace";
     protected override string ProfileLayerKey => "clinic.assistant.operations";
+    protected override string ResultSchema => AssistantRuntime.OperationsResultSchema;
 }
 
 internal static class AssistantPolicyInstructions

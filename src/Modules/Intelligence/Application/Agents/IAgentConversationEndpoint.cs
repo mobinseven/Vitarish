@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Vitarish.Intelligence.Application.GuidedSurfaces;
 
 namespace Vitarish.Intelligence.Application.Agents;
 
@@ -13,7 +14,8 @@ public sealed record AgentConversationEndpointResult(
     AgentConversationOutcome Outcome,
     string? AgentRunId = null,
     Guid? ConversationId = null,
-    JsonElement? Result = null);
+    JsonElement? Result = null,
+    IReadOnlyList<GuidedSurfaceBlock>? Blocks = null);
 
 public sealed record AgentConversationRoute(string AgentKey, string SubjectKind)
 {

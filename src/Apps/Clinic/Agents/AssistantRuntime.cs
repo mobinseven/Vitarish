@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Clinic.Application.Assistant;
 using Vitarish.Clinic.Application.Assistant.Capabilities;
 using Vitarish.Intelligence.Agents;
+using Vitarish.Intelligence.Application.Agents;
 
 namespace Vitarish.Clinic.Agents;
 
@@ -20,6 +21,24 @@ public sealed class AssistantRuntime(
           }
         }
         """;
+
+    /// <summary>
+    /// The operations agent's result: the shared shape plus an optional question with options and an optional
+    /// next step, which is a setup goal whose screen the person can open.
+    /// </summary>
+    public static readonly string OperationsResultSchema = CreateOperationsResultSchema();
+
+    private static string CreateOperationsResultSchema()
+    {
+        System.Text.Json.Nodes.JsonObject root = System.Text.Json.Nodes.JsonNode.Parse(ResultSchema)!.AsObject();
+        System.Text.Json.Nodes.JsonObject properties = root["properties"]!.AsObject();
+        properties[AgentInteractiveReplyFormat.QuestionProperty] = AgentInteractiveReplyFormat.QuestionSchema();
+        properties[AgentInteractiveReplyFormat.NextActionProperty] = AgentInteractiveReplyFormat.NextActionSchema(AssistantNextActions.Keys);
+        System.Text.Json.Nodes.JsonArray required = root["required"]!.AsArray();
+        required.Add(AgentInteractiveReplyFormat.QuestionProperty);
+        required.Add(AgentInteractiveReplyFormat.NextActionProperty);
+        return root.ToJsonString();
+    }
 
     public Task<AssistantResult> RunAsync(
         AssistantContext context,

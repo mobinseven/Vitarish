@@ -17,6 +17,13 @@ public enum PreparedActionOutcome
 
 public sealed record PreparedActionResult(PreparedActionOutcome Outcome, PreparedAction? Action = null);
 
+/// <summary>Why the lifecycle itself rejected a proposal.</summary>
+public static class PreparedActionRejectionReasons
+{
+    /// <summary>The person edited the proposal; a replacement in the same run took its place.</summary>
+    public const string Revised = "revised";
+}
+
 /// <summary>Failure codes the lifecycle itself records; owning workflows report their own codes.</summary>
 public static class PreparedActionFailureCodes
 {
@@ -87,6 +94,57 @@ public sealed class PreparedActionLifecycle(
         PreparedAction? latest = await ReadAsync(actionId, cancellationToken);
         return new(rejected ? PreparedActionOutcome.Succeeded : PreparedActionOutcome.Conflict, latest);
     }
+
+    /// <summary>
+    /// Replaces a proposal with an edited one in the same run. The replacement is prepared first, so an invalid edit
+    /// changes nothing; then the original is rejected as revised, and only then the replacement is saved. A failure
+    /// between those two writes leaves no live proposal, never two.
+    /// </summary>
+    public async Task<PreparedActionResult> ReviseAsync(
+        Guid actionId,
+        IPreparedActionApp app,
+        Func<PreparedAction, CancellationToken, Task<PreparedAction?>> prepareReplacement,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(app);
+        ArgumentNullException.ThrowIfNull(prepareReplacement);
+        StoredPreparedAction? stored = await store.GetAsync(actionId, cancellationToken);
+        PreparedActionOutcome? failure = AccessFailure(stored?.Action, app);
+        if (failure.HasValue) return new(failure.Value);
+        PreparedAction original = stored!.Action;
+
+        if (original.IsExpiredAt(timeProvider.GetUtcNow()))
+            return new(PreparedActionOutcome.Expired, await ExpireAsync(actionId, cancellationToken));
+        if (original.Status != PreparedActionStatus.Proposed)
+            return new(PreparedActionOutcome.Conflict, original);
+
+        PreparedAction? replacement = await prepareReplacement(original, cancellationToken);
+        if (replacement is null)
+            return new(PreparedActionOutcome.ValidationFailure, original);
+        if (!IsReplacementFor(replacement, original))
+            throw new InvalidOperationException("A revision must stay a proposed action of the same type, run, owner and scope.");
+
+        DateTimeOffset revisedAt = timeProvider.GetUtcNow();
+        if (!await TransitionAsync(actionId, current => current.Reject(revisedAt, PreparedActionRejectionReasons.Revised), cancellationToken))
+            return new(PreparedActionOutcome.Conflict, await ReadAsync(actionId, cancellationToken));
+        await store.SaveNewAsync(replacement, cancellationToken);
+        if (logger is not null)
+            PreparedActionTelemetry.Prepared(logger, replacement.ActionType, replacement.AgentKey, replacement.AgentRunId, replacement.ActionId);
+        return new(PreparedActionOutcome.Succeeded, replacement);
+    }
+
+    private static bool IsReplacementFor(PreparedAction replacement, PreparedAction original) =>
+        replacement.Status == PreparedActionStatus.Proposed &&
+        replacement.ActionId != original.ActionId &&
+        string.Equals(replacement.AgentKey, original.AgentKey, StringComparison.Ordinal) &&
+        string.Equals(replacement.ScopeId, original.ScopeId, StringComparison.Ordinal) &&
+        string.Equals(replacement.SubjectKind, original.SubjectKind, StringComparison.Ordinal) &&
+        string.Equals(replacement.SubjectId, original.SubjectId, StringComparison.Ordinal) &&
+        string.Equals(replacement.RequestedByUserId, original.RequestedByUserId, StringComparison.Ordinal) &&
+        string.Equals(replacement.AgentRunId, original.AgentRunId, StringComparison.Ordinal) &&
+        string.Equals(replacement.ConversationId, original.ConversationId, StringComparison.Ordinal) &&
+        string.Equals(replacement.Capability, original.Capability, StringComparison.Ordinal) &&
+        string.Equals(replacement.ActionType, original.ActionType, StringComparison.Ordinal);
 
     public async Task<PreparedActionResult> ConfirmAsync(Guid actionId, IPreparedActionApp app, CancellationToken cancellationToken)
     {
