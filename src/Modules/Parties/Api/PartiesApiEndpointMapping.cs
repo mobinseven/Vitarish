@@ -223,8 +223,8 @@ public static class PartiesApiEndpointMapping
         if (idempotencyKey is null || idempotencyKey.Length is < IdempotencyKeyMinimumLength or > IdempotencyKeyMaximumLength
             || !idempotencyKey.All(character => char.IsAsciiLetterOrDigit(character) || character is '-' or '_'))
             return BadRequest($"An {PartiesApiRoutes.IdempotencyKeyHeader} header of {IdempotencyKeyMinimumLength} to {IdempotencyKeyMaximumLength} letters, digits, hyphens, or underscores is required.");
-        if (request.Name is null || request.Subdomain is null || request.Subdomain.Length > SubdomainQueryMaximumLength)
-            return BadRequest("A name and a subdomain are required.");
+        if (request.Name is null || request.Subdomain?.Length > SubdomainQueryMaximumLength)
+            return BadRequest($"A name is required, and a subdomain, when given, can have at most {SubdomainQueryMaximumLength} characters.");
         TenantBusinessDetails? details = TenantBusinessProfileMapping.ToDomain(request.BusinessDetails, out string? detailsError);
         if (detailsError is not null)
             return BadRequest(detailsError);

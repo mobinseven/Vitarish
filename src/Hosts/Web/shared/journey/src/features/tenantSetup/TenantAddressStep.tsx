@@ -47,7 +47,7 @@ export function TenantAddressStep({
         <Input placeholder={t("journey.setup.namePlaceholder")} autoComplete="organization" />
       </TextField>
 
-      <TextField isRequired isInvalid={isUnavailable} value={subdomain} onChange={onSubdomainChange}>
+      <TextField isInvalid={isUnavailable} value={subdomain} onChange={onSubdomainChange}>
         <Label>{t("journey.setup.address")}</Label>
         <InputGroup dir="ltr">
           <InputGroup.Input placeholder={t("journey.setup.addressPlaceholder")} autoComplete="off" spellCheck={false} />

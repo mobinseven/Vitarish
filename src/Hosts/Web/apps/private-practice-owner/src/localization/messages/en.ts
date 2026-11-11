@@ -324,8 +324,8 @@ export const enMessages = {
       name: "Clinic name",
       namePlaceholder: "For example: Dr. Rezaei's Clinic",
       address: "Clinic address",
-      addressPlaceholder: "rezaei",
-      addressRules: "3 to 30 lowercase English letters, digits, or hyphens. It cannot start or end with a hyphen.",
+      addressPlaceholder: "my-clinic",
+      addressRules: "Optional. Leave it empty and we will create one from your clinic name. Otherwise use 3 to 30 lowercase English letters, digits, or hyphens, not starting or ending with a hyphen.",
       availability: {
         checking: "Checking the address…",
         failed: "The address could not be checked. Try again in a moment.",
