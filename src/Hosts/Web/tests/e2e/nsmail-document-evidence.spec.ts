@@ -310,8 +310,9 @@ test.describe("NSMAIL document evidence", () => {
       await userContext.close();
     }
 
-    // The admin host refuses a new account with no role or membership. On the shared
-    // sign-in host that account is admitted to finish its profile and create a clinic.
+    // Platform sign-in runs on the central sign-in host, which admits a new account with
+    // no role or membership so it can finish its profile and create a clinic; the platform
+    // host then refuses it, so the sign-in itself succeeds.
     expect(smtpCapturePath, "VITARISH_E2E_SMTP_CAPTURE_PATH must be supplied by the two-host runner").toBeTruthy();
     const newcomerContext = await persianContext(browser, "198.51.100.246");
     const newcomer = await newcomerContext.newPage();
@@ -335,7 +336,7 @@ test.describe("NSMAIL document evidence", () => {
         newcomer.waitForResponse((candidate) => candidate.url().endsWith("/api/modules/authentication/login/email/complete")),
         newcomer.locator('button[type="submit"]').first().click(),
       ]);
-      expect(complete.status()).toBe(403);
+      expect(complete.status()).toBe(200);
       await capture(newcomer, "login-no-access");
     } finally {
       await newcomerContext.close();
