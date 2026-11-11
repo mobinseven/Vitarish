@@ -20,7 +20,6 @@ interface OwnerLandingPageProps {
 
 const logotypes = {
   mark: "/Logo-®.svg",
-  registered: "/Master-Hel-Logotype-®.svg",
 } as const;
 
 const artwork = {
@@ -193,10 +192,6 @@ export function OwnerLandingPage({ onboardingUrl }: OwnerLandingPageProps) {
       <footer className={styles.footer}>
         <span className={`${styles.footerSubBrand} font-tone-confident`}>{t("practiceLanding.subBrand")}</span>
         <div className={styles.footerBottom}>
-          <p className={styles.byline}>
-            <span>{t("practiceLanding.byline")}</span>
-            <Logotype alt={t("appShell.brand")} className={styles.bylineLogotype} mark="registered" />
-          </p>
           <p className={styles.footerNote}>{t("practiceLanding.footerRights")}</p>
           <Tooltip>
             <Button

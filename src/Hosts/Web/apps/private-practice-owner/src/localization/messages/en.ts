@@ -883,7 +883,6 @@ export const enMessages = {
     closingEyebrow: "It starts right here",
     closingTitle: "Make room\nfor a calmer day.",
     closingDescription: "Bring appointments, records, and your team’s work together. Give your attention a little room to breathe.",
-    byline: "by",
     otherLanguage: "فارسی",
     otherLanguageTooltip: "Show this page in Persian",
     signIn: "Sign in",

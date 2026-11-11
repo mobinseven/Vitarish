@@ -22,7 +22,7 @@ export function BrandedPageFrame({ children }: { children: ReactNode }) {
 
   return (
     <div className="bg-anchor">
-      <Logotype src="/Master-Hel-Logotype.svg" alt={t("appShell.brand")} />
+      <Logotype src="/darman-logotype-dark.svg" alt={t("practiceLanding.subBrand")} />
       {children}
       <Logotype src="/Master-Hel-Logotype-©.svg" alt="" />
     </div>
