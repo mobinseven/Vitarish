@@ -239,7 +239,7 @@ export function OperationsAssistantActionReview({
   return (
     <Card>
       <Card.Header className="flex justify-between gap-3">
-        <Card.Title>{t("clinic.operationsAssistant.reviewTitle")}</Card.Title>
+        <Card.Title>{action.actionType === operationsActionTypes.inviteMember ? t("clinic.operationsAssistant.invite.title") : t("clinic.operationsAssistant.reviewTitle")}</Card.Title>
         <AssistantActionStatus status={pending ? "Confirming" : action.status} completionId={completionId} failure={action.failure?.message} />
       </Card.Header>
       <Card.Content className="space-y-4">

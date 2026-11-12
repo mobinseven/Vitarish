@@ -30,8 +30,8 @@ export function GoalChecklist({ goals, nextGoal = null, onSelect }: GoalChecklis
           const content = (
             <>
               <FaIcon icon={goal.done ? "circle-check" : "circle"} className={goal.done ? "text-success" : "text-muted"} aria-hidden="true" />
-              <span className="flex-1 text-start">{goal.label}</span>
-              <Chip variant="soft" color={goal.done ? "success" : isNext ? "accent" : "default"}>
+              <span className="min-w-0 flex-1 text-start">{goal.label}</span>
+              <Chip className="shrink-0" variant="soft" color={goal.done ? "success" : isNext ? "accent" : "default"}>
                 {goal.done
                   ? t("intelligence.guidedSurface.goals.done")
                   : isNext ? t("intelligence.guidedSurface.goals.next") : t("intelligence.guidedSurface.goals.open")}
@@ -42,7 +42,7 @@ export function GoalChecklist({ goals, nextGoal = null, onSelect }: GoalChecklis
             <li key={goal.key} aria-current={isNext ? "step" : undefined}>
               {onSelect && !goal.done ? (
                 <Tooltip>
-                  <Button variant="outline" fullWidth className="h-auto justify-start gap-3 px-3 py-2 text-base font-normal" onPress={() => onSelect(goal.key)}>
+                  <Button variant="outline" fullWidth className="h-auto min-w-0 justify-start gap-3 whitespace-normal px-3 py-2 text-base font-normal" onPress={() => onSelect(goal.key)}>
                     {content}
                   </Button>
                   <Tooltip.Content>{t("intelligence.guidedSurface.goals.openTooltip")}</Tooltip.Content>

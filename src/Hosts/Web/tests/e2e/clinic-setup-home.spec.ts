@@ -352,21 +352,21 @@ test("a new clinic owner sets up the clinic with the assistant on the setup home
   await expect(assistant.getByRole("status").filter({ hasText: assistantStatusMessages.completed }).last()).toBeVisible();
   await captureStep(page, "invite-confirmed");
 
-  const membersResponse = page.waitForResponse((response) =>
-    response.request().method() === "GET" && response.url().includes(tenantMembersPath));
-  await page.goto(Routes.Clinic.Settings.Users, { waitUntil: "domcontentloaded" });
-  expect(JSON.stringify(await (await membersResponse).json())).toContain(inviteeLastName);
+  // The invited person is now a member of this clinic, read through the public Users members API.
+  const members = await callApi(page, "GET", `${tenantMembersPath}?Search=${encodeURIComponent(inviteeLastName)}&MaxResults=50`);
+  expect(members.status, JSON.stringify(members.body)).toBe(200);
+  expect(JSON.stringify(members.body)).toContain(inviteeLastName);
+  await page.goto(`${clinicOrigin}${Routes.Clinic.Settings.Users}`, { waitUntil: "domcontentloaded" });
   await expect(page.getByText(inviteeLastName, { exact: false })).toBeVisible({ timeout: pageCompileTimeoutMilliseconds });
   await captureStep(page, "users");
 
   // 7. "Later" hides the setup home for the clinic and brings today's dashboard back; reloading keeps it hidden.
-  await page.goto(Routes.Home, { waitUntil: "domcontentloaded" });
+  await page.goto(`${clinicOrigin}${Routes.Home}`, { waitUntil: "domcontentloaded" });
   await expect(setupHeading).toBeVisible({ timeout: pageCompileTimeoutMilliseconds });
   await page.getByRole("button", { name: setupMessages.later, exact: true }).click();
   await expect(setupHeading).toBeHidden();
   const dashboardPanels = [clinicMessages.appointments.visits.title, clinicMessages.surgeries.title];
   for (const panelTitle of dashboardPanels) await expect(page.getByRole("heading", { name: panelTitle, exact: true })).toBeVisible();
-  await expect(sideAssistantToggle.first()).toBeVisible();
   await captureStep(page, "dashboard-after-later");
 
   const progressAfterLater = await callApi(page, "GET", setupProgressPath);
@@ -380,4 +380,11 @@ test("a new clinic owner sets up the clinic with the assistant on the setup home
   await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
   for (const panelTitle of dashboardPanels) await expect(page.getByRole("heading", { name: panelTitle, exact: true })).toBeVisible({ timeout: pageCompileTimeoutMilliseconds });
   await expect(setupHeading).toHaveCount(0);
+
+  // 8. After "Later", the setup steps stay reachable from the assistant beside the clinic pages.
+  await page.goto(`${clinicOrigin}${Routes.Clinic.Settings.Users}`, { waitUntil: "domcontentloaded" });
+  await sideAssistantToggle.first().click({ timeout: pageCompileTimeoutMilliseconds });
+  const sideAssistant = page.getByRole("region", { name: clinicMessages.operationsAssistant.title });
+  await expect(sideAssistant.getByRole("navigation", { name: intelligenceMessageCatalogs[locale].intelligence.guidedSurface.goals.title })).toBeVisible({ timeout: pageCompileTimeoutMilliseconds });
+  await captureStep(page, "side-panel-setup-steps");
 });
