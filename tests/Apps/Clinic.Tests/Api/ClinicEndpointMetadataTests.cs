@@ -172,6 +172,31 @@ public sealed class ClinicEndpointMetadataTests
     }
 
     [Fact]
+    public void Canonical_agent_action_revision_is_a_post_with_only_the_group_authorization()
+    {
+        WebApplicationBuilder builder = WebApplication.CreateBuilder();
+        builder.Services.AddAuthorization();
+        builder.Services.AddSingleton(Mock.Of<ISender>());
+        using WebApplication app = builder.Build();
+        _ = app.MapClinicApi();
+
+        Endpoint endpoint = ((IEndpointRouteBuilder)app).DataSources
+            .SelectMany(source => source.Endpoints)
+            .Single(candidate => candidate.Metadata.GetMetadata<IEndpointNameMetadata>()?.EndpointName
+                == ClinicApiOperations.ReviseAssistantAction);
+
+        endpoint.Metadata.GetMetadata<IHttpMethodMetadata>()!.HttpMethods.Should().ContainSingle().Which.Should().Be("POST");
+        endpoint.Metadata.GetOrderedMetadata<IAuthorizeData>().Should().NotBeEmpty();
+        Endpoint confirm = ((IEndpointRouteBuilder)app).DataSources
+            .SelectMany(source => source.Endpoints)
+            .Single(candidate => candidate.Metadata.GetMetadata<IEndpointNameMetadata>()?.EndpointName == "ClinicConfirmAssistantAction");
+        endpoint.Metadata.GetOrderedMetadata<IAuthorizeData>().Select(metadata => metadata.Policy)
+            .Should().BeEquivalentTo(confirm.Metadata.GetOrderedMetadata<IAuthorizeData>().Select(metadata => metadata.Policy));
+        endpoint.Metadata.GetMetadata<IRouteDiagnosticsMetadata>()!.Route.Should().Contain(ClinicApiRoutes.ReviseAssistantAction);
+        ClinicApiRoutes.ReviseAssistantAction.Should().Be("/assistant/actions/{actionId:guid}/revise");
+    }
+
+    [Fact]
     public void Canonical_agent_action_confirmation_uses_only_the_route_action_id()
     {
         WebApplicationBuilder builder = WebApplication.CreateBuilder();
