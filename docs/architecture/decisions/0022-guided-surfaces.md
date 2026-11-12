@@ -1,7 +1,7 @@
 # ADR-0022: Guided Surfaces
 
 Date: 2026-11-12
-Status: Accepted
+Status: Accepted (amended 2026-11-12)
 Scope: Intelligence module and `shared/intelligence`; every app that offers an assistant
 Owner: Architecture
 Supersedes:
@@ -57,13 +57,19 @@ This decision completes the model around it.
      because larger schemas fail more often; it never becomes a union of every
      kind.
    - *Tools* produce rich blocks, such as a review group of prepared actions or
-     a record summary. An Intelligence-owned run collector gathers the blocks
-     that tool results emit during a run and attaches them to the reply. Such
-     blocks refer to server records by ID, and the renderer re-reads each
-     record's current state by ID rather than trusting the copy in the reply.
-   - *A server policy, without a model call,* produces an opening surface, such
-     as a welcome and a checklist of what is left. A surface therefore works
-     when the model is slow or unavailable.
+     a record summary. While prepared actions are the only tool-produced block,
+     the app builds the review-group block from the actions a run saved, by
+     run. An Intelligence-owned run collector, which gathers the blocks tool
+     results emit during a run, is introduced when a second kind of
+     tool-produced block exists. Such blocks refer to server records by ID, and
+     the renderer re-reads each record's current state by ID rather than
+     trusting the copy in the reply.
+   - *A server policy, without a model call,* decides an opening surface, such
+     as a welcome and a checklist of what is left. It sends the content as keys
+     and data (each goal's state, the next goal), and the web composes the
+     surface from shared components, so an app's API never maps block contracts
+     of its own. A surface therefore works when the model is slow or
+     unavailable.
    Blocks built by tools or server policies carry keys and data, not display
    text; the web localizes them (ADR-0007). Only the model's own text and
    option labels arrive as text.
@@ -77,8 +83,11 @@ This decision completes the model around it.
 
 4. **Two levels of kinds.**
    - *Platform kinds* are owned by Intelligence (contract and validation) and
-     `shared/intelligence` (rendering): question with options, reference chips,
-     next action, action review group, goal checklist and destination link.
+     `shared/intelligence` (rendering), and are added when a surface needs
+     them. The kinds on the wire are question with options, next action and
+     action review group. The goal checklist is a shared component fed by the
+     app's own data. Reference chips and destination links join the wire kinds
+     when a surface needs them.
    - *App kinds* are declared by an app's capability pack. The app passes their
      renderers, and the review cards for its action types, to the shared
      renderer through an explicit registry. Nothing is discovered at runtime,
@@ -146,6 +155,10 @@ This decision completes the model around it.
   days.
 - **Past turns.** A guided surface does not promise to redraw earlier blocks
   after a page reload; prepared actions stay reachable by ID.
+- **One conversation across an app's surfaces.** An app's assistant
+  conversation may continue across the places it appears within one browser
+  session: closing a surface keeps the conversation, an explicit reset deletes
+  it, and otherwise the server's conversation retention applies.
 - **Cost and failure.** Tool-built and server-built blocks reduce dependence
   on strict model output, whose schema failures surface as provider failures
   (ADR-0017). Model cost grows with guided conversations.
