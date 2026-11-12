@@ -1,8 +1,13 @@
 "use client";
 
 import { Button, Card, Tooltip } from "@heroui/react";
+import { useQueries } from "@tanstack/react-query";
+import { ActionReviewGroup, type ActionReviewItem, type ActionReviewItemState } from "@vitarish/intelligence";
 import { FaIcon } from "@vitarish/ui";
 import { useState } from "react";
+import { clinicGetAssistantAction } from "../../api/generated/clinic/clinic";
+import { ManageActionCard, StaffInviteActionCard } from "./ManageActionCard";
+import { operationsActionTypes } from "./operationsActionTypes";
 import { useLocalizedText } from "../../localization";
 import {
   AppointmentActionCard,
@@ -21,6 +26,8 @@ import {
   useAssistantAction,
   useRejectOperationsAssistantAction,
   useRejectAssistantAction,
+  useReviseOperationsAssistantAction,
+  operationsAssistantActionQueryKey,
 } from "./hooks";
 import {
   AssistantActivity,
@@ -204,10 +211,18 @@ export function AssistantActionList({
   );
 }
 
-export function OperationsAssistantActionReview({ action }: { action: AssistantAction }) {
+export function OperationsAssistantActionReview({
+  action,
+  onReplaced,
+}: {
+  action: AssistantAction;
+  /** Called when the owner's edit replaced this proposal with a new one. */
+  onReplaced?: (originalId: string, replacementId: string) => void;
+}) {
   const { t } = useLocalizedText();
   const confirm = useConfirmOperationsAssistantAction();
   const reject = useRejectOperationsAssistantAction();
+  const revise = useReviseOperationsAssistantAction();
   const [requestError, setRequestError] = useState(false);
   const pending = confirm.isPending || reject.isPending;
   const payload = asRecord(action.reviewPayload);
@@ -224,12 +239,28 @@ export function OperationsAssistantActionReview({ action }: { action: AssistantA
   return (
     <Card>
       <Card.Header className="flex justify-between gap-3">
-        <Card.Title>{t("clinic.operationsAssistant.reviewTitle")}</Card.Title>
+        <Card.Title>{action.actionType === operationsActionTypes.inviteMember ? t("clinic.operationsAssistant.invite.title") : t("clinic.operationsAssistant.reviewTitle")}</Card.Title>
         <AssistantActionStatus status={pending ? "Confirming" : action.status} completionId={completionId} failure={action.failure?.message} />
       </Card.Header>
       <Card.Content className="space-y-4">
         {isSurgeryActionType(action.actionType) ? (
           <SurgeryActionCard actionType={action.actionType} payload={payload} expiresAt={action.expiresAt} />
+        ) : action.actionType === operationsActionTypes.appointmentManage ? (
+          <ManageActionCard
+            reviewPayload={action.reviewPayload}
+            onRevise={action.status === "Proposed" && !pending ? async (argumentsJson) => {
+              const replacement = await revise.mutateAsync({ actionId: action.actionId, argumentsJson });
+              onReplaced?.(action.actionId, replacement.actionId);
+            } : undefined}
+          />
+        ) : action.actionType === operationsActionTypes.inviteMember ? (
+          <StaffInviteActionCard
+            reviewPayload={action.reviewPayload}
+            onRevise={action.status === "Proposed" && !pending ? async (argumentsJson) => {
+              const replacement = await revise.mutateAsync({ actionId: action.actionId, argumentsJson });
+              onReplaced?.(action.actionId, replacement.actionId);
+            } : undefined}
+          />
         ) : (
           <OperationsActionCard payload={payload} expiresAt={action.expiresAt} />
         )}
@@ -254,4 +285,44 @@ function OperationsAssistantActionLoader({ actionId }: { actionId: string }) {
 
 export function OperationsAssistantActionList({ actionIds }: { actionIds: string[] }) {
   return <div className="flex flex-col gap-3">{actionIds.map((actionId) => <OperationsAssistantActionLoader key={actionId} actionId={actionId} />)}</div>;
+}
+
+function reviewState(action: AssistantAction): ActionReviewItemState {
+  switch (action.status) {
+    case "Proposed": return "pending";
+    case "Completed": return "done";
+    case "Failed": return "failed";
+    default: return "closed";
+  }
+}
+
+/** Everything one operations reply prepared, reviewed together and confirmed one by one (ADR-0022). */
+export function OperationsActionGroup({
+  actionIds,
+  onReplaced,
+}: {
+  actionIds: readonly string[];
+  onReplaced?: (originalId: string, replacementId: string) => void;
+}) {
+  const confirm = useConfirmOperationsAssistantAction();
+  const queries = useQueries({
+    queries: actionIds.map((actionId) => ({
+      queryKey: operationsAssistantActionQueryKey(actionId),
+      queryFn: ({ signal }: { signal: AbortSignal }) => clinicGetAssistantAction(actionId, undefined, signal),
+      staleTime: 0,
+    })),
+  });
+  if (queries.some((query) => query.isLoading)) return <AssistantActivity />;
+  const failed = queries.find((query) => query.error || !query.data);
+  if (failed) return <AssistantErrorState onRetry={() => void failed.refetch()} />;
+  const items: ActionReviewItem[] = queries.map((query) => {
+    const action = query.data!;
+    return {
+      id: action.actionId,
+      state: reviewState(action),
+      retryable: action.failure?.retryable === true,
+      content: <OperationsAssistantActionReview action={action} onReplaced={onReplaced} />,
+    };
+  });
+  return <ActionReviewGroup items={items} confirm={async (id) => { await confirm.mutateAsync(id); }} />;
 }

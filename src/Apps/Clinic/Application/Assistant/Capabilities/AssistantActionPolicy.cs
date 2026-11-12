@@ -27,6 +27,12 @@ public sealed record AssistantActionPolicy(
     AssistantActionRetryClassification RetryClassification,
     IReadOnlySet<string> ToolNames)
 {
+    /// <summary>
+    /// Whether the person may edit a proposal before confirming it. The edit re-runs the owning tool's prepare step
+    /// with the edited arguments, so it applies only to tools whose review payload is their own arguments.
+    /// </summary>
+    public bool Revisable { get; init; }
+
     public bool RequiresConfirmation => ExecutionMode == AssistantActionExecutionMode.PrepareAndConfirm;
 
     public bool Authorizes(AssistantContext context)
@@ -50,9 +56,10 @@ public static class AssistantActionPolicies
         IEnumerable<string>? toolNames = null,
         TimeSpan? defaultProposalLifetime = null,
         int revision = 1,
-        AssistantActionRetryClassification retryClassification = AssistantActionRetryClassification.NeverRetry) =>
+        AssistantActionRetryClassification retryClassification = AssistantActionRetryClassification.NeverRetry,
+        bool revisable = false) =>
         Create(actionType, owningWorkflow, requiredPermissions, requiredRoles, AssistantActionExecutionMode.PrepareAndConfirm,
-            defaultProposalLifetime ?? TimeSpan.FromMinutes(30), retryClassification, toolNames, revision);
+            defaultProposalLifetime ?? TimeSpan.FromMinutes(30), retryClassification, toolNames, revision) with { Revisable = revisable };
 
     public static AssistantActionPolicy Direct(
         string actionType,

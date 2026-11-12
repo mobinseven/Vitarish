@@ -8,6 +8,7 @@ const mocks = vi.hoisted(() => ({
   push: vi.fn(),
   appointments: vi.fn(),
   surgeries: vi.fn(),
+  setupProgress: vi.fn((): { data?: { applies: boolean } } => ({ data: undefined })),
 }));
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: mocks.push }) }));
@@ -23,6 +24,8 @@ vi.mock("@vitarish/clinic", async () => {
     useCanPlanSurgeries: () => true,
     useClinicListDashboardAppointments: mocks.appointments,
     useSurgeryCalendar: mocks.surgeries,
+    useClinicGetSetupProgress: mocks.setupProgress,
+    ClinicSetupHome: () => <section data-testid="clinic-setup-home" />,
   };
 });
 
@@ -130,5 +133,29 @@ describe("HomeDashboard", () => {
 
     await user.click(screen.getByRole("button", { name: /^Reza Karimi, Knee arthroscopy/ }));
     expect(mocks.push).toHaveBeenLastCalledWith("/surgeries/surgery-next");
+  });
+
+  it("leads with assistant-guided setup while the clinic still needs it, keeping today's panels below", () => {
+    mocks.setupProgress.mockReturnValueOnce({ data: { applies: true } });
+    answerVisits([]);
+    answerSurgeries([]);
+    renderWithLocalization(<HomeDashboard />, { locale: "en" });
+
+    expect(screen.getByTestId("clinic-setup-home")).toBeInTheDocument();
+    expect(screen.getByText("No surgeries on this day.")).toBeVisible();
+  });
+
+  it("shows only today's dashboard when setup does not apply or cannot be read", () => {
+    mocks.setupProgress.mockReturnValueOnce({ data: { applies: false } });
+    answerVisits([]);
+    answerSurgeries([]);
+    const { unmount } = renderWithLocalization(<HomeDashboard />, { locale: "en" });
+    expect(screen.queryByTestId("clinic-setup-home")).not.toBeInTheDocument();
+    unmount();
+
+    mocks.setupProgress.mockReturnValueOnce({ data: undefined });
+    renderWithLocalization(<HomeDashboard />, { locale: "en" });
+    expect(screen.queryByTestId("clinic-setup-home")).not.toBeInTheDocument();
+    expect(screen.getByText("No surgeries on this day.")).toBeVisible();
   });
 });

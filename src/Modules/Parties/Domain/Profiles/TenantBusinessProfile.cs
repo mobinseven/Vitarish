@@ -18,5 +18,8 @@ public sealed class TenantBusinessProfile
     /// <summary>When the owner dismissed the prompt to add a logo; null while it shows.</summary>
     public DateTime? LogoPromptDismissedAt { get; set; }
 
+    /// <summary>When an owner or platform admin chose to set the clinic up later; null while the guide shows.</summary>
+    public DateTime? SetupGuideDismissedAt { get; set; }
+
     public DateTime UpdatedAt { get; set; }
 }

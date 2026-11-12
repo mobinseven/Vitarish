@@ -221,6 +221,9 @@ namespace Vitarish.Parties.Infrastructure.Migrations.PartiesDb
                     b.Property<DateTime?>("LogoPromptDismissedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTime?>("SetupGuideDismissedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 

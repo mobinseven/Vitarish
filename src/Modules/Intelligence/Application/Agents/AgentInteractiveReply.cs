@@ -62,6 +62,24 @@ public static partial class AgentInteractiveReplyFormat
     public static AgentResultDefinition Definition(AgentInteractionVocabulary vocabulary)
     {
         ArgumentNullException.ThrowIfNull(vocabulary);
+        JsonObject root = StrictObject(new JsonObject
+        {
+            [TextProperty] = new JsonObject { ["type"] = "string" },
+            [QuestionProperty] = QuestionSchema(),
+            [ReferencesProperty] = new JsonObject { ["type"] = "array", ["items"] = KeyedString(vocabulary.ReferenceKeys, nullable: false) },
+            [NextActionProperty] = NextActionSchema(vocabulary.ActionKeys)
+        });
+        if (vocabulary.AllowsMemory)
+        {
+            ((JsonObject)root["properties"]!)[RememberProperty] = new JsonObject { ["type"] = "array", ["items"] = new JsonObject { ["type"] = "string" } };
+            ((JsonArray)root["required"]!).Add(RememberProperty);
+        }
+        return new AgentResultDefinition(ResultName, root.ToJsonString());
+    }
+
+    /// <summary>The nullable question property schema, for result schemas that add a question to their own shape.</summary>
+    public static JsonObject QuestionSchema()
+    {
         JsonObject option = StrictObject(new JsonObject
         {
             [OptionKeyProperty] = new JsonObject { ["type"] = "string" },
@@ -74,19 +92,25 @@ public static partial class AgentInteractiveReplyFormat
             [MaxSelectionsProperty] = new JsonObject { ["type"] = "integer" }
         });
         question["type"] = new JsonArray("object", "null");
-        JsonObject root = StrictObject(new JsonObject
-        {
-            [TextProperty] = new JsonObject { ["type"] = "string" },
-            [QuestionProperty] = question,
-            [ReferencesProperty] = new JsonObject { ["type"] = "array", ["items"] = KeyedString(vocabulary.ReferenceKeys, nullable: false) },
-            [NextActionProperty] = KeyedString(vocabulary.ActionKeys, nullable: true)
-        });
-        if (vocabulary.AllowsMemory)
-        {
-            ((JsonObject)root["properties"]!)[RememberProperty] = new JsonObject { ["type"] = "array", ["items"] = new JsonObject { ["type"] = "string" } };
-            ((JsonArray)root["required"]!).Add(RememberProperty);
-        }
-        return new AgentResultDefinition(ResultName, root.ToJsonString());
+        return question;
+    }
+
+    /// <summary>The nullable next-action property schema, steered to the app's action keys.</summary>
+    public static JsonObject NextActionSchema(IReadOnlyCollection<string> actionKeys)
+    {
+        ArgumentNullException.ThrowIfNull(actionKeys);
+        return KeyedString(actionKeys, nullable: true);
+    }
+
+    /// <summary>Reads the question property of a result object leniently: a malformed question is simply absent.</summary>
+    public static AgentInteractiveQuestion? ReadQuestion(JsonElement root) =>
+        root.ValueKind == JsonValueKind.Object ? Question(root) : null;
+
+    /// <summary>Reads the next-action property of a result object; a key outside the app's set is absent.</summary>
+    public static string? ReadNextAction(JsonElement root, IReadOnlyCollection<string> actionKeys)
+    {
+        ArgumentNullException.ThrowIfNull(actionKeys);
+        return root.ValueKind == JsonValueKind.Object ? Key(root, NextActionProperty, actionKeys) : null;
     }
 
     /// <summary>Reads a run's output as an interactive reply, or returns null when it carries no usable text.</summary>

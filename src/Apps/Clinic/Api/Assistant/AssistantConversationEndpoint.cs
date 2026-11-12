@@ -89,7 +89,12 @@ public sealed class AssistantConversationEndpoint(
                 candidate.CandidateToken, candidate.DisplayName, candidate.DateOfBirth,
                 candidate.MaskedIdentification, candidate.MaskedPhone)).ToArray(),
             result.HasMoreCandidates);
-        return new(AgentConversationOutcome.Succeeded, result.AgentRunId, conversationId, JsonSerializer.SerializeToElement(response, WebJson));
+        return new(
+            AgentConversationOutcome.Succeeded,
+            result.AgentRunId,
+            conversationId,
+            JsonSerializer.SerializeToElement(response, WebJson),
+            AssistantGuidedSurface.Blocks(result));
     }
 
     private static Guid? ParseConversationId(string value) => Guid.TryParse(value, out Guid id) ? id : null;

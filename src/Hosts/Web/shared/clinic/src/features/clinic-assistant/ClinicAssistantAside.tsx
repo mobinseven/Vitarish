@@ -8,7 +8,10 @@ import { useEffect, useState } from "react";
 import { clinicResolveClinicAssistantCandidate } from "../../api/generated/clinic/clinic";
 import { usePatientDetail } from "../../hooks/patients/usePatientDetail";
 import { useLocalizedText } from "../../localization";
-import { OperationsAssistantActionList, AssistantActionList } from "./AssistantActions";
+import { AssistantActionList } from "./AssistantActions";
+import { OperationsGuidedReply } from "./OperationsGuidedReply";
+import type { NavigationIntent } from "../../navigation";
+import { isSetupGoal, setupGoalIntents } from "../clinic-setup/setupGoals";
 import { AssistantComposer, AssistantErrorState, AssistantMessageList } from "./AssistantPanel";
 import { useClinicAssistantConversationSurface, useOperationsAssistantConversation, useAssistantConversation } from "./hooks";
 
@@ -17,10 +20,13 @@ export type ClinicAssistantScope = { kind: "practice" } | { kind: "patient"; pat
 export function ClinicAssistantAside({
   isOpen,
   onNavigateToPatient,
+  onNavigate,
   scope,
 }: {
   isOpen: boolean;
   onNavigateToPatient: (patientId: string) => void;
+  /** Opens a clinic screen the assistant suggests, such as a setup step's screen. */
+  onNavigate?: (intent: NavigationIntent) => void;
   scope: ClinicAssistantScope;
 }) {
   const { locale, t } = useLocalizedText();
@@ -97,7 +103,19 @@ export function ClinicAssistantAside({
             </ItemCard>)}
             {selectionError ? <p role="alert" className="text-sm text-danger">{t("clinic.operationsAssistant.candidates.expired")}</p> : null}
           </div> : null}
-          {patient ? <AssistantActionList patientId={patientId} actionIds={surface.actionIds} /> : <OperationsAssistantActionList actionIds={surface.actionIds} />}
+          {patient ? <AssistantActionList patientId={patientId} actionIds={surface.actionIds} /> : (
+            <OperationsGuidedReply
+              actionGroups={surface.actionGroups}
+              question={surface.question}
+              nextAction={surface.nextAction}
+              turnKey={surface.lastMessage}
+              isPending={conversation.isPending}
+              submit={(message) => void surface.submit(message)}
+              replaceAction={surface.replaceAction}
+              onOpenGoal={onNavigate ? (goal) => { if (isSetupGoal(goal)) onNavigate(setupGoalIntents[goal]); } : undefined}
+              showDismissedSetupGoals
+            />
+          )}
         </AssistantMessageList>
       </div>
       <footer className="shrink-0 border-t border-border p-3"><AssistantComposer scope={patient ? "patient" : "operations"} disabled={conversation.isPending} onSubmit={surface.submit} sessionKey={patient ? `clinic.assistant.patient:${patientId}` : "clinic.assistant.operations"} /></footer>

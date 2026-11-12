@@ -227,3 +227,114 @@ describe("useConversationController", () => {
     await waitFor(() => expect(capturedSignal?.aborted).toBe(true));
   });
 });
+
+describe("useConversationController continued conversations", () => {
+  const answer = (conversationId: string) => ({ conversationId, result: "answer" });
+
+  it("sends an initial conversation with the first run and does not delete it on mount", async () => {
+    const run = vi.fn().mockResolvedValue(answer("shared-1"));
+    const deleteConversation = vi.fn().mockResolvedValue(undefined);
+    const onConversationIdChange = vi.fn();
+    const { result } = renderHook(() =>
+      useConversationController({
+        ownerKey: "practice",
+        isOpen: true,
+        resetOnClose: false,
+        initialConversationId: "shared-1",
+        onConversationIdChange,
+        run,
+        deleteConversation,
+      }),
+    );
+
+    expect(deleteConversation).not.toHaveBeenCalled();
+    expect(onConversationIdChange).not.toHaveBeenCalled();
+    await act(() => result.current.submit("continue"));
+
+    expect(run.mock.calls[0].slice(0, 2)).toEqual(["continue", "shared-1"]);
+    expect(onConversationIdChange).toHaveBeenCalledWith("shared-1");
+    expect(deleteConversation).not.toHaveBeenCalled();
+  });
+
+  it("deletes the current conversation and starts fresh when the owner changes after mount", async () => {
+    const run = vi
+      .fn()
+      .mockResolvedValueOnce(answer("fresh-1"))
+      .mockResolvedValueOnce(answer("fresh-2"));
+    const deleteConversation = vi.fn().mockResolvedValue(undefined);
+    const onConversationIdChange = vi.fn();
+    const { result, rerender } = renderHook(
+      ({ ownerKey }) =>
+        useConversationController({
+          ownerKey,
+          isOpen: true,
+          resetOnClose: false,
+          initialConversationId: "shared-1",
+          onConversationIdChange,
+          run,
+          deleteConversation,
+        }),
+      { initialProps: { ownerKey: "practice-a" } },
+    );
+    expect(deleteConversation).not.toHaveBeenCalled();
+
+    rerender({ ownerKey: "practice-b" });
+
+    expect(deleteConversation).toHaveBeenCalledTimes(1);
+    expect(deleteConversation).toHaveBeenCalledWith("shared-1");
+    expect(onConversationIdChange).toHaveBeenLastCalledWith(null);
+    await act(() => result.current.submit("hello"));
+    expect(run.mock.calls[0].slice(0, 2)).toEqual(["hello", null]);
+  });
+
+  it("keeps the conversation when the surface closes and reopens with resetOnClose disabled", async () => {
+    const run = vi.fn().mockResolvedValue(answer("keep-1"));
+    const deleteConversation = vi.fn().mockResolvedValue(undefined);
+    const { result, rerender } = renderHook(
+      ({ isOpen }) =>
+        useConversationController({
+          ownerKey: "practice",
+          isOpen,
+          resetOnClose: false,
+          run,
+          deleteConversation,
+        }),
+      { initialProps: { isOpen: true } },
+    );
+    await act(() => result.current.submit("first"));
+
+    rerender({ isOpen: false });
+    rerender({ isOpen: true });
+    await act(() => result.current.submit("second"));
+
+    expect(deleteConversation).not.toHaveBeenCalled();
+    expect(run.mock.calls[1].slice(0, 2)).toEqual(["second", "keep-1"]);
+  });
+
+  it("deletes the conversation when the surface closes by default", async () => {
+    const run = vi
+      .fn()
+      .mockResolvedValueOnce(answer("close-1"))
+      .mockResolvedValueOnce(answer("close-2"));
+    const deleteConversation = vi.fn().mockResolvedValue(undefined);
+    const { result, rerender } = renderHook(
+      ({ isOpen }) =>
+        useConversationController({
+          ownerKey: "patient-1",
+          isOpen,
+          run,
+          deleteConversation,
+        }),
+      { initialProps: { isOpen: true } },
+    );
+    await act(() => result.current.submit("first"));
+
+    rerender({ isOpen: false });
+
+    expect(deleteConversation).toHaveBeenCalledTimes(1);
+    expect(deleteConversation).toHaveBeenCalledWith("close-1");
+    rerender({ isOpen: true });
+    await act(() => result.current.submit("again"));
+    expect(run.mock.calls[1].slice(0, 2)).toEqual(["again", null]);
+  });
+});

@@ -10,9 +10,15 @@ public static class ClinicAuthorizationRegistrationExtensions
     public static IServiceCollection AddClinicApiAuthorization(this IServiceCollection services)
     {
         _ = services.AddAuthorization(options =>
+        {
             options.AddPolicy(ClinicAuthorizationPolicies.PlanSurgeries, policy => policy
                 .RequireAuthenticatedUser()
-                .AddRequirements(SurgeryPlanningAuthorizationRequirement.Instance)));
+                .AddRequirements(SurgeryPlanningAuthorizationRequirement.Instance));
+            // Setting the clinic up is owner-or-admin, the same check as surgery planning.
+            options.AddPolicy(ClinicAuthorizationPolicies.ManageSetup, policy => policy
+                .RequireAuthenticatedUser()
+                .AddRequirements(SurgeryPlanningAuthorizationRequirement.Instance));
+        });
         _ = services.AddScoped<SurgeryPlanningAuthorizationHandler>();
         _ = services.AddScoped<IAuthorizationHandler>(provider => provider.GetRequiredService<SurgeryPlanningAuthorizationHandler>());
         return services;

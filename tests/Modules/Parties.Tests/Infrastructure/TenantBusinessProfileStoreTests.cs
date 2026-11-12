@@ -116,6 +116,35 @@ public sealed class TenantBusinessProfileStoreTests
     }
 
     [Fact]
+    public async Task Dismissing_the_setup_guide_keeps_the_first_time_and_leaves_other_tenants_alone()
+    {
+        string database = Guid.NewGuid().ToString("N");
+        Guid tenantId = await SeedTenantAsync(database);
+        Guid otherTenantId = await SeedTenantAsync(database);
+        Guid deletedId = await SeedTenantAsync(database, deleted: true);
+
+        await using (PartiesDbContext db = CreateContext(database))
+        {
+            TenantBusinessProfileStore store = new(db);
+            (await store.GetAsync(tenantId))!.SetupGuideDismissed.Should().BeFalse();
+            (await store.DismissSetupGuideAsync(Guid.NewGuid(), FixedNow)).Should().BeFalse();
+            (await store.DismissSetupGuideAsync(deletedId, FixedNow)).Should().BeFalse();
+            (await store.DismissSetupGuideAsync(tenantId, FixedNow)).Should().BeTrue();
+            (await store.DismissSetupGuideAsync(tenantId, FixedNow.AddMinutes(5))).Should().BeTrue();
+            (await store.SaveAsync(tenantId, "Skin care", "dermatology", null, FixedNow.AddMinutes(10))).Should().BeTrue();
+        }
+
+        await using PartiesDbContext verify = CreateContext(database);
+        TenantBusinessProfile profile = await verify.TenantBusinessProfiles.SingleAsync();
+        profile.TenantId.Should().Be(tenantId);
+        profile.SetupGuideDismissedAt.Should().Be(FixedNow);
+        profile.LogoPromptDismissedAt.Should().BeNull();
+        TenantBusinessProfileStore reader = new(verify);
+        (await reader.GetAsync(tenantId))!.SetupGuideDismissed.Should().BeTrue();
+        (await reader.GetAsync(otherTenantId))!.SetupGuideDismissed.Should().BeFalse();
+    }
+
+    [Fact]
     public void Stores_details_as_camel_case_json_with_named_weekdays_and_times()
     {
         Guid photo = Guid.Parse("11111111-2222-3333-4444-555555555555");

@@ -18,6 +18,13 @@ export type { InteractiveOptionPickerProps } from "./components/InteractiveOptio
 export { InteractiveReferenceChips, InteractiveReplyMessage } from "./components/InteractiveReplyMessage";
 export type { InteractiveReferenceChipsProps, InteractiveReplyMessageProps } from "./components/InteractiveReplyMessage";
 export { toInteractiveReply } from "./interaction/interactiveReply";
+export { emptyGuidedSurface, toGuidedSurface } from "./interaction/guidedSurface";
+export type { GuidedSurface, GuidedSurfaceActionGroup } from "./interaction/guidedSurface";
+export { ActionReviewGroup } from "./components/ActionReviewGroup";
+export type { ActionReviewGroupProps, ActionReviewItem, ActionReviewItemState } from "./components/ActionReviewGroup";
+export { GoalChecklist } from "./components/GoalChecklist";
+export type { ChecklistGoal, GoalChecklistProps } from "./components/GoalChecklist";
+export type { GuidedSurfaceBlockResponse } from "./api/generated/intelligence/model";
 export { RememberedNotes, UserMemorySection } from "./components/UserMemory";
 export { useUserMemory } from "./hooks/useUserMemory";
 export type {

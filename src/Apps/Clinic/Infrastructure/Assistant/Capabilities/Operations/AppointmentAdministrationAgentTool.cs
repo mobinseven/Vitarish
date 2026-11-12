@@ -20,7 +20,11 @@ public sealed class AppointmentAdministrationAgentTool(
     IShiftBookableDateQueryService bookableDates,
     ITemporaryHoldManager holds) : IClinicOperationsAgentTool, IAssistantPreparationTool
 {
-    private static readonly JsonSerializerOptions PayloadJsonOptions = new(JsonSerializerDefaults.Web);
+    // A model writes enum values by name ("Public", "Monday"); numbers keep working too.
+    private static readonly JsonSerializerOptions PayloadJsonOptions = new(JsonSerializerDefaults.Web)
+    {
+        Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() }
+    };
     private static readonly HashSet<string> Mutations = [
         "create_reservation", "update_reservation", "delete_reservation", "confirm_reservation", "present_reservation",
         "complete_reservation", "cancel_reservation", "reject_reservation", "expire_reservation", "move_reservation",
@@ -46,6 +50,9 @@ public sealed class AppointmentAdministrationAgentTool(
             context.Metadata is not null && context.Metadata.TryGetValue("confirmedAction", out string? confirmed) && confirmed == "true";
         if (Mutations.Contains(operation) && !commit)
         {
+            // Read the payload now, so a value the commit could not use is refused while it can still be corrected.
+            if (PayloadProblem(operation, payload) is { } problem)
+                return new(call.Id, JsonSerializer.Serialize(new { status = "invalid", operation, problem }), true);
             Guid actionId = Guid.CreateVersion7();
             DateTimeOffset expiresAt = DateTimeOffset.UtcNow.AddMinutes(30);
             return new(call.Id, JsonSerializer.Serialize(new { status = "prepared", actionId, arguments = root.GetRawText(), expiresAt }));
@@ -163,6 +170,33 @@ public sealed class AppointmentAdministrationAgentTool(
         where TRead : EntityReadDto where TWrite : EntityWriteDto where TDescriptor : EntityDescriptorDto => (await service.UpdateAsync(value, ct)).Value ?? throw new InvalidOperationException("Appointment resource could not be updated.");
     private static async Task<object> Remove<TRead, TWrite, TDescriptor>(IEntityService<TRead, TWrite, TDescriptor> service, Guid id, CancellationToken ct) where TRead : EntityReadDto where TWrite : EntityWriteDto where TDescriptor : EntityDescriptorDto => await service.RemoveAsync(id, ct);
     private static T Read<T>(JsonElement value) => value.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null ? Activator.CreateInstance<T>() : JsonSerializer.Deserialize<T>(value.GetRawText(), PayloadJsonOptions) ?? throw new JsonException("payload is invalid.");
+    /// <summary>Reads a mutation's payload the way its commit will, and describes what is wrong, if anything.</summary>
+    private static string? PayloadProblem(string operation, JsonElement payload)
+    {
+        try
+        {
+            _ = operation switch
+            {
+                "create_reservation" or "update_reservation" => Read<ReservationWriteDto>(payload),
+                "create_shift" or "update_shift" => Read<ShiftWriteDto>(payload),
+                "create_service" or "update_service" => Read<ServiceWriteDto>(payload),
+                "create_service_type" or "update_service_type" => Read<ServiceTypeWriteDto>(payload),
+                "create_provider" or "update_provider" => Read<ServiceProviderWriteDto>(payload),
+                "create_booking_policy" or "update_booking_policy" => Read<ShiftBookingPolicyWriteDto>(payload),
+                "create_reminder_policy" or "update_reminder_policy" => Read<ShiftReminderPolicyWriteDto>(payload),
+                "link_provider_user" or "unlink_provider_user" => (Id(payload), RequiredString(payload, "userId")),
+                "move_reservation" => (Id(payload), GuidValue(payload, "targetShiftId"), Date(payload, "targetDate")),
+                "create_hold" => (Id(payload), Date(payload, "date")),
+                _ => (object)Id(payload)
+            };
+            return null;
+        }
+        catch (Exception exception) when (exception is JsonException or NotSupportedException or InvalidOperationException)
+        {
+            return exception.Message;
+        }
+    }
+
     private static Guid Id(JsonElement payload) => GuidValue(payload, "id");
     private static Guid GuidValue(JsonElement payload, string name) => payload.ValueKind == JsonValueKind.Object && payload.TryGetProperty(name, out JsonElement value) && value.TryGetGuid(out Guid id) ? id : throw new JsonException($"{name} must be a valid GUID.");
     private static DateOnly Date(JsonElement payload, string name) => payload.ValueKind == JsonValueKind.Object && payload.TryGetProperty(name, out JsonElement value) && value.ValueKind == JsonValueKind.String && DateOnly.TryParse(value.GetString(), out DateOnly date) ? date : throw new JsonException($"{name} must be a valid date.");

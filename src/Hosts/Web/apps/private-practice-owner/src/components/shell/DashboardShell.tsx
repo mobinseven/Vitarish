@@ -18,6 +18,7 @@ import { useTenantAuthorization } from "@vitarish/auth";
 import { ClinicAssistantAside, type ClinicAssistantScope } from "@vitarish/clinic";
 import { useLocalizedText, type MessageKey } from "@/localization";
 import { CommandPalette } from "./CommandPalette/CommandPalette";
+import { useClinicNavigation } from "@/components/clinic-navigation";
 
 const subscribeToNothing = () => () => {};
 
@@ -70,9 +71,10 @@ export function DashboardShell({
   const { t } = useLocalizedText();
   const { hasAccess: canUseOperationsAssistant } = useTenantAuthorization("owner");
   const [operationsAssistantOpen, setOperationsAssistantOpen] = useState(false);
+  const navigateToClinicScreen = useClinicNavigation();
   const showOperationsAssistant = clinicOperationsAssistant && canUseOperationsAssistant;
   const clinicAssistantScope = useMemo(() => resolveClinicAssistantScope(pathname), [pathname]);
-  const operationsAssistant = showOperationsAssistant ? <ClinicAssistantAside isOpen={operationsAssistantOpen} scope={clinicAssistantScope} onNavigateToPatient={(patientId) => router.push(Routes.Clinic.Patients.Detail(patientId))} /> : undefined;
+  const operationsAssistant = showOperationsAssistant ? <ClinicAssistantAside isOpen={operationsAssistantOpen} scope={clinicAssistantScope} onNavigate={navigateToClinicScreen} onNavigateToPatient={(patientId) => router.push(Routes.Clinic.Patients.Detail(patientId))} /> : undefined;
 
   const navigate = useCallback((href: string) => router.push(href), [router]);
 
