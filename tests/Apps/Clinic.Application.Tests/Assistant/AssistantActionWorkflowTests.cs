@@ -1,12 +1,12 @@
 using FluentAssertions;
-using System.Text.Json;
-using System.Text.Json.Nodes;
 using Vitarish.Clinic.Application.Assistant;
 using Vitarish.Clinic.Application.Assistant.Actions;
 using Vitarish.Clinic.Application.Assistant.Capabilities;
 using Vitarish.Clinic.Application.Assistant.Policies;
 using Vitarish.Clinic.Contracts.ClinicAssistant;
 using Vitarish.Intelligence.Application.Agents;
+using Vitarish.Intelligence.Application.PreparedActions;
+using Vitarish.Intelligence.Domain.PreparedActions;
 using Xunit;
 using AssistantActionStatus = Vitarish.Clinic.Application.Assistant.AssistantActionStatus;
 
@@ -48,7 +48,7 @@ public sealed class AssistantActionWorkflowTests
     {
         InMemoryActionStore store = new(Action("create_appointment"));
         StubCommitter committer = new("create_appointment", AssistantActionCommitResult.Completed("{}"));
-        RejectAssistantActionHandler reject = new(store, RegistryFor(committer), new FixedTimeProvider(Now));
+        RejectAssistantActionHandler reject = new(Lifecycle(store), new AssistantActionCommitterRegistry([committer]), RegistryFor(committer));
 
         AssistantActionResult result = await reject.Handle(
             new(store.Action.ActionId, Context(permissions: new HashSet<string> { "Appointments.Create" }), "  not requested  "), CancellationToken.None);
@@ -106,21 +106,6 @@ public sealed class AssistantActionWorkflowTests
     }
 
     [Fact]
-    public void Stored_actions_without_operations_scope_fields_remain_patient_scoped()
-    {
-        JsonObject legacy = JsonSerializer.SerializeToNode(Action("create_appointment"))!.AsObject();
-        _ = legacy.Remove(nameof(AssistantAction.SubjectKind));
-        _ = legacy.Remove(nameof(AssistantAction.ToolCallId));
-        _ = legacy.Remove(nameof(AssistantAction.ToolName));
-
-        AssistantAction restored = legacy.Deserialize<AssistantAction>()!;
-
-        restored.SubjectKind.Should().Be("patient");
-        restored.ToolCallId.Should().BeNull();
-        restored.ToolName.Should().BeNull();
-    }
-
-    [Fact]
     public async Task Practice_action_requires_the_same_owner_and_practice_on_confirmation()
     {
         AssistantAction action = Action("book_appointment") with
@@ -170,7 +155,7 @@ public sealed class AssistantActionWorkflowTests
     {
         InMemoryActionStore store = new(Action("create_appointment") with { ExpiresAt = Now });
         StubCommitter committer = new("create_appointment");
-        RejectAssistantActionHandler handler = new(store, RegistryFor(committer), new FixedTimeProvider(Now));
+        RejectAssistantActionHandler handler = new(Lifecycle(store), new AssistantActionCommitterRegistry([committer]), RegistryFor(committer));
 
         AssistantActionResult result = await handler.Handle(
             new(store.Action.ActionId, Context(permissions: new HashSet<string> { "Appointments.Create" }), null), CancellationToken.None);
@@ -222,7 +207,9 @@ public sealed class AssistantActionWorkflowTests
     }
 
     private static ConfirmAssistantActionHandler Handler(InMemoryActionStore store, params StubCommitter[] committers) =>
-        new(store, new AssistantActionCommitterRegistry(committers), RegistryFor(committers), new FixedTimeProvider(Now));
+        new(Lifecycle(store), new AssistantActionCommitterRegistry(committers), RegistryFor(committers));
+
+    private static PreparedActionLifecycle Lifecycle(InMemoryActionStore store) => new(store, new FixedTimeProvider(Now));
 
     private static AssistantCapabilityRegistry RegistryFor(params StubCommitter[] committers) =>
         new(
@@ -275,7 +262,7 @@ public sealed class AssistantActionWorkflowTests
     private static AssistantAction Action(string actionType) => new(
         Guid.NewGuid(), "run-1", "conversation-1", DefaultPatientId, "practice-1", "user-1",
         "Capability", actionType, Guid.NewGuid(), "{}", AssistantActionStatus.Proposed,
-        Now.AddMinutes(-1), Now.AddMinutes(30));
+        Now.AddMinutes(-1), Now.AddMinutes(30), ActionPolicyRevision: 1);
 
     private static AssistantContext Context(
         Guid? patientId = null,
@@ -311,51 +298,59 @@ public sealed class AssistantActionWorkflowTests
         }
     }
 
-    private sealed class InMemoryActionStore(AssistantAction action) : IAssistantActionStore
+    private sealed class InMemoryActionStore(AssistantAction seed) : IPreparedActionStore
     {
         private readonly object _sync = new();
-        public AssistantAction Action { get; private set; } = action;
+        private PreparedAction _current = Prepared(seed);
+        private long _version;
 
-        public Task SaveAsync(AssistantAction value, CancellationToken cancellationToken)
+        public AssistantAction Action
         {
-            lock (_sync) Action = value;
-            return Task.CompletedTask;
+            get { lock (_sync) return ClinicPreparedActionMapping.ToClinic(_current); }
         }
 
-        public Task<AssistantAction?> GetAsync(Guid actionId, CancellationToken cancellationToken)
+        public Task SaveNewAsync(PreparedAction action, CancellationToken cancellationToken) =>
+            throw new NotSupportedException("The workflow tests start from a stored action.");
+
+        public Task<StoredPreparedAction?> GetAsync(Guid actionId, CancellationToken cancellationToken)
         {
-            lock (_sync) return Task.FromResult<AssistantAction?>(Action.ActionId == actionId ? Action : null);
+            lock (_sync)
+                return Task.FromResult(_current.ActionId == actionId
+                    ? new StoredPreparedAction(_current, _version.ToString(System.Globalization.CultureInfo.InvariantCulture))
+                    : null);
         }
 
-        public Task<bool> TryBeginConfirmationAsync(Guid actionId, bool retryFailed, CancellationToken cancellationToken) =>
-            Transition(actionId, current => current.Status == AssistantActionStatus.Proposed ||
-                retryFailed && current.Status == AssistantActionStatus.Failed && current.Failure?.Retryable == true,
-                current => current with { Status = AssistantActionStatus.Confirming, Failure = null });
-
-        public Task<bool> TryRejectAsync(Guid actionId, DateTimeOffset rejectedAt, string? reason, CancellationToken cancellationToken) =>
-            Transition(actionId, current => current.Status == AssistantActionStatus.Proposed,
-                current => current with { Status = AssistantActionStatus.Rejected, RejectedAt = rejectedAt, RejectionReason = reason });
-
-        public Task<bool> CompleteAsync(Guid actionId, DateTimeOffset confirmedAt, string confirmedByUserId, string completionPayload, CancellationToken cancellationToken) =>
-            Transition(actionId, current => current.Status == AssistantActionStatus.Confirming,
-                current => current with { Status = AssistantActionStatus.Completed, ConfirmedAt = confirmedAt, ConfirmedByUserId = confirmedByUserId, CompletionPayload = completionPayload });
-
-        public Task<bool> FailAsync(Guid actionId, AssistantActionFailure failure, CancellationToken cancellationToken) =>
-            Transition(actionId, current => current.Status is AssistantActionStatus.Confirming or AssistantActionStatus.Proposed,
-                current => current with { Status = AssistantActionStatus.Failed, Failure = failure });
-
-        public Task<bool> ExpireAsync(Guid actionId, CancellationToken cancellationToken) =>
-            Transition(actionId, current => current.Status is AssistantActionStatus.Proposed or AssistantActionStatus.Failed,
-                current => current with { Status = AssistantActionStatus.Expired });
-
-        private Task<bool> Transition(Guid actionId, Func<AssistantAction, bool> predicate, Func<AssistantAction, AssistantAction> update)
+        public Task<bool> TryReplaceAsync(StoredPreparedAction current, PreparedAction next, CancellationToken cancellationToken)
         {
             lock (_sync)
             {
-                if (Action.ActionId != actionId || !predicate(Action)) return Task.FromResult(false);
-                Action = update(Action);
+                if (_current.ActionId != next.ActionId ||
+                    current.Version != _version.ToString(System.Globalization.CultureInfo.InvariantCulture))
+                    return Task.FromResult(false);
+                _current = next;
+                _version++;
                 return Task.FromResult(true);
             }
         }
+
+        private static PreparedAction Prepared(AssistantAction action) => new(
+            action.ActionId,
+            action.SubjectKind == AssistantSubjects.PracticeKind ? AssistantSubjects.OperationsAgentKey : AssistantSubjects.PatientAgentKey,
+            action.PracticeId,
+            action.SubjectKind,
+            action.SubjectKind == AssistantSubjects.PracticeKind ? action.PracticeId : action.PatientId.ToString("D"),
+            action.ConversationId,
+            action.AgentRunId,
+            action.RequestedByUserId,
+            action.Capability,
+            action.ActionType,
+            action.ActionPolicyRevision,
+            action.ReviewPayload,
+            action.Summary,
+            action.ToolCallId,
+            action.ToolName,
+            PreparedActionStatus.Proposed,
+            action.PreparedAt,
+            action.ExpiresAt);
     }
 }
