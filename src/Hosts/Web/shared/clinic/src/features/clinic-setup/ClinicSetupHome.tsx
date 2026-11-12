@@ -75,7 +75,7 @@ export function ClinicSetupHome({ progress, onNavigate }: ClinicSetupHomeProps) 
                   <div className="flex flex-wrap gap-2">
                     {openGoals.map((goal) => (
                       <Tooltip key={goal}>
-                        <Button variant={goal === nextGoal ? "primary" : "outline"} onPress={() => submit(t(`clinic.setup.chips.${goal}`))}>
+                        <Button className="h-auto min-h-10 max-w-full whitespace-normal py-2 text-start" variant={goal === nextGoal ? "primary" : "outline"} onPress={() => submit(t(`clinic.setup.chips.${goal}`))}>
                           <FaIcon icon="comment-dots" aria-hidden="true" />{t(`clinic.setup.chips.${goal}`)}
                         </Button>
                         <Tooltip.Content>{t("clinic.setup.chipTooltip")}</Tooltip.Content>
