@@ -254,7 +254,13 @@ export function OperationsAssistantActionReview({
             } : undefined}
           />
         ) : action.actionType === operationsActionTypes.inviteMember ? (
-          <StaffInviteActionCard reviewPayload={action.reviewPayload} />
+          <StaffInviteActionCard
+            reviewPayload={action.reviewPayload}
+            onRevise={action.status === "Proposed" && !pending ? async (argumentsJson) => {
+              const replacement = await revise.mutateAsync({ actionId: action.actionId, argumentsJson });
+              onReplaced?.(action.actionId, replacement.actionId);
+            } : undefined}
+          />
         ) : (
           <OperationsActionCard payload={payload} expiresAt={action.expiresAt} />
         )}

@@ -111,17 +111,44 @@ export function useOperationsAssistantConversation(isOpen: boolean) {
     },
     [],
   );
+  const [initialConversationId] = useState(readOperationsConversationId);
   return useConversationController({
     ownerKey: "clinic.assistant.operations",
     isOpen,
     run: runTurn,
     deleteConversation: clinicDeleteOperationsAssistantConversation,
+    // One operations conversation per browser session, shared by the setup home and the side panel; closing a
+    // panel keeps it, and "start a new conversation" deletes it everywhere.
+    resetOnClose: false,
+    initialConversationId,
+    onConversationIdChange: writeOperationsConversationId,
     isNotFound: (error) =>
       typeof error === "object" &&
       error !== null &&
       "status" in error &&
       error.status === 404,
   });
+}
+
+/** Where the browser session remembers its operations conversation; the server still owns who may continue it. */
+const operationsConversationStorageKey = "vitarish.clinic.operationsAssistant.conversationId";
+
+function readOperationsConversationId(): string | null {
+  try {
+    return typeof window === "undefined" ? null : window.sessionStorage.getItem(operationsConversationStorageKey);
+  } catch {
+    return null;
+  }
+}
+
+function writeOperationsConversationId(conversationId: string | null) {
+  try {
+    if (typeof window === "undefined") return;
+    if (conversationId) window.sessionStorage.setItem(operationsConversationStorageKey, conversationId);
+    else window.sessionStorage.removeItem(operationsConversationStorageKey);
+  } catch {
+    // Without storage, each surface keeps its own conversation, as before.
+  }
 }
 
 export function useClinicAssistantConversationSurface(

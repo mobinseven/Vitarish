@@ -13,7 +13,9 @@ public sealed class StaffAssistantCapability(PrepareInviteMemberTool tool) : Ass
         [],
         [AssistantOperationsScope.TenantOwnerRole],
         [AssistantStaffInvitation.PrepareToolName],
-        retryClassification: AssistantActionRetryClassification.Retryable)
+        retryClassification: AssistantActionRetryClassification.Retryable,
+        // The review holds the tool's own arguments, so an owner's edit re-runs the same validation.
+        revisable: true)
 ])
 {
     public override string Name => AssistantStaffInvitation.CapabilityKey;

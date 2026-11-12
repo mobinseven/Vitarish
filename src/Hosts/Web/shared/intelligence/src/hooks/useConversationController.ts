@@ -18,6 +18,8 @@ export interface UseConversationControllerOptions<TResult> {
   deleteConversation: (conversationId: string) => Promise<void>;
   isNotFound?: (error: unknown) => boolean;
   resetOnClose?: boolean;
+  /** A conversation to continue, for example one another surface of the same app started. */
+  initialConversationId?: string | null;
   onConversationIdChange?: (conversationId: string | null) => void;
 }
 
@@ -37,9 +39,10 @@ export function useConversationController<TResult>({
   deleteConversation,
   isNotFound = () => false,
   resetOnClose = true,
+  initialConversationId = null,
   onConversationIdChange,
 }: UseConversationControllerOptions<TResult>): ConversationController<TResult> {
-  const conversationId = useRef<string | null>(null);
+  const conversationId = useRef<string | null>(initialConversationId);
   const lastMessage = useRef<string | null>(null);
   const instance = useRef(0);
   const wasOpen = useRef(false);
@@ -60,7 +63,11 @@ export function useConversationController<TResult>({
     if (current) void deleteConversation(current).catch(() => undefined);
   }, [deleteConversation, onConversationIdChange]);
 
+  // A new owner starts a new conversation; mounting does not, so a continued conversation survives.
+  const resetOwnerKey = useRef(ownerKey);
   useEffect(() => {
+    if (resetOwnerKey.current === ownerKey) return;
+    resetOwnerKey.current = ownerKey;
     reset();
   }, [ownerKey, reset]);
 

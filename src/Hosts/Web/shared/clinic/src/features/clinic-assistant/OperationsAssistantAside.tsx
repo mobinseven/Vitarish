@@ -2,11 +2,10 @@
 
 import { ChatLoader, ChatMessage } from "@heroui-pro/react";
 import { Button, Modal, Tooltip } from "@heroui/react";
-import { InteractiveOptionPicker } from "@vitarish/intelligence";
 import { FaIcon } from "@vitarish/ui";
 import { useState, type ReactNode } from "react";
 import { useLocalizedText } from "../../localization";
-import { OperationsActionGroup } from "./AssistantActions";
+import { OperationsGuidedReply } from "./OperationsGuidedReply";
 import { AssistantComposer, AssistantErrorState, AssistantMessageList } from "./AssistantPanel";
 import { useClinicAssistantConversationSurface, useOperationsAssistantConversation } from "./hooks";
 
@@ -45,24 +44,16 @@ export function OperationsAssistantAside({ isOpen, welcome, onNextAction }: Oper
           {conversation.isPending ? <ChatMessage.Assistant><ChatMessage.Avatar show alt={t("clinic.operationsAssistant.title")} fallback="AI" /><ChatMessage.Body><ChatLoader.Dots label={t("clinic.operationsAssistant.running")} /></ChatMessage.Body></ChatMessage.Assistant> : null}
           {conversation.isError ? <AssistantErrorState scope="operations" onRetry={surface.lastMessage ? () => void surface.retry() : undefined} /> : null}
           {welcome && surface.messages.length === 0 && !conversation.isPending ? welcome((message) => void surface.submit(message)) : null}
-          {surface.actionGroups.map((group) => (
-            <OperationsActionGroup key={`${group.agentRunId}:${group.actionIds[0]}`} actionIds={group.actionIds} onReplaced={surface.replaceAction} />
-          ))}
-          {surface.question && !conversation.isPending ? (
-            <div className="flex flex-col gap-2">
-              <InteractiveOptionPicker
-                key={surface.lastMessage}
-                question={surface.question}
-                onAnswer={(keys) => {
-                  const labels = surface.question!.options.filter((option) => keys.includes(option.key)).map((option) => option.label);
-                  void surface.submit(labels.join(locale === "fa" ? "، " : ", "));
-                }}
-              />
-            </div>
-          ) : null}
-          {surface.nextAction && onNextAction && !conversation.isPending ? (
-            <div><Tooltip><Button variant="outline" onPress={() => onNextAction(surface.nextAction!)}><FaIcon icon="arrow-up-right-from-square" aria-hidden="true" />{t("clinic.operationsAssistant.nextStep", { goal: t(`clinic.setup.goals.${surface.nextAction}`) })}</Button><Tooltip.Content>{t("clinic.operationsAssistant.nextStepTooltip")}</Tooltip.Content></Tooltip></div>
-          ) : null}
+          <OperationsGuidedReply
+            actionGroups={surface.actionGroups}
+            question={surface.question}
+            nextAction={surface.nextAction}
+            turnKey={surface.lastMessage}
+            isPending={conversation.isPending}
+            submit={(message) => void surface.submit(message)}
+            replaceAction={surface.replaceAction}
+            onOpenGoal={onNextAction}
+          />
         </AssistantMessageList>
       </div>
       <footer className="shrink-0 border-t border-border p-3"><AssistantComposer scope="operations" disabled={conversation.isPending} onSubmit={surface.submit} sessionKey="clinic.assistant.operations" /></footer>

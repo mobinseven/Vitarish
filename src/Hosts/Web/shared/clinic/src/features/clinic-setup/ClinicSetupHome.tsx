@@ -10,22 +10,11 @@ import {
   getClinicGetSetupProgressQueryKey,
   useClinicDismissSetupGuide,
 } from "../../api/generated/clinic/clinic";
-import { ClinicSetupGoal, type ClinicSetupProgressResponse } from "../../api/generated/clinic/model";
+import type { ClinicSetupProgressResponse } from "../../api/generated/clinic/model";
+import { isSetupGoal, setupGoalIntents } from "./setupGoals";
 import { useLocalizedText } from "../../localization";
 import type { NavigationIntent } from "../../navigation";
 import { OperationsAssistantAside } from "../clinic-assistant/OperationsAssistantAside";
-
-/** The existing screen each setup goal opens, for people who prefer the menus. */
-const goalIntents: Record<ClinicSetupGoal, NavigationIntent> = {
-  [ClinicSetupGoal.ServicesAndProviders]: { kind: "serviceIndex" },
-  [ClinicSetupGoal.ShiftsAndBookingRules]: { kind: "ownerShiftIndex" },
-  [ClinicSetupGoal.StaffUsers]: { kind: "clinicSettingsUsers" },
-  [ClinicSetupGoal.ClinicProfile]: { kind: "clinicSettings" },
-};
-
-function isSetupGoal(value: string): value is ClinicSetupGoal {
-  return Object.values(ClinicSetupGoal).includes(value as ClinicSetupGoal);
-}
 
 export interface ClinicSetupHomeProps {
   progress: ClinicSetupProgressResponse;
@@ -46,7 +35,7 @@ export function ClinicSetupHome({ progress, onNavigate }: ClinicSetupHomeProps) 
   });
   const nextGoal = progress.nextGoal && isSetupGoal(progress.nextGoal) ? progress.nextGoal : null;
   const openGoals = progress.goals.filter((goal) => !goal.done).map((goal) => goal.goal);
-  const navigateToGoal = (key: string) => { if (isSetupGoal(key)) onNavigate(goalIntents[key]); };
+  const navigateToGoal = (key: string) => { if (isSetupGoal(key)) onNavigate(setupGoalIntents[key]); };
 
   const later = async () => {
     setLaterError(false);

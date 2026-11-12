@@ -116,10 +116,26 @@ export function ManageActionCard({ reviewPayload, onRevise }: ManageActionCardPr
   );
 }
 
-/** A staff invitation proposal: the full contact the owner confirms, and the fixed staff role. */
-export function StaffInviteActionCard({ reviewPayload }: { reviewPayload: unknown }) {
+/** A staff invitation proposal: the full contact the owner confirms, the fixed staff role, and an edit form. */
+export function StaffInviteActionCard({
+  reviewPayload,
+  onRevise,
+}: {
+  reviewPayload: unknown;
+  /** Present while the invitation can still be edited; resolves when the edit was saved as a new proposal. */
+  onRevise?: (argumentsJson: Record<string, unknown>) => Promise<void>;
+}) {
   const { t } = useLocalizedText();
   const review = asRecord(reviewPayload);
+  const contactField = typeof review.email === "string" ? "email" : "phoneNumber";
+  const editable: [string, string][] = [
+    ["firstName", t("clinic.operationsAssistant.invite.firstName")],
+    ["lastName", t("clinic.operationsAssistant.invite.lastName")],
+    [contactField, contactField === "email" ? t("clinic.operationsAssistant.invite.email") : t("clinic.operationsAssistant.invite.phone")],
+  ];
+  const [draft, setDraft] = useState<Record<string, string> | null>(null);
+  const [isSaving, setSaving] = useState(false);
+  const [editError, setEditError] = useState(false);
   const rows: [string, unknown][] = [
     [t("clinic.operationsAssistant.invite.firstName"), review.firstName],
     [t("clinic.operationsAssistant.invite.lastName"), review.lastName],
@@ -127,11 +143,57 @@ export function StaffInviteActionCard({ reviewPayload }: { reviewPayload: unknow
     [t("clinic.operationsAssistant.invite.email"), review.email],
     [t("clinic.operationsAssistant.invite.role"), t("clinic.operationsAssistant.invite.staff")],
   ];
+
+  const save = async () => {
+    if (!onRevise || !draft) return;
+    setSaving(true);
+    setEditError(false);
+    try {
+      // Exactly the tool's arguments: one contact and both names; the role is never an input.
+      await onRevise({ firstName: draft.firstName ?? "", lastName: draft.lastName ?? "", [contactField]: draft[contactField] ?? "" });
+      setDraft(null);
+    } catch {
+      setEditError(true);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (draft) {
+    return (
+      <form className="grid grid-cols-1 gap-3 sm:grid-cols-2" onSubmit={(event) => { event.preventDefault(); void save(); }}>
+        {editable.map(([name, label]) => (
+          <TextField key={name}>
+            <Label>{label}</Label>
+            <Input dir={name === contactField ? "ltr" : undefined} value={draft[name] ?? ""} onChange={(event) => setDraft((current) => ({ ...current, [name]: event.target.value }))} />
+          </TextField>
+        ))}
+        {editError ? <p role="alert" className="text-danger sm:col-span-2">{t("clinic.operationsAssistant.manage.editError")}</p> : null}
+        <div className="flex flex-wrap gap-2 sm:col-span-2">
+          <Tooltip><Button type="submit" variant="primary" isPending={isSaving} isDisabled={isSaving}><FaIcon icon="floppy-disk" aria-hidden="true" />{t("clinic.operationsAssistant.manage.save")}</Button><Tooltip.Content>{t("clinic.operationsAssistant.manage.saveTooltip")}</Tooltip.Content></Tooltip>
+          <Tooltip><Button variant="tertiary" isDisabled={isSaving} onPress={() => setDraft(null)}><FaIcon icon="xmark" aria-hidden="true" />{t("clinic.operationsAssistant.manage.cancelEdit")}</Button><Tooltip.Content>{t("clinic.operationsAssistant.manage.cancelEditTooltip")}</Tooltip.Content></Tooltip>
+        </div>
+      </form>
+    );
+  }
+
   return (
-    <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-      {rows.filter(([, value]) => typeof value === "string" && value.length > 0).map(([label, value]) => (
-        <div key={label}><dt className="text-muted">{label}</dt><dd dir="ltr" className="text-start">{String(value)}</dd></div>
-      ))}
-    </dl>
+    <div className="flex flex-col gap-3">
+      <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        {rows.filter(([, value]) => typeof value === "string" && value.length > 0).map(([label, value]) => (
+          <div key={label}><dt className="text-muted">{label}</dt><dd dir="ltr" className="text-start">{String(value)}</dd></div>
+        ))}
+      </dl>
+      {onRevise ? (
+        <div>
+          <Tooltip>
+            <Button variant="outline" onPress={() => { setEditError(false); setDraft(Object.fromEntries(editable.map(([name]) => [name, typeof review[name] === "string" ? String(review[name]) : ""]))); }}>
+              <FaIcon icon="pen" aria-hidden="true" />{t("clinic.operationsAssistant.manage.edit")}
+            </Button>
+            <Tooltip.Content>{t("clinic.operationsAssistant.manage.editTooltip")}</Tooltip.Content>
+          </Tooltip>
+        </div>
+      ) : null}
+    </div>
   );
 }

@@ -74,6 +74,8 @@ public sealed class StaffInvitationAssistantTests
         policy.RequiredRoles.Should().BeEquivalentTo([AssistantOperationsScope.TenantOwnerRole]);
         policy.RetryClassification.Should().Be(AssistantActionRetryClassification.Retryable);
         policy.ToolNames.Should().BeEquivalentTo([AssistantStaffInvitation.PrepareToolName]);
+        // The owner may edit an invitation before confirming; the edit runs the tool's validation again.
+        policy.Revisable.Should().BeTrue();
     }
 
     [Fact]
