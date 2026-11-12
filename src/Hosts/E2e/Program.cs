@@ -153,6 +153,7 @@ _ = builder.Services.AddAuditStorageOutageReporting(openApiGeneration: false);
 builder.Services.AddSingleton<Hangfire.IBackgroundJobClient, E2eBackgroundJobClient>();
 builder.Services.Replace(ServiceDescriptor.Singleton<IClinicalEventProposalStore, E2eClinicalEventProposalStore>());
 builder.Services.Replace(ServiceDescriptor.Singleton<IPreparedActionStore, E2ePreparedActionStore>());
+builder.Services.Replace(ServiceDescriptor.Singleton<Vitarish.Intelligence.Application.Agents.IAgentConversationStore, E2eAgentConversationStore>());
 // The E2E host has no model provider; scenarios script the model's tool calls and result instead.
 builder.Services.Replace(ServiceDescriptor.Transient<Vitarish.Intelligence.Application.Agents.IAgentRunner, E2eScriptedAgentRunner>());
 builder.Services.Replace(ServiceDescriptor.Singleton<ISurgeryAssistantProposalStore, E2eSurgeryAssistantProposalStore>());
