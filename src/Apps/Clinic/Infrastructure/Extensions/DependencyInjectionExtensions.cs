@@ -101,6 +101,8 @@ namespace Vitarish.Clinic.Infrastructure.Extensions
             _ = services.AddTransient<ListPatientEventAttachmentMetadataTool>();
             _ = services.AddTransient<IAssistantCapability, SeaPatientReadAgentCapability>();
             _ = services.AddTransient<IAssistantCapability, ClinicalEventAgentCapability>();
+            _ = services.AddTransient<Vitarish.Clinic.Infrastructure.Assistant.Capabilities.Setup.GetClinicSetupProgressTool>();
+            _ = services.AddTransient<IAssistantCapability, Vitarish.Clinic.Infrastructure.Assistant.Capabilities.Setup.SetupAssistantCapability>();
             _ = services.AddTransient<IAssistantPatientSearch, AssistantSearch>();
             _ = services.AddTransient<IAssistantOperationsAccessVerifier, UserAssistantOperationsAccessVerifier>();
             _ = services.AddTransient<IClinicOperationsAgentTool, SearchPatientsTool>();

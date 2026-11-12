@@ -324,7 +324,8 @@ public sealed class AssistantSecurityRegressionTests
                 new PreparedActionLifecycle(actionStore, time),
                 registry,
                 time),
-            new AssistantToolResolver(manifestComposer));
+            new AssistantToolResolver(manifestComposer),
+            manifestComposer);
     }
 
     private static AssistantContext PatientContext(IReadOnlySet<string>? permissions = null, string role = "Clinician") => new(

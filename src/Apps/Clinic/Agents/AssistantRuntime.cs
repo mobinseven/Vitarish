@@ -8,7 +8,8 @@ namespace Vitarish.Clinic.Agents;
 
 public sealed class AssistantRuntime(
     AssistantConversationRunner conversationRunner,
-    AssistantToolResolver toolResolver) : IAssistantRuntime, IAssistantGuardedToolResolver
+    AssistantToolResolver toolResolver,
+    AssistantManifestComposer manifestComposer) : IAssistantRuntime, IAssistantGuardedToolResolver, IAssistantActionPreparation
 {
     public const string ResultSchema = """
         {
@@ -46,6 +47,24 @@ public sealed class AssistantRuntime(
         CancellationToken cancellationToken = default) =>
         conversationRunner.RunAsync(context, input, cancellationToken);
 
+    public async Task<AssistantPreparedAction?> PrepareAsync(
+        AssistantContext context,
+        string toolName,
+        string argumentsJson,
+        CancellationToken cancellationToken = default)
+    {
+        AssistantManifest manifest = manifestComposer.Compose(context);
+        // Only tools the request's context may use are in the manifest; they run behind the same guards as a model call.
+        if (manifest.Tools.FirstOrDefault(tool => string.Equals(tool.Definition.Name, toolName, StringComparison.Ordinal))
+            is not IAssistantPreparationTool tool)
+            return null;
+        AgentToolResult result = await tool.ExecuteAsync(
+            new AgentToolCall(Guid.CreateVersion7().ToString("N"), toolName, argumentsJson),
+            manifest.ExecutionContext,
+            cancellationToken);
+        return result.IsError ? null : tool.GetPreparedAction(result);
+    }
+
     public Task<AssistantToolResult> ResolveAsync(
         AssistantToolResolutionRequest request,
         CancellationToken cancellationToken = default) =>
@@ -69,6 +88,7 @@ public static class AssistantCompositionServiceCollectionExtensions
         _ = services.AddTransient<AssistantRuntime>();
         _ = services.AddTransient<IAssistantRuntime>(sp => sp.GetRequiredService<AssistantRuntime>());
         _ = services.AddTransient<IAssistantGuardedToolResolver>(sp => sp.GetRequiredService<AssistantRuntime>());
+        _ = services.AddTransient<IAssistantActionPreparation>(sp => sp.GetRequiredService<AssistantRuntime>());
         return services;
     }
 }

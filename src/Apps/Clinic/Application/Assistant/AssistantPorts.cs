@@ -11,6 +11,19 @@ public interface IAssistantRuntime
         CancellationToken cancellationToken = default);
 }
 
+/// <summary>
+/// Application-owned boundary for preparing an action again from edited arguments: it runs the named preparation
+/// tool through the same guards as a model call, for the request's own context, and never commits.
+/// </summary>
+public interface IAssistantActionPreparation
+{
+    Task<AssistantPreparedAction?> PrepareAsync(
+        AssistantContext context,
+        string toolName,
+        string argumentsJson,
+        CancellationToken cancellationToken = default);
+}
+
 /// <summary>Application-owned boundary for re-resolving a guarded runtime callback tool.</summary>
 public interface IAssistantGuardedToolResolver
 {

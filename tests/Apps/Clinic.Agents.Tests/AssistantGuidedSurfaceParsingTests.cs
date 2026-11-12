@@ -136,7 +136,8 @@ public sealed class AssistantGuidedSurfaceParsingTests
                 new PreparedActionLifecycle(actionStore, time),
                 registry,
                 time),
-            new AssistantToolResolver(manifestComposer));
+            new AssistantToolResolver(manifestComposer),
+            manifestComposer);
     }
 
     private static AssistantContext PatientContext() => new(

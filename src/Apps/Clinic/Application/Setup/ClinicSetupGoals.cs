@@ -2,6 +2,12 @@ using MediatR;
 
 namespace Vitarish.Clinic.Application.Setup;
 
+/// <summary>The operations assistant capability that guides setup.</summary>
+public static class ClinicSetupAssistant
+{
+    public const string CapabilityName = "Setup";
+}
+
 /// <summary>The things a new clinic sets up, in the order the guide works through them.</summary>
 public enum ClinicSetupGoal
 {

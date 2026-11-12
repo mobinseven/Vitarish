@@ -19,7 +19,7 @@ public sealed class OperationsAgentCapability(IEnumerable<IClinicOperationsAgent
         AssistantActionPolicies.Prepare("close_shift", "appointments.operations", [], [AssistantOperationsScope.TenantOwnerRole], ["prepare_close_shift"]),
         AssistantActionPolicies.Prepare("cancel_shift", "appointments.operations", [], [AssistantOperationsScope.TenantOwnerRole], ["prepare_cancel_shift"]),
         AssistantActionPolicies.Prepare("archive_shift", "appointments.operations", [], [AssistantOperationsScope.TenantOwnerRole], ["prepare_archive_shift"]),
-        AssistantActionPolicies.Prepare("appointment_manage", "appointment-management", [], [AssistantOperationsScope.TenantOwnerRole], ["appointment_manage"]),
+        AssistantActionPolicies.Prepare("appointment_manage", "appointment-management", [], [AssistantOperationsScope.TenantOwnerRole], ["appointment_manage"], revisable: true),
         AssistantActionPolicies.Prepare("reminder_manage", "reminder-management", [], [AssistantOperationsScope.TenantOwnerRole], ["reminder_manage"]),
         AssistantActionPolicies.Direct("confirm_appointment", "appointments.operations", [], [AssistantOperationsScope.TenantOwnerRole], ["operations_confirm_appointment"]),
         AssistantActionPolicies.Direct("present_appointment", "appointments.operations", [], [AssistantOperationsScope.TenantOwnerRole], ["operations_present_appointment"]),

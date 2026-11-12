@@ -43,6 +43,7 @@ public static class ClinicApiRoutes
     public const string AssistantAction = AssistantActions;
     public const string ConfirmAssistantAction = AssistantActions + "/confirm";
     public const string RejectAssistantAction = AssistantActions + "/reject";
+    public const string ReviseAssistantAction = AssistantActions + "/revise";
     public const string OperationsAssistant = "/assistant/operations";
     public const string LegacyOperationsAgent = "/agent/operations";
     public const string OperationsAssistantConversation = OperationsAssistant + "/{conversationId:guid}";
