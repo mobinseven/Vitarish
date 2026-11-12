@@ -38,6 +38,23 @@ export const intelligenceMessageCatalogs = {
         limit: "Pick up to {count}",
         references: "Related features",
       },
+      guidedSurface: {
+        actionGroup: {
+          title: "Prepared for your review",
+          confirmAll: "Confirm all",
+          confirmAllTooltip: "Confirm every proposed item, one by one",
+          retryFailed: "Retry failed",
+          retryFailedTooltip: "Try the items that failed again",
+          progress: "{done} of {total} done",
+          partial: "Some items were not completed. Each one shows what happened.",
+        },
+        goals: {
+          title: "Setup steps",
+          done: "Done",
+          open: "To do",
+          next: "Next",
+        },
+      },
       dictation: {
         language: "Dictation language",
         languages: {
@@ -113,6 +130,23 @@ export const intelligenceMessageCatalogs = {
         submitTooltip: "ارسال گزینه‌هایی که انتخاب کردید",
         limit: "حداکثر {count} مورد",
         references: "امکانات مرتبط",
+      },
+      guidedSurface: {
+        actionGroup: {
+          title: "آماده برای بررسی شما",
+          confirmAll: "تأیید همه",
+          confirmAllTooltip: "همهٔ موارد پیشنهادی را یکی‌یکی تأیید کنید",
+          retryFailed: "تلاش دوباره",
+          retryFailedTooltip: "مواردی را که انجام نشدند دوباره امتحان کنید",
+          progress: "{done} از {total} انجام شد",
+          partial: "بعضی موارد انجام نشدند. وضعیت هر مورد کنارش آمده است.",
+        },
+        goals: {
+          title: "مراحل راه‌اندازی",
+          done: "انجام شد",
+          open: "مانده",
+          next: "مرحلهٔ بعد",
+        },
       },
       dictation: {
         language: "زبان دیکته",

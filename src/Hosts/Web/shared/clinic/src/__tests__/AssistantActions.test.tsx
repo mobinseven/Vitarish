@@ -37,6 +37,8 @@ vi.mock("../features/clinic-assistant/hooks", () => ({
     isPending: false,
   }),
   useOperationsAssistantAction: vi.fn(),
+  useReviseOperationsAssistantAction: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  operationsAssistantActionQueryKey: (actionId: string) => ["operations-action", actionId],
 }));
 vi.mock("@vitarish/ui", () => ({
   FaIcon: ({ icon }: { icon: string }) => (

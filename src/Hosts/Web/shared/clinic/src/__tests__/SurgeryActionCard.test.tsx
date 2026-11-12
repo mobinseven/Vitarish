@@ -17,6 +17,8 @@ vi.mock("../features/clinic-assistant/hooks", () => ({
   useConfirmOperationsAssistantAction: () => ({ mutateAsync: confirmOperation, isPending: false }),
   useRejectOperationsAssistantAction: () => ({ mutateAsync: vi.fn(), isPending: false }),
   useOperationsAssistantAction: vi.fn(),
+  useReviseOperationsAssistantAction: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  operationsAssistantActionQueryKey: (actionId: string) => ["operations-action", actionId],
 }));
 
 const common = {

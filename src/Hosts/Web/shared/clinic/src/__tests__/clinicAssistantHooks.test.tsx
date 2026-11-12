@@ -32,6 +32,8 @@ vi.mock("../api/generated/clinic/clinic", () => ({
   clinicGetPatientAssistantAction: vi.fn(),
   clinicConfirmPatientAssistantAction: vi.fn(),
   clinicRejectPatientAssistantAction: vi.fn(),
+  clinicReviseAssistantAction: vi.fn(),
+  getClinicGetSetupProgressQueryKey: () => ["clinic", "setup-progress"],
 }));
 
 vi.mock("@vitarish/intelligence", async () => ({

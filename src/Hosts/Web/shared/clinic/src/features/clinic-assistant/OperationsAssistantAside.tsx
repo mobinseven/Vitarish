@@ -2,14 +2,23 @@
 
 import { ChatLoader, ChatMessage } from "@heroui-pro/react";
 import { Button, Modal, Tooltip } from "@heroui/react";
+import { InteractiveOptionPicker } from "@vitarish/intelligence";
 import { FaIcon } from "@vitarish/ui";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useLocalizedText } from "../../localization";
-import { OperationsAssistantActionList } from "./AssistantActions";
+import { OperationsActionGroup } from "./AssistantActions";
 import { AssistantComposer, AssistantErrorState, AssistantMessageList } from "./AssistantPanel";
 import { useClinicAssistantConversationSurface, useOperationsAssistantConversation } from "./hooks";
 
-export function OperationsAssistantAside({ isOpen }: { isOpen: boolean }) {
+export interface OperationsAssistantAsideProps {
+  isOpen: boolean;
+  /** Shown before the first message, for example the setup welcome; it may start the conversation. */
+  welcome?: (submit: (message: string) => void) => ReactNode;
+  /** Opens the screen of a suggested next step (a setup goal key); without it, no next-step button shows. */
+  onNextAction?: (key: string) => void;
+}
+
+export function OperationsAssistantAside({ isOpen, welcome, onNextAction }: OperationsAssistantAsideProps) {
   const { t, locale } = useLocalizedText();
   const conversation = useOperationsAssistantConversation(isOpen);
   const surface = useClinicAssistantConversationSurface(conversation, `clinic.assistant.operations:${isOpen ? "open" : "closed"}`);
@@ -35,7 +44,26 @@ export function OperationsAssistantAside({ isOpen }: { isOpen: boolean }) {
         <AssistantMessageList scope="operations" messages={surface.messages} onRetry={surface.lastMessage ? () => void surface.retry() : undefined}>
           {conversation.isPending ? <ChatMessage.Assistant><ChatMessage.Avatar show alt={t("clinic.operationsAssistant.title")} fallback="AI" /><ChatMessage.Body><ChatLoader.Dots label={t("clinic.operationsAssistant.running")} /></ChatMessage.Body></ChatMessage.Assistant> : null}
           {conversation.isError ? <AssistantErrorState scope="operations" onRetry={surface.lastMessage ? () => void surface.retry() : undefined} /> : null}
-          <OperationsAssistantActionList actionIds={surface.actionIds} />
+          {welcome && surface.messages.length === 0 && !conversation.isPending ? welcome((message) => void surface.submit(message)) : null}
+          {surface.actionGroups.map((group) => (
+            <OperationsActionGroup key={`${group.agentRunId}:${group.actionIds[0]}`} actionIds={group.actionIds} onReplaced={surface.replaceAction} />
+          ))}
+          {surface.question && !conversation.isPending ? (
+            <div className="flex flex-col gap-2">
+              <p>{surface.question.prompt}</p>
+              <InteractiveOptionPicker
+                key={surface.lastMessage}
+                question={surface.question}
+                onAnswer={(keys) => {
+                  const labels = surface.question!.options.filter((option) => keys.includes(option.key)).map((option) => option.label);
+                  void surface.submit(labels.join(locale === "fa" ? "، " : ", "));
+                }}
+              />
+            </div>
+          ) : null}
+          {surface.nextAction && onNextAction && !conversation.isPending ? (
+            <div><Button variant="outline" onPress={() => onNextAction(surface.nextAction!)}><FaIcon icon="arrow-up-right-from-square" aria-hidden="true" />{t("clinic.operationsAssistant.nextStep", { goal: t(`clinic.setup.goals.${surface.nextAction}`) })}</Button></div>
+          ) : null}
         </AssistantMessageList>
       </div>
       <footer className="shrink-0 border-t border-border p-3"><AssistantComposer scope="operations" disabled={conversation.isPending} onSubmit={surface.submit} sessionKey="clinic.assistant.operations" /></footer>
