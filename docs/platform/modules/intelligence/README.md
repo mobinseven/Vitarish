@@ -15,6 +15,7 @@ This folder contains app-agnostic module documentation. App-specific usage belon
 ## Guides
 
 - [`prepared-actions.md`](prepared-actions.md)
+- [`guided-surfaces.md`](guided-surfaces.md)
 
 ## Operations
 

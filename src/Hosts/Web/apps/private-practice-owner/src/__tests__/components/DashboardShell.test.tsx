@@ -60,8 +60,6 @@ vi.mock("@vitarish/clinic", () => ({
   ClinicAssistantAside: ({ isOpen }: { isOpen: boolean }) => (
     <div data-testid="operations-agent" data-open={String(isOpen)} />
   ),
-  // No setup in progress, so the shell behaves as on every other page.
-  useClinicGetSetupProgress: () => ({ data: undefined }),
 }));
 
 vi.mock("@/localization", () => ({

@@ -96,4 +96,65 @@ describe("StaffInviteActionCard", () => {
     expect(screen.getByText("Role")).toBeInTheDocument();
     expect(screen.getByText("Staff")).toBeInTheDocument();
   });
+
+  it("edits the names and only the contact the invitation uses, and saves exactly those arguments", async () => {
+    const onRevise = vi.fn().mockResolvedValue(undefined);
+    render(
+      <StaffInviteActionCard reviewPayload={{ firstName: "Sara", lastName: "Rad", phoneNumber: "+989121234567" }} onRevise={onRevise} />,
+      { wrapper: Wrapper },
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /Edit/ }));
+    expect(screen.getByLabelText("First name")).toHaveValue("Sara");
+    expect(screen.getByLabelText("Last name")).toHaveValue("Rad");
+    expect(screen.getByLabelText("Phone")).toHaveValue("+989121234567");
+    expect(screen.queryByLabelText("Email")).toBeNull();
+    expect(screen.queryByLabelText("Role")).toBeNull();
+
+    fireEvent.change(screen.getByLabelText("First name"), { target: { value: "Sarah" } });
+    fireEvent.change(screen.getByLabelText("Phone"), { target: { value: "+989129999999" } });
+    fireEvent.click(screen.getByRole("button", { name: /Save changes/ }));
+
+    await waitFor(() => expect(onRevise).toHaveBeenCalledTimes(1));
+    expect(onRevise).toHaveBeenCalledWith({ firstName: "Sarah", lastName: "Rad", phoneNumber: "+989129999999" });
+    expect(Object.keys(onRevise.mock.calls[0]![0]).sort()).toEqual(["firstName", "lastName", "phoneNumber"]);
+    await waitFor(() => expect(screen.queryByRole("button", { name: /Save changes/ })).toBeNull());
+  });
+
+  it("revises an email invitation with the email, not a phone number", async () => {
+    const onRevise = vi.fn().mockResolvedValue(undefined);
+    render(
+      <StaffInviteActionCard reviewPayload={{ firstName: "Sara", lastName: "Rad", email: "sara@example.test" }} onRevise={onRevise} />,
+      { wrapper: Wrapper },
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /Edit/ }));
+    expect(screen.queryByLabelText("Phone")).toBeNull();
+    fireEvent.change(screen.getByLabelText("Email"), { target: { value: "new@example.test" } });
+    fireEvent.click(screen.getByRole("button", { name: /Save changes/ }));
+
+    await waitFor(() => expect(onRevise).toHaveBeenCalledTimes(1));
+    expect(onRevise).toHaveBeenCalledWith({ firstName: "Sara", lastName: "Rad", email: "new@example.test" });
+  });
+
+  it("keeps the form and the typed values with an error when saving fails", async () => {
+    const onRevise = vi.fn().mockRejectedValue(new Error("offline"));
+    render(
+      <StaffInviteActionCard reviewPayload={{ firstName: "Sara", lastName: "Rad", phoneNumber: "+989121234567" }} onRevise={onRevise} />,
+      { wrapper: Wrapper },
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /Edit/ }));
+    fireEvent.change(screen.getByLabelText("Last name"), { target: { value: "Radmehr" } });
+    fireEvent.click(screen.getByRole("button", { name: /Save changes/ }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(clinicMessageCatalogs.en.clinic.operationsAssistant.manage.editError);
+    expect(screen.getByLabelText("Last name")).toHaveValue("Radmehr");
+    expect(screen.getByRole("button", { name: /Save changes/ })).toBeInTheDocument();
+  });
+
+  it("offers no edit without onRevise", () => {
+    render(<StaffInviteActionCard reviewPayload={{ firstName: "Sara", lastName: "Rad", phoneNumber: "+989121234567" }} />, { wrapper: Wrapper });
+    expect(screen.queryByRole("button", { name: /Edit/ })).toBeNull();
+  });
 });

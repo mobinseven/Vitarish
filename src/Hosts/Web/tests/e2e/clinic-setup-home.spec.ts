@@ -7,13 +7,15 @@ import { LandingRoutes } from "../../apps/vitarish-landing/src/app/routes";
 import { enMessages } from "../../apps/private-practice-owner/src/localization/messages/en";
 import { faMessages } from "../../apps/private-practice-owner/src/localization/messages/fa";
 import {
+  twoHostE2eApiOriginEnvironmentKey,
   twoHostE2eLandingOrigin,
   twoHostE2eLocaleEnvironmentKey,
   twoHostE2eProofScreenshotEnvironmentKey,
   twoHostE2eSmsCapturePathEnvironmentKey,
 } from "../../scripts/two-host-e2e-artifacts.mjs";
 import { REQUEST_ID_HEADER, TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
-import { authenticationAntiforgeryGet } from "../../shared/auth/src/api/generated/authentication/authentication";
+import { authenticationAntiforgeryGet, authenticationSessionGet } from "../../shared/auth/src/api/generated/authentication/authentication";
+import { intelligenceRunAgentConversation } from "../../shared/intelligence/src/api/generated/intelligence/intelligence";
 import { getClinicGetSetupProgressQueryKey } from "../../shared/clinic/src/api/generated/clinic/clinic";
 import { clinicMessageCatalogs } from "../../shared/clinic/src/localization/catalogs";
 import { tenantHandoffPath } from "../../shared/journey/src/onboardingHost";
@@ -21,6 +23,8 @@ import { intelligenceMessageCatalogs } from "../../shared/intelligence/src/local
 import { localeCookieName } from "../../shared/localization/src/localeCookie";
 import type { SupportedLocale } from "../../shared/localization/src/locales";
 import { landingIssueOnboardingHandoff } from "../../shared/platform/src/api/generated/landing/landing";
+import { partiesCreateOwnTenant } from "../../shared/journey/src/api/generated/parties/parties";
+import { agentToolCallbackPath, signAgentCallback } from "./agentCallback";
 import type { LandingOnboardingHandoffRequest, LandingOnboardingHandoffResponse } from "../../shared/platform/src/api/generated/landing/model";
 import { generatedOperationPath } from "./generatedOperationPath";
 import { forwardedForHeaderName } from "./signInHost";
@@ -46,6 +50,11 @@ const ownerClientIp = "198.51.100.93";
 const pageCompileTimeoutMilliseconds = 120_000;
 const onboardingHandoffPath = generatedOperationPath(landingIssueOnboardingHandoff);
 const antiforgeryPath = generatedOperationPath(authenticationAntiforgeryGet);
+const createOwnTenantPath = generatedOperationPath(partiesCreateOwnTenant);
+const sessionPath = generatedOperationPath(authenticationSessionGet);
+const agentConversationsPath = generatedOperationPath(intelligenceRunAgentConversation);
+const apiOrigin = process.env[twoHostE2eApiOriginEnvironmentKey] ?? "https://localhost:7272";
+const agentSharedSecret = process.env.VITARISH_E2E_AGENT_SHARED_SECRET;
 const setupProgressPath = getClinicGetSetupProgressQueryKey()[0];
 const onboardingHandoffRequest = { category: null, answers: [] } satisfies LandingOnboardingHandoffRequest;
 
@@ -163,7 +172,7 @@ async function callApi(page: Page, method: string, path: string, body?: unknown)
 }
 
 /** Signs a brand-new phone number up on the shared sign-in host, creates a clinic, and lands signed in on its /home. */
-async function createClinicAndLandOnHome(page: Page, clinic: { mobileNumber: string; nationalDigits: string; subdomain: string; name: string; ownerFirstName: string; ownerLastName: string }) {
+async function createClinicAndLandOnHome(page: Page, clinic: { mobileNumber: string; nationalDigits: string; subdomain: string; name: string; ownerFirstName: string; ownerLastName: string }): Promise<string> {
   expect(smsCapturePath, `${twoHostE2eSmsCapturePathEnvironmentKey} must be supplied by the two-host runner`).toBeTruthy();
 
   await page.goto(`${signInOrigin}${Routes.Login.Phone}`, { waitUntil: "domcontentloaded" });
@@ -207,12 +216,18 @@ async function createClinicAndLandOnHome(page: Page, clinic: { mobileNumber: str
   await page.getByRole("button", { name: setupWizardMessages.next, exact: true }).click();
   await page.getByRole("button", { name: setupWizardMessages.specialty }).click();
   await page.getByRole("option", { name: clinicMessages.specialties.dermatology }).click();
-  await page.getByRole("button", { name: setupWizardMessages.create, exact: true }).click();
+  const [createResponse] = await Promise.all([
+    page.waitForResponse((response) => response.request().method() === "POST" && new URL(response.url()).pathname === createOwnTenantPath),
+    page.getByRole("button", { name: setupWizardMessages.create, exact: true }).click(),
+  ]);
+  const { tenantId } = await createResponse.json() as { tenantId: string };
+  expect(tenantId).toBeTruthy();
   await expect(page.getByRole("heading", { name: setupWizardMessages.ready.title })).toBeVisible({ timeout: pageCompileTimeoutMilliseconds });
   await page.getByRole("button", { name: setupWizardMessages.ready.goToClinic, exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`^http://${escapeRegExp(clinic.subdomain)}\\.localhost:3005${escapeRegExp(Routes.Home)}(?:[/?#]|$)`), {
     timeout: pageCompileTimeoutMilliseconds,
   });
+  return tenantId;
 }
 
 /** Sends one scripted model turn through the embedded composer. */
@@ -253,7 +268,7 @@ test("a new clinic owner sets up the clinic with the assistant on the setup home
   ]);
 
   // 1. A brand-new owner creates a clinic that has no services, providers or shifts, and lands on its /home.
-  await createClinicAndLandOnHome(page, {
+  const tenantId = await createClinicAndLandOnHome(page, {
     mobileNumber: `0${nationalDigits}`,
     nationalDigits,
     subdomain,
@@ -273,6 +288,49 @@ test("a new clinic owner sets up the clinic with the assistant on the setup home
   await expect(assistant).toBeVisible();
   await captureStep(page, "setup-home");
 
+  // The setup tool answers through the signed runtime callback, the way the real model reaches it in production.
+  expect(agentSharedSecret).toBeTruthy();
+  const session = await callApi(page, "GET", sessionPath);
+  const ownerUserId = (session.body as { user: { userId: string } }).user.userId;
+  const callbackEnvelope: Record<string, unknown> = {
+    version: 1,
+    executionId: `e2e-setup-progress-${crypto.randomUUID()}`,
+    agentKey: "clinic.assistant.operations",
+    tenantId,
+    practiceId: tenantId,
+    subjectKind: "practice",
+    subjectId: tenantId,
+    authenticatedUserId: ownerUserId,
+    conversationId: "e2e-setup-progress-conversation",
+    toolCallId: "e2e-setup-progress-tool-call",
+    toolName: "get_clinic_setup_progress",
+    credentialVersion: 1,
+    expiresAt: new Date(Date.now() + 300_000).toISOString(),
+    correlationId: "e2e-setup-progress-correlation",
+    role: "TenantOwner",
+    locale: "en-US",
+    timeZone: "UTC",
+    calendar: "gregory",
+    currentUtc: new Date().toISOString(),
+    currentLocal: new Date().toISOString(),
+    permissions: [],
+  };
+  const callback = await page.request.post(`${apiOrigin}${agentToolCallbackPath}`, {
+    data: { executionEnvelope: callbackEnvelope, argumentsJson: "{}" },
+    headers: {
+      [TENANT_HOST_HEADER]: `${subdomain}.localhost`,
+      "X-Vitarish-Agent-Credential": signAgentCallback(agentSharedSecret!, callbackEnvelope),
+      [REQUEST_ID_HEADER]: `e2e-${crypto.randomUUID()}`,
+    },
+    ignoreHTTPSErrors: true,
+  });
+  const callbackBody = await callback.json() as { output: string; isError: boolean };
+  expect(callback.status(), JSON.stringify(callbackBody)).toBe(200);
+  expect(callbackBody.isError).toBe(false);
+  const setupTool = JSON.parse(callbackBody.output) as { goals: { goal: string; done: boolean }[]; nextGoal: string | null };
+  expect(setupTool.goals.map(({ goal }) => goal)).toEqual(Object.keys(setupMessages.goals));
+  expect(setupTool.nextGoal).toBe(Object.keys(setupMessages.goals)[0]);
+
   // 3. One reply prepares two shifts: they appear as ONE review group with "Confirm all", a question and a next step.
   const shiftScript = (dayOfWeek: string, totalSeats: number) => ({
     tool: manageAppointmentsTool,
@@ -281,7 +339,9 @@ test("a new clinic owner sets up the clinic with the assistant on the setup home
       payload: { visibility: "Public", dayOfWeek, startTime: "06:15", endTime: "07:45", timeZone: "UTC", totalSeats },
     },
   });
-  await sendScript(assistant, {
+  const [firstRun] = await Promise.all([
+    page.waitForResponse((response) => response.request().method() === "POST" && new URL(response.url()).pathname === agentConversationsPath),
+    sendScript(assistant, {
     calls: [shiftScript("Tuesday", firstSeats), shiftScript("Wednesday", secondSeats)],
     result: {
       messages: [{ kind: "assistantMessage", content: welcomeNote }],
@@ -292,7 +352,10 @@ test("a new clinic owner sets up the clinic with the assistant on the setup home
       question: { prompt: questionPrompt, options: questionOptions, maxSelections: 1 },
       nextAction: shiftsGoal,
     },
-  });
+  }),
+  ]);
+  const homeConversationId = (await firstRun.json() as { conversationId: string }).conversationId;
+  expect(homeConversationId).toBeTruthy();
   await expect(assistant.getByText(welcomeNote, { exact: true })).toBeVisible({ timeout: 90_000 });
   await expect(assistant.getByText(reviewGroupMessages.title, { exact: true })).toHaveCount(1);
   const firstItem = assistant.getByRole("listitem").filter({ hasText: String(firstSeats) });
@@ -387,4 +450,12 @@ test("a new clinic owner sets up the clinic with the assistant on the setup home
   const sideAssistant = page.getByRole("region", { name: clinicMessages.operationsAssistant.title });
   await expect(sideAssistant.getByRole("navigation", { name: intelligenceMessageCatalogs[locale].intelligence.guidedSurface.goals.title })).toBeVisible({ timeout: pageCompileTimeoutMilliseconds });
   await captureStep(page, "side-panel-setup-steps");
+
+  // The side panel continues the conversation the setup home started.
+  const [sideRun] = await Promise.all([
+    page.waitForRequest((request) => request.method() === "POST" && new URL(request.url()).pathname === agentConversationsPath),
+    sendScript(sideAssistant, { calls: [], result: { messages: [{ kind: "assistantMessage", content: `Continued ${suffix}` }], actions: [], question: null, nextAction: null } }),
+  ]);
+  expect((JSON.parse(sideRun.postData() ?? "{}") as { conversationId?: string }).conversationId).toBe(homeConversationId);
+  await expect(sideAssistant.getByText(`Continued ${suffix}`)).toBeVisible({ timeout: pageCompileTimeoutMilliseconds });
 });

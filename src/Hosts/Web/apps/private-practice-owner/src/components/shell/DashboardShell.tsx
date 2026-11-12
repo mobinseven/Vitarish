@@ -15,7 +15,7 @@ import { destinationForPath } from "@/app/navigationRegistry";
 import { Routes } from "@/app/routes";
 import { useAuthSession } from "@vitarish/auth";
 import { useTenantAuthorization } from "@vitarish/auth";
-import { ClinicAssistantAside, useClinicGetSetupProgress, type ClinicAssistantScope } from "@vitarish/clinic";
+import { ClinicAssistantAside, type ClinicAssistantScope } from "@vitarish/clinic";
 import { useLocalizedText, type MessageKey } from "@/localization";
 import { CommandPalette } from "./CommandPalette/CommandPalette";
 import { useClinicNavigation } from "@/components/clinic-navigation";
@@ -72,11 +72,7 @@ export function DashboardShell({
   const { hasAccess: canUseOperationsAssistant } = useTenantAuthorization("owner");
   const [operationsAssistantOpen, setOperationsAssistantOpen] = useState(false);
   const navigateToClinicScreen = useClinicNavigation();
-  const onHome = pathname === Routes.Home;
-  const setupProgress = useClinicGetSetupProgress({ query: { retry: false, enabled: clinicOperationsAssistant && canUseOperationsAssistant && onHome } });
-  // While the setup home shows the operations conversation, the side panel stays closed so it is never live twice.
-  const setupShownOnHome = onHome && setupProgress.data?.applies === true;
-  const showOperationsAssistant = clinicOperationsAssistant && canUseOperationsAssistant && !setupShownOnHome;
+  const showOperationsAssistant = clinicOperationsAssistant && canUseOperationsAssistant;
   const clinicAssistantScope = useMemo(() => resolveClinicAssistantScope(pathname), [pathname]);
   const operationsAssistant = showOperationsAssistant ? <ClinicAssistantAside isOpen={operationsAssistantOpen} scope={clinicAssistantScope} onNavigate={navigateToClinicScreen} onNavigateToPatient={(patientId) => router.push(Routes.Clinic.Patients.Detail(patientId))} /> : undefined;
 

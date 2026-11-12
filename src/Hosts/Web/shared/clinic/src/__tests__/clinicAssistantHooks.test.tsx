@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, renderHook } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   clinicConfirmPatientAssistantAction,
   clinicConfirmAssistantAction,
@@ -241,5 +241,94 @@ describe("clinic-assistant generated-client hooks", () => {
       "action-2",
       { actionId: "action-2" },
     );
+  });
+});
+
+describe("operations assistant conversation across surfaces", () => {
+  const storageKey = "vitarish.clinic.operationsAssistant.conversationId";
+  const reply = (conversationId: string) => ({
+    agentRunId: `run-${conversationId}`,
+    conversationId,
+    result: { messages: [], actions: [] },
+  });
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    window.sessionStorage.clear();
+  });
+  afterEach(() => {
+    vi.restoreAllMocks();
+    window.sessionStorage.clear();
+  });
+
+  it("lets a second mounted surface continue the conversation the first one started", async () => {
+    vi.mocked(intelligenceRunAgentConversation)
+      .mockResolvedValueOnce(reply("shared-conversation"))
+      .mockResolvedValueOnce(reply("shared-conversation"));
+    const wrapper = createWrapper();
+    const sidePanel = renderHook(() => useOperationsAssistantConversation(true), { wrapper });
+    await act(() => sidePanel.result.current.submit("first question"));
+    expect(window.sessionStorage.getItem(storageKey)).toBe("shared-conversation");
+
+    const setupHome = renderHook(() => useOperationsAssistantConversation(true), { wrapper });
+    await act(() => setupHome.result.current.submit("follow-up"));
+
+    expect(vi.mocked(intelligenceRunAgentConversation).mock.calls[0][0]).toMatchObject({ conversationId: null });
+    expect(vi.mocked(intelligenceRunAgentConversation).mock.calls[1][0]).toMatchObject({
+      message: "follow-up",
+      conversationId: "shared-conversation",
+    });
+    expect(clinicDeleteOperationsAssistantConversation).not.toHaveBeenCalled();
+  });
+
+  it("forgets the stored conversation once it is deleted", async () => {
+    vi.mocked(intelligenceRunAgentConversation).mockResolvedValue(reply("to-delete"));
+    vi.mocked(clinicDeleteOperationsAssistantConversation).mockResolvedValue();
+    const wrapper = createWrapper();
+    const first = renderHook(() => useOperationsAssistantConversation(true), { wrapper });
+    await act(() => first.result.current.submit("hello"));
+    await act(() => first.result.current.deleteCurrent());
+    expect(window.sessionStorage.getItem(storageKey)).toBeNull();
+
+    const second = renderHook(() => useOperationsAssistantConversation(true), { wrapper });
+    await act(() => second.result.current.submit("fresh start"));
+
+    expect(vi.mocked(intelligenceRunAgentConversation).mock.calls.at(-1)?.[0]).toMatchObject({ conversationId: null });
+  });
+
+  it("keeps the conversation open across a panel close", async () => {
+    vi.mocked(intelligenceRunAgentConversation).mockResolvedValue(reply("kept"));
+    const { result, rerender } = renderHook(
+      ({ isOpen }) => useOperationsAssistantConversation(isOpen),
+      { wrapper: createWrapper(), initialProps: { isOpen: true } },
+    );
+    await act(() => result.current.submit("first"));
+
+    rerender({ isOpen: false });
+    rerender({ isOpen: true });
+    await act(() => result.current.submit("second"));
+
+    expect(clinicDeleteOperationsAssistantConversation).not.toHaveBeenCalled();
+    expect(vi.mocked(intelligenceRunAgentConversation).mock.calls[1][0]).toMatchObject({ conversationId: "kept" });
+  });
+
+  it("still converses within one surface when session storage throws", async () => {
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
+      throw new Error("storage blocked");
+    });
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+      throw new Error("storage blocked");
+    });
+    vi.mocked(intelligenceRunAgentConversation)
+      .mockResolvedValueOnce(reply("in-memory"))
+      .mockResolvedValueOnce(reply("in-memory"));
+    const { result } = renderHook(() => useOperationsAssistantConversation(true), { wrapper: createWrapper() });
+
+    await act(() => result.current.submit("first"));
+    await act(() => result.current.submit("second"));
+
+    expect(result.current.isError).toBe(false);
+    expect(vi.mocked(intelligenceRunAgentConversation).mock.calls[0][0]).toMatchObject({ conversationId: null });
+    expect(vi.mocked(intelligenceRunAgentConversation).mock.calls[1][0]).toMatchObject({ conversationId: "in-memory" });
   });
 });

@@ -45,7 +45,7 @@ export function useConversationController<TResult>({
   const conversationId = useRef<string | null>(initialConversationId);
   const lastMessage = useRef<string | null>(null);
   const instance = useRef(0);
-  const wasOpen = useRef(false);
+  const wasOpen = useRef(isOpen);
   const activeRequest = useRef<AbortController | null>(null);
   const [isPending, setPending] = useState(false);
   const [isError, setError] = useState(false);

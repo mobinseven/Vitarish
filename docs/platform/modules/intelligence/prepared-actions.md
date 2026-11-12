@@ -14,7 +14,7 @@ Intelligence owns how it lives; each app owns what it means.
   `src/Modules/Intelligence/Domain/PreparedActions/PreparedAction.cs`.
   Proposed → Confirming → Completed, with Rejected, Expired and Failed. A
   retryable failure may be confirmed again.
-- The lifecycle (prepare, get, confirm, reject, expiry):
+- The lifecycle (prepare, get, confirm, reject, revise, expiry):
   `src/Modules/Intelligence/Application/PreparedActions/PreparedActionLifecycle.cs`.
   Every call checks, in order, that the action exists, matches the caller's
   agent, scope and subject, was requested by the caller, and is allowed by the
@@ -29,7 +29,7 @@ Intelligence owns how it lives; each app owns what it means.
 - An `IPreparedActionApp` built per authenticated request: the caller, the
   policy revision and retry classification per action type, authorization, and
   the committer that carries an action out and re-authorizes.
-- Its own confirm, reject and read routes, which delegate to the lifecycle.
+- Its own confirm, reject, revise and read routes, which delegate to the lifecycle.
   Intelligence exposes no public action routes.
 
 Clinic's adapter is
