@@ -1,6 +1,6 @@
 "use client";
 
-import { Chip } from "@heroui/react";
+import { Button, Chip, Tooltip } from "@heroui/react";
 import { useLocalizedText } from "@vitarish/localization";
 import { FaIcon } from "@vitarish/ui";
 
@@ -31,7 +31,7 @@ export function GoalChecklist({ goals, nextGoal = null, onSelect }: GoalChecklis
             <>
               <FaIcon icon={goal.done ? "circle-check" : "circle"} className={goal.done ? "text-success" : "text-muted"} aria-hidden="true" />
               <span className="flex-1 text-start">{goal.label}</span>
-              <Chip size="sm" variant="soft" color={goal.done ? "success" : isNext ? "accent" : "default"}>
+              <Chip variant="soft" color={goal.done ? "success" : isNext ? "accent" : "default"}>
                 {goal.done
                   ? t("intelligence.guidedSurface.goals.done")
                   : isNext ? t("intelligence.guidedSurface.goals.next") : t("intelligence.guidedSurface.goals.open")}
@@ -41,13 +41,12 @@ export function GoalChecklist({ goals, nextGoal = null, onSelect }: GoalChecklis
           return (
             <li key={goal.key} aria-current={isNext ? "step" : undefined}>
               {onSelect && !goal.done ? (
-                <button
-                  type="button"
-                  className="flex w-full items-center gap-3 rounded-lg border border-border px-3 py-2 hover:bg-default focus-visible:outline-2"
-                  onClick={() => onSelect(goal.key)}
-                >
-                  {content}
-                </button>
+                <Tooltip>
+                  <Button variant="outline" fullWidth className="h-auto justify-start gap-3 px-3 py-2 text-base font-normal" onPress={() => onSelect(goal.key)}>
+                    {content}
+                  </Button>
+                  <Tooltip.Content>{t("intelligence.guidedSurface.goals.openTooltip")}</Tooltip.Content>
+                </Tooltip>
               ) : (
                 <div className="flex items-center gap-3 rounded-lg border border-border px-3 py-2">{content}</div>
               )}

@@ -256,6 +256,7 @@ export const clinicEnMessages = {
       later: "Later",
       laterTooltip: "Hide setup for every owner of this clinic and show today's dashboard",
       laterError: "Setup could not be hidden. Try again.",
+      chipTooltip: "Send this to the assistant",
       goals: { ServicesAndProviders: "Services and providers", ShiftsAndBookingRules: "Shifts and booking rules", StaffUsers: "Staff users", ClinicProfile: "Clinic profile and logo" },
       welcome: {
         ServicesAndProviders: "Welcome! Let's start with the services your clinic offers and who provides them.",
@@ -297,7 +298,9 @@ export const clinicEnMessages = {
         edit: "Edit",
         editTooltip: "Change the details before confirming",
         save: "Save changes",
+        saveTooltip: "Replace the proposal with your changes",
         cancelEdit: "Cancel editing",
+        cancelEditTooltip: "Keep the proposal as it is",
         editError: "The edit could not be saved. Check the values and try again.",
         operations: { create_shift: "Create shift", update_shift: "Edit shift", create_service: "Create service", update_service: "Edit service", create_service_type: "Create service type", create_provider: "Create provider", update_provider: "Edit provider", link_provider_user: "Link provider to user", create_booking_policy: "Create booking rule", update_booking_policy: "Edit booking rule", create_reminder_policy: "Create reminder rule", activate_shift: "Activate shift" },
         fields: { name: "Name", description: "Description", dayOfWeek: "Day of week", startTime: "Start time", endTime: "End time", totalSeats: "Capacity", visibility: "Visibility", serviceId: "Service", serviceProviderId: "Provider", serviceTypeId: "Service type", timeZone: "Time zone", durationMinutes: "Duration (minutes)", id: "Record", userId: "User" },
@@ -312,6 +315,7 @@ export const clinicEnMessages = {
         staff: "Staff",
       },
       nextStep: "Open {goal}",
+      nextStepTooltip: "Open the screen for this setup step",
     },
     dashboard: {
       title: "Clinic Dashboard",

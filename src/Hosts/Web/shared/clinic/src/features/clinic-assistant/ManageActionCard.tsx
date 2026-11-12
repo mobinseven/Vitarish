@@ -100,8 +100,8 @@ export function ManageActionCard({ reviewPayload, onRevise }: ManageActionCardPr
           ))}
           {editError ? <p role="alert" className="text-danger sm:col-span-2">{t("clinic.operationsAssistant.manage.editError")}</p> : null}
           <div className="flex flex-wrap gap-2 sm:col-span-2">
-            <Button type="submit" variant="primary" isPending={isSaving} isDisabled={isSaving}><FaIcon icon="floppy-disk" aria-hidden="true" />{t("clinic.operationsAssistant.manage.save")}</Button>
-            <Button variant="tertiary" isDisabled={isSaving} onPress={() => setEditing(false)}><FaIcon icon="xmark" aria-hidden="true" />{t("clinic.operationsAssistant.manage.cancelEdit")}</Button>
+            <Tooltip><Button type="submit" variant="primary" isPending={isSaving} isDisabled={isSaving}><FaIcon icon="floppy-disk" aria-hidden="true" />{t("clinic.operationsAssistant.manage.save")}</Button><Tooltip.Content>{t("clinic.operationsAssistant.manage.saveTooltip")}</Tooltip.Content></Tooltip>
+            <Tooltip><Button variant="tertiary" isDisabled={isSaving} onPress={() => setEditing(false)}><FaIcon icon="xmark" aria-hidden="true" />{t("clinic.operationsAssistant.manage.cancelEdit")}</Button><Tooltip.Content>{t("clinic.operationsAssistant.manage.cancelEditTooltip")}</Tooltip.Content></Tooltip>
           </div>
         </form>
       ) : onRevise && editable.length > 0 ? (

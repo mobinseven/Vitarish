@@ -53,6 +53,7 @@ export const intelligenceMessageCatalogs = {
           done: "Done",
           open: "To do",
           next: "Next",
+          openTooltip: "Open this step",
         },
       },
       dictation: {
@@ -146,6 +147,7 @@ export const intelligenceMessageCatalogs = {
           done: "انجام شد",
           open: "مانده",
           next: "مرحلهٔ بعد",
+          openTooltip: "این مرحله را باز کنید",
         },
       },
       dictation: {

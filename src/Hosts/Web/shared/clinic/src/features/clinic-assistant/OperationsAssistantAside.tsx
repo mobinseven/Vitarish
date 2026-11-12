@@ -50,7 +50,6 @@ export function OperationsAssistantAside({ isOpen, welcome, onNextAction }: Oper
           ))}
           {surface.question && !conversation.isPending ? (
             <div className="flex flex-col gap-2">
-              <p>{surface.question.prompt}</p>
               <InteractiveOptionPicker
                 key={surface.lastMessage}
                 question={surface.question}
@@ -62,7 +61,7 @@ export function OperationsAssistantAside({ isOpen, welcome, onNextAction }: Oper
             </div>
           ) : null}
           {surface.nextAction && onNextAction && !conversation.isPending ? (
-            <div><Button variant="outline" onPress={() => onNextAction(surface.nextAction!)}><FaIcon icon="arrow-up-right-from-square" aria-hidden="true" />{t("clinic.operationsAssistant.nextStep", { goal: t(`clinic.setup.goals.${surface.nextAction}`) })}</Button></div>
+            <div><Tooltip><Button variant="outline" onPress={() => onNextAction(surface.nextAction!)}><FaIcon icon="arrow-up-right-from-square" aria-hidden="true" />{t("clinic.operationsAssistant.nextStep", { goal: t(`clinic.setup.goals.${surface.nextAction}`) })}</Button><Tooltip.Content>{t("clinic.operationsAssistant.nextStepTooltip")}</Tooltip.Content></Tooltip></div>
           ) : null}
         </AssistantMessageList>
       </div>

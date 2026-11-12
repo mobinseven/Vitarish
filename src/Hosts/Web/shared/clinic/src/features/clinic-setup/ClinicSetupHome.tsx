@@ -1,10 +1,10 @@
 "use client";
 
 import { ChatMessage } from "@heroui-pro/react";
-import { Button, Card, Tooltip } from "@heroui/react";
+import { Button, Surface, Tooltip } from "@heroui/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { GoalChecklist } from "@vitarish/intelligence";
-import { FaIcon } from "@vitarish/ui";
+import { FaIcon, HeaderIcon } from "@vitarish/ui";
 import { useState } from "react";
 import {
   getClinicGetSetupProgressQueryKey,
@@ -54,11 +54,14 @@ export function ClinicSetupHome({ progress, onNavigate }: ClinicSetupHomeProps) 
   };
 
   return (
-    <section className="flex flex-col gap-4" aria-labelledby="clinic-setup-title">
-      <header className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h2 id="clinic-setup-title" className="text-xl font-semibold">{t("clinic.setup.title")}</h2>
-          <p className="text-muted">{t("clinic.setup.description")}</p>
+    <Surface className="flex flex-col gap-6 rounded-3xl p-6" role="region" aria-labelledby="clinic-setup-title">
+      <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3">
+          <HeaderIcon icon="wand-magic-sparkles" />
+          <div>
+            <h2 id="clinic-setup-title" className="text-lg font-semibold text-foreground">{t("clinic.setup.title")}</h2>
+            <p className="text-sm text-muted">{t("clinic.setup.description")}</p>
+          </div>
         </div>
         <Tooltip>
           <Button variant="tertiary" isPending={dismiss.isPending} isDisabled={dismiss.isPending} onPress={() => void later()}>
@@ -66,10 +69,10 @@ export function ClinicSetupHome({ progress, onNavigate }: ClinicSetupHomeProps) 
           </Button>
           <Tooltip.Content>{t("clinic.setup.laterTooltip")}</Tooltip.Content>
         </Tooltip>
-      </header>
+      </div>
       {laterError ? <p role="alert" className="text-danger">{t("clinic.setup.laterError")}</p> : null}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <Card className="lg:col-span-2 h-[36rem] overflow-hidden p-0">
+        <Surface variant="secondary" className="h-[36rem] overflow-hidden rounded-2xl lg:col-span-2">
           <OperationsAssistantAside
             isOpen
             onNextAction={navigateToGoal}
@@ -82,24 +85,27 @@ export function ClinicSetupHome({ progress, onNavigate }: ClinicSetupHomeProps) 
                 {openGoals.length > 0 ? (
                   <div className="flex flex-wrap gap-2">
                     {openGoals.map((goal) => (
-                      <Button key={goal} variant={goal === nextGoal ? "primary" : "outline"} onPress={() => submit(t(`clinic.setup.chips.${goal}`))}>
-                        {t(`clinic.setup.chips.${goal}`)}
-                      </Button>
+                      <Tooltip key={goal}>
+                        <Button variant={goal === nextGoal ? "primary" : "outline"} onPress={() => submit(t(`clinic.setup.chips.${goal}`))}>
+                          <FaIcon icon="comment-dots" aria-hidden="true" />{t(`clinic.setup.chips.${goal}`)}
+                        </Button>
+                        <Tooltip.Content>{t("clinic.setup.chipTooltip")}</Tooltip.Content>
+                      </Tooltip>
                     ))}
                   </div>
                 ) : null}
               </div>
             )}
           />
-        </Card>
-        <Card className="p-4">
+        </Surface>
+        <Surface variant="secondary" className="rounded-2xl p-4">
           <GoalChecklist
             goals={progress.goals.map((goal) => ({ key: goal.goal, label: t(`clinic.setup.goals.${goal.goal}`), done: goal.done }))}
             nextGoal={nextGoal}
             onSelect={navigateToGoal}
           />
-        </Card>
+        </Surface>
       </div>
-    </section>
+    </Surface>
   );
 }

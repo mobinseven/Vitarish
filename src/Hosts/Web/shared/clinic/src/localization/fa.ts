@@ -256,6 +256,7 @@ export const clinicFaMessages = {
       later: "بعداً",
       laterTooltip: "راه‌اندازی را برای همهٔ مالکان این مطب پنهان کنید و داشبورد امروز را ببینید",
       laterError: "پنهان‌کردن راه‌اندازی انجام نشد. دوباره امتحان کنید.",
+      chipTooltip: "این را برای دستیار بفرستید",
       goals: { ServicesAndProviders: "خدمات و ارائه‌دهندگان", ShiftsAndBookingRules: "شیفت‌ها و قوانین نوبت‌دهی", StaffUsers: "کاربران همکار", ClinicProfile: "نمایهٔ مطب و لوگو" },
       welcome: {
         ServicesAndProviders: "خوش آمدید! بیایید از خدماتی که مطب ارائه می‌دهد و کسانی که آن‌ها را انجام می‌دهند شروع کنیم.",
@@ -297,7 +298,9 @@ export const clinicFaMessages = {
         edit: "ویرایش",
         editTooltip: "پیش از تأیید، جزئیات را تغییر دهید",
         save: "ذخیرهٔ تغییرات",
+        saveTooltip: "پیشنهاد را با تغییرات شما جایگزین کنید",
         cancelEdit: "انصراف از ویرایش",
+        cancelEditTooltip: "پیشنهاد را همان‌طور که هست نگه دارید",
         editError: "ویرایش ذخیره نشد. مقدارها را بررسی کنید و دوباره امتحان کنید.",
         operations: { create_shift: "ایجاد شیفت", update_shift: "ویرایش شیفت", create_service: "ایجاد خدمت", update_service: "ویرایش خدمت", create_service_type: "ایجاد نوع خدمت", create_provider: "ایجاد ارائه‌دهنده", update_provider: "ویرایش ارائه‌دهنده", link_provider_user: "اتصال ارائه‌دهنده به کاربر", create_booking_policy: "ایجاد قانون نوبت‌دهی", update_booking_policy: "ویرایش قانون نوبت‌دهی", create_reminder_policy: "ایجاد قانون یادآوری", activate_shift: "فعال‌کردن شیفت" },
         fields: { name: "نام", description: "توضیح", dayOfWeek: "روز هفته", startTime: "ساعت شروع", endTime: "ساعت پایان", totalSeats: "ظرفیت", visibility: "نمایش", serviceId: "خدمت", serviceProviderId: "ارائه‌دهنده", serviceTypeId: "نوع خدمت", timeZone: "منطقهٔ زمانی", durationMinutes: "مدت (دقیقه)", id: "رکورد", userId: "کاربر" },
@@ -312,6 +315,7 @@ export const clinicFaMessages = {
         staff: "همکار",
       },
       nextStep: "باز کردن {goal}",
+      nextStepTooltip: "صفحهٔ این مرحلهٔ راه‌اندازی را باز کنید",
     },
     dashboard: {
       title: "داشبورد کلینیک",
