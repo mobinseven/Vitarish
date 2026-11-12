@@ -106,4 +106,37 @@ public sealed class OperationsAgentCapabilityTests
         trusted.Output.Should().Contain("true");
         reservations.Verify(x => x.ConfirmReservationAsync(reservationId, It.IsAny<CancellationToken>()), Times.Once);
     }
+
+    [Theory]
+    [InlineData("\"Public\"", "\"Monday\"")]
+    [InlineData("0", "1")]
+    public async Task Appointment_administration_reads_enum_values_by_name_or_number(string visibility, string dayOfWeek)
+    {
+        Mock<IAccessControlledShiftManager> shifts = new(MockBehavior.Strict);
+        Vitarish.Appointments.Domain.Dto.ShiftWriteDto? written = null;
+        shifts.Setup(x => x.AddAsync(It.IsAny<Vitarish.Appointments.Domain.Dto.ShiftWriteDto>(), It.IsAny<CancellationToken>()))
+            .Callback<Vitarish.Appointments.Domain.Dto.ShiftWriteDto, CancellationToken>((value, _) => written = value)
+            .ReturnsAsync(EntityResult<Vitarish.Appointments.Domain.Dto.ShiftReadDto>.Success(new Vitarish.Appointments.Domain.Dto.ShiftReadDto()));
+        AppointmentAdministrationAgentTool tool = new(
+            new Mock<IAccessControlledReservationManager>().Object,
+            shifts.Object,
+            new Mock<IServiceManager>().Object,
+            new Mock<IServiceTypeManager>().Object,
+            new Mock<IServiceProviderManager>().Object,
+            new Mock<IShiftBookingPolicyManager>().Object,
+            new Mock<IShiftReminderPolicyManager>().Object,
+            new Mock<IShiftBookableDateQueryService>().Object,
+            new Mock<ITemporaryHoldManager>().Object);
+        AgentToolCall call = new("call-1", "appointment_manage",
+            $$"""{"operation":"create_shift","payload":{"visibility":{{visibility}},"dayOfWeek":{{dayOfWeek}},"startTime":"08:00","endTime":"12:00","timeZone":"UTC","totalSeats":4},"commit":true}""");
+
+        AgentToolResult result = await tool.ExecuteAsync(call, new AgentExecutionContext("run-1", new Dictionary<string, string>
+        {
+            ["confirmedAction"] = "true"
+        }));
+
+        result.IsError.Should().BeFalse(result.Output);
+        written.Should().NotBeNull();
+        written!.Visibility.Should().Be(Vitarish.Appointments.Domain.Enums.ShiftVisibility.Public);
+    }
 }

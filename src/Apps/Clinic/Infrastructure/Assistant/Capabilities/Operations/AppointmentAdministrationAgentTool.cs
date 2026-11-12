@@ -20,7 +20,11 @@ public sealed class AppointmentAdministrationAgentTool(
     IShiftBookableDateQueryService bookableDates,
     ITemporaryHoldManager holds) : IClinicOperationsAgentTool, IAssistantPreparationTool
 {
-    private static readonly JsonSerializerOptions PayloadJsonOptions = new(JsonSerializerDefaults.Web);
+    // A model writes enum values by name ("Public", "Monday"); numbers keep working too.
+    private static readonly JsonSerializerOptions PayloadJsonOptions = new(JsonSerializerDefaults.Web)
+    {
+        Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() }
+    };
     private static readonly HashSet<string> Mutations = [
         "create_reservation", "update_reservation", "delete_reservation", "confirm_reservation", "present_reservation",
         "complete_reservation", "cancel_reservation", "reject_reservation", "expire_reservation", "move_reservation",
