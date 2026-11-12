@@ -2,15 +2,16 @@
 
 import { useCallback } from "react";
 import { Avatar, AvatarFallback, Dropdown, Label } from "@heroui/react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Routes } from "@/app/routes";
-import { useAuthSession } from "@vitarish/auth";
+import { signInHrefReturningTo, useAuthSession } from "@vitarish/auth";
 import { useLogout } from "@vitarish/auth";
 import { useLocalizedText } from "@/localization";
 
 export function UserMenu() {
   const router = useRouter();
+  const pathname = usePathname();
   const navigate = useCallback((href: string) => router.push(href), [router]);
   const { isAuthenticated, isLoading, displayProfile } = useAuthSession();
   const { logout, isLoading: isLoggingOut } = useLogout(
@@ -35,7 +36,7 @@ export function UserMenu() {
   if (!isAuthenticated) {
     return (
       <Link
-        href={Routes.Login.Index}
+        href={signInHrefReturningTo(pathname, Routes.Login.Index)}
         className="text-sm font-medium text-foreground no-underline"
       >
         {t("appShell.userMenu.logIn")}

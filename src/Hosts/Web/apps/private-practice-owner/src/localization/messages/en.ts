@@ -137,6 +137,7 @@ export const enMessages = {
     },
   },
   account: {
+    workspaces: { title: "Your workspaces", caption: "Open the clinics and other workspaces you belong to" },
     title: "Account",
     settings: "Account Settings",
     signedInAs: "Signed in as {name}",

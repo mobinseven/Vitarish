@@ -20,6 +20,12 @@ vi.mock("@/hooks/journey/useCurrentJourney", () => ({
   useCurrentJourney: mocks.useCurrentJourney,
 }));
 
+vi.mock("@vitarish/auth", async () => ({
+  ...(await vi.importActual<typeof import("@vitarish/auth")>("@vitarish/auth")),
+  // These cases are about a signed-in person's return intent.
+  useAuthSession: () => ({ isAuthenticated: true, isLoading: false }),
+}));
+
 vi.mock("@vitarish/journey", () => ({
   JourneyErrorState: () => <div>Journey error</div>,
   JourneyLoadingState: () => <div>Journey loading</div>,

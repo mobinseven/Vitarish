@@ -137,6 +137,7 @@ export const faMessages = {
     },
   },
   account: {
+    workspaces: { title: "فضاهای کاری شما", caption: "مطب‌ها و فضاهای کاری دیگری را که عضوشان هستید باز کنید" },
     title: "حساب کاربری",
     settings: "تنظیمات حساب",
     signedInAs: "وارد شده به عنوان {name}",
