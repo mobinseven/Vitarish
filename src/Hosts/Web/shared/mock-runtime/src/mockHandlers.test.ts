@@ -367,3 +367,99 @@ describe("mock preview handlers", () => {
     await expect(updated.json()).resolves.toMatchObject({ logoPromptDismissed: true });
   });
 });
+
+describe("mock clinic setup guide", () => {
+  const base = "https://mock.example.test/api/modules";
+  const json = { "content-type": "application/json" };
+  const ask = (message: string, agentKey = "clinic.assistant.operations") => fetch(`${base}/intelligence/agent-conversations`, {
+    method: "POST",
+    headers: json,
+    body: JSON.stringify({ agentKey, subjectKind: "Clinic", subjectId: "mock-tenant", message }),
+  });
+
+  it("reports the setup progress per scenario and hides it after dismissal", async () => {
+    const progress = () => fetch(`${base}/clinic/setup/progress`).then((response) => response.json());
+    await expect(progress()).resolves.toEqual({
+      applies: true,
+      dismissed: false,
+      nextGoal: "ShiftsAndBookingRules",
+      goals: [
+        { goal: "ServicesAndProviders", done: true },
+        { goal: "ShiftsAndBookingRules", done: false },
+        { goal: "StaffUsers", done: false },
+        { goal: "ClinicProfile", done: false },
+      ],
+    });
+
+    expect((await fetch(`${base}/clinic/setup/dismissal`, { method: "POST" })).status).toBe(204);
+
+    await expect(progress()).resolves.toMatchObject({ applies: false, dismissed: true });
+  });
+
+  it("opens every goal in the empty scenario and fails in the error scenario", async () => {
+    server.resetHandlers(...createDefaultMockHandlers("empty"));
+    const empty = await fetch(`${base}/clinic/setup/progress`).then((response) => response.json());
+    expect(empty.nextGoal).toBe("ServicesAndProviders");
+    expect(empty.goals.every((goal: { done: boolean }) => !goal.done)).toBe(true);
+
+    server.resetHandlers(...createDefaultMockHandlers("error"));
+    expect((await fetch(`${base}/clinic/setup/progress`)).status).toBe(503);
+  });
+
+  it("answers a shift question with two proposals and guided-surface blocks", async () => {
+    const reply = await (await ask("Set up my shifts from our working hours")).json();
+
+    expect(reply.result.actions).toHaveLength(2);
+    expect(reply.result.actions.map((action: { actionType: string }) => action.actionType)).toEqual(["appointment_manage", "appointment_manage"]);
+    const ids = reply.result.actions.map((action: { id: string }) => action.id);
+    expect(reply.blocks.map((block: { kind: string }) => block.kind)).toEqual(["ActionGroup", "Question", "NextAction"]);
+    expect(reply.blocks[0].actionGroup.actionIds).toEqual(ids);
+    expect(reply.blocks[1].question.options).toHaveLength(2);
+    expect(reply.blocks[2].nextAction).toBe("ShiftsAndBookingRules");
+
+    const first = await (await fetch(`${base}/clinic/assistant/actions/${ids[0]}`)).json();
+    expect(first).toMatchObject({ actionId: ids[0], status: "Proposed", actionType: "appointment_manage" });
+    expect(first.reviewPayload).toMatchObject({ operation: "create_shift", payload: { dayOfWeek: 1 } });
+  });
+
+  it("leaves other operations messages and agents to their own mocks", async () => {
+    const other = await (await ask("Cancel today's surgery")).json();
+    expect(other.blocks).toBeUndefined();
+    expect(other.result.actions[0].actionType).toBe("cancel_surgery");
+
+    const patient = await (await ask("shifts", "clinic.assistant.patient")).json();
+    expect(patient.blocks).toBeUndefined();
+  });
+
+  it("completes the shifts goal when a proposal is confirmed and rejects a second decision", async () => {
+    const { result } = await (await ask("shifts")).json();
+    const id = result.actions[0].id;
+    const decide = (verb: string) => fetch(`${base}/clinic/assistant/actions/${id}/${verb}`, { method: "POST", headers: json, body: JSON.stringify({ actionId: id }) });
+
+    const confirmed = await decide("confirm");
+    await expect(confirmed.json()).resolves.toMatchObject({ actionId: id, status: "Completed" });
+    expect((await decide("reject")).status).toBe(409);
+    await expect(fetch(`${base}/clinic/assistant/actions/${id}`).then((response) => response.json())).resolves.toMatchObject({ status: "Completed" });
+
+    const progress = await fetch(`${base}/clinic/setup/progress`).then((response) => response.json());
+    expect(progress.goals).toContainEqual({ goal: "ShiftsAndBookingRules", done: true });
+    expect(progress.nextGoal).toBe("StaffUsers");
+  });
+
+  it("replaces a revised proposal with a new one and closes the old one", async () => {
+    const { result } = await (await ask("shifts")).json();
+    const id = result.actions[1].id;
+    const original = await fetch(`${base}/clinic/assistant/actions/${id}`).then((response) => response.json());
+    const revised = { operation: "create_shift", payload: { ...original.reviewPayload.payload, totalSeats: 9 } };
+
+    const response = await fetch(`${base}/clinic/assistant/actions/${id}/revise`, { method: "POST", headers: json, body: JSON.stringify({ actionId: id, arguments: revised }) });
+    const replacement = await response.json();
+
+    expect(replacement.actionId).not.toBe(id);
+    expect(replacement).toMatchObject({ status: "Proposed", actionType: "appointment_manage", reviewPayload: revised });
+    await expect(fetch(`${base}/clinic/assistant/actions/${id}`).then((r) => r.json())).resolves.toMatchObject({ status: "Rejected" });
+    await expect(fetch(`${base}/clinic/assistant/actions/${replacement.actionId}`).then((r) => r.json())).resolves.toMatchObject({ status: "Proposed" });
+    const invalid = await fetch(`${base}/clinic/assistant/actions/${replacement.actionId}/revise`, { method: "POST", headers: json, body: JSON.stringify({ actionId: replacement.actionId }) });
+    expect(invalid.status).toBe(400);
+  });
+});
