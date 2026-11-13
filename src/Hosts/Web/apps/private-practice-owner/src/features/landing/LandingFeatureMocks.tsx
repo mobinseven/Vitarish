@@ -5,6 +5,7 @@ import { Alert, Button, Chip, Surface, Tooltip } from "@heroui/react";
 import { BarChart } from "@heroui-pro/react/bar-chart";
 import { ChatMessage, FaIcon } from "@vitarish/ui";
 import { formatNumber, formatPercent, formatTimeOfDay, useLocalizedText, type MessageKey } from "@/localization";
+import { weeklyVisits } from "./particleFormations";
 import styles from "./landing-demos.module.css";
 
 /** The mocks run on fixed sample data and never call the API. */
@@ -130,7 +131,7 @@ function AssistantMock() {
 
 // Seven sample weeks. Each headline is the last point in its series.
 const reportFigures = [
-  { id: "visits", icon: "stethoscope", labelKey: "practiceLanding.mockReportsVisits", trend: [52, 58, 55, 63, 68, 72, 86] },
+  { id: "visits", icon: "stethoscope", labelKey: "practiceLanding.mockReportsVisits", trend: weeklyVisits },
   { id: "newPatients", icon: "user-plus", labelKey: "practiceLanding.mockReportsNewPatients", trend: [6, 8, 7, 9, 11, 12, 14] },
   { id: "returning", icon: "rotate", labelKey: "practiceLanding.mockReportsReturning", trend: [54, 57, 59, 58, 62, 65, 68], isRate: true },
 ] as const satisfies readonly {
