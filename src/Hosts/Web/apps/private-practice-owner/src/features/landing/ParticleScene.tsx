@@ -228,7 +228,7 @@ export function ParticleScene({ scopeRef, logotypeSrc, onLiveChange }: ParticleS
       canvas.height = Math.round(height * density);
       gl.viewport(0, 0, canvas.width, canvas.height);
       gl.uniform1f(uniform("u_aspect"), width / height);
-      gl.uniform1f(uniform("u_pointSize"), (canvas.height / 900) * Math.max(1, 1000 / width));
+      gl.uniform1f(uniform("u_pointSize"), canvas.height / 900);
       requestDraw();
     };
 
