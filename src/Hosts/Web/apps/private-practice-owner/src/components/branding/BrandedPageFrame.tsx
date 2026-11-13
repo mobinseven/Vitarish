@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { useLocalizedText } from "@/localization";
+import { darmanLogotypes } from "./darmanLogotypes";
 
 function Logotype({ src, alt }: { src: string; alt: string }) {
   return (
@@ -22,7 +23,7 @@ export function BrandedPageFrame({ children }: { children: ReactNode }) {
 
   return (
     <div className="bg-anchor">
-      <Logotype src="/darman-logotype-dark.svg" alt={t("practiceLanding.subBrand")} />
+      <Logotype src={darmanLogotypes.onDark} alt={t("practiceLanding.subBrand")} />
       {children}
       <Logotype src="/Master-Hel-Logotype-©.svg" alt="" />
     </div>

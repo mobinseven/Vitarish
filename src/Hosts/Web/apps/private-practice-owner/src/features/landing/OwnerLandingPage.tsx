@@ -1,16 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
-import { useRef } from "react";
-import { motion, useReducedMotion, useScroll, useTransform } from "motion/react";
-import { Button, Surface, Tooltip } from "@heroui/react";
-import { FaIcon, ImmersiveRegion, MarketingActionLink, PageContainer, StandaloneDocumentPage, ViewportReveal } from "@vitarish/ui";
+import { useRef, useState } from "react";
+import { useReducedMotion } from "motion/react";
+import { Button, Tooltip } from "@heroui/react";
+import { FaIcon, ImmersiveRegion, MarketingActionLink, StandaloneDocumentPage, ViewportReveal } from "@vitarish/ui";
 import { useAuthSession } from "@vitarish/auth";
 import { Routes } from "@/app/routes";
+import { darmanLogotypes } from "@/components/branding/darmanLogotypes";
 import { supportedLocales, useLocalizedText, useSetLocaleCookie } from "@/localization";
 import { useCreateClinicHref } from "@/features/onboarding/useCreateClinicHref";
-import { LandingFeatures } from "./LandingFeatures";
+import { LandingShowcase } from "./LandingShowcase";
+import { ParticleScene } from "./ParticleScene";
+import { particleAnchor, particleSlot } from "./particleAnchors";
 import styles from "./owner-landing.module.css";
 
 interface OwnerLandingPageProps {
@@ -18,45 +20,28 @@ interface OwnerLandingPageProps {
   onboardingUrl: string | null;
 }
 
-const logotypes = {
-  mark: "/Logo-®.svg",
+const vitarishMark = "/Logo-®.svg";
+
+const sectionIds = {
+  opening: "landing-opening",
+  showcase: "darman-showcase",
+  closing: "landing-close",
 } as const;
 
-const artwork = {
-  street: "/artwork/darman/clinic-street.png",
-  interior: "/artwork/darman/clinic-interior.png",
-} as const;
-
-const daySectionId = "darman-day";
-
-function Logotype({ mark, alt, className }: { mark: keyof typeof logotypes; alt: string; className?: string }) {
-  return <img alt={alt} className={className} src={logotypes[mark]} />;
-}
-
-/** Darman's front door: an illustrated arrival, followed by working product examples. */
+/**
+ * Darman's front door, in three screens: the name, the product at work, and the way in. One field
+ * of particles runs behind all three. It gathers into the logotype, then into a sign for each
+ * part of the product, then into a sunrise, so a day's loose pieces are seen coming to order.
+ */
 export function OwnerLandingPage({ onboardingUrl }: OwnerLandingPageProps) {
   const { t, locale } = useLocalizedText();
   const setLocaleCookie = useSetLocaleCookie();
   const { isAuthenticated } = useAuthSession();
   const createClinicHref = useCreateClinicHref(onboardingUrl);
   const otherLocale = supportedLocales.find((candidate) => candidate !== locale);
-  const heroRef = useRef<HTMLDivElement>(null);
-  const closingRef = useRef<HTMLDivElement>(null);
+  const pageRef = useRef<HTMLElement>(null);
+  const [sceneLive, setSceneLive] = useState(false);
   const reducedMotion = useReducedMotion();
-  const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end end"] });
-  const { scrollYProgress: closingProgress } = useScroll({ target: closingRef, offset: ["start end", "end end"] });
-  // Full-range keyframes keep native ScrollTimeline from returning to the underlying style.
-  const copyY = useTransform(scrollYProgress, [0, 0.25, 0.85, 1], [32, 32, 0, 0]);
-  const copyOpacity = useTransform(scrollYProgress, [0, 0.25, 0.8, 1], [0, 0, 1, 1]);
-  const copyPointerEvents = useTransform(scrollYProgress, (progress) => progress < 0.8 ? "none" : "auto");
-  const scrimOpacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 0, 1, 1]);
-  const portalTop = useTransform(scrollYProgress, [0, 0.85, 1], ["18%", "0%", "0%"]);
-  const portalWidth = useTransform(scrollYProgress, [0, 0.85, 1], ["54%", "100%", "100%"]);
-  const portalHeight = useTransform(scrollYProgress, [0, 0.85, 1], ["78%", "100%", "100%"]);
-  const portalRadius = useTransform(scrollYProgress, [0, 0.85, 1], ["48% 48% 0% 0%", "0% 0% 0% 0%", "0% 0% 0% 0%"]);
-  const streetScale = useTransform(scrollYProgress, [0, 1], [1, 1.05]);
-  const ornamentOpacity = useTransform(scrollYProgress, [0, 0.2, 1], [1, 0, 0]);
-  const closingScale = useTransform(closingProgress, [0, 1], [1.15, 1]);
 
   const leadAction = isAuthenticated
     ? {
@@ -82,17 +67,19 @@ export function OwnerLandingPage({ onboardingUrl }: OwnerLandingPageProps) {
   const primaryAction = isAuthenticated ? leadAction : createClinicAction ?? leadAction;
 
   return (
-    <StandaloneDocumentPage aria-label={t("practiceLanding.mainContent")} className={styles.page}>
+    <StandaloneDocumentPage ref={pageRef} aria-label={t("practiceLanding.mainContent")} className={styles.page}>
+      <div aria-hidden="true" className={styles.backdrop} />
+      <ParticleScene scopeRef={pageRef} logotypeSrc={darmanLogotypes.onDark} onLiveChange={setSceneLive} />
+
       <div className={styles.headerDock}>
         <header className={styles.header}>
           <Link aria-label={t("practiceLanding.brandHome")} className={styles.brand} href={Routes.Root}>
-            <Logotype alt="" className={styles.headerMark} mark="mark" />
+            <img alt="" className={styles.headerMark} src={vitarishMark} />
             <span aria-hidden="true" className={`${styles.headerSubBrand} font-tone-confident`}>
               {t("practiceLanding.subBrand")}
             </span>
           </Link>
           <nav aria-label={t("practiceLanding.navigation")} className={styles.headerActions}>
-            <Link className={styles.dayLink} href={`#${daySectionId}`}>{t("practiceLanding.explore")}</Link>
             {otherLocale && (
               <MarketingActionLink
                 className={styles.onAnchor}
@@ -108,104 +95,62 @@ export function OwnerLandingPage({ onboardingUrl }: OwnerLandingPageProps) {
                 }}
               />
             )}
+            <MarketingActionLink className={styles.onAnchor} action={{ ...leadAction, tone: "quiet" }} />
           </nav>
         </header>
       </div>
 
-      <div className={styles.heroJourney} ref={heroRef}>
-        <ImmersiveRegion className={styles.heroStage} sizing="viewport">
-          <motion.div
-            className={styles.heroCopy}
-            style={reducedMotion ? undefined : { y: copyY, opacity: copyOpacity, pointerEvents: copyPointerEvents }}
-            onFocusCapture={() => {
-              const hero = heroRef.current;
-              const stage = hero?.firstElementChild;
-              if (!hero || !stage || getComputedStyle(stage).position !== "sticky") return;
-              // Keyboard focus reveals the completed scene, including its action.
-              window.scrollTo({ top: hero.offsetTop + hero.offsetHeight - window.innerHeight, behavior: "instant" });
-            }}
-          >
+      <ImmersiveRegion className={styles.heroRegion} sizing="viewport">
+        <section {...particleAnchor("logotype")} aria-labelledby={sectionIds.opening} className={styles.hero}>
+          <div {...particleSlot} className={styles.heroMark}>
+            {/* The particle field draws the logotype here; the image stands in until it does, and names the brand. */}
+            <img alt={t("practiceLanding.subBrand")} className={sceneLive ? styles.stoodDown : undefined} src={darmanLogotypes.onDark} />
+          </div>
+          <div className={styles.heroCopy}>
             <p className={styles.eyebrow}>{t("practiceLanding.eyebrow")}</p>
-            <h1 className={`${styles.heroTitle} font-tone-confident`}>{t("practiceLanding.heroTitle")}</h1>
+            <h1 className={`${styles.heroTitle} font-tone-confident`} id={sectionIds.opening}>{t("practiceLanding.heroTitle")}</h1>
             <p className={styles.heroIntro}>{t("practiceLanding.description")}</p>
-            <div className={styles.heroActions}>
+            <div className={styles.actions}>
               <MarketingActionLink action={primaryAction} />
-              {!isAuthenticated && createClinicAction && (
-                <MarketingActionLink className={styles.onAnchor} action={{ ...leadAction, tone: "quiet" }} />
-              )}
-              <Link className={styles.scrollLink} href={`#${daySectionId}`}>
-                {t("practiceLanding.stepInside")}
+              <Link className={styles.scrollLink} href={`#${sectionIds.showcase}`}>
+                {t("practiceLanding.explore")}
                 <FaIcon aria-hidden="true" icon="arrow-down" />
               </Link>
             </div>
-          </motion.div>
+          </div>
+          {sceneLive && !reducedMotion && <p className={styles.playHint}>{t("practiceLanding.playHint")}</p>}
+        </section>
+      </ImmersiveRegion>
 
-          <motion.div aria-hidden="true" className={styles.archLines} style={reducedMotion ? undefined : { opacity: ornamentOpacity }}>
-            <span /><span /><span />
-          </motion.div>
-          <motion.p className={styles.sceneMargin} style={reducedMotion ? undefined : { opacity: ornamentOpacity }}>
-            {t("practiceLanding.heroFootnote")}
-          </motion.p>
-          <motion.div
-            className={styles.streetPortal}
-            style={reducedMotion ? undefined : { top: portalTop, width: portalWidth, height: portalHeight, borderRadius: portalRadius }}
-          >
-            <motion.div className={styles.artFrame} style={reducedMotion ? undefined : { scale: streetScale }}>
-              <Image alt={t("practiceLanding.streetAlt")} className={styles.artImage} src={artwork.street} fill priority sizes="100vw" />
-            </motion.div>
-            <motion.div aria-hidden="true" className={styles.heroScrim} style={reducedMotion ? undefined : { opacity: scrimOpacity }} />
-          </motion.div>
-        </ImmersiveRegion>
-      </div>
+      <LandingShowcase id={sectionIds.showcase} />
 
-      <PageContainer className={styles.introduction} id={daySectionId} width="content">
-        <ViewportReveal>
-          <p className={styles.eyebrow}>{t("practiceLanding.introEyebrow")}</p>
-          <h2 className={`${styles.introTitle} font-tone-confident`}>{t("practiceLanding.introTitle")}</h2>
-          <p className={styles.introDescription}>{t("practiceLanding.introDescription")}</p>
-        </ViewportReveal>
-        <div className={styles.abilityIndex}>
-          <span><FaIcon aria-hidden="true" icon="calendar-check" />{t("practiceLanding.abilityAppointments")}</span>
-          <span><FaIcon aria-hidden="true" icon="folder-open" />{t("practiceLanding.abilityRecords")}</span>
-          <span><FaIcon aria-hidden="true" icon="users" />{t("practiceLanding.abilityTeam")}</span>
-          <span><FaIcon aria-hidden="true" icon="message-bot" />{t("practiceLanding.abilityResponses")}</span>
-        </div>
-      </PageContainer>
-
-      <LandingFeatures interiorArtwork={artwork.interior} />
-
-      <div className={styles.closingScene} ref={closingRef}>
-        <motion.div className={styles.closingArtwork} style={reducedMotion ? undefined : { scale: closingScale }}>
-          <Image alt="" className={styles.artImage} src={artwork.street} fill sizes="100vw" />
-        </motion.div>
-        <div aria-hidden="true" className={styles.closingScrim} />
-        <Surface render={(props) => <section {...props} />} className={styles.closing} aria-labelledby="landing-close">
-          <ViewportReveal className={styles.closingContent}>
-            <p className={styles.eyebrow}>{t("practiceLanding.closingEyebrow")}</p>
-            <h2 className={`${styles.closingTitle} font-tone-confident`} id="landing-close">{t("practiceLanding.closingTitle")}</h2>
-            <p className={styles.closingDescription}>{t("practiceLanding.closingDescription")}</p>
+      <section {...particleAnchor("sunrise")} aria-labelledby={sectionIds.closing} className={styles.closing}>
+        <div {...particleSlot} aria-hidden="true" className={styles.closingEmblem} />
+        <ViewportReveal className={styles.closingCopy}>
+          <p className={styles.eyebrow}>{t("practiceLanding.closingEyebrow")}</p>
+          <h2 className={`${styles.closingTitle} font-tone-confident`} id={sectionIds.closing}>{t("practiceLanding.closingTitle")}</h2>
+          <p className={styles.heroIntro}>{t("practiceLanding.closingDescription")}</p>
+          <div className={styles.actions}>
             <MarketingActionLink action={primaryAction} />
-            <Link className={styles.overviewLink} href={Routes.PracticeOverview}>{t("practiceLanding.editorial.readMore")}</Link>
-          </ViewportReveal>
-        </Surface>
-      </div>
+            <Link className={styles.scrollLink} href={Routes.PracticeOverview}>{t("practiceLanding.editorial.readMore")}</Link>
+          </div>
+        </ViewportReveal>
+      </section>
+
       <footer className={styles.footer}>
-        <span className={`${styles.footerSubBrand} font-tone-confident`}>{t("practiceLanding.subBrand")}</span>
-        <div className={styles.footerBottom}>
-          <p className={styles.footerNote}>{t("practiceLanding.footerRights")}</p>
-          <Tooltip>
-            <Button
-              isIconOnly
-              aria-label={t("practiceLanding.backToTop")}
-              className={styles.onAnchor}
-              variant="ghost"
-              onPress={() => window.scrollTo({ top: 0, behavior: reducedMotion ? "instant" : "smooth" })}
-            >
-              <FaIcon aria-hidden="true" icon="arrow-up" size="2x" />
-            </Button>
-            <Tooltip.Content>{t("practiceLanding.backToTop")}</Tooltip.Content>
-          </Tooltip>
-        </div>
+        <p className={styles.footerNote}>{t("practiceLanding.footerRights")}</p>
+        <Tooltip>
+          <Button
+            isIconOnly
+            aria-label={t("practiceLanding.backToTop")}
+            className={styles.onAnchor}
+            variant="ghost"
+            onPress={() => window.scrollTo({ top: 0, behavior: reducedMotion ? "instant" : "smooth" })}
+          >
+            <FaIcon aria-hidden="true" icon="arrow-up" size="1x" />
+          </Button>
+          <Tooltip.Content>{t("practiceLanding.backToTop")}</Tooltip.Content>
+        </Tooltip>
       </footer>
     </StandaloneDocumentPage>
   );

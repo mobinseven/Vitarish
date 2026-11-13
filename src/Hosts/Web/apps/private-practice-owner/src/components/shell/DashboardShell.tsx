@@ -17,6 +17,7 @@ import { useAuthSession } from "@vitarish/auth";
 import { useTenantAuthorization } from "@vitarish/auth";
 import { ClinicAssistantAside, type ClinicAssistantScope } from "@vitarish/clinic";
 import { useLocalizedText, type MessageKey } from "@/localization";
+import { darmanLogotypes } from "@/components/branding/darmanLogotypes";
 import { CommandPalette } from "./CommandPalette/CommandPalette";
 import { useClinicNavigation } from "@/components/clinic-navigation";
 
@@ -143,8 +144,8 @@ export function DashboardShell({
       onAsideOpenChange={setOperationsAssistantOpen}
       sidebarBrand={
         <div className="flex w-full justify-center">
-          <img src="/darman-logotype.svg" alt={t("practiceLanding.subBrand")} className="h-5 w-auto dark:hidden" />
-          <img src="/darman-logotype-dark.svg" alt={t("practiceLanding.subBrand")} className="hidden h-5 w-auto dark:block" />
+          <img src={darmanLogotypes.onLight} alt={t("practiceLanding.subBrand")} className="h-5 w-auto dark:hidden" />
+          <img src={darmanLogotypes.onDark} alt={t("practiceLanding.subBrand")} className="hidden h-5 w-auto dark:block" />
         </div>
       }
       skipLinkLabel={t("appShell.navigation.skipToContent")}
