@@ -2,6 +2,8 @@
 
 import { Suspense, useEffect } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { ApiError } from "@vitarish/api-client";
+import { currentReturnPath, signInHrefReturningTo, useAuthSession } from "@vitarish/auth";
 import { isSafeRelativeReturnTo, signInReturnUrlQueryKey } from "@vitarish/journey/sign-in-host";
 import { Routes } from "@/app/routes";
 import { useCurrentJourney } from "@/hooks/journey/useCurrentJourney";
@@ -51,9 +53,17 @@ function JourneyGateContent({ children, central = false }: JourneyGateBoundaryPr
     : undefined;
   const currentSearch = searchParams.toString();
   const { data: decision, isLoading, error, refetch } = useCurrentJourney(central ? requestedReturnUrl ?? pathname ?? undefined : returnUrl);
+  const session = useAuthSession();
+  // A signed-out visitor is sent to sign-in and comes back here; it is not a failed check.
+  const signedOut = (!session.isLoading && !session.isAuthenticated) ||
+    (error instanceof ApiError && error.status === 401);
 
   useEffect(() => {
-    if (isLoading || error || !decision) return;
+    if (signedOut) router.replace(signInHrefReturningTo(currentReturnPath(), Routes.Login.Index));
+  }, [signedOut, router]);
+
+  useEffect(() => {
+    if (signedOut || isLoading || error || !decision) return;
 
     const { step } = decision;
 
@@ -70,9 +80,9 @@ function JourneyGateContent({ children, central = false }: JourneyGateBoundaryPr
     if (central && requestedReturnUrl && step.destinationUrl !== pathname &&
         new Set<string>([Routes.Account.ProfileComplete, Routes.Account.ContactConfirm, Routes.Account.Consents]).has(pathname ?? ""))
       router.replace(step.destinationUrl);
-  }, [decision, isLoading, error, router, pathname, currentSearch, central, requestedReturnUrl]);
+  }, [decision, isLoading, error, router, pathname, currentSearch, central, requestedReturnUrl, signedOut]);
 
-  if (isLoading) {
+  if (signedOut || isLoading) {
     return <JourneyLoadingState />;
   }
 

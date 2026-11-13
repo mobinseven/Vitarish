@@ -13,7 +13,7 @@ import {
 import { usePathname, useRouter } from "next/navigation";
 import { destinationForPath } from "@/app/navigationRegistry";
 import { Routes } from "@/app/routes";
-import { useAuthSession } from "@vitarish/auth";
+import { signInHrefReturningTo, useAuthSession } from "@vitarish/auth";
 import { useTenantAuthorization } from "@vitarish/auth";
 import { ClinicAssistantAside, type ClinicAssistantScope } from "@vitarish/clinic";
 import { useLocalizedText, type MessageKey } from "@/localization";
@@ -92,7 +92,8 @@ export function DashboardShell({
 
     if (!isAuthenticated) {
       return {
-        accountHref: Routes.Account.Index,
+        // Signing in from here brings the person back to this page.
+        accountHref: signInHrefReturningTo(window.location.pathname + window.location.search, Routes.Login.Index),
         accountLabel: t("appShell.userMenu.account"),
         initials: t("appShell.brand").slice(0, 2).toUpperCase(),
         label: t("appShell.brand"),
@@ -109,7 +110,7 @@ export function DashboardShell({
       label: displayProfile?.displayLabel ?? "",
       subtitle: t("appShell.userMenu.account"),
     };
-  }, [displayProfile, isAuthenticated, isHydrated, isLoading, t]);
+  }, [displayProfile, isAuthenticated, isHydrated, isLoading, t, pathname]);
 
   // The sidebar highlights the destination a page belongs to, so child pages keep their parent lit.
   const currentPath = useMemo(
@@ -121,8 +122,9 @@ export function DashboardShell({
     [navGroups, t],
   );
   const footerNavigationItems = useMemo(
-    () => footerItems.map((item) => toNavigationItem(item, t)),
-    [footerItems, t],
+    // Signing out is offered only to someone who is signed in.
+    () => footerItems.filter((item) => isAuthenticated || item.href !== Routes.Logout).map((item) => toNavigationItem(item, t)),
+    [footerItems, t, isAuthenticated],
   );
 
   return (

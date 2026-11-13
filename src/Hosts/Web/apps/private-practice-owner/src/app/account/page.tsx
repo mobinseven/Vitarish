@@ -82,6 +82,20 @@ export default function AccountSettingsPage() {
             </p>
           )}
         </div>
+        {isAuthenticated ? (
+          // Platform home lists the person's workspaces, so they can always get back to their clinic from here.
+          <Link href={Routes.SignInContinue} className="block min-w-0">
+            <ItemCard className="min-w-0 transition-colors hover:bg-surface-tertiary" variant="secondary">
+              <ItemCard.Icon>
+                <FaIcon icon="building" aria-hidden="true" className="text-lg text-muted" />
+              </ItemCard.Icon>
+              <ItemCard.Content className="gap-1">
+                <ItemCard.Title className="whitespace-normal break-words">{t("account.workspaces.title")}</ItemCard.Title>
+                <ItemCard.Description className="whitespace-normal break-words">{t("account.workspaces.caption")}</ItemCard.Description>
+              </ItemCard.Content>
+            </ItemCard>
+          </Link>
+        ) : null}
         <div className="grid gap-3 sm:grid-cols-2">
           {settingsLinks.map((item) => (
             <Link

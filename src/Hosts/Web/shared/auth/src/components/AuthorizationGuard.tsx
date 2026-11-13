@@ -12,6 +12,7 @@ import { StandaloneCenteredPage } from "@vitarish/ui/layout";
 import { ignoreAuthNavigation, type AuthNavigate } from "../hooks/navigation";
 import { useAuthErrorDisplay } from "../hooks/useAuthErrorDisplay";
 import { useLogout } from "../hooks/useLogout";
+import { currentReturnPath, signInHrefReturningTo } from "../routes";
 
 interface AuthorizationGuardProps {
   requiredRole?: TenantRole;
@@ -36,7 +37,8 @@ export function AuthorizationGuard({
   const { t } = useLocalizedText();
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      onNavigate(loginHref);
+      // Sign-in brings the person back to the page they opened.
+      onNavigate(signInHrefReturningTo(currentReturnPath(), loginHref));
     }
   }, [isLoading, isAuthenticated, loginHref, onNavigate]);
 

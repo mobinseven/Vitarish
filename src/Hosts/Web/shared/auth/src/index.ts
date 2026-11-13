@@ -137,7 +137,7 @@ export type { AuthMethodRoute } from "./components/AuthMethodSelector";
 export { AuthorizationGuard } from "./components/AuthorizationGuard";
 export { EmailOtpForm } from "./components/EmailOtpForm";
 export { LoginForm } from "./components/LoginForm";
-export { AuthenticationWebRoutes } from "./routes";
+export { AuthenticationWebRoutes, currentReturnPath, signInHrefReturningTo } from "./routes";
 export { LoginPageCard } from "./components/LoginPageCard";
 export { PasswordRecoveryForm } from "./components/PasswordRecoveryForm";
 export { PasswordRecoveryPage } from "./components/PasswordRecoveryPage";
