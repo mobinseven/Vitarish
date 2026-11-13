@@ -363,6 +363,14 @@ surgery cancellation, wide screens only); all of them share their steps from
 `mock-` prefix so they are never confused with real-host captures, which the
 two-host runner writes next to its proof screenshot under
 `src/Hosts/Web/artifacts/two-host-e2e/`.
+The two-host runner serves each Web app from a prebuilt `next build` output kept in
+`apps/<app>/.next-two-host-e2e-prebuilt` (ignored by git). A fingerprint of the app's
+sources, every shared package including the generated API clients, the lockfile, the
+build environment and the Node version is stored beside it
+(`scripts/two-host-e2e-web-build-cache.mjs`); an app whose fingerprint is unchanged
+skips its build, and a changed one is rebuilt from scratch. To force a rebuild, delete
+that folder. Per-run secrets and capture paths are kept out of the build, so the same
+output serves every later run.
 Narrow a run with
 `-- --scenarios ready -- --project desktop-light --grep "<name>"`; images land in
 `src/Hosts/Web/artifacts/<app>-screenshots/<scenario>/<locale>-<project>/`; `mockApps` in
