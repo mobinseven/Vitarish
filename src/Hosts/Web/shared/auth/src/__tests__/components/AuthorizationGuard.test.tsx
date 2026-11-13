@@ -3,9 +3,12 @@ import { afterEach, expect, it, vi } from "vitest";
 import { LocalizationProvider } from "@vitarish/localization";
 import { AuthorizationGuard } from "../../components/AuthorizationGuard";
 
-const mocks = vi.hoisted(() => ({ logout: vi.fn() }));
+const mocks = vi.hoisted(() => {
+  const signedInWithoutAccess = { isAuthenticated: true, isLoading: false, hasAccess: false };
+  return { logout: vi.fn(), signedInWithoutAccess, authorization: signedInWithoutAccess };
+});
 vi.mock("../../hooks/useTenantAuthorization", () => ({
-  useTenantAuthorization: () => ({ isAuthenticated: true, isLoading: false, hasAccess: false }),
+  useTenantAuthorization: () => mocks.authorization,
 }));
 vi.mock("../../api/generated/authentication/authentication", () => ({
   useAuthenticationLogoutPost: () => ({ mutateAsync: mocks.logout, isPending: false }),
@@ -14,7 +17,12 @@ vi.mock("../../api/generated/authentication/authentication", () => ({
 }));
 vi.mock("@tanstack/react-query", () => ({ useQueryClient: () => ({ removeQueries: vi.fn() }) }));
 
-afterEach(() => { cleanup(); vi.clearAllMocks(); });
+afterEach(() => {
+  cleanup();
+  vi.clearAllMocks();
+  mocks.authorization = mocks.signedInWithoutAccess;
+  window.history.pushState({}, "", "/");
+});
 
 const guard = {
   accessDenied: "Access Denied",
@@ -55,4 +63,21 @@ it("offers only sign-out when the app names no home", () => {
   renderDenied(vi.fn());
   expect(screen.queryByRole("button", { name: guard.home })).toBeNull();
   expect(screen.getByRole("button", { name: guard.signOut })).toBeVisible();
+});
+
+it("sends an unauthenticated person to sign-in carrying the page they opened", () => {
+  mocks.authorization = { isAuthenticated: false, isLoading: false, hasAccess: false };
+  window.history.pushState({}, "", "/patients/1?tab=x");
+  const navigate = vi.fn();
+
+  render(
+    <LocalizationProvider locale="en" messages={messages}>
+      <AuthorizationGuard requiredRole="owner" loginHref="/sign-in" onNavigate={navigate}>
+        <p>protected</p>
+      </AuthorizationGuard>
+    </LocalizationProvider>,
+  );
+
+  expect(navigate).toHaveBeenCalledWith("/sign-in?returnUrl=%2Fpatients%2F1%3Ftab%3Dx");
+  expect(screen.queryByText("protected")).toBeNull();
 });

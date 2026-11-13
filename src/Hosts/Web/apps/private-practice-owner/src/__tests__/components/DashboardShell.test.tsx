@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   DashboardFrame,
   type DashboardNavigationGroup,
@@ -14,9 +14,11 @@ import {
   dashboardFooterItems,
   mainDashboardNavGroups,
 } from "@/components/shell/dashboardShellNavigation";
+import { Routes } from "@/app/routes";
 
 const routerPush = vi.hoisted(() => vi.fn());
 const tenantAccess = vi.hoisted(() => ({ value: true }));
+const authSession = vi.hoisted(() => ({ isAuthenticated: true }));
 
 vi.mock("next/navigation", () => ({
   usePathname: () => "/patients/example",
@@ -38,9 +40,11 @@ vi.mock("next-themes", () => ({
   }),
 }));
 
-vi.mock("@vitarish/auth", () => ({
+vi.mock("@vitarish/auth", async () => ({
+  // The real sign-in return helper, so the signed-out link is built as it is in production.
+  ...(await vi.importActual<typeof import("@vitarish/auth/routes")>("@vitarish/auth/routes")),
   useAuthSession: () => ({
-    isAuthenticated: true,
+    isAuthenticated: authSession.isAuthenticated,
     isLoading: false,
     displayProfile: {
       displayLabel: "Test User",
@@ -213,6 +217,12 @@ const shellFooterItems = [
   },
 ] as const;
 
+const shellLogOutItem = {
+  href: Routes.Logout,
+  icon: "arrow-right-from-bracket",
+  labelKey: "appShell.userMenu.signOut",
+} as const;
+
 const nestedNavigationGroups = [
   {
     label: "General",
@@ -238,7 +248,46 @@ const nestedNavigationGroups = [
 ] as const satisfies readonly DashboardNavigationGroup[];
 
 describe("Dashboard Shell Components", () => {
+  afterEach(() => {
+    authSession.isAuthenticated = true;
+    window.history.pushState({}, "", "/");
+  });
+
   describe("DashboardShell", () => {
+    it("links a signed-out profile to sign-in carrying the current page and offers no log out", () => {
+      authSession.isAuthenticated = false;
+      window.history.pushState({}, "", "/patients/1?tab=x");
+      render(
+        <DashboardShell
+          footerItems={[...shellFooterItems, shellLogOutItem]}
+          navGroups={shellNavGroups}
+        >
+          <div>Dashboard content</div>
+        </DashboardShell>,
+      );
+
+      // The sidebar renders for both desktop and mobile, so every identity button leads to the same place.
+      fireEvent.click(screen.getAllByRole("button", { name: "Account" })[0]);
+
+      expect(routerPush).toHaveBeenCalledWith(
+        `${Routes.Login.Index}?returnUrl=${encodeURIComponent("/patients/1?tab=x")}`,
+      );
+      expect(screen.queryAllByText("Log Out")).toHaveLength(0);
+    });
+
+    it("offers log out to a signed-in person", () => {
+      render(
+        <DashboardShell
+          footerItems={[...shellFooterItems, shellLogOutItem]}
+          navGroups={shellNavGroups}
+        >
+          <div>Dashboard content</div>
+        </DashboardShell>,
+      );
+
+      expect(screen.getAllByText("Log Out").length).toBeGreaterThan(0);
+    });
+
     it("renders the template-style sidebar, navbar actions, and content", () => {
       render(
         <DashboardShell
@@ -339,6 +388,16 @@ describe("Dashboard Shell Components", () => {
     it("renders user display label when authenticated", () => {
       render(<UserMenu />);
       expect(screen.getByText("Test User")).toBeInTheDocument();
+    });
+
+    it("links a signed-out visitor to sign-in carrying the current pathname as the return target", () => {
+      authSession.isAuthenticated = false;
+      render(<UserMenu />);
+
+      expect(screen.getByRole("link", { name: "Log In" })).toHaveAttribute(
+        "href",
+        `${Routes.Login.Index}?returnUrl=${encodeURIComponent("/patients/example")}`,
+      );
     });
   });
 
