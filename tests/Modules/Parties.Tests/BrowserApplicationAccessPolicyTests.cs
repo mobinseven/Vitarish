@@ -28,4 +28,10 @@ public sealed class BrowserApplicationAccessPolicyTests
         BrowserApplicationAccessPolicy.Allows(target, PlatformAdminTenant.AppId, roles, false, false).Should().BeTrue();
         BrowserApplicationAccessPolicy.Allows(target, BrowserApplicationTenants.PatientsAppId, new HashSet<string>(), false, false).Should().BeTrue();
     }
+
+    [Fact]
+    public void The_clinic_landing_host_admits_signed_in_people_without_roles()
+    {
+        BrowserApplicationAccessPolicy.Allows(Guid.NewGuid(), BrowserApplicationTenants.ClinicLandingAppId, new HashSet<string>(), false, false).Should().BeTrue();
+    }
 }
