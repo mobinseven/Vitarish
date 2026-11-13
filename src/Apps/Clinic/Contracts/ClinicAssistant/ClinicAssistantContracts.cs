@@ -39,6 +39,9 @@ public sealed record ConfirmClinicAssistantActionRequest(string ActionId);
 
 public sealed record RejectClinicAssistantActionRequest(string ActionId, string? Reason = null);
 
+/// <summary>The owner's edit of a proposal: the full edited tool arguments, keeping the same operation.</summary>
+public sealed record ReviseClinicAssistantActionRequest(string ActionId, JsonElement Arguments);
+
 public sealed record ClinicAssistantActionDetailsResponse(
     Guid ActionId,
     string AgentRunId,

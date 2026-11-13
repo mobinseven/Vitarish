@@ -11,6 +11,12 @@ public sealed record AssistantResult(
     public AssistantRunOutcome Outcome { get; init; } = AssistantRunOutcome.Succeeded;
     public IReadOnlyList<AssistantPreparedAction> PreparedActions { get; init; } = [];
 
+    /// <summary>The model's validated question for the next step, if it asked one.</summary>
+    public Vitarish.Intelligence.Application.Agents.AgentInteractiveQuestion? Question { get; init; }
+
+    /// <summary>The setup goal whose screen the model suggests opening next, if any.</summary>
+    public string? NextAction { get; init; }
+
     public static AssistantResult Failure(string agentRunId, string conversationId, string message) =>
         new(agentRunId, conversationId, [new AssistantMessage(AssistantMessageKind.Failure, message)], [])
         {

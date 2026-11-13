@@ -8,6 +8,7 @@ import { createOnboardingMockHandlers } from "./mockOnboardingHandlers";
 import { createContentsMockHandlers } from "./mockContentsHandlers";
 import { createSeaMockHandlers } from "./mockSeaHandlers";
 import { createSurgeryMockHandlers } from "./mockSurgeryHandlers";
+import { createSetupMockHandlers } from "./mockSetupHandlers";
 import { landingCatalog, landingHomeDirectory } from "./mockLandingCatalog";
 
 export type MockScenario = "ready" | "empty" | "loading" | "error";
@@ -551,6 +552,7 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
     ...createSeaMockHandlers({ store, isUnavailable: activeScenario === "error", withDelay, unavailable, notFound }),
     ...createContentsMockHandlers({ isEmpty: activeScenario === "empty", isUnavailable: activeScenario === "error", withDelay, unavailable, notFound }),
     ...createSurgeryMockHandlers({ store, isPersianRequest, isUnavailable: activeScenario === "error", withDelay, unavailable, notFound }),
+    ...createSetupMockHandlers({ scenario: activeScenario, isPersianRequest, withDelay, unavailable }),
     ...createOnboardingMockHandlers({ store, isPersianRequest, isUnavailable: activeScenario === "error", withDelay, unavailable, notFound }),
     ...createMemoryMockHandlers({ isPersianRequest, isEmpty: activeScenario === "empty", isUnavailable: activeScenario === "error", withDelay, unavailable, notFound }),
     http.post(/\/api\/modules\/medical\/providers\/available(?:\?|$)/, async () => {

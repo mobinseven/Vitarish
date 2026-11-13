@@ -16,10 +16,6 @@ internal static partial class AssistantTelemetry
         Message = "Clinic assistant provider returned {Outcome}; run {AgentRunId}.")]
     internal static partial void ProviderCompleted(ILogger logger, string outcome, string agentRunId);
 
-    [LoggerMessage(EventId = 73803, Level = LogLevel.Information,
-        Message = "Clinic assistant prepared action {ActionType} with action {ActionId}; run {AgentRunId}.")]
-    internal static partial void PreparedActionCreated(ILogger logger, string actionType, Guid actionId, string agentRunId);
-
     [LoggerMessage(EventId = 73804, Level = LogLevel.Warning,
         Message = "Clinic assistant profile compatibility conflict ended run {AgentRunId}, conversation {ConversationId}.")]
     internal static partial void ProfileConflict(ILogger logger, string agentRunId, string conversationId);

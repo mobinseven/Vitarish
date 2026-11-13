@@ -7,6 +7,8 @@ using Vitarish.Clinic.Application.Assistant.Capabilities;
 using Vitarish.Clinic.Application.Assistant.Policies;
 using Vitarish.Intelligence.Agents;
 using Vitarish.Intelligence.Application.Agents;
+using Vitarish.Intelligence.Application.PreparedActions;
+using Vitarish.Intelligence.Domain.PreparedActions;
 using Xunit;
 
 namespace Vitarish.Clinic.Agents.Tests;
@@ -248,7 +250,14 @@ public sealed class AssistantSecurityRegressionTests
             PatientContext(), new AssistantInput("prepare an appointment"), CancellationToken.None);
 
         result.Actions.Should().ContainSingle().Which.ActionId.Should().Be(proposalId);
-        actionStore.Saved.Should().ContainSingle().Which.ActionId.Should().Be(proposalId);
+        PreparedAction saved = actionStore.Saved.Should().ContainSingle().Which;
+        saved.ActionId.Should().Be(proposalId);
+        saved.AgentKey.Should().Be(AssistantSubjects.PatientAgentKey);
+        saved.ScopeId.Should().Be("practice-1");
+        saved.SubjectKind.Should().Be(AssistantSubjects.PatientKind);
+        saved.SubjectId.Should().Be(PatientId.ToString("D"));
+        saved.RequestedByUserId.Should().Be("user-1");
+        saved.Status.Should().Be(PreparedActionStatus.Proposed);
         sender.CallbackCompleted.Should().BeTrue();
     }
 
@@ -298,7 +307,7 @@ public sealed class AssistantSecurityRegressionTests
         AgentProfileComposer<AssistantCompositionContext> composer,
         AssistantCapabilityRegistry registry,
         ISender sender,
-        IAssistantActionStore actionStore)
+        IPreparedActionStore actionStore)
     {
         FixedTimeProvider time = new(DateTimeOffset.Parse("2030-01-01T10:00:00Z"));
         AssistantManifestComposer manifestComposer = new(
@@ -312,10 +321,11 @@ public sealed class AssistantSecurityRegressionTests
                 manifestComposer,
                 new AssistantResultParser(registry),
                 sender,
-                actionStore,
+                new PreparedActionLifecycle(actionStore, time),
                 registry,
                 time),
-            new AssistantToolResolver(manifestComposer));
+            new AssistantToolResolver(manifestComposer),
+            manifestComposer);
     }
 
     private static AssistantContext PatientContext(IReadOnlySet<string>? permissions = null, string role = "Clinician") => new(
@@ -426,23 +436,23 @@ public sealed class AssistantSecurityRegressionTests
         public IAsyncEnumerable<object?> CreateStream(object request, CancellationToken cancellationToken = default) => throw new NotSupportedException();
     }
 
-    private sealed class RecordingActionStore : IAssistantActionStore
+    private sealed class RecordingActionStore : IPreparedActionStore
     {
-        public List<AssistantAction> Saved { get; } = [];
+        public List<PreparedAction> Saved { get; } = [];
 
-        public Task SaveAsync(AssistantAction action, CancellationToken cancellationToken)
+        public Task SaveNewAsync(PreparedAction action, CancellationToken cancellationToken)
         {
             Saved.Add(action);
             return Task.CompletedTask;
         }
 
-        public Task<AssistantAction?> GetAsync(Guid actionId, CancellationToken cancellationToken) =>
-            Task.FromResult(Saved.SingleOrDefault(action => action.ActionId == actionId));
-        public Task<bool> TryBeginConfirmationAsync(Guid actionId, bool retryFailed, CancellationToken cancellationToken) => Task.FromResult(false);
-        public Task<bool> TryRejectAsync(Guid actionId, DateTimeOffset rejectedAt, string? reason, CancellationToken cancellationToken) => Task.FromResult(false);
-        public Task<bool> CompleteAsync(Guid actionId, DateTimeOffset confirmedAt, string confirmedByUserId, string completionPayload, CancellationToken cancellationToken) => Task.FromResult(false);
-        public Task<bool> FailAsync(Guid actionId, AssistantActionFailure failure, CancellationToken cancellationToken) => Task.FromResult(false);
-        public Task<bool> ExpireAsync(Guid actionId, CancellationToken cancellationToken) => Task.FromResult(false);
+        public Task<StoredPreparedAction?> GetAsync(Guid actionId, CancellationToken cancellationToken) =>
+            Task.FromResult(Saved.SingleOrDefault(action => action.ActionId == actionId) is { } action
+                ? new StoredPreparedAction(action, "0")
+                : null);
+
+        public Task<bool> TryReplaceAsync(StoredPreparedAction current, PreparedAction next, CancellationToken cancellationToken) =>
+            Task.FromResult(false);
     }
 
     private sealed class FixedTimeProvider(DateTimeOffset now) : TimeProvider

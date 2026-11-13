@@ -1,7 +1,7 @@
 using MediatR;
-using Microsoft.Extensions.Logging;
 using Vitarish.Clinic.Application.Assistant.Capabilities;
-using Vitarish.Clinic.Application.Assistant.Operations;
+using Vitarish.Intelligence.Application.PreparedActions;
+using Vitarish.Intelligence.Domain.PreparedActions;
 
 namespace Vitarish.Clinic.Application.Assistant.Actions;
 
@@ -23,169 +23,118 @@ public sealed record ConfirmAssistantAction(Guid ActionId, AssistantContext Cont
     : IRequest<AssistantActionResult>;
 
 public sealed class ConfirmAssistantActionHandler(
-    IAssistantActionStore store,
+    PreparedActionLifecycle lifecycle,
     IAssistantActionCommitterRegistry committers,
-    AssistantCapabilityRegistry capabilityRegistry,
-    TimeProvider timeProvider,
-    ILogger<ConfirmAssistantActionHandler>? logger = null) : IRequestHandler<ConfirmAssistantAction, AssistantActionResult>
+    AssistantCapabilityRegistry capabilityRegistry) : IRequestHandler<ConfirmAssistantAction, AssistantActionResult>
 {
-    public async Task<AssistantActionResult> Handle(ConfirmAssistantAction request, CancellationToken cancellationToken)
-    {
-        AssistantAction? action = await store.GetAsync(request.ActionId, cancellationToken);
-        AssistantActionOutcome? scopeFailure = ScopeFailure(action, request.Context, capabilityRegistry);
-        if (scopeFailure.HasValue) return new(scopeFailure.Value);
-        if (action is null) return new(AssistantActionOutcome.NotFound);
-
-        if (action.Status == AssistantActionStatus.Completed) return new(AssistantActionOutcome.Succeeded, action);
-        if (action.Status is AssistantActionStatus.Rejected or AssistantActionStatus.Expired ||
-            action.Status == AssistantActionStatus.Failed && action.Failure?.Retryable != true)
-            return new(AssistantActionOutcome.Conflict, action);
-        if (action.ExpiresAt <= timeProvider.GetUtcNow())
-        {
-            _ = await store.ExpireAsync(action.ActionId, cancellationToken);
-            return new(AssistantActionOutcome.Expired, await store.GetAsync(action.ActionId, cancellationToken));
-        }
-
-        AssistantActionPolicy? policy = capabilityRegistry.ResolveAction(action.ActionType);
-        if (policy is null)
-            return await SaveFailure(action, new("undeclared_action", "The action policy is no longer available.", false), cancellationToken);
-        if (action.ActionPolicyRevision > 0 && action.ActionPolicyRevision != policy.Revision)
-            return await SaveFailure(action, new("stale_action_policy", "The action policy changed; the action must be proposed again.", false), cancellationToken);
-        if (!policy.Authorizes(request.Context))
-            return new(AssistantActionOutcome.PermissionDenied, action);
-
-        IAssistantActionCommitter? committer = committers.Resolve(action.ActionType);
-        if (committer is null)
-            return await SaveFailure(action, new("unsupported_action", "The action type cannot be confirmed.", false), cancellationToken);
-
-        bool retryFailed = action.Status == AssistantActionStatus.Failed &&
-            action.Failure?.Retryable == true &&
-            policy.RetryClassification is AssistantActionRetryClassification.Retryable or AssistantActionRetryClassification.Idempotent;
-        if (retryFailed && logger is not null)
-            AssistantTelemetry.ActionRetry(logger, action.ActionType, policy.RetryClassification.ToString(), action.ActionId);
-        if (!await store.TryBeginConfirmationAsync(action.ActionId, retryFailed, cancellationToken))
-        {
-            AssistantAction? latest = await store.GetAsync(action.ActionId, cancellationToken);
-            if (logger is not null)
-                AssistantTelemetry.ActionConfirmationClaimed(logger, action.ActionType, "conflict", action.ActionId);
-            return latest?.Status == AssistantActionStatus.Completed
-                ? new(AssistantActionOutcome.Succeeded, latest)
-                : new(AssistantActionOutcome.Conflict, latest);
-        }
-
-        AssistantActionCommitResult result;
-        try
-        {
-            result = await committer.CommitAsync(action, request.Context, cancellationToken);
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            throw;
-        }
-        catch
-        {
-            // The owning mutation may have succeeded; an automatic retry would be unsafe.
-            result = AssistantActionCommitResult.Failed(
-                "unknown_commit_outcome", "The owning workflow returned an unknown outcome.");
-        }
-
-        if (!result.Succeeded)
-        {
-            AssistantActionFailure failure = result.Failure ?? new("commit_failed", "The action could not be completed.", false);
-            if (policy.RetryClassification == AssistantActionRetryClassification.NeverRetry)
-                failure = failure with { Retryable = false };
-            if (logger is not null)
-                AssistantTelemetry.ActionFailed(logger, action.ActionType, action.ActionId, failure.Retryable);
-            return await SaveFailure(action, failure, cancellationToken);
-        }
-
-        if (logger is not null)
-            AssistantTelemetry.ActionConfirmationClaimed(logger, action.ActionType, "claimed", action.ActionId);
-
-        bool completed = await store.CompleteAsync(
-            action.ActionId, timeProvider.GetUtcNow(), request.Context.AuthenticatedUserId,
-            result.CompletionPayload ?? "{}", cancellationToken);
-        AssistantAction? final = await store.GetAsync(action.ActionId, cancellationToken);
-        AssistantActionResult outcome = completed || final?.Status == AssistantActionStatus.Completed
-            ? new(AssistantActionOutcome.Succeeded, final)
-            : new(AssistantActionOutcome.Conflict, final);
-        if (final is not null && logger is not null)
-        {
-            AssistantTelemetry.ActionCompleted(logger, final.ActionType, outcome.Outcome.ToString(), final.AgentRunId, final.ActionId);
-        }
-        return outcome;
-    }
-
-    private async Task<AssistantActionResult> SaveFailure(
-        AssistantAction action,
-        AssistantActionFailure failure,
-        CancellationToken cancellationToken)
-    {
-        _ = await store.FailAsync(action.ActionId, failure, cancellationToken);
-        AssistantAction? latest = await store.GetAsync(action.ActionId, cancellationToken);
-        if (latest is not null && logger is not null)
-        {
-            AssistantTelemetry.ActionCompleted(logger, latest.ActionType, AssistantActionOutcome.Failed.ToString(), latest.AgentRunId, latest.ActionId);
-        }
-        return new(AssistantActionOutcome.Failed, latest);
-    }
-
-    internal static AssistantActionOutcome? ScopeFailure(
-        AssistantAction? action,
-        AssistantContext context,
-        AssistantCapabilityRegistry capabilityRegistry)
-    {
-        if (action is null) return AssistantActionOutcome.NotFound;
-        if (!string.Equals(action.SubjectKind, context.SubjectKind, StringComparison.Ordinal) ||
-            action.PatientId != context.PatientId || !string.Equals(action.PracticeId, context.PracticeId, StringComparison.Ordinal))
-            return AssistantActionOutcome.ScopeMismatch;
-        AssistantActionPolicy? policy = capabilityRegistry.ResolveAction(action.ActionType);
-        if (!string.Equals(action.RequestedByUserId, context.AuthenticatedUserId, StringComparison.Ordinal) ||
-            policy is null ||
-            !policy.Authorizes(context))
-            return AssistantActionOutcome.PermissionDenied;
-        return null;
-    }
+    public async Task<AssistantActionResult> Handle(ConfirmAssistantAction request, CancellationToken cancellationToken) =>
+        ClinicPreparedActionMapping.ToClinic(await lifecycle.ConfirmAsync(
+            request.ActionId,
+            new ClinicPreparedActionApp(request.Context, capabilityRegistry, committers),
+            cancellationToken));
 }
 
 public sealed record RejectAssistantAction(Guid ActionId, AssistantContext Context, string? Reason)
     : IRequest<AssistantActionResult>;
 
-public sealed class RejectAssistantActionHandler(IAssistantActionStore store, AssistantCapabilityRegistry capabilityRegistry, TimeProvider timeProvider)
-    : IRequestHandler<RejectAssistantAction, AssistantActionResult>
+public sealed class RejectAssistantActionHandler(
+    PreparedActionLifecycle lifecycle,
+    IAssistantActionCommitterRegistry committers,
+    AssistantCapabilityRegistry capabilityRegistry) : IRequestHandler<RejectAssistantAction, AssistantActionResult>
 {
-    public async Task<AssistantActionResult> Handle(RejectAssistantAction request, CancellationToken cancellationToken)
-    {
-        if (request.Reason?.Length > 1_000)
-            return new(AssistantActionOutcome.ValidationFailure);
-        AssistantAction? action = await store.GetAsync(request.ActionId, cancellationToken);
-        AssistantActionOutcome? failure = ConfirmAssistantActionHandler.ScopeFailure(action, request.Context, capabilityRegistry);
-        if (failure.HasValue) return new(failure.Value);
-        if (action!.ExpiresAt <= timeProvider.GetUtcNow())
-        {
-            _ = await store.ExpireAsync(action.ActionId, cancellationToken);
-            return new(AssistantActionOutcome.Expired, await store.GetAsync(action.ActionId, cancellationToken));
-        }
-        if (action!.Status != AssistantActionStatus.Proposed)
-            return new(AssistantActionOutcome.Conflict, action);
-        string? reason = string.IsNullOrWhiteSpace(request.Reason) ? null : request.Reason.Trim();
-        bool rejected = await store.TryRejectAsync(action.ActionId, timeProvider.GetUtcNow(), reason, cancellationToken);
-        return rejected
-            ? new(AssistantActionOutcome.Succeeded, await store.GetAsync(action.ActionId, cancellationToken))
-            : new(AssistantActionOutcome.Conflict, await store.GetAsync(action.ActionId, cancellationToken));
-    }
+    public async Task<AssistantActionResult> Handle(RejectAssistantAction request, CancellationToken cancellationToken) =>
+        ClinicPreparedActionMapping.ToClinic(await lifecycle.RejectAsync(
+            request.ActionId,
+            new ClinicPreparedActionApp(request.Context, capabilityRegistry, committers),
+            request.Reason,
+            cancellationToken));
 }
 
 public sealed record GetAssistantAction(Guid ActionId, AssistantContext Context)
     : IRequest<AssistantActionResult>;
 
-public sealed class GetAssistantActionHandler(IAssistantActionStore store, AssistantCapabilityRegistry capabilityRegistry)
-    : IRequestHandler<GetAssistantAction, AssistantActionResult>
+public sealed class GetAssistantActionHandler(
+    PreparedActionLifecycle lifecycle,
+    IAssistantActionCommitterRegistry committers,
+    AssistantCapabilityRegistry capabilityRegistry) : IRequestHandler<GetAssistantAction, AssistantActionResult>
 {
-    public async Task<AssistantActionResult> Handle(GetAssistantAction request, CancellationToken cancellationToken)
+    public async Task<AssistantActionResult> Handle(GetAssistantAction request, CancellationToken cancellationToken) =>
+        ClinicPreparedActionMapping.ToClinic(await lifecycle.GetAsync(
+            request.ActionId,
+            new ClinicPreparedActionApp(request.Context, capabilityRegistry, committers),
+            cancellationToken));
+}
+
+public sealed record ReviseAssistantAction(Guid ActionId, AssistantContext Context, string ArgumentsJson)
+    : IRequest<AssistantActionResult>;
+
+/// <summary>
+/// Replaces a proposal with the owner's edit in the same run. Only revisable action policies allow it; the edit
+/// re-runs the original tool's prepare step under the request's guards, must keep the original operation, and is
+/// reviewed and confirmed like any proposal.
+/// </summary>
+public sealed class ReviseAssistantActionHandler(
+    PreparedActionLifecycle lifecycle,
+    IAssistantActionCommitterRegistry committers,
+    AssistantCapabilityRegistry capabilityRegistry,
+    IAssistantActionPreparation preparation,
+    TimeProvider timeProvider) : IRequestHandler<ReviseAssistantAction, AssistantActionResult>
+{
+    private const string OperationProperty = "operation";
+
+    public async Task<AssistantActionResult> Handle(ReviseAssistantAction request, CancellationToken cancellationToken) =>
+        ClinicPreparedActionMapping.ToClinic(await lifecycle.ReviseAsync(
+            request.ActionId,
+            new ClinicPreparedActionApp(request.Context, capabilityRegistry, committers),
+            (original, ct) => PrepareReplacementAsync(request, original, ct),
+            cancellationToken));
+
+    private async Task<PreparedAction?> PrepareReplacementAsync(
+        ReviseAssistantAction request,
+        PreparedAction original,
+        CancellationToken cancellationToken)
     {
-        AssistantAction? action = await store.GetAsync(request.ActionId, cancellationToken);
-        AssistantActionOutcome? failure = ConfirmAssistantActionHandler.ScopeFailure(action, request.Context, capabilityRegistry);
-        return failure.HasValue ? new(failure.Value) : new(AssistantActionOutcome.Succeeded, action);
+        AssistantActionPolicy? policy = capabilityRegistry.ResolveAction(original.ActionType);
+        if (policy is not { Revisable: true, RequiresConfirmation: true } || original.ToolName is not { } toolName ||
+            !policy.ToolNames.Contains(toolName) || !KeepsOperation(original.ReviewPayload, request.ArgumentsJson))
+            return null;
+
+        AssistantPreparedAction? prepared = await preparation.PrepareAsync(request.Context, toolName, request.ArgumentsJson, cancellationToken);
+        if (prepared is null ||
+            !string.Equals(prepared.ActionType, original.ActionType, StringComparison.Ordinal) ||
+            !string.Equals(prepared.Capability, original.Capability, StringComparison.Ordinal))
+            return null;
+
+        DateTimeOffset preparedAt = timeProvider.GetUtcNow();
+        return ClinicPreparedActionMapping.ToPrepared(
+            request.Context,
+            prepared with { Summary = original.Summary, ToolCallId = prepared.OwningId.ToString("N"), ToolName = toolName },
+            original.AgentRunId,
+            original.ConversationId,
+            preparedAt,
+            prepared.Expiration ?? preparedAt.Add(policy.DefaultProposalLifetime ?? TimeSpan.FromMinutes(30)),
+            policy.Revision);
+    }
+
+    // An edit changes the details of the proposed operation, never which operation it is.
+    private static bool KeepsOperation(string originalPayload, string revisedArguments)
+    {
+        try
+        {
+            using System.Text.Json.JsonDocument original = System.Text.Json.JsonDocument.Parse(originalPayload);
+            using System.Text.Json.JsonDocument revised = System.Text.Json.JsonDocument.Parse(revisedArguments);
+            if (revised.RootElement.ValueKind != System.Text.Json.JsonValueKind.Object) return false;
+            if (original.RootElement.ValueKind != System.Text.Json.JsonValueKind.Object ||
+                !original.RootElement.TryGetProperty(OperationProperty, out System.Text.Json.JsonElement before))
+                return true;
+            return revised.RootElement.TryGetProperty(OperationProperty, out System.Text.Json.JsonElement after) &&
+                before.ValueKind == System.Text.Json.JsonValueKind.String &&
+                after.ValueKind == System.Text.Json.JsonValueKind.String &&
+                string.Equals(before.GetString(), after.GetString(), StringComparison.Ordinal);
+        }
+        catch (System.Text.Json.JsonException)
+        {
+            return false;
+        }
     }
 }

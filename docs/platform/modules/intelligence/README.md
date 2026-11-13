@@ -12,6 +12,11 @@ This folder contains app-agnostic module documentation. App-specific usage belon
 - [`0001-intelligence-realtime-streaming-and-file-input.md`](decisions/0001-intelligence-realtime-streaming-and-file-input.md)
 - [`0002-authenticated-request-scoped-websocket-transcription.md`](decisions/0002-authenticated-request-scoped-websocket-transcription.md)
 
+## Guides
+
+- [`prepared-actions.md`](prepared-actions.md)
+- [`guided-surfaces.md`](guided-surfaces.md)
+
 ## Operations
 
 - [`live-transcription-runbook.md`](live-transcription-runbook.md)

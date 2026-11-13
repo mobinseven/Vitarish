@@ -72,7 +72,10 @@ public sealed class AssistantResultParser(AssistantCapabilityRegistry capability
         {
             PreparedActions = preparedActions,
             Candidates = search?.Candidates,
-            HasMoreCandidates = search?.HasMore ?? false
+            HasMoreCandidates = search?.HasMore ?? false,
+            // Read leniently: a malformed question or an unknown next step is dropped, never the reply.
+            Question = AgentInteractiveReplyFormat.ReadQuestion(output),
+            NextAction = AgentInteractiveReplyFormat.ReadNextAction(output, AssistantNextActions.Keys)
         };
     }
 

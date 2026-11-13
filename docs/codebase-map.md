@@ -56,7 +56,7 @@ TanStack Query, Orval, Vitest, Playwright, Docker Compose, and GitHub Actions.
 | `src/Build` | Shared MSBuild configuration and module build profiles. | High-impact shared build surface. |
 | `src/Libraries/Hosting` | Shared backend registration and middleware composition used by executable hosts. | Keep provider and operational choices in executable hosts. |
 | `src/Hosts/Main` | Production ASP.NET Core runtime host. | Follow its `AGENTS.md`; no E2E branches or product UI. |
-| `src/Hosts/E2e` | Non-publishable in-memory host for real two-host browser tests. | No migrations, Hangfire, or test authentication bypass. |
+| `src/Hosts/E2e` | Non-publishable in-memory host for real two-host browser tests. Under `Infrastructure/Events`, `E2eScriptedAgentRunner` stands in for the model (messages starting `e2e-script:` run scripted tool calls through the real guarded tools) and `E2eAgentConversationStore` keeps agent conversations in memory. | No migrations, Hangfire, or test authentication bypass. |
 | `src/Hosts/Web` | npm workspace containing React apps, feature packages, Web infrastructure, and the agent runtime. | Follow its `AGENTS.md`; never edit generated API output manually. |
 | `src/Hosts/deployment` | Server reference Compose bundles for test and production, with shared ingress. | Keep environment files secret; validate both bundles before release. |
 | `src/Identity` | Identity Domain/Application/Infrastructure/Hosting/Client code. | Security-sensitive; follow its `AGENTS.md`. |
@@ -130,11 +130,11 @@ Run npm workspace commands from `src/Hosts/Web`.
 | --- | --- |
 | `shared/account` | Reusable account/profile Web feature surface. |
 | `shared/auth` | Authentication Web feature and generated API boundary. |
-| `shared/clinic` | Clinic/private-practice feature surface and generated clinic API boundary. |
+| `shared/clinic` | Clinic/private-practice feature surface and generated clinic API boundary. `src/features/clinic-setup` is the owner's assistant-guided first-run home; `src/features/clinic-assistant` holds the operations assistant, its action cards and the shared operations conversation. |
 | `shared/security` | Context-agnostic security feature components and generated audit API boundary. |
 | `shared/communications` | Communications feature and generated API boundary. |
 | `shared/contents` | Content feature surface. |
-| `shared/intelligence` | Intelligence feature, generated API boundary, and browser realtime/dictation behavior. |
+| `shared/intelligence` | Intelligence feature, generated API boundary, and browser realtime/dictation behavior. Guided-surface pieces: `src/interaction/guidedSurface.ts` (`toGuidedSurface`), `src/components/ActionReviewGroup.tsx` and `src/components/GoalChecklist.tsx`. |
 | `shared/journey` | Journey/onboarding feature and generated API boundary. |
 | `shared/knowledge` | Knowledge feature surface. |
 | `shared/platform` | Platform administration feature surface. |
@@ -154,6 +154,8 @@ to `shared/ui` only when it satisfies the promotion rules in
 [ADR-0008](architecture/decisions/0008-standardize-app-experience-boundaries.md).
 
 `src/Modules/Intelligence/Agents` contains the provider-neutral profile, capability-pack, composition, manifest, and compatibility framework defined by ADR-0012. Explicit app-owned profile, pack, and composition artifacts live under paths such as `src/Apps/Clinic/Agents`; they may reference their owning Application and Intelligence.Agents, while API and Infrastructure continue to consume application-owned agent contracts through Clinic.Application.
+
+`src/Modules/Intelligence/Application/PreparedActions` holds the shared prepared-action lifecycle and its ports, and `src/Modules/Intelligence/Application/GuidedSurfaces` the guided-surface block envelope, with its wire shape in `src/Modules/Intelligence/Contracts/GuidedSurfaceContracts.cs` (ADR-0022; see `docs/platform/modules/intelligence/prepared-actions.md` and `guided-surfaces.md`). Clinic's setup rules are in `src/Apps/Clinic/Application/Setup`, its setup progress handler in `src/Apps/Clinic/Infrastructure/Setup`, and its setup and staff-invitation assistant capabilities under `src/Apps/Clinic/Infrastructure/Assistant/Capabilities/Setup` and `.../Staff`.
 
 ## 6. Capability map
 

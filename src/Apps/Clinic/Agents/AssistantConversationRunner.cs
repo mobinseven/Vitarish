@@ -5,6 +5,8 @@ using Vitarish.Clinic.Application.Assistant;
 using Vitarish.Clinic.Application.Assistant.Actions;
 using Vitarish.Clinic.Application.Assistant.Capabilities;
 using Vitarish.Intelligence.Application.Agents;
+using Vitarish.Intelligence.Application.PreparedActions;
+using Vitarish.Intelligence.Domain.PreparedActions;
 
 namespace Vitarish.Clinic.Agents;
 
@@ -12,7 +14,7 @@ public sealed class AssistantConversationRunner(
     AssistantManifestComposer manifestComposer,
     AssistantResultParser resultParser,
     ISender sender,
-    IAssistantActionStore actionStore,
+    PreparedActionLifecycle preparedActions,
     AssistantCapabilityRegistry capabilityRegistry,
     TimeProvider timeProvider,
     ILogger<AssistantConversationRunner>? logger = null)
@@ -137,29 +139,16 @@ public sealed class AssistantConversationRunner(
                 !string.Equals(toolPolicy.ActionType, policy.ActionType, StringComparison.Ordinal))
                 throw new InvalidOperationException("The prepared action does not have a valid Clinic action policy.");
 
-            AssistantAction action = new(
-                prepared.OwningId,
+            PreparedAction action = ClinicPreparedActionMapping.ToPrepared(
+                context,
+                prepared,
                 prepared.AgentRunId ?? result.AgentRunId,
                 result.ConversationId,
-                context.PatientId,
-                context.PracticeId,
-                context.AuthenticatedUserId,
-                prepared.Capability,
-                prepared.ActionType,
-                prepared.OwningId,
-                prepared.ReviewDataJson,
-                AssistantActionStatus.Proposed,
                 preparedAt,
                 prepared.Expiration ?? preparedAt.Add(policy.DefaultProposalLifetime ?? TimeSpan.FromMinutes(30)),
-                Summary: prepared.Summary,
-                SubjectKind: context.SubjectKind,
-                ToolCallId: prepared.ToolCallId,
-                ToolName: prepared.ToolName,
-                ActionPolicyRevision: policy.Revision);
-            await actionStore.SaveAsync(action, cancellationToken);
-            if (logger is not null)
-                AssistantTelemetry.PreparedActionCreated(logger, action.ActionType, action.ActionId, action.AgentRunId);
-            actions.Add(action);
+                policy.Revision);
+            await preparedActions.PrepareAsync(action, cancellationToken);
+            actions.Add(ClinicPreparedActionMapping.ToClinic(action));
         }
         return actions;
     }

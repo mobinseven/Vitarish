@@ -18,6 +18,7 @@ using Vitarish.Clinic.Application.Assistant.Actions;
 using Vitarish.Clinic.Infrastructure.Assistant.Actions;
 using Vitarish.Clinic.Infrastructure.Assistant;
 using Vitarish.Clinic.Infrastructure.Assistant.Capabilities.Operations;
+using Vitarish.Clinic.Infrastructure.Assistant.Capabilities.Staff;
 using Vitarish.Clinic.Infrastructure.Assistant.Capabilities.Sea;
 using Vitarish.Clinic.Infrastructure.Assistant.Capabilities.Communications;
 using Vitarish.Clinic.Application.Assistant.Surgeries;
@@ -101,6 +102,8 @@ namespace Vitarish.Clinic.Infrastructure.Extensions
             _ = services.AddTransient<ListPatientEventAttachmentMetadataTool>();
             _ = services.AddTransient<IAssistantCapability, SeaPatientReadAgentCapability>();
             _ = services.AddTransient<IAssistantCapability, ClinicalEventAgentCapability>();
+            _ = services.AddTransient<Vitarish.Clinic.Infrastructure.Assistant.Capabilities.Setup.GetClinicSetupProgressTool>();
+            _ = services.AddTransient<IAssistantCapability, Vitarish.Clinic.Infrastructure.Assistant.Capabilities.Setup.SetupAssistantCapability>();
             _ = services.AddTransient<IAssistantPatientSearch, AssistantSearch>();
             _ = services.AddTransient<IAssistantOperationsAccessVerifier, UserAssistantOperationsAccessVerifier>();
             _ = services.AddTransient<IClinicOperationsAgentTool, SearchPatientsTool>();
@@ -137,9 +140,10 @@ namespace Vitarish.Clinic.Infrastructure.Extensions
                         provider.GetRequiredService<IAssistantPatientSearch>(), capturedName));
             }
             _ = services.AddTransient<IAssistantCapability, OperationsAgentCapability>();
+            _ = services.AddTransient<PrepareInviteMemberTool>();
+            _ = services.AddTransient<IAssistantCapability, StaffAssistantCapability>();
             _ = services.AddTransient<AssistantCapabilityRegistry>();
             _ = services.AddTransient<AssistantToolDispatcher>();
-            _ = services.AddSingleton<IAssistantActionStore, RedisAssistantActionStore>();
             _ = services.AddTransient<IAssistantActionCommitter, AppointmentAssistantActionCommitter>();
             _ = services.AddTransient<IAssistantActionCommitter, PrescriptionAssistantActionCommitter>();
             _ = services.AddTransient<IAssistantActionCommitter, ClinicalEventAssistantActionCommitter>();
@@ -148,6 +152,7 @@ namespace Vitarish.Clinic.Infrastructure.Extensions
             _ = services.AddTransient<IAssistantActionCommitter, SeaManagementAssistantActionCommitter>();
             _ = services.AddTransient<IAssistantActionCommitter, AppointmentAdministrationAssistantActionCommitter>();
             _ = services.AddTransient<IAssistantActionCommitter, ReminderManagementAssistantActionCommitter>();
+            _ = services.AddTransient<IAssistantActionCommitter, StaffInvitationAssistantActionCommitter>();
             _ = services.AddTransient<IAssistantActionCommitterRegistry, AssistantActionCommitterRegistry>();
 
             return services;

@@ -42,7 +42,8 @@ public sealed record RunAgentConversationRequest(
 public sealed record RunAgentConversationResponse(
     string AgentRunId,
     string ConversationId,
-    JsonElement Result);
+    JsonElement Result,
+    IReadOnlyList<GuidedSurfaceBlockResponse>? Blocks = null);
 public sealed record RewriteRequest(string Prompt, RewriteOptions? Options = null, IntelligenceSessionContext? Context = null);
 public sealed record RewriteResult(string Text, IntelligenceSessionContext? Context = null);
 public sealed record TranscriptionRequest(IntelligenceFileReference AudioFile, TranscriberOptions? Options = null, IntelligenceSessionContext? Context = null);

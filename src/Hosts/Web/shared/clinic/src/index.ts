@@ -30,6 +30,10 @@ export {
   AssistantErrorState,
 } from "./features/clinic-assistant/AssistantPanel";
 export { OperationsAssistantAside } from "./features/clinic-assistant/OperationsAssistantAside";
+export type { OperationsAssistantAsideProps } from "./features/clinic-assistant/OperationsAssistantAside";
+export { ClinicSetupHome } from "./features/clinic-setup/ClinicSetupHome";
+export type { ClinicSetupHomeProps } from "./features/clinic-setup/ClinicSetupHome";
+export { useClinicGetSetupProgress } from "./api/generated/clinic/clinic";
 export {
   ClinicAssistantAside,
   type ClinicAssistantScope,

@@ -720,6 +720,111 @@
   },
   "components": {
     "schemas": {
+      "GuidedSurfaceActionGroupResponse": {
+        "required": [
+          "agentRunId",
+          "actionIds"
+        ],
+        "type": "object",
+        "properties": {
+          "agentRunId": {
+            "type": "string"
+          },
+          "actionIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        }
+      },
+      "GuidedSurfaceBlockKindResponse": {
+        "enum": [
+          "Question",
+          "NextAction",
+          "ActionGroup"
+        ]
+      },
+      "GuidedSurfaceBlockResponse": {
+        "required": [
+          "kind"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/GuidedSurfaceBlockKindResponse"
+          },
+          "question": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/GuidedSurfaceQuestionResponse"
+              }
+            ]
+          },
+          "nextAction": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "actionGroup": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/GuidedSurfaceActionGroupResponse"
+              }
+            ]
+          }
+        }
+      },
+      "GuidedSurfaceOptionResponse": {
+        "required": [
+          "key",
+          "label"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          }
+        }
+      },
+      "GuidedSurfaceQuestionResponse": {
+        "required": [
+          "prompt",
+          "options",
+          "maxSelections"
+        ],
+        "type": "object",
+        "properties": {
+          "prompt": {
+            "type": "string"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GuidedSurfaceOptionResponse"
+            }
+          },
+          "maxSelections": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
       "IntelligenceFileReference": {
         "type": "object",
         "properties": {
@@ -1265,6 +1370,15 @@
           },
           "result": {
             "$ref": "#/components/schemas/JsonElement"
+          },
+          "blocks": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/GuidedSurfaceBlockResponse"
+            }
           }
         }
       },
