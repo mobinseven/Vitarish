@@ -52,7 +52,7 @@ public sealed class PartiesModule : Modules.Base.Core.Module
             (options.PatientsUrl, BrowserApplicationTenants.PatientsAppId, BrowserApplicationTenants.PatientsName),
             (options.ProjectManagementUrl, BrowserApplicationTenants.ProjectManagementAppId, BrowserApplicationTenants.ProjectManagementName),
             (options.KnowledgeQaUrl, BrowserApplicationTenants.KnowledgeQaAppId, BrowserApplicationTenants.KnowledgeQaName),
-            (addresses.TenantBaseDomain is { } baseDomain ? "https://" + baseDomain : null, BrowserApplicationTenants.ClinicLandingAppId, BrowserApplicationTenants.ClinicLandingName)
+            (addresses.TenantBaseDomain is { } baseDomain && !BrowserApplicationHostOptions.IsDevelopmentHostname(baseDomain) ? Uri.UriSchemeHttps + Uri.SchemeDelimiter + baseDomain : null, BrowserApplicationTenants.ClinicLandingAppId, BrowserApplicationTenants.ClinicLandingName)
         })
         {
             if (url is null) continue;
