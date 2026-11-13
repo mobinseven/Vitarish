@@ -43,4 +43,24 @@ public sealed class AuthenticationHostDirectoryTests
             Options.Create(new BrowserApplicationHostOptions { ProjectManagementUrl = "https://pm.example.test" }), []);
         (await hosts.CanOpenAsync(origin, "administrator", CancellationToken.None)).Should().Be(expected);
     }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("person")]
+    public async Task Clinic_landing_host_opens_for_anonymous_and_role_free_people(string? userId)
+    {
+        await using PartiesDbContext database = new(new DbContextOptionsBuilder<PartiesDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options,
+            Mock.Of<IPublisher>(), Array.Empty<IInterceptor>());
+        Guid tenantId = Guid.NewGuid();
+        database.Tenants.Add(new Tenant { Id = tenantId, OwnerId = Guid.NewGuid(), AppId = BrowserApplicationTenants.ClinicLandingAppId, Name = BrowserApplicationTenants.ClinicLandingName });
+        database.TenantIndicators.Add(new TenantIndicator { Id = Guid.NewGuid(), TenantId = tenantId, Method = IndicatorMethod.Hostname, Value = "clinics.example.test", Status = IndicatorStatus.Active, IsPrimary = true });
+        await database.SaveChangesAsync();
+        Mock<ISender> sender = new();
+        sender.Setup(item => item.Send(It.IsAny<GetUserRolesQuery>(), It.IsAny<CancellationToken>())).ReturnsAsync(Array.Empty<IdentityRole>());
+        AuthenticationHostDirectory hosts = new(database, sender.Object, new HttpContextAccessor(),
+            Options.Create(new SignInHostOptions { SignInUrl = "https://auth.example.test" }),
+            Options.Create(new OnboardingHostOptions()), Options.Create(new PlatformAdminHostOptions()),
+            Options.Create(new BrowserApplicationHostOptions()), []);
+        (await hosts.CanOpenAsync("https://clinics.example.test", userId, CancellationToken.None)).Should().BeTrue();
+    }
 }

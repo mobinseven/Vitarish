@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Vitarish.Parties.Application;
 using Vitarish.Parties.Application.Abstractions;
+using Vitarish.Parties.Application.Addresses;
 using Vitarish.Parties.Application.Onboarding;
 using Vitarish.Parties.Application.SignIn;
 using Vitarish.Parties.Domain.Models;
@@ -43,13 +44,15 @@ public sealed class PartiesModule : Modules.Base.Core.Module
     {
         await using AsyncServiceScope scope = app.Services.CreateAsyncScope();
         BrowserApplicationHostOptions options = scope.ServiceProvider.GetRequiredService<IOptions<BrowserApplicationHostOptions>>().Value;
+        TenantAddressOptions addresses = scope.ServiceProvider.GetRequiredService<IOptions<TenantAddressOptions>>().Value;
         IAppTenantProvisioner provisioner = scope.ServiceProvider.GetRequiredService<IAppTenantProvisioner>();
         ITenantHostnameRegistry hostnames = scope.ServiceProvider.GetRequiredService<ITenantHostnameRegistry>();
         foreach (var (url, appId, name) in new[]
         {
             (options.PatientsUrl, BrowserApplicationTenants.PatientsAppId, BrowserApplicationTenants.PatientsName),
             (options.ProjectManagementUrl, BrowserApplicationTenants.ProjectManagementAppId, BrowserApplicationTenants.ProjectManagementName),
-            (options.KnowledgeQaUrl, BrowserApplicationTenants.KnowledgeQaAppId, BrowserApplicationTenants.KnowledgeQaName)
+            (options.KnowledgeQaUrl, BrowserApplicationTenants.KnowledgeQaAppId, BrowserApplicationTenants.KnowledgeQaName),
+            (addresses.TenantBaseDomain is { } baseDomain && !BrowserApplicationHostOptions.IsDevelopmentHostname(baseDomain) ? Uri.UriSchemeHttps + Uri.SchemeDelimiter + baseDomain : null, BrowserApplicationTenants.ClinicLandingAppId, BrowserApplicationTenants.ClinicLandingName)
         })
         {
             if (url is null) continue;
