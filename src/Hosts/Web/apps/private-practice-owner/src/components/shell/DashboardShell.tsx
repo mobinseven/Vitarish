@@ -73,7 +73,9 @@ export function DashboardShell({
   const { hasAccess: canUseOperationsAssistant } = useTenantAuthorization("owner");
   const [operationsAssistantOpen, setOperationsAssistantOpen] = useState(false);
   const navigateToClinicScreen = useClinicNavigation();
-  const showOperationsAssistant = clinicOperationsAssistant && canUseOperationsAssistant;
+  // The assistant page is the same conversation in full; a second live copy beside it would drift apart.
+  const isAssistantPage = pathname === Routes.Clinic.Assistant || pathname.startsWith(`${Routes.Clinic.Assistant}/`);
+  const showOperationsAssistant = clinicOperationsAssistant && canUseOperationsAssistant && !isAssistantPage;
   const clinicAssistantScope = useMemo(() => resolveClinicAssistantScope(pathname), [pathname]);
   const operationsAssistant = showOperationsAssistant ? <ClinicAssistantAside isOpen={operationsAssistantOpen} scope={clinicAssistantScope} onNavigate={navigateToClinicScreen} onNavigateToPatient={(patientId) => router.push(Routes.Clinic.Patients.Detail(patientId))} /> : undefined;
 

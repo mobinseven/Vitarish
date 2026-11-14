@@ -337,4 +337,55 @@ describe("useConversationController continued conversations", () => {
     await act(() => result.current.submit("again"));
     expect(run.mock.calls[1].slice(0, 2)).toEqual(["again", null]);
   });
+
+  it("stops waiting for a turn without an error and continues the same conversation", async () => {
+    const run = vi
+      .fn()
+      .mockResolvedValueOnce({ conversationId: "conversation-1", result: "first" })
+      .mockImplementationOnce((_message: string, _id: string | null, signal: AbortSignal) => new Promise((_resolve, reject) => {
+        signal.addEventListener("abort", () => reject(new DOMException("Aborted", "AbortError")));
+      }))
+      .mockResolvedValueOnce({ conversationId: "conversation-1", result: "third" });
+    const deleteConversation = vi.fn();
+    const { result } = renderHook(() =>
+      useConversationController({ ownerKey: "practice", isOpen: true, run, deleteConversation }),
+    );
+
+    await act(() => result.current.submit("first"));
+    let stopped: Promise<unknown> = Promise.resolve();
+    act(() => { stopped = result.current.submit("second"); });
+    await waitFor(() => expect(result.current.isPending).toBe(true));
+    act(() => result.current.cancel());
+    await act(async () => { expect(await stopped).toBeUndefined(); });
+
+    expect(result.current.isPending).toBe(false);
+    expect(result.current.isError).toBe(false);
+    expect(deleteConversation).not.toHaveBeenCalled();
+    await act(() => result.current.submit("third"));
+    expect(run.mock.calls.at(-1)?.slice(0, 2)).toEqual(["third", "conversation-1"]);
+  });
+
+  it("treats deleting a conversation that is already gone as done", async () => {
+    const notFound = { status: 404 };
+    const run = vi
+      .fn()
+      .mockResolvedValueOnce({ conversationId: "expired", result: "first" })
+      .mockResolvedValueOnce({ conversationId: "fresh", result: "second" });
+    const deleteConversation = vi.fn().mockRejectedValueOnce(notFound);
+    const { result } = renderHook(() =>
+      useConversationController({
+        ownerKey: "practice",
+        isOpen: true,
+        run,
+        deleteConversation,
+        isNotFound: (error) => error === notFound,
+      }),
+    );
+
+    await act(() => result.current.submit("first"));
+    await act(() => result.current.deleteCurrent());
+    await act(() => result.current.submit("second"));
+
+    expect(run.mock.calls.at(-1)?.slice(0, 2)).toEqual(["second", null]);
+  });
 });

@@ -41,7 +41,7 @@ All live in `src/Hosts/Web/shared/intelligence` and are exported from its index.
 1. Declare the vocabulary: add the optional question and next-action fields to the agent's result schema, with the allowed next-action keys.
 2. Register prepared-action policies, committers and payload shapes, and expose thin confirm, reject and revise routes that delegate to the lifecycle.
 3. Return the blocks with the conversation result (Clinic: `AssistantGuidedSurface.Blocks`).
-4. On the web, call `toGuidedSurface` on the reply, render each action group with `ActionReviewGroup` using the app's cards and confirm function, and render the question and next action. Clinic's composition is `OperationsGuidedReply` in `shared/clinic/src/features/clinic-assistant`.
+4. On the web, call `toGuidedSurface` on the reply, render each action group with `ActionReviewGroup` using the app's cards and confirm function, and render the question and next action. Clinic's composition is `OperationsGuidedReply` in `shared/clinic/src/features/clinic-assistant`. A full-page assistant uses the `AgentChatWorkspace` frame from `@vitarish/ui` (header, optional conversation list, thread, composer); Clinic's is `ClinicAssistantWorkspace`.
 5. Anything shown without a model call (a welcome, a goal list) is built from server keys and state in the app's web feature; Clinic does this in `features/clinic-setup`.
 
 Changing an agent's instructions, output schema or tool exposure changes its compatibility key, so open conversations ask once to start again.
@@ -51,4 +51,4 @@ Changing an agent's instructions, output schema or tool exposure changes its com
 - The generic run collector of ADR-0022: tool-produced blocks are not gathered by Intelligence. Prepared actions are the only tool-produced blocks, and the app groups them by run.
 - Goal-checklist and destination-link blocks as wire kinds, and reference chips. The checklist is a component the app feeds from its own endpoint, and the next action is a key the app maps to a screen.
 - A server-built opening surface on the wire. Clinic's welcome is composed on the web from setup progress keys, because an app API cannot map shared block contracts without duplicating the Intelligence mapper.
-- Redrawing earlier blocks after a page reload. Pending actions stay reachable by ID.
+- Redrawing earlier blocks after a page reload. Pending actions stay reachable by ID. Within a browser tab, Clinic keeps what its assistant surfaces showed in memory (never browser storage), so navigating away and back shows the thread again; after a reload the conversation continues but its earlier messages are not shown until conversation history is built.

@@ -1,19 +1,20 @@
 "use client";
 
-import { ChatLoader, ChatMessage, ItemCard } from "@heroui-pro/react";
+import { ChatLoader, ChatMessage } from "@heroui-pro/react";
 import { Button, Modal, Tooltip } from "@heroui/react";
 import { FaIcon } from "@vitarish/ui";
-import { formatDate } from "@vitarish/localization";
+import { useAuthSession } from "@vitarish/auth";
 import { useEffect, useState } from "react";
 import { clinicResolveClinicAssistantCandidate } from "../../api/generated/clinic/clinic";
 import { usePatientDetail } from "../../hooks/patients/usePatientDetail";
 import { useLocalizedText } from "../../localization";
 import { AssistantActionList } from "./AssistantActions";
+import { AssistantCandidateList } from "./AssistantCandidateList";
 import { OperationsGuidedReply } from "./OperationsGuidedReply";
 import type { NavigationIntent } from "../../navigation";
 import { isSetupGoal, setupGoalIntents } from "../clinic-setup/setupGoals";
 import { AssistantComposer, AssistantErrorState, AssistantMessageList } from "./AssistantPanel";
-import { useClinicAssistantConversationSurface, useOperationsAssistantConversation, useAssistantConversation } from "./hooks";
+import { operationsComposerSessionKey, operationsSurfaceMemoryKey, patientComposerSessionKey, useClinicAssistantConversationSurface, useOperationsAssistantConversation, useAssistantConversation } from "./hooks";
 
 export type ClinicAssistantScope = { kind: "practice" } | { kind: "patient"; patientId: string };
 
@@ -35,7 +36,13 @@ export function ClinicAssistantAside({
   const patientConversation = useAssistantConversation(patientId, isOpen && scope.kind === "patient");
   const operationsConversation = useOperationsAssistantConversation(isOpen && scope.kind === "practice");
   const conversation = scope.kind === "patient" ? patientConversation : operationsConversation;
-  const surface = useClinicAssistantConversationSurface(conversation, scope.kind === "patient" ? `patient:${patientId}` : "practice");
+  const { user } = useAuthSession();
+  // The practice conversation's messages are shared with the assistant page through memory.
+  const surface = useClinicAssistantConversationSurface(
+    conversation,
+    scope.kind === "patient" ? `patient:${patientId}` : "practice",
+    scope.kind === "practice" && user?.userId ? operationsSurfaceMemoryKey(user.userId) : undefined,
+  );
   const [confirmReset, setConfirmReset] = useState(false);
   const [selectionError, setSelectionError] = useState(false);
   const [resetError, setResetError] = useState(false);
@@ -95,14 +102,7 @@ export function ClinicAssistantAside({
         <AssistantMessageList scope={patient ? "patient" : "operations"} messages={surface.messages} onRetry={surface.lastMessage ? () => void surface.retry() : undefined}>
           {conversation.isPending ? <ChatMessage.Assistant><ChatMessage.Avatar show alt={title} fallback="AI" /><ChatMessage.Body><ChatLoader.Dots label={patient ? t("clinic.clinicAssistant.running") : t("clinic.operationsAssistant.running")} /></ChatMessage.Body></ChatMessage.Assistant> : null}
           {conversation.isError ? <AssistantErrorState scope={patient ? "patient" : "operations"} onRetry={surface.lastMessage ? () => void surface.retry() : undefined} /> : null}
-          {!patient && surface.candidates.length ? <div className="space-y-2 px-4" role="region" aria-label={t("clinic.operationsAssistant.candidates.label")}>
-            {surface.candidates.map((candidate) => <ItemCard key={candidate.candidateToken} variant="secondary">
-              <ItemCard.Icon><FaIcon icon="user" aria-hidden="true" /></ItemCard.Icon>
-              <ItemCard.Content><ItemCard.Title>{candidate.displayName}</ItemCard.Title><ItemCard.Description>{[candidate.maskedIdentification, candidate.maskedPhone, candidate.dateOfBirth ? formatDate(candidate.dateOfBirth, locale) : null].filter(Boolean).join(" · ")}</ItemCard.Description></ItemCard.Content>
-              <ItemCard.Action><Tooltip><Button size="sm" variant="outline" aria-label={t("clinic.operationsAssistant.candidates.select")} onPress={() => void selectCandidate(candidate.candidateToken)}>{t("clinic.operationsAssistant.candidates.select")}</Button><Tooltip.Content>{t("clinic.operationsAssistant.candidates.select")}</Tooltip.Content></Tooltip></ItemCard.Action>
-            </ItemCard>)}
-            {selectionError ? <p role="alert" className="text-sm text-danger">{t("clinic.operationsAssistant.candidates.expired")}</p> : null}
-          </div> : null}
+          {!patient ? <AssistantCandidateList candidates={surface.candidates} onSelect={(token) => void selectCandidate(token)} hasError={selectionError} /> : null}
           {patient ? <AssistantActionList patientId={patientId} actionIds={surface.actionIds} /> : (
             <OperationsGuidedReply
               actionGroups={surface.actionGroups}
@@ -118,7 +118,7 @@ export function ClinicAssistantAside({
           )}
         </AssistantMessageList>
       </div>
-      <footer className="shrink-0 border-t border-border p-3"><AssistantComposer scope={patient ? "patient" : "operations"} disabled={conversation.isPending} onSubmit={surface.submit} sessionKey={patient ? `clinic.assistant.patient:${patientId}` : "clinic.assistant.operations"} /></footer>
+      <footer className="shrink-0 border-t border-border p-3"><AssistantComposer scope={patient ? "patient" : "operations"} disabled={conversation.isPending} onSubmit={surface.submit} sessionKey={patient ? patientComposerSessionKey(patientId) : operationsComposerSessionKey} /></footer>
       <Modal.Backdrop isOpen={confirmReset} onOpenChange={setConfirmReset}><Modal.Container placement="center"><Modal.Dialog><Modal.Header><Modal.Heading>{patient ? t("clinic.clinicAssistant.actions.resetTitle") : t("clinic.operationsAssistant.resetTitle")}</Modal.Heading></Modal.Header><Modal.Body><p>{patient ? t("clinic.clinicAssistant.actions.resetDescription") : t("clinic.operationsAssistant.resetDescription")}</p>{resetError ? <p role="alert" className="text-sm text-danger">{patient ? t("clinic.clinicAssistant.actions.resetError") : t("clinic.operationsAssistant.resetError")}</p> : null}</Modal.Body><Modal.Footer><Button variant="tertiary" onPress={() => setConfirmReset(false)}><FaIcon icon="xmark" aria-hidden="true" />{t("common.actions.cancel")}</Button><Button variant="danger" onPress={() => void reset()}><FaIcon icon="trash" aria-hidden="true" />{t("common.actions.delete")}</Button></Modal.Footer></Modal.Dialog></Modal.Container></Modal.Backdrop>
     </section>
   );

@@ -779,6 +779,7 @@ export const enMessages = {
     navigation: {
       home: "Today",
       schedule: "Schedule",
+      assistant: "Assistant",
       clinic: "Clinic",
       dashboardMenu: "Dashboard navigation",
       skipToContent: "Skip to main content",

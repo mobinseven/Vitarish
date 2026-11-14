@@ -37,7 +37,49 @@ export type ClinicAssistantReply = RunClinicAssistantResponse & { guidedSurface?
 export type AssistantMessageResult = ClinicAssistantMessageResponse;
 export type ClinicAssistantChatMessage =
   | AssistantMessageResult
-  | { kind: "UserMessage"; content: string };
+  | { kind: "UserMessage"; content: string }
+  /** The person stopped waiting for a turn; work the server already did is kept. */
+  | { kind: "Stopped" };
+
+/** What one conversation surface shows; kept in memory so the same browser tab can show it again after navigating. */
+export interface ClinicAssistantSurfaceSnapshot {
+  messages: ClinicAssistantChatMessage[];
+  actionIds: string[];
+  actionGroups: GuidedSurfaceActionGroup[];
+  surface: GuidedSurface;
+  lastMessage: string;
+}
+
+const emptySnapshot: ClinicAssistantSurfaceSnapshot = {
+  messages: [],
+  actionIds: [],
+  actionGroups: [],
+  surface: emptyGuidedSurface,
+  lastMessage: "",
+};
+
+// In memory only: clinical text never goes to browser storage, and a reload or sign-out (full navigation) clears it.
+const surfaceMemory = new Map<string, ClinicAssistantSurfaceSnapshot>();
+
+/** The memory key of the operations conversation's surface for one signed-in user, shared by the side panel and the page. */
+/** The composer draft and dictation session of the operations conversation and of one patient's conversation. */
+export const operationsComposerSessionKey = "clinic.assistant.operations";
+export const patientComposerSessionKey = (patientId: string) => `clinic.assistant.patient:${patientId}`;
+
+export const operationsSurfaceMemoryKey = (userId: string) => `${userId}:clinic.assistant.operations`;
+
+export function readClinicAssistantSurface(memoryKey: string): ClinicAssistantSurfaceSnapshot | undefined {
+  return surfaceMemory.get(memoryKey);
+}
+
+export function forgetClinicAssistantSurface(memoryKey: string) {
+  surfaceMemory.delete(memoryKey);
+}
+
+/** Whether this browser session continues an operations conversation, for example after a reload. */
+export function hasStoredOperationsConversation() {
+  return readOperationsConversationId() !== null;
+}
 
 type CandidatePresentation = {
   candidates: ClinicAssistantCandidateResponse[];
@@ -131,7 +173,7 @@ export function useOperationsAssistantConversation(isOpen: boolean) {
 }
 
 /** Where the browser session remembers its operations conversation; the server still owns who may continue it. */
-const operationsConversationStorageKey = "vitarish.clinic.operationsAssistant.conversationId";
+export const operationsConversationStorageKey = "vitarish.clinic.operationsAssistant.conversationId";
 
 function readOperationsConversationId(): string | null {
   try {
@@ -154,26 +196,45 @@ function writeOperationsConversationId(conversationId: string | null) {
 export function useClinicAssistantConversationSurface(
   conversation: ConversationController<ClinicAssistantReply>,
   scopeKey: string,
+  /** Keeps what the surface shows in memory under this key, so another mount in the same tab shows it again. */
+  memoryKey?: string,
 ) {
-  const [messages, setMessages] = useState<ClinicAssistantChatMessage[]>([]);
-  const [actionIds, setActionIds] = useState<string[]>([]);
-  const [actionGroups, setActionGroups] = useState<GuidedSurfaceActionGroup[]>([]);
-  const [surface, setSurface] = useState<GuidedSurface>(emptyGuidedSurface);
-  const [lastMessage, setLastMessage] = useState("");
+  const identity = `${scopeKey}|${memoryKey ?? ""}`;
+  const [initial] = useState(() => (memoryKey && surfaceMemory.get(memoryKey)) || emptySnapshot);
+  const [messages, setMessages] = useState<ClinicAssistantChatMessage[]>(initial.messages);
+  const [actionIds, setActionIds] = useState<string[]>(initial.actionIds);
+  const [actionGroups, setActionGroups] = useState<GuidedSurfaceActionGroup[]>(initial.actionGroups);
+  const [surface, setSurface] = useState<GuidedSurface>(initial.surface);
+  const [lastMessage, setLastMessage] = useState(initial.lastMessage);
   const [candidatePresentation, setCandidatePresentation] = useState<CandidatePresentation | null>(null);
+  /** The scope and memory key the shown state belongs to; it trails a change by one render. */
+  const [stateIdentity, setStateIdentity] = useState(identity);
   const activeScope = useRef(scopeKey);
+  const activeIdentity = useRef(identity);
   const requestSequence = useRef(0);
 
   useEffect(() => {
+    // Mounting keeps what memory restored; a later change of scope or memory key shows what that key remembers.
+    if (activeIdentity.current === identity) return;
+    activeIdentity.current = identity;
     activeScope.current = scopeKey;
     requestSequence.current += 1;
-    setMessages([]);
-    setActionIds([]);
-    setActionGroups([]);
-    setSurface(emptyGuidedSurface);
-    setLastMessage("");
+    const restored = (memoryKey && surfaceMemory.get(memoryKey)) || emptySnapshot;
+    setMessages(restored.messages);
+    setActionIds(restored.actionIds);
+    setActionGroups(restored.actionGroups);
+    setSurface(restored.surface);
+    setLastMessage(restored.lastMessage);
     setCandidatePresentation(null);
-  }, [scopeKey]);
+    setStateIdentity(identity);
+  }, [identity, memoryKey, scopeKey]);
+
+  useEffect(() => {
+    // Never write one scope's state under another scope's key while a change is still being applied.
+    if (memoryKey && stateIdentity === identity) {
+      surfaceMemory.set(memoryKey, { messages, actionIds, actionGroups, surface, lastMessage });
+    }
+  }, [actionGroups, actionIds, identity, lastMessage, memoryKey, messages, stateIdentity, surface]);
 
   const appendResult = useCallback(
     (result: ClinicAssistantReply | undefined, submittedScope: string, submittedMessage: string, requestId: number) => {
@@ -242,6 +303,23 @@ export function useClinicAssistantConversationSurface(
     })));
     setActionIds((current) => current.map((id) => (id === originalId ? replacementId : id)));
   }, []);
+  /** Stops waiting for the running turn; the conversation continues. */
+  const cancel = useCallback(() => {
+    if (!conversation.isPending) return;
+    requestSequence.current += 1;
+    conversation.cancel();
+    setMessages((current) => [...current, { kind: "Stopped" }]);
+  }, [conversation]);
+  /** Empties what the surface shows without touching the conversation, for example once it is moved into a timeline. */
+  const clearView = useCallback(() => {
+    requestSequence.current += 1;
+    setMessages([]);
+    setActionIds([]);
+    setActionGroups([]);
+    setSurface(emptyGuidedSurface);
+    setLastMessage("");
+    setCandidatePresentation(null);
+  }, []);
   const deleteCurrent = useCallback(async () => {
     requestSequence.current += 1;
     await conversation.deleteCurrent();
@@ -267,6 +345,10 @@ export function useClinicAssistantConversationSurface(
     retry,
     replaceAction,
     deleteCurrent,
+    cancel,
+    clearView,
+    /** What the surface shows now, for moving it into a timeline. */
+    snapshot: { messages, actionIds, actionGroups, surface, lastMessage } satisfies ClinicAssistantSurfaceSnapshot,
   };
 }
 

@@ -72,6 +72,15 @@ export const clinicOwnerDestinations = [
     keywords: ["reminders", "alerts", "notifications"],
   },
   {
+    id: "assistant",
+    href: Routes.Clinic.Assistant,
+    icon: "sparkles",
+    labelKey: "appShell.navigation.assistant",
+    owns: [Routes.Clinic.Assistant],
+    shortcut: "G I",
+    keywords: ["assistant", "ai", "chat", "ask"],
+  },
+  {
     id: "settings",
     href: Routes.Clinic.Settings.Index,
     icon: "gear",
