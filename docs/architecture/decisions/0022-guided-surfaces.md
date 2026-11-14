@@ -40,6 +40,11 @@ This decision completes the model around it.
   review payload, and carried out only according to its action policy,
   normally after a person confirms it.
 - **Run:** one assistant turn. Everything prepared in one run belongs together.
+- **Presentable result:** the successful result of a read tool that an app
+  declares can be shown, together with the block kind it becomes (a record
+  card, a list, a chart).
+- **Handle:** a short server-minted name for one presentable result. It is
+  valid only within the run that produced it and carries no data.
 
 ## Decision
 
@@ -57,8 +62,8 @@ This decision completes the model around it.
      because larger schemas fail more often; it never becomes a union of every
      kind.
    - *Tools* produce rich blocks, such as a review group of prepared actions or
-     a presented record (decision 8). The app builds the review-group block
-     from the actions a run saved, by run; presented records are gathered by
+     a presented result (decision 8). The app builds the review-group block
+     from the actions a run saved, by run; presented results are gathered by
      an Intelligence-owned run collector. Such blocks refer to server records
      by ID, and the renderer re-reads each record's current state by ID rather
      than trusting a copy in the reply.
@@ -90,6 +95,11 @@ This decision completes the model around it.
      renderers, and the review cards for its action types, to the shared
      renderer through an explicit registry. Nothing is discovered at runtime,
      as in ADR-0012.
+   - *Presented results* travel in one platform kind, owned by Intelligence,
+     whose data is an app kind key and the record references. The app owns
+     each such kind's key, which read tool produces it, the references it
+     stores, and its renderer; Intelligence owns the handle, the run
+     collector, the envelope and its validation.
    Each kind's key, data schema, validator and renderer has exactly one owner.
    The web receives kind keys from generated contracts, never as literals.
 
@@ -137,28 +147,29 @@ This decision completes the model around it.
 8. **The model chooses what to show; the server fills it.** A component such
    as a record card, list or chart is shown only from data a read tool
    returned in the same run.
-   - *Presentable results.* An app declares which of its read tools return a
-     presentable result and the block kind each one becomes. The server, not
-     the model, attaches a handle to such a result. A handle is short, valid
-     only within its run, and names the result, not its data.
+   - *Handles.* The server, not the model, attaches a handle to each
+     presentable result and keeps it server-side for the run, as run-scoped
+     record tokens already work for patient search candidates.
    - *Presenting.* A shared Intelligence `present` tool takes only handles.
      The run collector checks that each handle belongs to the current run and
      to a successful read, and records the block. An invalid handle is
      reported back to the model as a tool error and never reaches the reply.
      The model never supplies a kind, figures, labels or a target; a chart's
      series is computed by its read tool under the requesting person's
-     authorization. Because kinds come from tool results, adding one does not
-     change any agent's tool exposure or compatibility key.
+     authorization. A kind is not part of the `present` tool's schema, so
+     adding one changes an agent's compatibility key only if a tool's
+     description or the instructions change with it.
    - *Buttons.* A presented block offers only existing actions: a question
      option, a next-action key, a destination link, or a prepared action from
      a preparation tool. There is no model-defined button behaviour.
    - *Persistence.* A presented block is stored with the conversation's
      protected presentation record as its kind and record references (IDs or
-     query parameters), never as a copy of the data. Redrawing it re-reads the
-     current state through the app's own routes, under the viewer's
-     authorization, so it shows current values, and a record the viewer may no
-     longer read is not shown. Model history is separate, so carrying a
-     history over (ADR-0012) does not remove what a conversation showed.
+     query parameters), never as a copy of the data. Intelligence owns and
+     versions this stored shape. Redrawing it re-reads the current state
+     through the app's own routes, under the viewer's authorization, so it
+     shows current values, and a record the viewer may no longer read is not
+     shown. Model history is separate, so carrying a history over (ADR-0012)
+     does not remove what a conversation showed.
 
 ## Consequences
 
@@ -177,15 +188,12 @@ This decision completes the model around it.
   after the change. This is an owner-approved exception to
   expand-migrate-contract, valid only while actions live minutes rather than
   days.
-- **Past turns.** Presented records are redrawn after a page reload from their
-  stored references, with current data. Other earlier blocks are not
-  promised; prepared actions stay reachable by ID.
+- **Past turns.** Presented results can be redrawn after a page reload from
+  their stored references, with current data, wherever an app shows a
+  conversation's earlier turns. Other earlier blocks are not promised;
+  prepared actions stay reachable by ID.
 - **Latency.** Presenting costs the model one more tool step in a reply that
   shows something.
-- **Existing app-local displays.** Displays built before decision 8 (an app
-  parsing a read tool's output into its own response field, or snapshotting
-  fields from a reply reference) move onto presented records; until they do,
-  they are known drift, not a second pattern to copy.
 - **One conversation across an app's surfaces.** An app's assistant
   conversation may continue across the places it appears within one browser
   session: closing a surface keeps the conversation, an explicit reset deletes
@@ -234,7 +242,9 @@ model-typed clinical numbers cannot be trusted.
 
 Rejected: showing every read is noisy when a turn reads many records. A
 reference in the reply costs no tool step, but an invalid one can only be
-dropped silently; the `present` tool tells the model at once.
+dropped silently; the `present` tool tells the model at once. ADR-0017's
+reply references still name items from an app's fixed catalog; handles name
+records read during the run.
 
 ### Option 8: Store presented data as snapshots
 
