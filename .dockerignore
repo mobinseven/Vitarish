@@ -8,6 +8,8 @@
 **/dist/
 **/artifacts/
 src/Hosts/Web/
+# The assistant surface catalog is owned by Intelligence and embedded in Main (ADR-0022 decision 8).
+!src/Hosts/Web/shared/intelligence/src/surfaces/assistant-catalog.json
 **/coverage/
 **/.turbo/
 **/.cache/
