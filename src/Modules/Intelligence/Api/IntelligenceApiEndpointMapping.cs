@@ -79,7 +79,11 @@ public static class IntelligenceApiEndpointMapping
         catch (KeyNotFoundException) { return Results.NotFound(); }
         catch (UnauthorizedAccessException) { return Results.Forbid(); }
         catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
-        catch (Exception exception) when (exception is JsonException or FormatException or ArgumentException or InvalidOperationException) { return Results.BadRequest(); }
+        catch (Exception exception) when (exception is JsonException or FormatException or ArgumentException or InvalidOperationException)
+        {
+            IntelligenceAgentRuntimeTelemetry.ToolExecutionFailed(logger, envelope.ToolName, exception.GetType().Name, envelope.ExecutionId, envelope.AgentKey);
+            return Results.BadRequest();
+        }
     }
 
     private static async Task<IResult> RunAgentConversationAsync(

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Vitarish.Clinic.Application.Assistant.Operations;
@@ -54,6 +55,8 @@ public sealed class AssistantToolDispatcher(
         AssistantCapabilityRegistry capabilityRegistry,
         ILogger? logger) : IAgentTool, IAssistantPreparationTool
     {
+        private const string MissingArgumentMessage = "A required argument is missing, or a record it names was not found.";
+
         public AgentToolDefinition Definition => handler.Definition;
 
         public AssistantPreparedAction? GetPreparedAction(AgentToolResult result) =>
@@ -126,11 +129,22 @@ public sealed class AssistantToolDispatcher(
             {
                 throw;
             }
-            catch
+            catch (Exception exception) when (exception is JsonException or FormatException or KeyNotFoundException)
+            {
+                // The model's arguments could not be read. Say why, so the model can correct the call.
+                if (logger is not null)
+                {
+                    AssistantTelemetry.ToolFailed(logger, call.Name, capability, exception.GetType().Name, stopwatch.ElapsedMilliseconds, context.ExecutionId, call.Id);
+                }
+                return new(call.Id, JsonSerializer.Serialize(
+                    new AssistantToolArgumentError(exception is KeyNotFoundException ? MissingArgumentMessage : exception.Message),
+                    AssistantToolErrorJsonSerializerContext.Default.AssistantToolArgumentError), true);
+            }
+            catch (Exception exception)
             {
                 if (logger is not null)
                 {
-                    AssistantTelemetry.ToolFailed(logger, call.Name, capability, stopwatch.ElapsedMilliseconds, context.ExecutionId, call.Id);
+                    AssistantTelemetry.ToolFailed(logger, call.Name, capability, exception.GetType().Name, stopwatch.ElapsedMilliseconds, context.ExecutionId, call.Id);
                 }
                 throw;
             }
@@ -235,3 +249,10 @@ public sealed class AssistantToolDispatcher(
         };
     }
 }
+
+/// <summary>What the model reads when a tool could not read its arguments.</summary>
+public sealed record AssistantToolArgumentError(string Error);
+
+[JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
+[JsonSerializable(typeof(AssistantToolArgumentError))]
+internal sealed partial class AssistantToolErrorJsonSerializerContext : JsonSerializerContext;
