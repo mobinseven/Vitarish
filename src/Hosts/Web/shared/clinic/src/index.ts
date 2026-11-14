@@ -39,6 +39,10 @@ export {
   type ClinicAssistantScope,
 } from "./features/clinic-assistant/ClinicAssistantAside";
 export {
+  ClinicAssistantWorkspace,
+  type ClinicAssistantWorkspaceProps,
+} from "./features/clinic-assistant/ClinicAssistantWorkspace";
+export {
   OperationsAssistantActionList,
   OperationsAssistantActionReview,
   AssistantActionList,

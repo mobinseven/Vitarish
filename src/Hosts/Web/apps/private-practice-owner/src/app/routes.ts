@@ -54,6 +54,8 @@ export const Routes = {
   /** Private-practice clinic owner routes */
   Clinic: {
     Index: "/home",
+    /** The full-page clinic assistant */
+    Assistant: "/assistant",
     CheckIn: "/check-in",
     Patients: {
       Index: "/patients",

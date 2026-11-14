@@ -769,6 +769,7 @@ export const faMessages = {
     navigation: {
       home: "پیشخوان",
       schedule: "نوبت‌ها",
+      assistant: "دستیار",
       clinic: "کلینیک",
       dashboardMenu: "ناوبری داشبورد",
       skipToContent: "رفتن به محتوای اصلی",

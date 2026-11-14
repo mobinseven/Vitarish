@@ -38,6 +38,12 @@ describe("navigation registry", () => {
     }
   });
 
+  it("lists the assistant last before settings in the owner's sidebar", () => {
+    const ids = clinicOwnerDestinations.map((d) => d.id);
+    expect(ids.slice(-2)).toEqual(["assistant", "settings"]);
+    expect(destinationForPath(Routes.Clinic.Assistant, clinicOwnerDestinations)?.id).toBe("assistant");
+  });
+
   it("keeps a destination highlighted on its child pages", () => {
     expect(destinationForPath("/patients/abc/procedures/def", clinicOwnerDestinations)?.id).toBe("patients");
     expect(destinationForPath("/settings/users", clinicOwnerDestinations)?.id).toBe("settings");

@@ -7,7 +7,7 @@ import { useState, type ReactNode } from "react";
 import { useLocalizedText } from "../../localization";
 import { OperationsGuidedReply } from "./OperationsGuidedReply";
 import { AssistantComposer, AssistantErrorState, AssistantMessageList } from "./AssistantPanel";
-import { useClinicAssistantConversationSurface, useOperationsAssistantConversation } from "./hooks";
+import { operationsComposerSessionKey, useClinicAssistantConversationSurface, useOperationsAssistantConversation } from "./hooks";
 
 export interface OperationsAssistantAsideProps {
   isOpen: boolean;
@@ -56,7 +56,7 @@ export function OperationsAssistantAside({ isOpen, welcome, onNextAction }: Oper
           />
         </AssistantMessageList>
       </div>
-      <footer className="shrink-0 border-t border-border p-3"><AssistantComposer scope="operations" disabled={conversation.isPending} onSubmit={surface.submit} sessionKey="clinic.assistant.operations" /></footer>
+      <footer className="shrink-0 border-t border-border p-3"><AssistantComposer scope="operations" disabled={conversation.isPending} onSubmit={surface.submit} sessionKey={operationsComposerSessionKey} /></footer>
       <Modal.Backdrop isOpen={confirmReset} onOpenChange={setConfirmReset}><Modal.Container placement="center"><Modal.Dialog><Modal.Header><Modal.Heading>{t("clinic.operationsAssistant.resetTitle")}</Modal.Heading></Modal.Header><Modal.Body><p>{t("clinic.operationsAssistant.resetDescription")}</p>{resetError ? <p role="alert" className="text-danger">{t("clinic.operationsAssistant.resetError")}</p> : null}</Modal.Body><Modal.Footer><Button variant="tertiary" onPress={() => setConfirmReset(false)}><FaIcon icon="xmark" aria-hidden="true" />{t("common.actions.cancel")}</Button><Button variant="danger" onPress={() => void reset()}><FaIcon icon="trash" aria-hidden="true" />{t("common.actions.delete")}</Button></Modal.Footer></Modal.Dialog></Modal.Container></Modal.Backdrop>
     </section>
   );

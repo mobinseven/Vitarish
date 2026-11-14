@@ -30,6 +30,8 @@ export interface ConversationController<TResult> {
   retry: () => Promise<TResult | undefined>;
   reset: () => void;
   deleteCurrent: () => Promise<void>;
+  /** Stops waiting for the running turn and keeps the conversation; work the server already did stays done. */
+  cancel: () => void;
 }
 
 export function useConversationController<TResult>({
@@ -118,7 +120,7 @@ export function useConversationController<TResult>({
         onConversationIdChange?.(runResult.conversationId);
         return runResult.result;
       } catch {
-        if (instance.current === submittedInstance) setError(true);
+        if (instance.current === submittedInstance && !controller.signal.aborted) setError(true);
         return undefined;
       } finally {
         if (instance.current === submittedInstance) setPending(false);
@@ -142,10 +144,19 @@ export function useConversationController<TResult>({
       reset();
       return;
     }
-    await deleteConversation(current);
+    try {
+      await deleteConversation(current);
+    } catch (error) {
+      // A conversation that is already gone (for example expired) counts as deleted.
+      if (!isNotFound(error)) throw error;
+    }
     conversationId.current = null;
     reset();
-  }, [deleteConversation, reset]);
+  }, [deleteConversation, isNotFound, reset]);
 
-  return { isPending, isError, submit: execute, retry, reset, deleteCurrent };
+  const cancel = useCallback(() => {
+    activeRequest.current?.abort();
+  }, []);
+
+  return { isPending, isError, submit: execute, retry, reset, deleteCurrent, cancel };
 }

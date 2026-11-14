@@ -717,13 +717,34 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
         citations: [],
       });
     }),
+    http.post(/\/api\/modules\/clinic\/assistant\/patient-candidates\/resolve(?:\?|$)/, async () => {
+      await withDelay();
+      if (activeScenario === "error") return unavailable();
+      return HttpResponse.json({ patientId: store.patients[0].id });
+    }),
     http.post(/\/api\/modules\/intelligence\/agent-conversations(?:\?|$)/, async ({ request }) => {
       await withDelay();
       if (activeScenario === "error") return unavailable();
-      const body = await request.json().catch(() => null) as { agentKey?: unknown } | null;
+      const body = await request.json().catch(() => null) as { agentKey?: unknown; message?: unknown } | null;
       const isClinic = body?.agentKey === "clinic.assistant.patient";
       // The operations assistant prepares a surgery cancellation, so its review card can be captured.
       if (body?.agentKey === "clinic.assistant.operations") {
+        // A patient request gets search results, so choosing a patient on the assistant page can be captured.
+        if (typeof body.message === "string" && /patient|بیمار/i.test(body.message)) {
+          const isPersian = isPersianRequest(request);
+          return HttpResponse.json({
+            agentRunId: "mock-agent-run",
+            conversationId: "mock-agent-conversation",
+            result: {
+              agentRunId: "mock-agent-run",
+              conversationId: "mock-agent-conversation",
+              previousResponseId: null,
+              messages: [{ kind: "AssistantMessage", content: isPersian ? "یک بیمار پیدا شد. کدام را می‌خواهید؟" : "I found one matching patient. Which one do you mean?" }],
+              actions: [],
+              candidates: [{ candidateToken: mockPatientCandidateToken, displayName: isPersian ? "آدا لاولیس" : store.patients[0].name, maskedIdentification: "***4821", maskedPhone: "***0123", dateOfBirth: null }],
+            },
+          });
+        }
         return HttpResponse.json({
           agentRunId: "mock-agent-run",
           conversationId: "mock-agent-conversation",
@@ -750,6 +771,8 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
     }),
   ];
 }
+
+const mockPatientCandidateToken = "mock-patient-candidate";
 
 // The clinic API's surgery operations capability and cancellation action type (`SurgeryAssistantActions` in the Clinic app).
 const mockSurgeryAssistantCapability = "SurgeryOperations";

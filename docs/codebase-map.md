@@ -130,7 +130,7 @@ Run npm workspace commands from `src/Hosts/Web`.
 | --- | --- |
 | `shared/account` | Reusable account/profile Web feature surface. |
 | `shared/auth` | Authentication Web feature and generated API boundary. |
-| `shared/clinic` | Clinic/private-practice feature surface and generated clinic API boundary. `src/features/clinic-setup` is the owner's assistant-guided first-run home; `src/features/clinic-assistant` holds the operations assistant, its action cards and the shared operations conversation. |
+| `shared/clinic` | Clinic/private-practice feature surface and generated clinic API boundary. `src/features/clinic-setup` is the owner's assistant-guided first-run home; `src/features/clinic-assistant` holds the operations assistant, its action cards, the shared operations conversation and `ClinicAssistantWorkspace`, the owner's full-page assistant at `/assistant` (route `(owner)/(clinic-workspace)/assistant`). |
 | `shared/security` | Context-agnostic security feature components and generated audit API boundary. |
 | `shared/communications` | Communications feature and generated API boundary. |
 | `shared/contents` | Content feature surface. |
@@ -358,7 +358,9 @@ edit, and delete a type; the cancellation message), `surgery-overview-flow`
 warning, saved detail), `surgery-edit-flow`, `surgery-status-flow`
 (complete, correct the completion back to planned, cancel), and
 `surgery-assistant-flow` (the operations assistant's review card for a prepared
-surgery cancellation, wide screens only); all of them share their steps from
+surgery cancellation, wide screens only), and `clinic-assistant-flow` (the
+full-page assistant: starters, a prepared review group, a patient chosen from
+search results, back to the clinic, a new conversation); all of them share their steps from
 `tests/mock/surgerySteps.ts`. Flow folders carry the
 `mock-` prefix so they are never confused with real-host captures, which the
 two-host runner writes next to its proof screenshot under

@@ -1,14 +1,14 @@
 "use client";
 
 import { Sheet } from "@heroui/react";
-import { ChatConversation, ChatLoader, ChatMessage } from "@heroui-pro/react";
+import { ChatConversation, ChatLoader, ChatMessage, ChatMessageActions } from "@heroui-pro/react";
 import { Button, Modal, Tooltip } from "@heroui/react";
 import { FaIcon } from "@vitarish/ui";
 import { AgentConversationComposer } from "@vitarish/intelligence";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { useLocalizedText } from "../../localization";
-import type { AssistantMessageResult } from "./hooks";
-import { useClinicAssistantConversationSurface, useAssistantConversation } from "./hooks";
+import type { ClinicAssistantChatMessage } from "./hooks";
+import { patientComposerSessionKey, useClinicAssistantConversationSurface, useAssistantConversation } from "./hooks";
 import { AssistantActionList } from "./AssistantActions";
 import {
   AssistantActivity,
@@ -41,11 +41,14 @@ export function AssistantHeader({ patientName, onReset }: { patientName: string;
 }
 
 export function AssistantComposer({
+  actions,
   disabled,
   onSubmit,
   scope = "patient",
   sessionKey,
 }: {
+  /** Extra composer controls, such as a stop button while a turn runs. */
+  actions?: ReactNode;
   disabled: boolean;
   onSubmit: (message: string) => Promise<void>;
   scope?: "patient" | "operations";
@@ -62,6 +65,7 @@ export function AssistantComposer({
 
   return (
     <AgentConversationComposer
+      actions={actions}
       direction={locale === "fa" ? "rtl" : "ltr"}
       enabled={!disabled}
       isPending={disabled}
@@ -77,19 +81,28 @@ export function AssistantComposer({
   );
 }
 
-type AssistantChatMessage =
-  AssistantMessageResult | { kind: "UserMessage"; content: string };
+type AssistantChatMessage = ClinicAssistantChatMessage;
 
 export function AssistantMessage({
   message,
   onRetry,
   scope = "patient",
+  copyable = false,
 }: {
   message: AssistantChatMessage;
   onRetry?: () => void;
   scope?: "patient" | "operations";
+  /** Offer a copy action under assistant replies. */
+  copyable?: boolean;
 }) {
   const { t } = useLocalizedText();
+  if (message.kind === "Stopped")
+    return (
+      <p data-kind={message.kind} className="text-center text-sm text-muted">
+        <FaIcon icon="circle-stop" aria-hidden="true" className="me-2" />
+        {t("clinic.assistantWorkspace.stopped")}
+      </p>
+    );
   if (message.kind === "UserMessage")
     return (
       <ChatMessage.User data-kind={message.kind}>
@@ -125,6 +138,18 @@ export function AssistantMessage({
           </p>
           <p className="whitespace-pre-wrap">{message.content}</p>
         </ChatMessage.Content>
+        {copyable ? (
+          <ChatMessageActions>
+            <ChatMessageActions.Copy
+              aria-label={t("clinic.assistantWorkspace.copy")}
+              tooltip={t("clinic.assistantWorkspace.copy")}
+              copiedIcon={<FaIcon icon="check" aria-hidden="true" />}
+              onPress={() => void navigator.clipboard?.writeText(message.content).catch(() => undefined)}
+            >
+              <ChatMessageActions.CopyIcon><FaIcon icon="copy" aria-hidden="true" /></ChatMessageActions.CopyIcon>
+            </ChatMessageActions.Copy>
+          </ChatMessageActions>
+        ) : null}
       </ChatMessage.Body>
     </ChatMessage.Assistant>
   );
@@ -265,7 +290,7 @@ export function AssistantPanel({
               <AssistantComposer
                 disabled={conversation.isPending}
                 onSubmit={surface.submit}
-                sessionKey={`clinic.assistant.patient:${patientId}`}
+                sessionKey={patientComposerSessionKey(patientId)}
               />
             </Sheet.Footer>
           </Sheet.Dialog>

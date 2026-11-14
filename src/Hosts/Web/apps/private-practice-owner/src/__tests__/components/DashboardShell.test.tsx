@@ -19,9 +19,10 @@ import { Routes } from "@/app/routes";
 const routerPush = vi.hoisted(() => vi.fn());
 const tenantAccess = vi.hoisted(() => ({ value: true }));
 const authSession = vi.hoisted(() => ({ isAuthenticated: true }));
+const currentPath = vi.hoisted(() => ({ value: "/patients/example" }));
 
 vi.mock("next/navigation", () => ({
-  usePathname: () => "/patients/example",
+  usePathname: () => currentPath.value,
   useRouter: () => ({
     back: vi.fn(),
     forward: vi.fn(),
@@ -337,6 +338,26 @@ describe("Dashboard Shell Components", () => {
 
       expect(screen.queryByTestId("operations-agent")).not.toBeInTheDocument();
       tenantAccess.value = true;
+    });
+
+    it("leaves the side assistant out on the assistant page, which shows the same conversation", () => {
+      currentPath.value = Routes.Clinic.Assistant;
+      try {
+        render(
+          <DashboardShell
+            clinicOperationsAssistant
+            footerItems={shellFooterItems}
+            navGroups={shellNavGroups}
+          >
+            <div>Clinic content</div>
+          </DashboardShell>,
+        );
+
+        expect(screen.queryByTestId("operations-agent")).not.toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: "Operations assistant" })).not.toBeInTheDocument();
+      } finally {
+        currentPath.value = "/patients/example";
+      }
     });
   });
 
