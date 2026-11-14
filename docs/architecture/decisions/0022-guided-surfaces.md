@@ -273,7 +273,7 @@ check.
 ## Notes
 
 - Revisit if a group must commit all-or-nothing, if blocks must stream before a
-  run ends, if blocks other than presented records must be redrawn after a
+  run ends, if blocks other than presented results must be redrawn after a
   reload, if a presented block must show data as it was rather than as it is,
   if the extra presenting step proves too slow, if actions must live
   longer than minutes, or if an app needs kinds the platform set does not
