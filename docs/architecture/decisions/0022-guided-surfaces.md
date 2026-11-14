@@ -143,8 +143,8 @@ This decision completes the model around it.
   routes. It writes no state machine, store or generic card.
 - **Conversation compatibility.** A change to an agent's instructions, output
   schema or tool exposure changes its compatibility key, and open
-  conversations ask once to start again (ADR-0012). A kind produced only by a
-  tool result or a server policy does not change the key.
+  conversations continue on their carried-over messages (ADR-0012). A kind
+  produced only by a tool result or a server policy does not change the key.
 - **Changing the owner of stored actions.** Prepared actions are short-lived.
   When their owner or record format changes, pending actions from the previous
   format are not carried over: confirming one returns not found, and the

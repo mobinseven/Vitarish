@@ -31,9 +31,6 @@ internal abstract class AssistantProfile(
             policy.AddCompatibilityMaterial("subjectId", SubjectId(context.Context));
             policy.AddCompatibilityMaterial("authenticatedUserId", context.Context.AuthenticatedUserId);
             policy.AddCompatibilityMaterial("role", context.Context.Role);
-            policy.AddCompatibilityMaterial("locale", context.Context.Locale);
-            policy.AddCompatibilityMaterial("timeZone", context.Context.TimeZone);
-            policy.AddCompatibilityMaterial("calendar", context.Context.Calendar);
             policy.AddCompatibilityMaterial(
                 "actionPolicies",
                 FormatActionPolicies(profileComposition.AvailableCapabilities.SelectMany(capability => capability.ActionPolicies)));
@@ -118,9 +115,10 @@ internal static class AssistantPolicyInstructions
             currentLocal = currentLocalText,
             currentUtc = currentUtcText,
             responseLanguage = "user_input",
-            localeFallback = context.Locale,
-            timeZone = context.TimeZone,
-            calendarFallback = context.Calendar,
+            // Locale, time zone and calendar are sent with every turn and do not change the configuration key.
+            localeFallback = dynamicTime ? context.Locale : "<locale>",
+            timeZone = dynamicTime ? context.TimeZone : "<time-zone>",
+            calendarFallback = dynamicTime ? context.Calendar : "<calendar>",
             dateConversion = new
             {
                 tool = CalendarDateConversionTool.Name,

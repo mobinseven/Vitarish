@@ -91,6 +91,19 @@ public sealed class AssistantCompositionTests
         first.CompatibilityKey.Should().Be(later.CompatibilityKey);
     }
 
+    [Fact]
+    public void Locale_time_zone_and_calendar_are_per_turn_context_not_configuration()
+    {
+        AssistantContext english = Context("practice");
+        AssistantContext persian = english with { Locale = "fa-IR", TimeZone = "Asia/Tehran", Calendar = "persian" };
+
+        ComposedAgentManifest<AssistantCompositionContext> first = Compose(english, []);
+        ComposedAgentManifest<AssistantCompositionContext> switched = Compose(persian, []);
+
+        switched.CompatibilityKey.Should().Be(first.CompatibilityKey);
+        switched.Definition.Instructions.Should().Contain("\"localeFallback\":\"fa-IR\"").And.Contain("\"calendarFallback\":\"persian\"");
+    }
+
     private static ComposedAgentManifest<AssistantCompositionContext> Compose(
         AssistantContext context,
         IReadOnlyCollection<IAssistantCapability> capabilities,

@@ -19,7 +19,6 @@ internal static class IntelligenceAgentConversationResultMapper
         AgentConversationOutcome.Busy => Results.Conflict(new IntelligenceError(IntelligenceErrorCode.Conflict, "The conversation is active.")),
         AgentConversationOutcome.InvalidHistory => Results.Conflict(new IntelligenceError(IntelligenceErrorCode.InvalidHistory, "The conversation history is invalid.")),
         AgentConversationOutcome.HistoryLimitExceeded => Results.Conflict(new IntelligenceError(IntelligenceErrorCode.InvalidHistory, "The conversation history has reached its supported limit; start a new conversation.")),
-        AgentConversationOutcome.ProfileChanged => Results.Conflict(new IntelligenceError(IntelligenceErrorCode.Conflict, "The agent profile changed; start a new conversation.")),
         _ => Results.Json(new IntelligenceError(IntelligenceErrorCode.UnexpectedFailure, "The agent conversation failed."), statusCode: StatusCodes.Status502BadGateway)
     };
 

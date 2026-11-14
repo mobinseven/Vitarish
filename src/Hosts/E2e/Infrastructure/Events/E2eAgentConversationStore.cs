@@ -31,21 +31,8 @@ internal sealed class E2eAgentConversationStore(TimeProvider timeProvider) : IAg
         AgentConversationScope scope,
         TimeSpan leaseDuration,
         string compatibilityKey,
-        CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        lock (gate)
-        {
-            if (conversationId is { } id)
-            {
-                Conversation? existing = FindOwned(id, scope);
-                if (existing is null) return Task.FromResult(new AgentConversationStoreResult(AgentConversationOutcome.NotFound));
-                if (existing.ProfileCompatibilityKey is null || !string.Equals(existing.ProfileCompatibilityKey, compatibilityKey, StringComparison.Ordinal))
-                    return Task.FromResult(new AgentConversationStoreResult(AgentConversationOutcome.ProfileChanged));
-            }
-            return Task.FromResult(AcquireCore(conversationId, scope, leaseDuration, compatibilityKey, cancellationToken));
-        }
-    }
+        CancellationToken cancellationToken) =>
+        Task.FromResult(AcquireCore(conversationId, scope, leaseDuration, compatibilityKey, cancellationToken));
 
     public Task<AgentConversationOutcome> ReplaceHistoryAsync(
         AgentConversationLease lease,
@@ -80,6 +67,7 @@ internal sealed class E2eAgentConversationStore(TimeProvider timeProvider) : IAg
                 return Task.FromResult(AgentConversationOutcome.Busy);
 
             owned.History = history;
+            owned.ProfileCompatibilityKey = lease.ProfileCompatibilityKey ?? owned.ProfileCompatibilityKey;
             if (presentation is not null)
             {
                 string prompt = presentation.UserTurn.Trim();
@@ -234,7 +222,7 @@ internal sealed class E2eAgentConversationStore(TimeProvider timeProvider) : IAg
                     ActiveLeaseExpiresAt = expiresAt
                 };
                 conversations[created.Id] = created;
-                return new(AgentConversationOutcome.Succeeded, new(created.Id, leaseId, 0, null));
+                return new(AgentConversationOutcome.Succeeded, new(created.Id, leaseId, 0, null, compatibilityKey));
             }
 
             Conversation? entity = FindOwned(conversationId.Value, scope);
@@ -253,7 +241,9 @@ internal sealed class E2eAgentConversationStore(TimeProvider timeProvider) : IAg
                 Unlease(entity, leaseId);
                 return new(AgentConversationOutcome.HistoryLimitExceeded);
             }
-            return new(AgentConversationOutcome.Succeeded, new(entity.Id, leaseId, entity.Revision, entity.History));
+            bool profileChanged = compatibilityKey is not null &&
+                !string.Equals(entity.ProfileCompatibilityKey, compatibilityKey, StringComparison.Ordinal);
+            return new(AgentConversationOutcome.Succeeded, new(entity.Id, leaseId, entity.Revision, entity.History, compatibilityKey, profileChanged));
         }
     }
 
@@ -326,7 +316,7 @@ internal sealed class E2eAgentConversationStore(TimeProvider timeProvider) : IAg
         public string AgentKey { get; init; } = string.Empty;
         public string SubjectKind { get; init; } = string.Empty;
         public string SubjectId { get; init; } = string.Empty;
-        public string? ProfileCompatibilityKey { get; init; }
+        public string? ProfileCompatibilityKey { get; set; }
         public DateTimeOffset CreatedAt { get; init; }
         public string HistoryFormat { get; set; } = string.Empty;
         public string? History { get; set; }

@@ -62,8 +62,10 @@ public sealed class AgentRuntimeHttpRunner(
             }
 
             AgentRuntimeRunResponse? result = await response.Content.ReadFromJsonAsync<AgentRuntimeRunResponse>(cancellationToken).ConfigureAwait(false);
+            // An unreadable runtime response says nothing about the history and may follow executed
+            // tools, so it is a provider failure, never a history rejection that could be retried.
             if (result is null)
-                return Failure(AgentRunErrorCode.InvalidProviderResponse, "The agent runtime returned an empty response.");
+                return Failure(AgentRunErrorCode.ProviderFailure, "The agent runtime returned an empty response.");
 
             return new AgentRunResult(
                 result.IsSuccess,
@@ -85,7 +87,7 @@ public sealed class AgentRuntimeHttpRunner(
         }
         catch (JsonException)
         {
-            return Failure(AgentRunErrorCode.InvalidProviderResponse, "The agent runtime returned an invalid response.");
+            return Failure(AgentRunErrorCode.ProviderFailure, "The agent runtime returned an invalid response.");
         }
         catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException or InvalidOperationException)
         {

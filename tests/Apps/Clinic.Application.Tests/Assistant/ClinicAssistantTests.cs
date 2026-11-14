@@ -55,16 +55,16 @@ public sealed class ClinicAssistantTests
     [Fact]
     public async Task Failed_runtime_outcome_does_not_persist_actions()
     {
-        RecordingRuntime runtime = new(AssistantResult.Failure("run-1", "conversation-1", "profile changed") with
+        RecordingRuntime runtime = new(AssistantResult.Failure("run-1", "conversation-1", "provider failed") with
         {
-            Outcome = AssistantRunOutcome.ProfileChanged
+            Outcome = AssistantRunOutcome.Failed
         });
         RecordingActionStore store = new();
 
         AssistantResult result = await new RunAssistantHandler(runtime)
             .Handle(new RunAssistant(Context(), new AssistantInput("Continue")), CancellationToken.None);
 
-        result.Outcome.Should().Be(AssistantRunOutcome.ProfileChanged);
+        result.Outcome.Should().Be(AssistantRunOutcome.Failed);
         store.Saved.Should().BeEmpty();
     }
 

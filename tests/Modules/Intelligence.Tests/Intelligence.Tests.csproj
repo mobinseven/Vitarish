@@ -8,6 +8,7 @@
     <PackageReference Include="FluentAssertions" />
     <PackageReference Include="Moq" />
     <PackageReference Include="Testcontainers.Redis" />
+    <PackageReference Include="Testcontainers.PostgreSql" />
   </ItemGroup>
 
   <ItemGroup>

@@ -44,7 +44,7 @@ All live in `src/Hosts/Web/shared/intelligence` and are exported from its index.
 4. On the web, call `toGuidedSurface` on the reply, render each action group with `ActionReviewGroup` using the app's cards and confirm function, and render the question and next action. Clinic's composition is `OperationsGuidedReply` in `shared/clinic/src/features/clinic-assistant`. A full-page assistant uses the `AgentChatWorkspace` frame from `@vitarish/ui` (header, optional conversation list, thread, composer); Clinic's is `ClinicAssistantWorkspace`.
 5. Anything shown without a model call (a welcome, a goal list) is built from server keys and state in the app's web feature; Clinic does this in `features/clinic-setup`.
 
-Changing an agent's instructions, output schema or tool exposure changes its compatibility key, so open conversations ask once to start again.
+Changing an agent's instructions, output schema or tool exposure changes its compatibility key. Open conversations continue: the next turn carries over only their user and assistant messages (ADR-0012).
 
 ## Not built yet
 
