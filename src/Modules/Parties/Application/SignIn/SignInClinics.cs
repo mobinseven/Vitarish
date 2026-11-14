@@ -17,8 +17,8 @@ public interface IWorkspaceDirectory
     Task<IReadOnlyList<WorkspaceDirectoryEntry>> ListAsync(string userId, CancellationToken cancellationToken = default);
 }
 
-/// <summary>The signed-in user's clinics, ordered by name.</summary>
-public sealed record ListSignInClinicsQuery : IRequest<IReadOnlyList<WorkspaceDirectoryEntry>?>;
+/// <summary>The signed-in user's workspaces, ordered by name; only those of <paramref name="AppId"/> when it is given.</summary>
+public sealed record ListSignInClinicsQuery(string? AppId = null) : IRequest<IReadOnlyList<WorkspaceDirectoryEntry>?>;
 
 public sealed class ListSignInClinicsQueryHandler(IWorkspaceDirectory workspaces, IRequestContext requestContext)
     : IRequestHandler<ListSignInClinicsQuery, IReadOnlyList<WorkspaceDirectoryEntry>?>
@@ -27,7 +27,9 @@ public sealed class ListSignInClinicsQueryHandler(IWorkspaceDirectory workspaces
     public async Task<IReadOnlyList<WorkspaceDirectoryEntry>?> Handle(ListSignInClinicsQuery request, CancellationToken cancellationToken) =>
         string.IsNullOrWhiteSpace(requestContext.UserId)
             ? null
-            : [.. (await workspaces.ListAsync(requestContext.UserId, cancellationToken)).OrderBy(workspace => workspace.Name, StringComparer.CurrentCulture)];
+            : [.. (await workspaces.ListAsync(requestContext.UserId, cancellationToken))
+                .Where(workspace => request.AppId is null || string.Equals(workspace.AppId, request.AppId, StringComparison.Ordinal))
+                .OrderBy(workspace => workspace.Name, StringComparer.CurrentCulture)];
 }
 
 /// <summary>A one-time link target: continue signed in at <paramref name="Hostname"/> with <paramref name="Token"/>.</summary>

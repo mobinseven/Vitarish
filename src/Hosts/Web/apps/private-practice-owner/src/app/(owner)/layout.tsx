@@ -1,27 +1,13 @@
-"use client";
-
-import { useCallback } from "react";
-import { useRouter } from "next/navigation";
-import { AuthorizationGuard } from "@vitarish/auth";
+import { readSignInUrl } from "@vitarish/journey/sign-in-host";
 import { Routes } from "@/app/routes";
-import { LoadingScreen } from "@/components/loading/LoadingScreen";
+import { OwnerAccessGuard } from "@/components/auth/OwnerAccessGuard";
 
-export default function OwnerLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const router = useRouter();
-  const navigate = useCallback((href: string) => router.push(href), [router]);
+// The sign-in address comes from the running server's environment, not the build.
+export const dynamic = "force-dynamic";
 
-  return (
-    <AuthorizationGuard
-      requiredRole="owner"
-      loginHref={Routes.Login.Index}
-      onNavigate={navigate}
-      loadingFallback={<LoadingScreen />}
-    >
-      {children}
-    </AuthorizationGuard>
-  );
+export default function OwnerLayout({ children }: { children: React.ReactNode }) {
+  // The sign-in host's continue page takes a signed-in person to their platform home, which lists their workspaces.
+  const signInUrl = readSignInUrl(process.env);
+  const workspacesHref = signInUrl ? new URL(Routes.SignInContinue, signInUrl).toString() : null;
+  return <OwnerAccessGuard workspacesHref={workspacesHref}>{children}</OwnerAccessGuard>;
 }

@@ -13,3 +13,17 @@ public sealed class IsSignInHostQueryHandler(IAppTenantDirectory tenants, IReque
         Guid.TryParse(requestContext.TenantId, out Guid tenantId)
         && await tenants.IsLiveAppTenantAsync(tenantId, SignInTenant.AppId, cancellationToken);
 }
+
+/// <summary>
+/// Whether the request came to the clinic app's shared front page (the clinic base domain itself), whose tenant is a
+/// platform host and not a clinic.
+/// </summary>
+public sealed record IsClinicFrontPageHostQuery : IRequest<bool>;
+
+public sealed class IsClinicFrontPageHostQueryHandler(IAppTenantDirectory tenants, IRequestContext requestContext)
+    : IRequestHandler<IsClinicFrontPageHostQuery, bool>
+{
+    public async Task<bool> Handle(IsClinicFrontPageHostQuery request, CancellationToken cancellationToken) =>
+        Guid.TryParse(requestContext.TenantId, out Guid tenantId)
+        && await tenants.IsLiveAppTenantAsync(tenantId, BrowserApplicationTenants.ClinicLandingAppId, cancellationToken);
+}

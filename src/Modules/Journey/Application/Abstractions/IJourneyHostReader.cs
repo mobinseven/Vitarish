@@ -14,4 +14,7 @@ public interface IJourneyHostReader
 
     /// <summary>True when the request came to the shared sign-in host, where users choose which of their clinics to open.</summary>
     Task<bool> IsSignInHostAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>True when the request came to the clinic app's shared front page, which is not a clinic.</summary>
+    Task<bool> IsClinicFrontPageAsync(CancellationToken cancellationToken = default) => Task.FromResult(false);
 }

@@ -103,6 +103,19 @@ public static class JourneyPolicy
     }
 
     /// <summary>
+    /// On the clinic app's shared front page, which is not a clinic, a signed-in person chooses one of their clinics
+    /// from the front page itself instead of using a dashboard for that host.
+    /// </summary>
+    public static JourneyGate? EvaluateClinicFrontPage(bool isClinicFrontPage) =>
+        isClinicFrontPage
+            ? new JourneyGate(
+                JourneyGateKind.WorkspaceSelection,
+                IsBlocking: true,
+                DestinationUrl: AppRootUrl,
+                Message: "Choose a clinic to open.")
+            : null;
+
+    /// <summary>
     /// Evaluates workspace selection gates.
     /// </summary>
     public static JourneyGate? EvaluateWorkspaceSelection(JourneyWorkspaceSnapshot? workspace)

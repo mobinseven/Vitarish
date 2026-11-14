@@ -187,6 +187,21 @@ public class JourneyResolverTests
     }
 
     [Fact]
+    public async Task ResolveAsync_OnTheClinicFrontPage_SendsToTheFrontPagesClinicListBeforeAnyReturnUrl()
+    {
+        var request = new JourneyRequest("user1", "/assistant", "/", null, null, true);
+        SetUpCompleteAccount();
+        _hostReaderMock.Setup(x => x.IsClinicFrontPageAsync(It.IsAny<CancellationToken>())).ReturnsAsync(true);
+        _returnUrlPolicyMock.Setup(x => x.Normalize("/assistant")).Returns("/assistant");
+
+        var result = await _sut.ResolveAsync(request);
+
+        result.HasBlockingGate.Should().BeTrue();
+        result.BlockingGate!.Kind.Should().Be(JourneyGateKind.WorkspaceSelection);
+        result.DestinationUrl.Should().Be(JourneyPolicy.AppRootUrl);
+    }
+
+    [Fact]
     public async Task ResolveAsync_OffTheSignInHost_ReturnsNoSignInContinueGate()
     {
         var request = new JourneyRequest("user1", "/patients", "/", null, null, true);

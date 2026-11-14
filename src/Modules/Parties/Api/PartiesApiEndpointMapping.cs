@@ -84,7 +84,14 @@ public static class PartiesApiEndpointMapping
             .WithGroupName(PartiesApiRoutes.DocumentTag)
             .WithTags(PartiesApiRoutes.DocumentTag);
         _ = signInGroup.AddEndpointFilter(RequireSignInHostAsync);
-        _ = signInGroup.MapModuleGet(
+        // The clinic list also answers on the clinic front page, which is a platform host too, so a signed-in person
+        // there can open one of their clinics instead of a dashboard for a host that is not a clinic.
+        RouteGroupBuilder clinicListGroup = endpoints
+            .MapProtectedModuleGroup($"{PartiesApiRoutes.Base}{PartiesApiRoutes.SignIn}", requireTenantAccess: false)
+            .WithGroupName(PartiesApiRoutes.DocumentTag)
+            .WithTags(PartiesApiRoutes.DocumentTag);
+        _ = clinicListGroup.AddEndpointFilter(RequireSignInOrClinicFrontPageHostAsync);
+        _ = clinicListGroup.MapModuleGet(
             PartiesApiRoutes.SignInClinics,
             GetSignInClinicsAsync,
             PartiesApiOperations.GetSignInClinics,
@@ -166,13 +173,23 @@ public static class PartiesApiEndpointMapping
             ? await next(context)
             : NotFound("This is not the sign-in host.");
 
+    private static async ValueTask<object?> RequireSignInOrClinicFrontPageHostAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
+    {
+        ISender sender = context.HttpContext.RequestServices.GetRequiredService<ISender>();
+        CancellationToken cancellationToken = context.HttpContext.RequestAborted;
+        return await sender.Send(new IsSignInHostQuery(), cancellationToken) || await sender.Send(new IsClinicFrontPageHostQuery(), cancellationToken)
+            ? await next(context)
+            : NotFound("This is not the sign-in host or the clinic front page.");
+    }
+
     private static async Task<IResult> GetPublicTenantLogoAsync([FromServices] ISender sender, CancellationToken cancellationToken) =>
         await sender.Send(new GetPublicTenantLogoQuery(), cancellationToken) is { } logo
             ? Results.Stream(logo.Content, logo.ContentType)
             : NotFound("This clinic has no logo.");
 
-    private static async Task<IResult> GetSignInClinicsAsync([FromServices] ISender sender, [FromServices] IOptions<OnboardingHostOptions> onboarding, CancellationToken cancellationToken) =>
-        await sender.Send(new ListSignInClinicsQuery(), cancellationToken) is { } clinics
+    // The clinic front page lists only clinics; the sign-in host lists every workspace, as before.
+    private static async Task<IResult> GetSignInClinicsAsync([FromServices] ISender sender, [FromServices] IOptions<OnboardingHostOptions> onboarding, [FromServices] SelfServiceTenantProfile? clinicProfile, CancellationToken cancellationToken) =>
+        await sender.Send(new ListSignInClinicsQuery(await sender.Send(new IsClinicFrontPageHostQuery(), cancellationToken) ? clinicProfile?.AppId ?? string.Empty : null), cancellationToken) is { } clinics
             ? Results.Ok(new C.SignInClinicsResponse([.. clinics.Select(clinic => new C.SignInClinicDto(clinic.TenantId, clinic.AppId, clinic.Name, clinic.Hostname, clinic.Role, clinic.HasLogo ? PartiesApiRoutes.PublicLogoPath : null))], onboarding.Value.IsAvailable ? onboarding.Value.OnboardingUrl : null))
             : Results.Unauthorized();
 

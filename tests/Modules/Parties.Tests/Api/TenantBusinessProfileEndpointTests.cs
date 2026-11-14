@@ -121,6 +121,46 @@ public sealed class TenantBusinessProfileEndpointTests
     }
 
     [Fact]
+    public async Task Lists_only_the_clinic_apps_workspaces_on_the_clinic_front_page()
+    {
+        Mock<ISender> sender = new();
+        sender.Setup(item => item.Send(It.IsAny<IsSignInHostQuery>(), It.IsAny<CancellationToken>())).ReturnsAsync(false);
+        sender.Setup(item => item.Send(It.IsAny<IsClinicFrontPageHostQuery>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);
+        sender.Setup(item => item.Send(It.IsAny<ListSignInClinicsQuery>(), It.IsAny<CancellationToken>())).ReturnsAsync([]);
+        using WebApplication app = CreateApp(sender.Object);
+
+        HttpContext context = await InvokeAsync(app, PartiesApiOperations.GetSignInClinics, HttpMethods.Get);
+
+        context.Response.StatusCode.Should().Be(StatusCodes.Status200OK);
+        sender.Verify(item => item.Send(It.Is<ListSignInClinicsQuery>(query => query.AppId == "clinic-app"), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Lists_every_workspace_on_the_sign_in_host()
+    {
+        Mock<ISender> sender = new();
+        sender.Setup(item => item.Send(It.IsAny<IsSignInHostQuery>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);
+        sender.Setup(item => item.Send(It.IsAny<ListSignInClinicsQuery>(), It.IsAny<CancellationToken>())).ReturnsAsync([]);
+        using WebApplication app = CreateApp(sender.Object);
+
+        _ = await InvokeAsync(app, PartiesApiOperations.GetSignInClinics, HttpMethods.Get);
+
+        sender.Verify(item => item.Send(It.Is<ListSignInClinicsQuery>(query => query.AppId == null), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Does_not_list_workspaces_on_a_clinic_or_other_host()
+    {
+        Mock<ISender> sender = new();
+        using WebApplication app = CreateApp(sender.Object);
+
+        HttpContext context = await InvokeAsync(app, PartiesApiOperations.GetSignInClinics, HttpMethods.Get);
+
+        context.Response.StatusCode.Should().Be(StatusCodes.Status404NotFound);
+        sender.Verify(item => item.Send(It.IsAny<ListSignInClinicsQuery>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
     public async Task Lists_the_apps_categories_only_while_onboarding_is_available()
     {
         using WebApplication on = CreateApp(Mock.Of<ISender>());

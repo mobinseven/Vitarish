@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { LocalizationProvider } from "@vitarish/localization";
 import { AuthorizationGuard } from "../../components/AuthorizationGuard";
@@ -29,13 +29,15 @@ const guard = {
   noPermission: "You do not have permission to access this area.",
   home: "Go to home",
   signOut: "Sign out",
+  signOutConfirmTitle: "Sign out to use another account?",
+  signOutConfirmDescription: "This signs you out of every app in this browser.",
 };
-const messages = { auth: { guard } };
+const messages = { auth: { guard }, common: { actions: { cancel: "Cancel" } } };
 
-function renderDenied(onNavigate: (href: string) => void, homeHref?: string) {
+function renderDenied(onNavigate: (href: string) => void, homeHref?: string, confirmSignOut = false) {
   render(
     <LocalizationProvider locale="en" messages={messages}>
-      <AuthorizationGuard requiredRole="owner" loginHref="/sign-in" homeHref={homeHref} onNavigate={onNavigate}>
+      <AuthorizationGuard requiredRole="owner" loginHref="/sign-in" homeHref={homeHref} confirmSignOut={confirmSignOut} onNavigate={onNavigate}>
         <p>protected</p>
       </AuthorizationGuard>
     </LocalizationProvider>,
@@ -57,6 +59,19 @@ it("explains the denial and lets a signed-in person leave to home or sign out", 
   fireEvent.click(screen.getByRole("button", { name: guard.signOut }));
   await waitFor(() => expect(mocks.logout).toHaveBeenCalledWith({ data: { logoutId: null, returnUrl: "/home" } }));
   await waitFor(() => expect(navigate).toHaveBeenCalledWith("/signed-out"));
+});
+
+it("asks before signing out when the app wants confirmation, and signs out only after it", async () => {
+  mocks.logout.mockResolvedValue({ redirectUrl: "/signed-out" });
+  renderDenied(vi.fn(), "/home", true);
+
+  fireEvent.click(screen.getByRole("button", { name: guard.signOut }));
+  const dialog = await screen.findByRole("dialog");
+  expect(dialog).toHaveTextContent(guard.signOutConfirmDescription);
+  expect(mocks.logout).not.toHaveBeenCalled();
+
+  fireEvent.click(within(dialog).getByRole("button", { name: guard.signOut }));
+  await waitFor(() => expect(mocks.logout).toHaveBeenCalledTimes(1));
 });
 
 it("offers only sign-out when the app names no home", () => {
