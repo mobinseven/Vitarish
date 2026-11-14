@@ -106,13 +106,13 @@ test("a platform admin sets up a practice tenant through the admin app", async (
   const tenantName = `E2E Setup Clinic ${suffix}`;
   const hostname = `setup-${suffix}.clinic.e2e.example.test`;
   try {
-    await page.goto(`${platformOrigin}${PlatformRoutes.Owners.New}`, { waitUntil: "domcontentloaded" });
+    await page.goto(`${platformOrigin}${PlatformRoutes.Owners.New}`, { waitUntil: "networkidle" });
     await page.getByLabel(messages.admin.owners.name).fill(ownerName);
     await page.getByRole("button", { name: messages.admin.owners.create }).click();
     await expect(page).toHaveURL(`${platformOrigin}${PlatformRoutes.Owners.Index}`, { timeout: 30_000 });
     await expect(page.getByRole("link", { name: ownerName })).toBeVisible({ timeout: 30_000 });
 
-    await page.goto(`${platformOrigin}${PlatformRoutes.Tenants.New}`, { waitUntil: "domcontentloaded" });
+    await page.goto(`${platformOrigin}${PlatformRoutes.Tenants.New}`, { waitUntil: "networkidle" });
     await page.getByLabel(messages.admin.tenants.name).fill(tenantName);
     await page.getByLabel(messages.admin.tenants.appId).fill(`e2e-setup-${suffix}`);
     await expect(page.getByRole("option", { name: ownerName })).toBeAttached({ timeout: 30_000 });

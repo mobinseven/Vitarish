@@ -15,7 +15,7 @@ import {
   twoHostE2eSmsCapturePathEnvironmentKey,
 } from "../../scripts/two-host-e2e-artifacts.mjs";
 import { REQUEST_ID_HEADER, TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
-import { authenticationAntiforgeryGet } from "../../shared/auth/src/api/generated/authentication/authentication";
+import { authenticationAntiforgeryGet, authenticationSessionGet } from "../../shared/auth/src/api/generated/authentication/authentication";
 import { clinicMessageCatalogs } from "../../shared/clinic/src/localization/catalogs";
 import { tenantHandoffPath } from "../../shared/journey/src/onboardingHost";
 import { getDateCalendar } from "../../shared/localization/src/dateLocale";
@@ -64,6 +64,7 @@ const logoPngBytes = [
 const pageCompileTimeoutMilliseconds = 120_000;
 const onboardingHandoffPath = generatedOperationPath(landingIssueOnboardingHandoff);
 const antiforgeryPath = generatedOperationPath(authenticationAntiforgeryGet);
+const sessionPath = generatedOperationPath(authenticationSessionGet);
 const onboardingHandoffRequest = { category: null, answers: [] } satisfies LandingOnboardingHandoffRequest;
 
 type CapturedSms = {
@@ -452,20 +453,31 @@ test("a new phone number signs up, creates a clinic, lands signed in on it, and 
   expect([403, 404]).toContain(crossClinicPatientStatus);
 
   // The session cookie belongs to the new clinic's host only, so tenant B sees nobody signed in.
-  await page.goto(`${tenantBOrigin}${Routes.Home}`, { waitUntil: "domcontentloaded" });
-  const tenantBSessionStatus = await page.evaluate(
-    async (tenantHostHeader) =>
-      (
-        await fetch("/api/modules/authentication/session", {
-          credentials: "include",
-          headers: { [tenantHostHeader]: window.location.host },
-        })
-      ).status,
-    TENANT_HOST_HEADER,
-  );
-  expect(tenantBSessionStatus).toBe(401);
-  expect(await postPatientsCount(page, tenantBHost)).toBe(401);
-  await captureStep(page, "tenant-b-sign-in-required");
+  const tenantBContext = await browser.newContext();
+  try {
+    await tenantBContext.addCookies(await context.cookies(clinicOrigin));
+    await tenantBContext.addCookies([{ name: localeCookieName, value: locale, url: tenantBOrigin }]);
+    await tenantBContext.route(/^http:\/\/[^/]*localhost:3005\//, (route) =>
+      route.continue({ headers: { ...route.request().headers(), [forwardedForHeaderName]: walkthroughClientIp } }),
+    );
+    const tenantBPage = await tenantBContext.newPage();
+    await tenantBPage.goto(`${tenantBOrigin}${Routes.Home}`, { waitUntil: "domcontentloaded" });
+    const tenantBSessionStatus = await tenantBPage.evaluate(
+      async (tenantHostHeader) =>
+        (
+          await fetch(sessionPath, {
+            credentials: "include",
+            headers: { [tenantHostHeader]: window.location.host },
+          })
+        ).status,
+      TENANT_HOST_HEADER,
+    );
+    expect(tenantBSessionStatus).toBe(401);
+    expect(await postPatientsCount(tenantBPage, tenantBHost)).toBe(401);
+    await captureStep(tenantBPage, "tenant-b-sign-in-required");
+  } finally {
+    await tenantBContext.close();
+  }
 
   // 7. Set up the new clinic as its owner: surgery type, patient, planned surgery, and weekly shift.
   await page.goto(`${clinicOrigin}${Routes.Clinic.Settings.SurgeryTypes}`, { waitUntil: "domcontentloaded" });

@@ -159,7 +159,7 @@ async function reviewUserAuditEvent(page: Page, category: string, eventName: str
 
 test("authenticated clinic owner manages tenant staff through the shared surface", async ({ page }) => {
   await login(page, ownerUsername);
-  await page.goto(ClinicRoutes.Clinic.Settings.Users, { waitUntil: "domcontentloaded" });
+  await page.goto(ClinicRoutes.Clinic.Settings.Users, { waitUntil: "networkidle" });
   await expect(page.getByRole("heading", { name: "Clinic Users", exact: true })).toBeVisible({ timeout: 30_000 });
   await expect(page.getByRole("heading", { name: "Add staff member", exact: true })).toBeVisible();
   await expect(page.getByText(/^Owner ·/)).toBeVisible();
@@ -181,7 +181,7 @@ test("authenticated clinic owner manages tenant staff through the shared surface
 
 test("authenticated platform administrator retains global search and membership inspection", async ({ page }) => {
   await login(page, platformUsername, platformOrigin);
-  await page.goto(`${platformOrigin}${PlatformRoutes.Users.Index}`, { waitUntil: "domcontentloaded" });
+  await page.goto(`${platformOrigin}${PlatformRoutes.Users.Index}`, { waitUntil: "networkidle" });
   await expect(page.getByRole("heading", { name: "Users", exact: true })).toBeVisible({ timeout: 30_000 });
   await page.getByRole("textbox", { name: "Search users" }).fill(ownerUsername);
   await page.getByRole("button", { name: "Search" }).click();
@@ -207,7 +207,7 @@ test("authenticated platform administrator retains global search and membership 
 });
 
 async function endAllUserSessionsThroughUi(page: Page, username: string): Promise<number> {
-  await page.goto(`${platformOrigin}${PlatformRoutes.Users.Index}`, { waitUntil: "domcontentloaded" });
+  await page.goto(`${platformOrigin}${PlatformRoutes.Users.Index}`, { waitUntil: "networkidle" });
   await expect(page.getByRole("heading", { name: "Users", exact: true })).toBeVisible({ timeout: 30_000 });
   await page.getByRole("textbox", { name: "Search users" }).fill(username);
   await page.getByRole("button", { name: "Search" }).click();
@@ -230,7 +230,7 @@ async function endAllUserSessionsThroughUi(page: Page, username: string): Promis
 }
 
 async function setAccountStatusThroughUi(page: Page, username: string, enabled: boolean): Promise<void> {
-  await page.goto(`${platformOrigin}${PlatformRoutes.Users.Index}`, { waitUntil: "domcontentloaded" });
+  await page.goto(`${platformOrigin}${PlatformRoutes.Users.Index}`, { waitUntil: "networkidle" });
   await expect(page.getByRole("heading", { name: "Users", exact: true })).toBeVisible({ timeout: 30_000 });
   await page.getByRole("textbox", { name: "Search users" }).fill(username);
   await page.getByRole("button", { name: "Search" }).click();
@@ -361,7 +361,7 @@ test("platform administrator ends a signed-in user's sessions and the user's nex
 
 test("platform administrator manages profile-constrained authentication policy through Settings", async ({ page }) => {
   await login(page, platformUsername, platformOrigin);
-  await page.goto(`${platformOrigin}/settings/security`, { waitUntil: "domcontentloaded" });
+  await page.goto(`${platformOrigin}${PlatformRoutes.Security}`, { waitUntil: "networkidle" });
   await expect(page.getByRole("heading", { name: "Authentication policy", exact: true })).toBeVisible({ timeout: 30_000 });
   await expect(page.getByRole("spinbutton", { name: "Failed authentication threshold", exact: true })).toHaveValue("5");
   await expect(page.getByText("Required by deployment profile").first()).toBeVisible();
@@ -418,7 +418,7 @@ test("platform administrator manages profile-constrained authentication policy t
   expect(restoreResponse.status()).toBe(200);
   await expect(page.getByRole("spinbutton", { name: "Failed authentication threshold", exact: true })).toHaveValue(String(originalPolicy.failedAttemptThreshold));
 
-  await page.goto(`${platformOrigin}${PlatformRoutes.Audit}`, { waitUntil: "domcontentloaded" });
+  await page.goto(`${platformOrigin}${PlatformRoutes.Audit}`, { waitUntil: "networkidle" });
   await expect(page.getByRole("heading", { name: "Security event stream", exact: true })).toBeVisible({ timeout: 30_000 });
   await reviewUserAuditEvent(page, "authentication", "authentication.security-access-policy", "Authentication_SecurityAccessPolicy_Change");
   await signOutThroughPublicApi(page);
@@ -427,7 +427,7 @@ test("platform administrator manages profile-constrained authentication policy t
 test("platform administrator creates, edits, assigns access, and reviews a user's security history", async ({ page }) => {
   await login(page, platformUsername, platformOrigin);
 
-  await page.goto(`${platformOrigin}${PlatformRoutes.Users.Index}`, { waitUntil: "domcontentloaded" });
+  await page.goto(`${platformOrigin}${PlatformRoutes.Users.Index}`, { waitUntil: "networkidle" });
   await expect(page.getByRole("heading", { name: "Users", exact: true })).toBeVisible({ timeout: 30_000 });
   await page.getByRole("textbox", { name: "Search users" }).fill(ownerUsername);
   await page.getByRole("button", { name: "Search" }).click();
@@ -441,7 +441,7 @@ test("platform administrator creates, edits, assigns access, and reviews a user'
   expect(tenantId, "the E2E owner must have a tenant membership for role-assignment proof").toBeTruthy();
 
   const originalContact = `e2e-security-${Date.now()}@example.test`;
-  await page.goto(`${platformOrigin}${PlatformRoutes.Users.New}`, { waitUntil: "domcontentloaded" });
+  await page.goto(`${platformOrigin}${PlatformRoutes.Users.New}`, { waitUntil: "networkidle" });
   await expect(page.getByRole("heading", { name: "Create user", exact: true })).toBeVisible({ timeout: 30_000 });
   await page.getByRole("textbox", { name: "Email address" }).fill(originalContact);
   await page.getByRole("textbox", { name: "First name" }).fill("Security");
@@ -467,7 +467,7 @@ test("platform administrator creates, edits, assigns access, and reviews a user'
   await expect(duplicateEmail).toHaveValue(originalContact);
 
   const changedContact = `e2e-security-edited-${Date.now()}@example.test`;
-  await page.goto(`${platformOrigin}${PlatformRoutes.Users.Detail(createdUser.id!)}`, { waitUntil: "domcontentloaded" });
+  await page.goto(`${platformOrigin}${PlatformRoutes.Users.Detail(createdUser.id!)}`, { waitUntil: "networkidle" });
   await expect(page.getByText(createdUser.id!, { exact: true })).toBeVisible({ timeout: 30_000 });
   await expect(page.getByText("No roles are assigned.", { exact: true })).toBeVisible();
   await expect(page.getByText("No authentication attempts have been recorded for this user.", { exact: true })).toBeVisible();
@@ -512,7 +512,7 @@ test("platform administrator creates, edits, assigns access, and reviews a user'
   ]);
   expect(inactivityResponse.ok()).toBe(true);
   await expect(page.getByRole("status").filter({ hasText: "User inactivity timeout updated." })).toBeVisible();
-  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.reload({ waitUntil: "networkidle" });
   await expect(page.getByRole("spinbutton", { name: "Inactivity timeout (minutes)" })).toHaveValue("15");
 
   await page.getByRole("spinbutton", { name: "Inactivity timeout (minutes)" }).fill("");
@@ -542,7 +542,7 @@ test("platform administrator creates, edits, assigns access, and reviews a user'
   const securityPath = getUsersAdministrationGetUserSecurityQueryKey(createdUser.id!)[0];
   const [staleDetailsResponse] = await Promise.all([
     stalePage.waitForResponse((response) => response.request().method() === "GET" && new URL(response.url()).pathname === securityPath),
-    stalePage.goto(`${platformOrigin}${PlatformRoutes.Users.Detail(createdUser.id!)}`, { waitUntil: "domcontentloaded" }),
+    stalePage.goto(`${platformOrigin}${PlatformRoutes.Users.Detail(createdUser.id!)}`, { waitUntil: "networkidle" }),
   ]);
   expect(staleDetailsResponse.ok()).toBe(true);
   const staleUser = (await staleDetailsResponse.json() as UserSecurityDetailsResponse).user;
@@ -657,7 +657,7 @@ test("platform administrator creates, edits, assigns access, and reviews a user'
   await expect(securityHistory.getByRole("row").nth(1)).not.toHaveText(firstSecurityEvent ?? "");
   await expect(failedAttempt.getByText("Denied", { exact: true })).toBeVisible();
 
-  await page.goto(`${platformOrigin}${PlatformRoutes.Audit}`, { waitUntil: "domcontentloaded" });
+  await page.goto(`${platformOrigin}${PlatformRoutes.Audit}`, { waitUntil: "networkidle" });
   await expect(page.getByRole("heading", { name: "Security event stream", exact: true })).toBeVisible({ timeout: 30_000 });
   await reviewUserAuditEvent(page, "management", "users.account.created", "users.account.create");
   await reviewUserAuditEvent(page, "management", "users.account.edited", "users.account.edit");
