@@ -135,7 +135,8 @@ public sealed class AssistantGuidedSurfaceParsingTests
                 sender,
                 new PreparedActionLifecycle(actionStore, time),
                 registry,
-                time),
+                time,
+                new Vitarish.Intelligence.Application.GuidedSurfaces.PresentedSurfaceCollector(new InMemoryPresentableResultStore())),
             new AssistantToolResolver(manifestComposer),
             manifestComposer);
     }

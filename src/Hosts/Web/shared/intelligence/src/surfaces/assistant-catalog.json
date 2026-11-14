@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "vitarish:assistant-catalog:v1",
+  "protocolVersion": "1.0",
+  "title": "Vitarish assistant catalog",
+  "description": "Components an assistant may use to show records it read in this turn.",
+  "catalogId": "vitarish:assistant-catalog:v1",
+  "instructions": "Show records only from read results that carry a presentation handle. Bind a component's result to the handle with {\"path\": \"/<handle>\"}; never type names, dates, numbers or other record values. Pick at most three fields per card or row, from the fields the presentation lists. Use one surface per answer, with root id \"root\". Keep it short: a heading is optional, and the reply text still answers on its own.",
+  "components": {
+    "Column": {
+      "type": "object",
+      "description": "Stacks its children vertically. Use it as the root when a surface has more than one component.",
+      "properties": {
+        "component": { "const": "Column" },
+        "children": {
+          "$ref": "common_types.json#/$defs/ChildList",
+          "description": "IDs of the child components, in order, as an array of strings."
+        }
+      },
+      "required": ["component", "children"]
+    },
+    "Heading": {
+      "type": "object",
+      "description": "A short title for the surface, in the person's language. Never put record values in it.",
+      "properties": {
+        "component": { "const": "Heading" },
+        "text": { "type": "string", "minLength": 1, "maxLength": 80 }
+      },
+      "required": ["component", "text"]
+    },
+    "Caption": {
+      "type": "object",
+      "description": "One short explanatory sentence, in the person's language. Never put record values in it.",
+      "properties": {
+        "component": { "const": "Caption" },
+        "text": { "type": "string", "minLength": 1, "maxLength": 200 }
+      },
+      "required": ["component", "text"]
+    },
+    "RecordCard": {
+      "type": "object",
+      "description": "One record as a card with its title and up to three fields. Opens the record's screen.",
+      "properties": {
+        "component": { "const": "RecordCard" },
+        "result": { "$ref": "common_types.json#/$defs/DataBinding", "description": "The handle of a read result, as {\"path\": \"/<handle>\"}." },
+        "index": { "type": "integer", "minimum": 0, "description": "Which record of a list result; 0 when omitted." },
+        "fields": {
+          "type": "array",
+          "description": "Field names from the presentation, in display order.",
+          "items": { "type": "string" },
+          "maxItems": 3
+        }
+      },
+      "required": ["component", "result", "fields"]
+    },
+    "RecordList": {
+      "type": "object",
+      "description": "The records of a list result as rows, each with its title and up to three fields. Long lists are shortened with a link to the full screen.",
+      "properties": {
+        "component": { "const": "RecordList" },
+        "result": { "$ref": "common_types.json#/$defs/DataBinding", "description": "The handle of a list read result, as {\"path\": \"/<handle>\"}." },
+        "fields": {
+          "type": "array",
+          "description": "Field names from the presentation, in display order.",
+          "items": { "type": "string" },
+          "maxItems": 3
+        }
+      },
+      "required": ["component", "result", "fields"]
+    },
+    "Metric": {
+      "type": "object",
+      "description": "One number from a result, with its localized label, such as a count.",
+      "properties": {
+        "component": { "const": "Metric" },
+        "result": { "$ref": "common_types.json#/$defs/DataBinding", "description": "The handle of a read result, as {\"path\": \"/<handle>\"}." },
+        "field": { "type": "string", "description": "A numeric field name from the presentation." }
+      },
+      "required": ["component", "result", "field"]
+    },
+    "BarChart": {
+      "type": "object",
+      "description": "A bar chart of one numeric field across the records of a list result, labelled by each record's title.",
+      "properties": {
+        "component": { "const": "BarChart" },
+        "result": { "$ref": "common_types.json#/$defs/DataBinding", "description": "The handle of a list read result, as {\"path\": \"/<handle>\"}." },
+        "field": { "type": "string", "description": "A numeric field name from the presentation." }
+      },
+      "required": ["component", "result", "field"]
+    }
+  },
+  "functions": {},
+  "$defs": {
+    "anyComponent": {
+      "oneOf": [
+        { "$ref": "#/components/Column" },
+        { "$ref": "#/components/Heading" },
+        { "$ref": "#/components/Caption" },
+        { "$ref": "#/components/RecordCard" },
+        { "$ref": "#/components/RecordList" },
+        { "$ref": "#/components/Metric" },
+        { "$ref": "#/components/BarChart" }
+      ],
+      "discriminator": { "propertyName": "component" }
+    },
+    "anyFunction": { "oneOf": [] }
+  }
+}

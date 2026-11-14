@@ -13,6 +13,7 @@ import { AssistantActionList } from "./AssistantActions";
 import { AssistantCandidateList } from "./AssistantCandidateList";
 import { AssistantComposer, AssistantErrorState, AssistantMessage, AssistantMessageList } from "./AssistantPanel";
 import { OperationsGuidedReply } from "./OperationsGuidedReply";
+import { AssistantPresentedSurfaces, presentsPatientCandidates } from "./AssistantPresentedSurfaces";
 import {
   forgetClinicAssistantSurface,
   hasStoredOperationsConversation,
@@ -288,10 +289,14 @@ function Workspace({ userId, onNavigate, onOpenPatient }: ClinicAssistantWorkspa
               {scopeDivider(segment.scope, timeline.segments[index - 1]?.scope)}
               <MessageRun snapshot={segment.snapshot} scope={segment.scope.kind === "patient" ? "patient" : "operations"} />
               {segment.scope.kind === "patient" ? (
-                <AssistantActionList patientId={segment.scope.patientId} actionIds={segment.snapshot.actionIds} />
+                <>
+                  <AssistantPresentedSurfaces surfaces={segment.snapshot.surface.surfaces} />
+                  <AssistantActionList patientId={segment.scope.patientId} actionIds={segment.snapshot.actionIds} />
+                </>
               ) : (
                 <OperationsGuidedReply
                   actionGroups={segment.snapshot.actionGroups}
+                  surfaces={segment.snapshot.surface.surfaces}
                   question={null}
                   nextAction={null}
                   turnKey={segment.id}
@@ -312,12 +317,19 @@ function Workspace({ userId, onNavigate, onOpenPatient }: ClinicAssistantWorkspa
           ) : null}
           {activeConversation.isError ? <AssistantErrorState scope={focus ? "patient" : "operations"} onRetry={active.lastMessage ? () => void active.retry() : undefined} /> : null}
           {focus ? (
-            <AssistantActionList patientId={focus.patientId} actionIds={patient.actionIds} />
+            <>
+              <AssistantPresentedSurfaces surfaces={patient.surfaces} />
+              <AssistantActionList patientId={focus.patientId} actionIds={patient.actionIds} />
+            </>
           ) : (
             <>
-              <AssistantCandidateList candidates={operations.candidates} hasError={selectionError} onSelect={(token) => void selectCandidate(token)} />
+              {!presentsPatientCandidates(operations.surfaces) ? (
+                <AssistantCandidateList candidates={operations.candidates} hasError={selectionError} onSelect={(token) => void selectCandidate(token)} />
+              ) : null}
               <OperationsGuidedReply
                 actionGroups={operations.actionGroups}
+                surfaces={operations.surfaces}
+                onSelectCandidate={(token) => void selectCandidate(token)}
                 question={operations.question}
                 nextAction={operations.nextAction}
                 turnKey={operations.lastMessage}

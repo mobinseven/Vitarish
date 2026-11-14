@@ -26,8 +26,10 @@ public sealed record AgentRuntimeExecutionEnvelopeContract(
     string? PatientNationalId = null,
     string? CallbackSignature = null);
 
+/// <param name="SurfaceValidated">True when the agent runtime validated a presented surface against its catalog.</param>
 public sealed record InternalAgentToolExecutionRequest(
     AgentRuntimeExecutionEnvelopeContract ExecutionEnvelope,
-    string ArgumentsJson);
+    string ArgumentsJson,
+    bool SurfaceValidated = false);
 
 public sealed record InternalAgentToolExecutionResponse(string CallId, string Output, bool IsError = false);

@@ -729,6 +729,48 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
       const isClinic = body?.agentKey === "clinic.assistant.patient";
       // The operations assistant prepares a surgery cancellation, so its review card can be captured.
       if (body?.agentKey === "clinic.assistant.operations") {
+        // An appointment question gets a presented count, chart and card, so every data component can be captured.
+        if (typeof body.message === "string" && /appointments this week|نوبت‌های این هفته/i.test(body.message)) {
+          const isPersian = isPersianRequest(request);
+          const day = (date: string, count: number) => ({
+            kind: "clinic.appointment-count", reference: date, title: { type: "Date", value: date }, fields: { count: { type: "Number", value: count } },
+          });
+          return HttpResponse.json({
+            agentRunId: "mock-agent-run",
+            conversationId: "mock-agent-conversation",
+            result: {
+              agentRunId: "mock-agent-run",
+              conversationId: "mock-agent-conversation",
+              previousResponseId: null,
+              messages: [{ kind: "AssistantMessage", content: isPersian ? "این هفته ۲۳ نوبت دارید؛ بیشترینش سه‌شنبه است." : "You have 23 appointments this week; Tuesday is the busiest day." }],
+              actions: [],
+            },
+            blocks: [{
+              kind: "Surface",
+              surface: {
+                surfaceId: "mock-present-week",
+                protocol: "a2ui",
+                protocolVersion: "1.0",
+                catalogId: "vitarish:assistant-catalog:v1",
+                components: [
+                  { id: "root", component: "Column", children: ["title", "total", "chart", "next"] },
+                  { id: "title", component: "Heading", text: isPersian ? "نوبت‌های این هفته" : "This week's appointments" },
+                  { id: "total", component: "Metric", result: { path: "/r1-week" }, field: "count" },
+                  { id: "chart", component: "BarChart", result: { path: "/r2-week" }, field: "count" },
+                  { id: "next", component: "RecordCard", result: { path: "/r3-week" }, fields: ["status", "startTime"] },
+                ],
+                dataModel: {
+                  "r1-week": { kind: "clinic.appointment-count", isList: false, hasMore: false, records: [day("2026-11-16", 23)] },
+                  "r2-week": { kind: "clinic.appointment-count", isList: true, hasMore: false, records: [day("2026-11-15", 4), day("2026-11-16", 7), day("2026-11-17", 5), day("2026-11-18", 3), day("2026-11-19", 4)] },
+                  "r3-week": {
+                    kind: "clinic.appointment", isList: false, hasMore: false,
+                    records: [{ kind: "clinic.appointment", reference: "mock-appointment", title: { type: "Date", value: "2026-11-16" }, fields: { status: { type: "Status", value: "Confirmed" }, startTime: { type: "Text", value: "09:30" } } }],
+                  },
+                },
+              },
+            }],
+          });
+        }
         // A patient request gets search results, so choosing a patient on the assistant page can be captured.
         if (typeof body.message === "string" && /patient|بیمار/i.test(body.message)) {
           const isPersian = isPersianRequest(request);
@@ -743,6 +785,34 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
               actions: [],
               candidates: [{ candidateToken: mockPatientCandidateToken, displayName: isPersian ? "آدا لاولیس" : store.patients[0].name, maskedIdentification: "***4821", maskedPhone: "***0123", dateOfBirth: null }],
             },
+            // The model presented the search (ADR-0022 decision 8): its layout binds the handle, the data is the read.
+            blocks: [{
+              kind: "Surface",
+              surface: {
+                surfaceId: "mock-present-call",
+                protocol: "a2ui",
+                protocolVersion: "1.0",
+                catalogId: "vitarish:assistant-catalog:v1",
+                components: [
+                  { id: "root", component: "Column", children: ["title", "patients"] },
+                  { id: "title", component: "Heading", text: isPersian ? "بیماران پیدا‌شده" : "Matching patients" },
+                  { id: "patients", component: "RecordList", result: { path: "/r1" }, fields: ["dateOfBirth", "maskedPhone"] },
+                ],
+                dataModel: {
+                  r1: {
+                    kind: "clinic.patient-candidate",
+                    isList: true,
+                    hasMore: false,
+                    records: [{
+                      kind: "clinic.patient-candidate",
+                      reference: mockPatientCandidateToken,
+                      title: { type: "Text", value: isPersian ? "آدا لاولیس" : store.patients[0].name },
+                      fields: { dateOfBirth: { type: "Date", value: "1990-04-02" }, maskedPhone: { type: "Text", value: "***0123" } },
+                    }],
+                  },
+                },
+              },
+            }],
           });
         }
         return HttpResponse.json({

@@ -50,7 +50,7 @@ public abstract class SeaPatientReadTool(IProceduresService procedures, IEventsS
 
 public sealed class ListPatientProceduresTool(IProceduresService procedures, IEventsService events) : SeaPatientReadTool(procedures, events)
 {
-    public override AgentToolDefinition Definition { get; } = new("list_patient_procedure_progress", "List up to 20 current-patient procedures and their recorded progress.", "{\"type\":\"object\",\"properties\":{\"limit\":{\"type\":\"integer\"}},\"additionalProperties\":false}");
+    public override AgentToolDefinition Definition { get; } = new(Vitarish.Clinic.Application.Assistant.Presentation.ClinicPresentableToolNames.ListPatientProcedureProgress, "List up to 20 current-patient procedures and their recorded progress.", "{\"type\":\"object\",\"properties\":{\"limit\":{\"type\":\"integer\"}},\"additionalProperties\":false}");
     public override async Task<AgentToolResult> ExecuteAsync(AgentToolCall call, AgentExecutionContext context, CancellationToken cancellationToken = default)
     {
         using JsonDocument document = JsonDocument.Parse(call.ArgumentsJson);
@@ -63,7 +63,7 @@ public sealed class ListPatientProceduresTool(IProceduresService procedures, IEv
 
 public sealed class ListPatientProcedureEventsTool(IProceduresService procedures, IEventsService events) : SeaPatientReadTool(procedures, events)
 {
-    public override AgentToolDefinition Definition { get; } = new("list_patient_procedure_events", "List up to 20 recorded events for one current-patient procedure.", "{\"type\":\"object\",\"properties\":{\"procedureId\":{\"type\":\"string\"},\"limit\":{\"type\":\"integer\"}},\"required\":[\"procedureId\"],\"additionalProperties\":false}");
+    public override AgentToolDefinition Definition { get; } = new(Vitarish.Clinic.Application.Assistant.Presentation.ClinicPresentableToolNames.ListPatientProcedureEvents, "List up to 20 recorded events for one current-patient procedure.", "{\"type\":\"object\",\"properties\":{\"procedureId\":{\"type\":\"string\"},\"limit\":{\"type\":\"integer\"}},\"required\":[\"procedureId\"],\"additionalProperties\":false}");
     public override async Task<AgentToolResult> ExecuteAsync(AgentToolCall call, AgentExecutionContext context, CancellationToken cancellationToken = default)
     {
         using JsonDocument document = JsonDocument.Parse(call.ArgumentsJson);
@@ -77,7 +77,7 @@ public sealed class ListPatientProcedureEventsTool(IProceduresService procedures
 
 public sealed class GetPatientProcedureEventTool(IProceduresService procedures, IEventsService events) : SeaPatientReadTool(procedures, events)
 {
-    public override AgentToolDefinition Definition { get; } = new("get_patient_procedure_event", "Get detail for one current-patient procedure event.", "{\"type\":\"object\",\"properties\":{\"eventId\":{\"type\":\"string\"}},\"required\":[\"eventId\"],\"additionalProperties\":false}");
+    public override AgentToolDefinition Definition { get; } = new(Vitarish.Clinic.Application.Assistant.Presentation.ClinicPresentableToolNames.GetPatientProcedureEvent, "Get detail for one current-patient procedure event.", "{\"type\":\"object\",\"properties\":{\"eventId\":{\"type\":\"string\"}},\"required\":[\"eventId\"],\"additionalProperties\":false}");
     public override async Task<AgentToolResult> ExecuteAsync(AgentToolCall call, AgentExecutionContext context, CancellationToken cancellationToken = default)
     {
         using JsonDocument document = JsonDocument.Parse(call.ArgumentsJson);
@@ -89,7 +89,7 @@ public sealed class GetPatientProcedureEventTool(IProceduresService procedures, 
 
 public sealed class ListPatientEventAttachmentMetadataTool(IProceduresService procedures, IEventsService events, IAttachmentsService attachments) : SeaPatientReadTool(procedures, events)
 {
-    public override AgentToolDefinition Definition { get; } = new("list_patient_event_attachment_metadata", "List metadata only, never binary content, for one current-patient event's attachments.", "{\"type\":\"object\",\"properties\":{\"eventId\":{\"type\":\"string\"},\"limit\":{\"type\":\"integer\"}},\"required\":[\"eventId\"],\"additionalProperties\":false}");
+    public override AgentToolDefinition Definition { get; } = new(Vitarish.Clinic.Application.Assistant.Presentation.ClinicPresentableToolNames.ListPatientEventAttachmentMetadata, "List metadata only, never binary content, for one current-patient event's attachments.", "{\"type\":\"object\",\"properties\":{\"eventId\":{\"type\":\"string\"},\"limit\":{\"type\":\"integer\"}},\"required\":[\"eventId\"],\"additionalProperties\":false}");
     public override async Task<AgentToolResult> ExecuteAsync(AgentToolCall call, AgentExecutionContext context, CancellationToken cancellationToken = default)
     {
         using JsonDocument document = JsonDocument.Parse(call.ArgumentsJson);

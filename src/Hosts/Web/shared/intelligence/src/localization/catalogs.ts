@@ -38,6 +38,15 @@ export const intelligenceMessageCatalogs = {
         limit: "Pick up to {count}",
         references: "Related features",
       },
+      surface: {
+        openRecord: "Open {title}",
+        openRecordTooltip: "Open this record's page",
+        showAll: "Show all",
+        showAllTooltip: "Open the full list on its page",
+        moreCount: "{count} more not shown here.",
+        moreExist: "More results exist than are shown here.",
+        chartLabel: "Chart of {metric}",
+      },
       guidedSurface: {
         actionGroup: {
           title: "Prepared for your review",
@@ -131,6 +140,15 @@ export const intelligenceMessageCatalogs = {
         submitTooltip: "ارسال گزینه‌هایی که انتخاب کردید",
         limit: "حداکثر {count} مورد",
         references: "امکانات مرتبط",
+      },
+      surface: {
+        openRecord: "باز کردن {title}",
+        openRecordTooltip: "صفحهٔ این مورد را باز کنید",
+        showAll: "نمایش همه",
+        showAllTooltip: "فهرست کامل را در صفحهٔ خودش باز کنید",
+        moreCount: "{count} مورد دیگر اینجا نشان داده نشده است.",
+        moreExist: "نتایج بیشتری از آنچه اینجا آمده وجود دارد.",
+        chartLabel: "نمودار {metric}",
       },
       guidedSurface: {
         actionGroup: {

@@ -323,7 +323,8 @@ public sealed class AssistantSecurityRegressionTests
                 sender,
                 new PreparedActionLifecycle(actionStore, time),
                 registry,
-                time),
+                time,
+                new Vitarish.Intelligence.Application.GuidedSurfaces.PresentedSurfaceCollector(new InMemoryPresentableResultStore())),
             new AssistantToolResolver(manifestComposer),
             manifestComposer);
     }

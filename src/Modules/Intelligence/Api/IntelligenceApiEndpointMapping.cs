@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Mvc;
 using Vitarish.Intelligence.Application.Abstractions;
 using Vitarish.Intelligence.Application.Agents;
+using Vitarish.Intelligence.Application.GuidedSurfaces;
 using Vitarish.Intelligence.Contracts;
 using Vitarish.Modules.Base.Core.Endpoints;
 using Microsoft.Extensions.DependencyInjection;
@@ -46,6 +47,7 @@ public static class IntelligenceApiEndpointMapping
         [FromServices] IAgentRuntimeCredentialService credentials,
         [FromServices] IAgentRuntimeReplayGuard replayGuard,
         [FromServices] Lazy<IAgentRuntimeToolEndpointRegistry> endpoints,
+        [FromServices] PresentableResultPublisher presentation,
         [FromServices] ILoggerFactory loggerFactory,
         CancellationToken ct)
     {
@@ -72,8 +74,11 @@ public static class IntelligenceApiEndpointMapping
         try
         {
             AgentExecutionContext context = envelope.ToExecutionContext();
+            if (request.SurfaceValidated)
+                context = context with { Metadata = new Dictionary<string, string>(context.Metadata!, StringComparer.Ordinal) { [PresentSurfaceTool.ValidatedMetadataKey] = "true" } };
             AgentToolResult result = await endpoint.ExecuteAsync(
                 new(new AgentToolCall(envelope.ToolCallId, envelope.ToolName, request.ArgumentsJson), context, envelope), ct);
+            result = await presentation.PublishAsync(envelope, result, ct);
             return Results.Ok(new InternalAgentToolExecutionResponse(result.CallId, result.Output, result.IsError));
         }
         catch (KeyNotFoundException) { return Results.NotFound(); }

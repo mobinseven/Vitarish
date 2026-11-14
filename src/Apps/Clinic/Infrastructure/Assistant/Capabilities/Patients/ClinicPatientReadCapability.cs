@@ -23,7 +23,7 @@ public sealed class ClinicPatientReadAgentCapability(
 }
 public sealed class GetPatientFactualOverviewTool(ISender sender) : ClinicPatientReadTool(sender)
 {
-    public override AgentToolDefinition Definition { get; } = new("get_patient_factual_overview", "Get a compact Clinic-owned factual overview for a broad patient question; use drill-down tools for detail.", "{\"type\":\"object\",\"properties\":{},\"additionalProperties\":false}");
+    public override AgentToolDefinition Definition { get; } = new(Vitarish.Clinic.Application.Assistant.Presentation.ClinicPresentableToolNames.GetPatientFactualOverview, "Get a compact Clinic-owned factual overview for a broad patient question; use drill-down tools for detail.", "{\"type\":\"object\",\"properties\":{},\"additionalProperties\":false}");
     public override async Task<AgentToolResult> ExecuteAsync(AgentToolCall call, AgentExecutionContext context, CancellationToken cancellationToken = default)
     {
         PatientView? patient = await PatientAsync(context, cancellationToken);
@@ -49,7 +49,7 @@ public abstract class ClinicPatientReadTool(ISender sender) : IClinicalEventsAss
 
 public sealed class GetPatientProfileTool(ISender sender) : ClinicPatientReadTool(sender)
 {
-    public override AgentToolDefinition Definition { get; } = new("get_patient_profile", "Get the current patient's recorded Clinic profile and contact facts.", "{\"type\":\"object\",\"properties\":{},\"additionalProperties\":false}");
+    public override AgentToolDefinition Definition { get; } = new(Vitarish.Clinic.Application.Assistant.Presentation.ClinicPresentableToolNames.GetPatientProfile, "Get the current patient's recorded Clinic profile and contact facts.", "{\"type\":\"object\",\"properties\":{},\"additionalProperties\":false}");
     public override async Task<AgentToolResult> ExecuteAsync(AgentToolCall call, AgentExecutionContext context, CancellationToken cancellationToken = default)
     {
         PatientView? patient = await PatientAsync(context, cancellationToken);

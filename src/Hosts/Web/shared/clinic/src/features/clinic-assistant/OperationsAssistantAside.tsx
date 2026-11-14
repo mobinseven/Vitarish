@@ -46,6 +46,7 @@ export function OperationsAssistantAside({ isOpen, welcome, onNextAction }: Oper
           {welcome && surface.messages.length === 0 && !conversation.isPending ? welcome((message) => void surface.submit(message)) : null}
           <OperationsGuidedReply
             actionGroups={surface.actionGroups}
+            surfaces={surface.surfaces}
             question={surface.question}
             nextAction={surface.nextAction}
             turnKey={surface.lastMessage}

@@ -81,7 +81,7 @@ public sealed class AssistantResultParser(AssistantCapabilityRegistry capability
 
     private static AssistantSearchResult? ParseSearchResult(IReadOnlyList<AgentToolExecution> toolExecutions)
     {
-        AgentToolExecution? execution = toolExecutions.LastOrDefault(item => !item.IsError && string.Equals(item.ToolName, "search_patients", StringComparison.Ordinal));
+        AgentToolExecution? execution = toolExecutions.LastOrDefault(item => !item.IsError && string.Equals(item.ToolName, Vitarish.Clinic.Application.Assistant.Presentation.ClinicPresentableToolNames.SearchPatients, StringComparison.Ordinal));
         if (execution is null) return null;
         try { return JsonSerializer.Deserialize(execution.Output, AssistantJsonSerializerContext.Default.AssistantSearchResult); }
         catch (JsonException) { return null; }

@@ -80,6 +80,9 @@ public static class AssistantCompositionServiceCollectionExtensions
             [.. AssistantCapabilityKeys.All.Select(key => (IAgentCapabilityPack<AssistantCompositionContext>)new AssistantCapabilityPack(key))]);
         _ = services.AddTransient<IAssistantCapability, SearchAssistantCapability>();
         _ = services.AddTransient<IAssistantCapability, ContentsAssistantCapability>();
+        _ = services.AddTransient<IAssistantCapability, PresentationAssistantCapability>();
+        foreach (Vitarish.Intelligence.Application.GuidedSurfaces.AgentToolPresentation presentation in Vitarish.Clinic.Application.Assistant.Presentation.ClinicAssistantPresentations.All())
+            _ = services.AddSingleton(presentation);
         _ = services.AddTransient<AssistantExecutionContextFactory>();
         _ = services.AddTransient<AssistantManifestComposer>();
         _ = services.AddTransient<AssistantResultParser>();

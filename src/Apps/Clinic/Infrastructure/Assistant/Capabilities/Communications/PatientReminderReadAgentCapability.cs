@@ -21,7 +21,7 @@ public sealed class PatientReminderReadAgentCapability(ListPatientReminderStatus
 
 public sealed class ListPatientReminderStatusTool(IRemindersService reminders, IReservationManager reservations, IEventsService events) : IAgentTool
 {
-    public AgentToolDefinition Definition { get; } = new("list_patient_reminder_status", "List up to 20 reminders for one appointment or SEA event after verifying that source belongs to the current patient.", "{\"type\":\"object\",\"properties\":{\"sourceType\":{\"type\":\"string\",\"enum\":[\"appointment\",\"event\"]},\"sourceId\":{\"type\":\"string\"},\"limit\":{\"type\":\"integer\"}},\"required\":[\"sourceType\",\"sourceId\"],\"additionalProperties\":false}");
+    public AgentToolDefinition Definition { get; } = new(Vitarish.Clinic.Application.Assistant.Presentation.ClinicPresentableToolNames.ListPatientReminderStatus, "List up to 20 reminders for one appointment or SEA event after verifying that source belongs to the current patient.", "{\"type\":\"object\",\"properties\":{\"sourceType\":{\"type\":\"string\",\"enum\":[\"appointment\",\"event\"]},\"sourceId\":{\"type\":\"string\"},\"limit\":{\"type\":\"integer\"}},\"required\":[\"sourceType\",\"sourceId\"],\"additionalProperties\":false}");
 
     public async Task<AgentToolResult> ExecuteAsync(AgentToolCall call, AgentExecutionContext context, CancellationToken cancellationToken = default)
     {

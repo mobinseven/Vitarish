@@ -99,7 +99,7 @@ public abstract class OperationsTool(IAppointmentSchedulingAgentCapability sched
 
 public sealed class SearchPatientsTool(IAssistantPatientSearch search, IAppointmentSchedulingAgentCapability scheduling) : OperationsTool(scheduling)
 {
-    public override AgentToolDefinition Definition { get; } = new("search_patients", "Search up to five patients in the authenticated practice. Returns opaque candidate tokens; an optional birth date disambiguates results.", "{\"type\":\"object\",\"properties\":{\"search\":{\"type\":\"string\",\"maxLength\":100},\"birthDate\":{\"type\":\"string\",\"format\":\"date\"}},\"required\":[\"search\"],\"additionalProperties\":false}");
+    public override AgentToolDefinition Definition { get; } = new(Vitarish.Clinic.Application.Assistant.Presentation.ClinicPresentableToolNames.SearchPatients, "Search up to five patients in the authenticated practice. Returns opaque candidate tokens; an optional birth date disambiguates results.", "{\"type\":\"object\",\"properties\":{\"search\":{\"type\":\"string\",\"maxLength\":100},\"birthDate\":{\"type\":\"string\",\"format\":\"date\"}},\"required\":[\"search\"],\"additionalProperties\":false}");
     public override async Task<AgentToolResult> ExecuteAsync(AgentToolCall call, AgentExecutionContext context, CancellationToken cancellationToken = default)
     {
         using JsonDocument doc = JsonDocument.Parse(call.ArgumentsJson);
@@ -112,49 +112,49 @@ public sealed class SearchPatientsTool(IAssistantPatientSearch search, IAppointm
 
 public sealed class ListOperationsAppointmentsTool(IAppointmentSchedulingAgentCapability scheduling) : OperationsTool(scheduling)
 {
-    public override AgentToolDefinition Definition { get; } = new("list_operations_appointments", "List appointments in the authenticated practice.", "{\"type\":\"object\",\"properties\":{\"dateFrom\":{\"type\":\"string\",\"format\":\"date\"},\"dateTo\":{\"type\":\"string\",\"format\":\"date\"},\"take\":{\"type\":\"integer\"}},\"additionalProperties\":false}");
+    public override AgentToolDefinition Definition { get; } = new(Vitarish.Clinic.Application.Assistant.Presentation.ClinicPresentableToolNames.ListOperationsAppointments, "List appointments in the authenticated practice.", "{\"type\":\"object\",\"properties\":{\"dateFrom\":{\"type\":\"string\",\"format\":\"date\"},\"dateTo\":{\"type\":\"string\",\"format\":\"date\"},\"take\":{\"type\":\"integer\"}},\"additionalProperties\":false}");
     public override async Task<AgentToolResult> ExecuteAsync(AgentToolCall call, AgentExecutionContext context, CancellationToken cancellationToken = default)
     { using JsonDocument doc = JsonDocument.Parse(call.ArgumentsJson); JsonElement a = doc.RootElement; AgentSchedulingContext s = Scope(call, context); return ResultWithoutPatientIdentity(call, await Scheduling.ListAppointmentsAsync(s, new(DateFrom: OptionalDate(a,"dateFrom"), DateTo: OptionalDate(a,"dateTo"), Take: a.TryGetProperty("take", out JsonElement take) ? take.GetInt32() : 50), cancellationToken)); }
 }
 
 public sealed class ListOperationsShiftsTool(IAppointmentSchedulingAgentCapability scheduling) : OperationsTool(scheduling)
 {
-    public override AgentToolDefinition Definition { get; } = new("list_operations_shifts", "List shifts in the authenticated practice.", "{\"type\":\"object\",\"properties\":{\"take\":{\"type\":\"integer\"}},\"additionalProperties\":false}");
+    public override AgentToolDefinition Definition { get; } = new(Vitarish.Clinic.Application.Assistant.Presentation.ClinicPresentableToolNames.ListOperationsShifts, "List shifts in the authenticated practice.", "{\"type\":\"object\",\"properties\":{\"take\":{\"type\":\"integer\"}},\"additionalProperties\":false}");
     public override async Task<AgentToolResult> ExecuteAsync(AgentToolCall call, AgentExecutionContext context, CancellationToken cancellationToken = default)
     { using JsonDocument doc = JsonDocument.Parse(call.ArgumentsJson); JsonElement a = doc.RootElement; return Result(call, await Scheduling.ListShiftsAsync(Scope(call,context), new(Take: a.TryGetProperty("take", out JsonElement take) ? take.GetInt32() : 50), cancellationToken)); }
 }
 
 public sealed class CountOperationsAppointmentsTool(IAppointmentSchedulingAgentCapability scheduling) : OperationsTool(scheduling)
 {
-    public override AgentToolDefinition Definition { get; } = new("count_operations_appointments", "Count appointments in the authenticated practice.", "{\"type\":\"object\",\"properties\":{\"dateFrom\":{\"type\":\"string\",\"format\":\"date\"},\"dateTo\":{\"type\":\"string\",\"format\":\"date\"}},\"additionalProperties\":false}");
+    public override AgentToolDefinition Definition { get; } = new(Vitarish.Clinic.Application.Assistant.Presentation.ClinicPresentableToolNames.CountOperationsAppointments, "Count appointments in the authenticated practice.", "{\"type\":\"object\",\"properties\":{\"dateFrom\":{\"type\":\"string\",\"format\":\"date\"},\"dateTo\":{\"type\":\"string\",\"format\":\"date\"}},\"additionalProperties\":false}");
     public override async Task<AgentToolResult> ExecuteAsync(AgentToolCall call, AgentExecutionContext context, CancellationToken cancellationToken = default)
     { using JsonDocument doc = JsonDocument.Parse(call.ArgumentsJson); JsonElement a = doc.RootElement; return Result(call, await Scheduling.CountAppointmentsAsync(Scope(call,context), new(DateFrom: OptionalDate(a,"dateFrom"), DateTo: OptionalDate(a,"dateTo")), cancellationToken)); }
 }
 
 public sealed class GetOperationsAppointmentTool(IAppointmentSchedulingAgentCapability scheduling) : OperationsTool(scheduling)
 {
-    public override AgentToolDefinition Definition { get; } = new("get_operations_appointment", "Get one appointment in the authenticated practice.", "{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"}},\"required\":[\"id\"],\"additionalProperties\":false}");
+    public override AgentToolDefinition Definition { get; } = new(Vitarish.Clinic.Application.Assistant.Presentation.ClinicPresentableToolNames.GetOperationsAppointment, "Get one appointment in the authenticated practice.", "{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"}},\"required\":[\"id\"],\"additionalProperties\":false}");
     public override async Task<AgentToolResult> ExecuteAsync(AgentToolCall call, AgentExecutionContext context, CancellationToken cancellationToken = default)
     { using JsonDocument doc = JsonDocument.Parse(call.ArgumentsJson); return ResultWithoutPatientIdentity(call, await Scheduling.GetAppointmentAsync(Scope(call,context), Guid(doc.RootElement,"id"), cancellationToken)); }
 }
 
 public sealed class GetOperationsAvailabilityTool(IAppointmentSchedulingAgentCapability scheduling) : OperationsTool(scheduling)
 {
-    public override AgentToolDefinition Definition { get; } = new("get_operations_availability", "Get bookable appointment slots in the authenticated practice.", "{\"type\":\"object\",\"properties\":{\"dateFrom\":{\"type\":\"string\",\"format\":\"date\"},\"dateTo\":{\"type\":\"string\",\"format\":\"date\"},\"shiftId\":{\"type\":\"string\"}},\"required\":[\"dateFrom\",\"dateTo\"],\"additionalProperties\":false}");
+    public override AgentToolDefinition Definition { get; } = new(Vitarish.Clinic.Application.Assistant.Presentation.ClinicPresentableToolNames.GetOperationsAvailability, "Get bookable appointment slots in the authenticated practice.", "{\"type\":\"object\",\"properties\":{\"dateFrom\":{\"type\":\"string\",\"format\":\"date\"},\"dateTo\":{\"type\":\"string\",\"format\":\"date\"},\"shiftId\":{\"type\":\"string\"}},\"required\":[\"dateFrom\",\"dateTo\"],\"additionalProperties\":false}");
     public override async Task<AgentToolResult> ExecuteAsync(AgentToolCall call, AgentExecutionContext context, CancellationToken cancellationToken = default)
     { using JsonDocument doc = JsonDocument.Parse(call.ArgumentsJson); JsonElement a = doc.RootElement; return Result(call, await Scheduling.GetAvailabilityAsync(Scope(call,context), new(Date(a,"dateFrom"),Date(a,"dateTo"),a.TryGetProperty("shiftId",out JsonElement id)?id.GetGuid():null), cancellationToken)); }
 }
 
 public sealed class GetOperationsShiftTool(IAppointmentSchedulingAgentCapability scheduling) : OperationsTool(scheduling)
 {
-    public override AgentToolDefinition Definition { get; } = new("get_operations_shift", "Get one shift in the authenticated practice.", "{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"}},\"required\":[\"id\"],\"additionalProperties\":false}");
+    public override AgentToolDefinition Definition { get; } = new(Vitarish.Clinic.Application.Assistant.Presentation.ClinicPresentableToolNames.GetOperationsShift, "Get one shift in the authenticated practice.", "{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"}},\"required\":[\"id\"],\"additionalProperties\":false}");
     public override async Task<AgentToolResult> ExecuteAsync(AgentToolCall call, AgentExecutionContext context, CancellationToken cancellationToken = default)
     { using JsonDocument doc = JsonDocument.Parse(call.ArgumentsJson); return Result(call, await Scheduling.GetShiftAsync(Scope(call,context), Guid(doc.RootElement,"id"), cancellationToken)); }
 }
 
 public sealed class GetOperationsOccurrencesTool(IAppointmentSchedulingAgentCapability scheduling) : OperationsTool(scheduling)
 {
-    public override AgentToolDefinition Definition { get; } = new("get_operations_shift_occurrences", "Get shift occurrences in the authenticated practice.", "{\"type\":\"object\",\"properties\":{\"shiftId\":{\"type\":\"string\"},\"dateFrom\":{\"type\":\"string\",\"format\":\"date\"},\"dateTo\":{\"type\":\"string\",\"format\":\"date\"}},\"required\":[\"shiftId\",\"dateFrom\",\"dateTo\"],\"additionalProperties\":false}");
+    public override AgentToolDefinition Definition { get; } = new(Vitarish.Clinic.Application.Assistant.Presentation.ClinicPresentableToolNames.GetOperationsShiftOccurrences, "Get shift occurrences in the authenticated practice.", "{\"type\":\"object\",\"properties\":{\"shiftId\":{\"type\":\"string\"},\"dateFrom\":{\"type\":\"string\",\"format\":\"date\"},\"dateTo\":{\"type\":\"string\",\"format\":\"date\"}},\"required\":[\"shiftId\",\"dateFrom\",\"dateTo\"],\"additionalProperties\":false}");
     public override async Task<AgentToolResult> ExecuteAsync(AgentToolCall call, AgentExecutionContext context, CancellationToken cancellationToken = default)
     { using JsonDocument doc = JsonDocument.Parse(call.ArgumentsJson); JsonElement a=doc.RootElement; return Result(call, await Scheduling.GetShiftOccurrencesAsync(Scope(call,context), new(Guid(a,"shiftId"),Date(a,"dateFrom"),Date(a,"dateTo")), cancellationToken)); }
 }

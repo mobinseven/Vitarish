@@ -11,6 +11,9 @@ public sealed record AssistantResult(
     public AssistantRunOutcome Outcome { get; init; } = AssistantRunOutcome.Succeeded;
     public IReadOnlyList<AssistantPreparedAction> PreparedActions { get; init; } = [];
 
+    /// <summary>Surfaces the model presented from this run's reads (ADR-0022 decision 8).</summary>
+    public IReadOnlyList<Vitarish.Intelligence.Application.GuidedSurfaces.PresentedSurface> Surfaces { get; init; } = [];
+
     /// <summary>The model's validated question for the next step, if it asked one.</summary>
     public Vitarish.Intelligence.Application.Agents.AgentInteractiveQuestion? Question { get; init; }
 

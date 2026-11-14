@@ -3,4 +3,8 @@
     <ProjectReference Include="..\..\Base\Core\Modules.Base.Core.csproj" />
     <ProjectReference Include="..\Domain\Intelligence.Domain.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <!-- The one assistant surface catalog; shared/intelligence renders the same file (ADR-0022 decision 8). -->
+    <EmbeddedResource Include="..\..\..\Hosts\Web\shared\intelligence\src\surfaces\assistant-catalog.json" LogicalName="Vitarish.Intelligence.AssistantSurfaceCatalog.json" />
+  </ItemGroup>
 </Project>

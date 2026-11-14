@@ -52,7 +52,7 @@ public sealed class SetupAssistantCapability(GetClinicSetupProgressTool tool, Pr
 /// <summary>Reads how far the clinic is with setup, plus its working hours, for the assistant. Read-only.</summary>
 public sealed class GetClinicSetupProgressTool(ISender sender) : IAgentTool
 {
-    public const string ToolName = "get_clinic_setup_progress";
+    public const string ToolName = Vitarish.Clinic.Application.Assistant.Presentation.ClinicPresentableToolNames.GetClinicSetupProgress;
 
     public AgentToolDefinition Definition { get; } = new(
         ToolName,
