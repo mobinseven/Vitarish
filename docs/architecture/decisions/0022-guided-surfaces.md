@@ -41,10 +41,11 @@ This decision completes the model around it.
   normally after a person confirms it.
 - **Run:** one assistant turn. Everything prepared in one run belongs together.
 - **Presentable result:** the successful result of a read tool that an app
-  declares can be shown, together with the block kind it becomes (a record
-  card, a list, a chart).
+  declares can be shown, with the fields of it that may be shown.
 - **Handle:** a short server-minted name for one presentable result. It is
   valid only within the run that produced it and carries no data.
+- **Presented surface:** an A2UI component tree from the Vitarish catalog
+  whose data comes from presentable results (decision 8).
 
 ## Decision
 
@@ -62,8 +63,8 @@ This decision completes the model around it.
      because larger schemas fail more often; it never becomes a union of every
      kind.
    - *Tools* produce rich blocks, such as a review group of prepared actions or
-     a presented result (decision 8). The app builds the review-group block
-     from the actions a run saved, by run; presented results are gathered by
+     a presented surface (decision 8). The app builds the review-group block
+     from the actions a run saved, by run; presented surfaces are gathered by
      an Intelligence-owned run collector. Such blocks refer to server records
      by ID, and the renderer re-reads each record's current state by ID rather
      than trusting a copy in the reply.
@@ -95,11 +96,11 @@ This decision completes the model around it.
      renderers, and the review cards for its action types, to the shared
      renderer through an explicit registry. Nothing is discovered at runtime,
      as in ADR-0012.
-   - *Presented results* travel in one platform kind, owned by Intelligence,
-     whose data is an app kind key and the record references. The app owns
-     each such kind's key, which read tool produces it, the references it
-     stores, and its renderer; Intelligence owns the handle, the run
-     collector, the envelope and its validation.
+   - *Presented surfaces* travel in one platform kind, owned by Intelligence,
+     whose data is an A2UI surface (decision 8). The app owns which read tools
+     return presentable results, their presentable fields and record
+     references, and any catalog components it adds; Intelligence owns the
+     handle, the run collector, the catalog and the envelope.
    Each kind's key, data schema, validator and renderer has exactly one owner.
    The web receives kind keys from generated contracts, never as literals.
 
@@ -144,32 +145,46 @@ This decision completes the model around it.
    "present need" rule in `src/Apps/AGENTS.md`. The block contract is
    considered stable only after two distinct surfaces use it.
 
-8. **The model chooses what to show; the server fills it.** A component such
-   as a record card, list or chart is shown only from data a read tool
-   returned in the same run.
+8. **Presented surfaces use A2UI: the model lays out, the server fills.**
+   Rich components such as record cards, lists and charts are A2UI surfaces
+   (the open Agent-to-User Interface protocol, version 1.0). The model
+   composes a surface's layout from a Vitarish catalog; every value a person
+   reads as data comes from a read tool's result in the same run.
+   - *Catalog.* Intelligence owns one Vitarish A2UI catalog, with its JSON
+     schema, and `shared/intelligence` implements each catalog component
+     with `@a2ui/react` on the platform's HeroUI components. Apps add
+     components through the same explicit registry as app kinds. In the
+     catalog, every prop that carries record data (names, dates, figures,
+     series) accepts only a data binding, never a literal; only headings and
+     captions may be literal model text. Charts are catalog components; their
+     series is computed by a read tool under the requesting person's
+     authorization.
    - *Handles.* The server, not the model, attaches a handle to each
      presentable result and keeps it server-side for the run, as run-scoped
-     record tokens already work for patient search candidates.
-   - *Presenting.* A shared Intelligence `present` tool takes only handles.
-     The run collector checks that each handle belongs to the current run and
-     to a successful read, and records the block. An invalid handle is
-     reported back to the model as a tool error and never reaches the reply.
-     The model never supplies a kind, figures, labels or a target; a chart's
-     series is computed by its read tool under the requesting person's
-     authorization. A kind is not part of the `present` tool's schema, so
-     adding one changes an agent's compatibility key only if a tool's
-     description or the instructions change with it.
-   - *Buttons.* A presented block offers only existing actions: a question
-     option, a next-action key, a destination link, or a prepared action from
-     a preparation tool. There is no model-defined button behaviour.
-   - *Persistence.* A presented block is stored with the conversation's
-     protected presentation record as its kind and record references (IDs or
-     query parameters), never as a copy of the data. Intelligence owns and
-     versions this stored shape. Redrawing it re-reads the current state
-     through the app's own routes, under the viewer's authorization, so it
-     shows current values, and a record the viewer may no longer read is not
-     shown. Model history is separate, so carrying a history over (ADR-0012)
-     does not remove what a conversation showed.
+     record tokens already work for patient search candidates. A handle names
+     a result and the fields the app declares presentable from it.
+   - *Presenting.* A shared Intelligence `present` tool takes an A2UI surface
+     whose bindings point into handles. The agent runtime validates the
+     surface against the catalog with the A2UI agent SDK (`@a2ui/agent`) and
+     returns a failure to the model as a tool error. Main then checks that
+     each bound handle belongs to the current run and to a successful read,
+     and that each bound field is presentable, and builds the surface's data
+     model from those results. Anything that fails is reported to the model
+     and never reaches the reply.
+   - *Buttons.* A2UI actions reach a handler the web supplies, never an
+     agent endpoint. The catalog's action names map only to existing
+     actions: a question option, a next-action key, a destination link, or a
+     prepared action from a preparation tool. There is no model-defined
+     button behaviour.
+   - *Persistence.* A presented surface is stored with the conversation's
+     protected presentation record as its component tree and the record
+     references behind its handles (IDs or query parameters), never as its
+     data model. Intelligence owns and versions this stored shape. Redrawing
+     it rebuilds the data model through the app's own routes, under the
+     viewer's authorization, so it shows current values, and a record the
+     viewer may no longer read is not shown. Model history is separate, so
+     carrying a history over (ADR-0012) does not remove what a conversation
+     showed.
 
 ## Consequences
 
@@ -188,12 +203,22 @@ This decision completes the model around it.
   after the change. This is an owner-approved exception to
   expand-migrate-contract, valid only while actions live minutes rather than
   days.
-- **Past turns.** Presented results can be redrawn after a page reload from
-  their stored references, with current data, wherever an app shows a
-  conversation's earlier turns. Other earlier blocks are not promised;
+- **Past turns.** Presented surfaces can be redrawn after a page reload from
+  their stored tree and references, with current data, wherever an app shows
+  a conversation's earlier turns. Other earlier blocks are not promised;
   prepared actions stay reachable by ID.
-- **Latency.** Presenting costs the model one more tool step in a reply that
-  shows something.
+- **Latency and reliability.** Presenting costs the model one more tool step
+  in a reply that shows something, and the catalog adds to its prompt. How
+  reliably the model writes valid surfaces is measured by the live agent
+  behaviour spec before a surface ships.
+- **A2UI as a dependency.** The protocol is at version 1.0, but its packages
+  (`@a2ui/react`, `@a2ui/web_core`, `@a2ui/agent`) are pre-1.0 and may
+  change. The agent runtime becomes the validator of surface shape; Main
+  remains the owner of handles, data and authorization, so a shape the
+  runtime wrongly accepts can still show only presentable fields of this
+  run's reads. A2UI has no chart component and no right-to-left guidance:
+  charts are Vitarish catalog components, and direction and translation come
+  from HeroUI and the platform's localization (ADR-0007).
 - **One conversation across an app's surfaces.** An app's assistant
   conversation may continue across the places it appears within one browser
   session: closing a surface keeps the conversation, an explicit reset deletes
@@ -220,7 +245,9 @@ next feature, and safety rules would drift meanwhile.
 ### Option 3: The model generates whole interfaces
 
 Rejected: model-authored layouts and data cannot be trusted, validated or
-localized, and a large output schema fails more often.
+localized, and a large output schema fails more often. Decision 8 allows
+model layout only inside a closed catalog, through a tool rather than the
+output schema, with every data prop bound to server data.
 
 ### Option 4: Scripted wizards per app
 
@@ -235,8 +262,22 @@ window shorter than a release.
 ### Option 6: A presentation tool that takes component data
 
 Rejected: the model would write the figures, labels and button targets a
-person reads and acts on. This is option 3 through a tool, and a chart of
-model-typed clinical numbers cannot be trusted.
+person reads and acts on. A chart of model-typed clinical numbers cannot be
+trusted. For the same reason the catalog does not use A2UI's basic catalog,
+whose props accept literals.
+
+### Option 9: A Vitarish block envelope and renderer instead of A2UI
+
+Rejected by the owner: A2UI already provides the component-tree format,
+data binding, catalog validation, action messages and a React renderer that
+maps to the platform's own components. Building these again would reinvent
+an open standard.
+
+### Option 10: Server-authored surfaces only
+
+Rejected by the owner: the model could only pick what to show, not how to
+arrange it, which leaves most of A2UI unused. Binding-only data props keep
+the trust rule without it.
 
 ### Option 7: Present every displayable read automatically, or by a reference in the reply
 
@@ -266,15 +307,18 @@ check.
 - The two-host E2E proof covers a grouped confirmation through the shared
   lifecycle.
 - Intelligence tests cover presentation: a handle from another run, a failed
-  read or a non-presentable tool is refused; stored blocks hold references
-  only. The live agent behaviour spec shows the model presents a record it
-  read.
+  read, and a non-presentable tool or field are refused; stored surfaces hold
+  the tree and references only. Agent-runtime tests show a surface outside
+  the catalog, or with a literal in a data prop, is returned to the model as
+  a tool error. The live agent behaviour spec shows the model presents a record it
+  read, and measures how often its first surface is valid.
 
 ## Notes
 
 - Revisit if a group must commit all-or-nothing, if blocks must stream before a
   run ends, if blocks other than presented results must be redrawn after a
   reload, if a presented block must show data as it was rather than as it is,
-  if the extra presenting step proves too slow, if actions must live
-  longer than minutes, or if an app needs kinds the platform set does not
-  cover.
+  if the extra presenting step proves too slow, if the model's surfaces fail
+  validation too often, if an A2UI release breaks the catalog or renderer, if
+  actions must live longer than minutes, or if an app needs kinds the
+  platform set does not cover.
