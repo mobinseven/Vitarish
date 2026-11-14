@@ -152,7 +152,7 @@ This decision completes the model around it.
    reads as data comes from a read tool's result in the same run.
    - *Catalog.* Intelligence owns one Vitarish A2UI catalog, with its JSON
      schema, and `shared/intelligence` implements each catalog component
-     with `@a2ui/react` on the platform's HeroUI components. Apps add
+     with the A2UI React renderer on the platform's HeroUI components. Apps add
      components through the same explicit registry as app kinds. In the
      catalog, every prop that carries record data (names, dates, figures,
      series) accepts only a data binding, never a literal; only headings and
@@ -165,7 +165,7 @@ This decision completes the model around it.
      a result and the fields the app declares presentable from it.
    - *Presenting.* A shared Intelligence `present` tool takes an A2UI surface
      whose bindings point into handles. The agent runtime validates the
-     surface against the catalog with the A2UI agent SDK (`@a2ui/agent`) and
+     surface against the catalog with the A2UI agent SDK and
      returns a failure to the model as a tool error. Main then checks that
      each bound handle belongs to the current run and to a successful read,
      and that each bound field is presentable, and builds the surface's data
@@ -211,9 +211,9 @@ This decision completes the model around it.
   in a reply that shows something, and the catalog adds to its prompt. How
   reliably the model writes valid surfaces is measured by the live agent
   behaviour spec before a surface ships.
-- **A2UI as a dependency.** The protocol is at version 1.0, but its packages
-  (`@a2ui/react`, `@a2ui/web_core`, `@a2ui/agent`) are pre-1.0 and may
-  change. The agent runtime becomes the validator of surface shape; Main
+- **A2UI as a dependency.** The protocol is at version 1.0, but its renderer
+  and agent SDK releases are pre-1.0 and may change; the module
+  documentation records the packages in use. The agent runtime becomes the validator of surface shape; Main
   remains the owner of handles, data and authorization, so a shape the
   runtime wrongly accepts can still show only presentable fields of this
   run's reads. A2UI has no chart component and no right-to-left guidance:
