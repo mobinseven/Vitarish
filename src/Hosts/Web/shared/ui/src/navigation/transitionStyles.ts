@@ -38,9 +38,7 @@ export const navigationTransitionStyles = `
 #${owner.surfaceId}[${owner.stateAttribute}="${states.Failed}"] .vitarish-navigation-waiting,
 #${owner.surfaceId}[${owner.stateAttribute}="${states.Failed}"] .vitarish-navigation-slow { display: none; }
 #${owner.surfaceId}[${owner.stateAttribute}="${states.Failed}"] .vitarish-navigation-failure { display: inline; }
-#${owner.surfaceId}[${owner.stateAttribute}="${states.Failed}"] .fa-spin { display: none; }
 @media (prefers-reduced-motion: reduce) {
-  #${owner.surfaceId} .fa-spin { animation: none; }
   #${owner.surfaceId} { transition: none; }
 }
 `;

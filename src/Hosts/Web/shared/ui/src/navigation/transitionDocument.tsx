@@ -1,4 +1,5 @@
 import { navigationTransitionMessages } from "./navigationMessages";
+import { LoadingSpinner } from "../feedback/LoadingSpinner";
 import { navigationTransitionPolicy, navigationTransitionQueryKey, navigationTransitionStorageKey, navigationTransitionVersion, validateNavigationTransitionEnvelope, removeNavigationTransitionQuery, type parseNavigationTransition, type NavigationTransitionContext } from "./transitionContext";
 import { supportedLocales, defaultLocale, getLocaleDirection, type SupportedLocale } from "@vitarish/localization";
 import { themeModeAttribute, resolvedThemeModes, themePreferenceStorageKey } from "../themeMode";
@@ -150,8 +151,7 @@ export function NavigationTransitionDocument({ nonce, signInHref, homeHref }: { 
     <style nonce={nonce}>{navigationTransitionStyles}</style>
     <div id={navigationTransitionDocument.surfaceId} className="vitarish-navigation-transition" {...{ [navigationTransitionDocument.stateAttribute]: navigationTransitionStates.Failed }} role="status" aria-live="polite" aria-busy="false" suppressHydrationWarning>
       <div className="flex max-w-sm flex-col items-center gap-5 px-6 text-center">
-        <span className="text-sm font-semibold tracking-wide" dir="ltr">{navigationTransitionMessages.fa.identity}</span>
-        <i className="fa-light fa-circle-notch fa-spin" aria-hidden="true" />
+        <LoadingSpinner />
         <p id={navigationTransitionDocument.statusId}>
           {supportedLocales.map(locale => <span key={locale} {...{ [navigationTransitionDocument.localeAttribute]: locale }}>
             <span className="vitarish-navigation-waiting">{navigationTransitionMessages[locale].waiting}</span>
