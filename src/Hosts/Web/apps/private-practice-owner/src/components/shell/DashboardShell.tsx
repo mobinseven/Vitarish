@@ -124,9 +124,11 @@ export function DashboardShell({
     [navGroups, t],
   );
   const footerNavigationItems = useMemo(
-    // Signing out is offered only to someone who is signed in.
-    () => footerItems.filter((item) => isAuthenticated || item.href !== Routes.Logout).map((item) => toNavigationItem(item, t)),
-    [footerItems, t, isAuthenticated],
+    // The session can resolve before hydration, so avoid a client-only sign-out item.
+    () => footerItems
+      .filter((item) => (isHydrated && isAuthenticated) || item.href !== Routes.Logout)
+      .map((item) => toNavigationItem(item, t)),
+    [footerItems, t, isAuthenticated, isHydrated],
   );
 
   return (

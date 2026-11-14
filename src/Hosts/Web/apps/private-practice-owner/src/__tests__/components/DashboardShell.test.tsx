@@ -1,5 +1,7 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { hydrateRoot } from "react-dom/client";
+import { renderToString } from "react-dom/server";
 import {
   DashboardFrame,
   type DashboardNavigationGroup,
@@ -287,6 +289,36 @@ describe("Dashboard Shell Components", () => {
       );
 
       expect(screen.getAllByText("Log Out").length).toBeGreaterThan(0);
+    });
+
+    it("waits for hydration before showing sign out when the session resolves early", async () => {
+      authSession.isAuthenticated = false;
+      const container = document.createElement("div");
+      document.body.append(container);
+      const shell = (
+        <DashboardShell
+          footerItems={[...shellFooterItems, shellLogOutItem]}
+          navGroups={shellNavGroups}
+        >
+          <div>Dashboard content</div>
+        </DashboardShell>
+      );
+      container.innerHTML = renderToString(shell);
+      const recoverableErrors: unknown[] = [];
+      authSession.isAuthenticated = true;
+      const root = hydrateRoot(container, shell, {
+        onRecoverableError: error => recoverableErrors.push(error),
+      });
+
+      try {
+        await act(async () => { await Promise.resolve(); });
+
+        expect(recoverableErrors).toEqual([]);
+        expect(within(container).getAllByText("Log Out").length).toBeGreaterThan(0);
+      } finally {
+        await act(async () => { root.unmount(); });
+        container.remove();
+      }
     });
 
     it("renders the template-style sidebar, navbar actions, and content", () => {
