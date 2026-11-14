@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { tool } from "@openai/agents";
 import { adaptToolParameters } from "./tool-parameters";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 const schema = {
   type: "object",
@@ -10,6 +12,28 @@ const schema = {
 };
 
 describe("strict provider tool parameters", () => {
+  it("adapts the actual Search dictionary schema and restores nested arguments", () => {
+    const source = readFileSync(resolve(process.cwd(), "../../../../Modules/Search/Agents/SearchAgentTool.cs"), "utf8");
+    const searchSchema = JSON.parse(source.match(/"""([\s\S]*?)"""/)![1]);
+    const adapted = adaptToolParameters(searchSchema);
+    const definition = tool({ name: "diagnostic", description: "Schema probe", parameters: adapted.parameters as never,
+      strict: true, execute: async () => "" });
+    expect(definition.parameters).toMatchObject({ properties: { filters: { anyOf: [{
+      properties: { metadataFilters: { anyOf: [{ type: "string" }, { type: "null" }] } },
+    }, { type: "null" }] } } });
+    expect(adapted.decodeArguments({ query: "example", filters: { type: null, corpusId: null, metadataFilters: '{"category":"example"}' },
+      limit: null, registeredIndex: null, retrievalMode: null })).toEqual({ query: "example", filters: { metadataFilters: { category: "example" } } });
+    expect(() => adapted.decodeArguments({ query: "example", filters: { metadataFilters: "[]" } })).toThrow();
+  });
+
+  it("decodes dictionaries in array items and retains explicit nullable arguments", () => {
+    const adapted = adaptToolParameters({ type: "object", properties: {
+      entries: { type: "array", items: { type: "object", properties: { data: { type: "object" } }, additionalProperties: false } },
+      note: { type: ["string", "null"] },
+    }, additionalProperties: false });
+    expect(adapted.decodeArguments({ entries: [{ data: '{"enabled":true}' }], note: null }))
+      .toEqual({ entries: [{ data: { enabled: true } }], note: null });
+  });
   it("makes parameterless tools explicit empty objects for provider validation", () => {
     const adapted = adaptToolParameters({ type: "object", additionalProperties: false });
     const definition = tool({ name: "diagnostic", description: "Schema probe", parameters: adapted.parameters as never,

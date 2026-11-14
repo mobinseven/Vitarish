@@ -413,6 +413,9 @@ export async function POST(request: NextRequest) {
     console.error("Intelligence agent runtime run failed", {
       executionId: input.executionEnvelope.executionId,
       code,
+      providerStatus: isRecord(error) && typeof error.status === "number" ? error.status : undefined,
+      providerCode: isRecord(error) && typeof error.code === "string" && /^[a-z_]{1,80}$/.test(error.code) ? error.code : undefined,
+      providerParameter: isRecord(error) && typeof error.param === "string" && /^[A-Za-z0-9_.\[\]]{1,160}$/.test(error.param) ? error.param : undefined,
       toolCalls: toolCallsUsed,
       toolNames: executions.map((execution) => execution.toolName),
     });
