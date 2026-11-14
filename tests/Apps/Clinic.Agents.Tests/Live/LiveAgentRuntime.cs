@@ -112,8 +112,7 @@ public sealed class LiveAgentRuntime : IAsyncLifetime
             .Features.GetRequiredFeature<IServerAddressesFeature>().Addresses.Single()).Port;
         await TestcontainersSettings.ExposeHostPortsAsync((ushort)callbackPort);
 
-        runtime = new ContainerBuilder()
-            .WithImage(LiveAgentSettings.RuntimeImage)
+        runtime = new ContainerBuilder(LiveAgentSettings.RuntimeImage)
             .WithEnvironment("OPENAI_API_KEY", LiveAgentSettings.OpenAiKey)
             .WithEnvironment("AGENT_RUNTIME_SHARED_SECRET", sharedSecret)
             .WithPortBinding(RuntimePort, true)
