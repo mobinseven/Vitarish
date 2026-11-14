@@ -91,6 +91,11 @@ public class IntelligenceModule : Modules.Base.Core.Module, IIntelligenceModule
         _ = builder.Services.AddScoped<Lazy<IAgentRuntimeToolEndpointRegistry>>(sp =>
             new(() => sp.GetRequiredService<IAgentRuntimeToolEndpointRegistry>()));
         _ = builder.Services.AddSingleton<IUniversalIntelligenceAgentTool, CalendarDateConversionTool>();
+        _ = builder.Services.AddSingleton<Vitarish.Intelligence.Application.GuidedSurfaces.IPresentableResultStore, Vitarish.Intelligence.Infrastructure.Services.GuidedSurfaces.RedisPresentableResultStore>();
+        _ = builder.Services.AddSingleton<Vitarish.Intelligence.Application.GuidedSurfaces.AgentToolPresentationCatalog>();
+        _ = builder.Services.AddSingleton<Vitarish.Intelligence.Application.GuidedSurfaces.PresentableResultPublisher>();
+        _ = builder.Services.AddSingleton<Vitarish.Intelligence.Application.GuidedSurfaces.PresentSurfaceTool>();
+        _ = builder.Services.AddSingleton<Vitarish.Intelligence.Application.GuidedSurfaces.PresentedSurfaceCollector>();
         _ = builder.Services.AddSingleton<IAgentRuntimeCredentialService, HmacAgentRuntimeCredentialService>();
         _ = builder.Services.AddSingleton<IAgentRuntimeReplayGuard, AgentRuntimeReplayGuard>();
         _ = builder.Services.AddHttpClient<IAgentRunner, AgentRuntimeHttpRunner>((serviceProvider, client) =>

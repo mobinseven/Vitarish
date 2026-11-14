@@ -169,10 +169,11 @@ This decision completes the model around it.
      series is computed by a read tool under the requesting person's
      authorization.
    - *Handles.* The server, not the model, attaches a handle to each
-     presentable result and keeps it server-side for the run, as run-scoped
-     record tokens already work for patient search candidates. A handle names
-     a result and the fields the app declares presentable from it.
-   - *Presenting.* A shared Intelligence `present` tool takes a surface whose
+     presentable result and keeps the result in a short-lived store, by run.
+     A handle names a result and the fields the app declares presentable from
+     it. If the store is unavailable, the read still succeeds without a
+     handle.
+   - *Presenting.* A shared Intelligence `present_surface` tool takes a surface whose
      bindings point into handles. The agent runtime validates the surface
      against the catalog with the protocol's agent tooling and
      returns a failure to the model as a tool error. Main then checks that

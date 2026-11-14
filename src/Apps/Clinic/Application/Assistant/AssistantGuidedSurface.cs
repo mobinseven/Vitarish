@@ -22,6 +22,7 @@ public static class AssistantGuidedSurface
             blocks.Add(GuidedSurfaceBlock.ModelQuestion(question));
         if (result.NextAction is { } nextAction)
             blocks.Add(GuidedSurfaceBlock.NextActionKey(nextAction));
+        blocks.AddRange(result.Surfaces.Select(GuidedSurfaceBlock.Presented));
         return blocks;
     }
 }

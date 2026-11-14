@@ -2,6 +2,7 @@ import { Agent, OpenAIProvider, Runner, tool, type Model, type ModelProvider } f
 import { NextRequest } from "next/server";
 import { AGENT_CREDENTIAL_HEADER } from "../credential-header";
 import { parseHistory } from "./history";
+import { surfaceProblem } from "./surface";
 import { adaptToolParameters } from "./tool-parameters";
 
 interface AgentDefinition {
@@ -16,6 +17,8 @@ interface AgentToolDefinition {
   name: string;
   description: string;
   parametersJsonSchema: string;
+  /** For a tool whose argument is a presented surface: the catalog it must satisfy (ADR-0022 decision 8). */
+  surfaceCatalog?: string | null;
 }
 
 const agentSubjectKinds = ["patient", "practice", "event", "landing-page", "platform-home"] as const;
@@ -277,6 +280,13 @@ export async function POST(request: NextRequest) {
           throw new AgentRuntimeLimitError("ToolCallLimitExceeded");
         }
         toolCallsUsed += 1;
+        if (definition.surfaceCatalog) {
+          const problem = surfaceProblem(definition.surfaceCatalog, argumentsValue);
+          if (problem) {
+            executions.push({ toolName: definition.name, toolCallId: callId, output: problem, isError: true, argumentsJson: JSON.stringify(argumentsValue) });
+            return problem;
+          }
+        }
         const location = callbackLocation(input.callbackUrl);
         console.info("Calling supplied agent tool callback", {
           executionId: input.executionEnvelope.executionId,
@@ -301,6 +311,7 @@ export async function POST(request: NextRequest) {
             body: JSON.stringify({
               executionEnvelope: callbackEnvelope,
               argumentsJson: JSON.stringify(argumentsValue),
+              surfaceValidated: Boolean(definition.surfaceCatalog),
             }),
             signal: AbortSignal.any([runSignal, AbortSignal.timeout(120_000)]),
           });

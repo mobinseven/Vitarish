@@ -21,6 +21,8 @@ using Vitarish.Clinic.Application.Assistant.Operations;
 using Vitarish.Clinic.Infrastructure.Extensions;
 using Vitarish.Intelligence.Agents;
 using Vitarish.Intelligence.Application.Agents;
+using Vitarish.Intelligence.Application.GuidedSurfaces;
+using Vitarish.Clinic.Application.Assistant.Presentation;
 using Vitarish.Intelligence.Domain.Options;
 using Vitarish.Intelligence.Infrastructure.Services.Agents;
 using Xunit;
@@ -68,6 +70,20 @@ public sealed class LiveAgentRuntime : IAsyncLifetime
     private readonly ConcurrentQueue<RecordedToolCall> calls = new();
     private readonly ConcurrentDictionary<string, string> scriptedResults = new(StringComparer.Ordinal);
     private readonly CalendarDateConversionTool calendarTool = new();
+    // Presentation runs for real, as Main runs it: handles on presentable reads, then the present tool.
+    private readonly InMemoryPresentableResultStore presentables = new();
+    private readonly PresentableResultPublisher publisher;
+    private readonly PresentSurfaceTool presentTool;
+
+    public LiveAgentRuntime()
+    {
+        publisher = new(new AgentToolPresentationCatalog(ClinicAssistantPresentations.All()), presentables, NullLogger<PresentableResultPublisher>.Instance);
+        presentTool = new(presentables);
+    }
+
+    /// <summary>The surfaces a finished run presented, filled from its handles, as Main returns them.</summary>
+    internal Task<IReadOnlyList<PresentedSurface>> SurfacesAsync(string executionId, AgentRunResult result) =>
+        new PresentedSurfaceCollector(presentables).CollectAsync(executionId, result.ToolExecutions, CancellationToken.None);
     private WebApplication? callbackHost;
     private IContainer? runtime;
 
@@ -146,8 +162,19 @@ public sealed class LiveAgentRuntime : IAsyncLifetime
         string toolName = envelope.GetProperty("toolName").GetString()!;
         string callId = envelope.GetProperty("toolCallId").GetString()!;
         string argumentsJson = body.RootElement.GetProperty("argumentsJson").GetString()!;
+        string executionId = envelope.GetProperty("executionId").GetString()!;
+        string agentKey = envelope.GetProperty("agentKey").GetString()!;
+        bool surfaceValidated = body.RootElement.TryGetProperty("surfaceValidated", out JsonElement validated) && validated.ValueKind == JsonValueKind.True;
         using JsonDocument arguments = JsonDocument.Parse(argumentsJson);
         calls.Enqueue(new(toolName, arguments.RootElement.Clone()));
+
+        if (toolName == PresentSurfaceTool.Name)
+        {
+            Dictionary<string, string> metadata = new(StringComparer.Ordinal);
+            if (surfaceValidated) metadata[PresentSurfaceTool.ValidatedMetadataKey] = "true";
+            AgentToolResult presented = await presentTool.ExecuteAsync(new(callId, toolName, argumentsJson), new(executionId, metadata));
+            return Results.Json(new { callId, output = presented.Output, isError = presented.IsError });
+        }
 
         // The calendar conversion is deterministic and needs no clinic data, so it runs for real.
         if (toolName == CalendarDateConversionTool.Name)
@@ -156,7 +183,8 @@ public sealed class LiveAgentRuntime : IAsyncLifetime
             return Results.Json(new { callId, output = converted.Output, isError = converted.IsError });
         }
         string output = scriptedResults.TryGetValue(toolName, out string? scripted) ? scripted : "{\"status\":\"Succeeded\",\"value\":[]}";
-        return Results.Json(new { callId, output, isError = false });
+        AgentToolResult published = await publisher.PublishAsync(agentKey, toolName, executionId, new(callId, output), CancellationToken.None);
+        return Results.Json(new { callId, output = published.Output, isError = false });
     }
 
     private sealed class UnverifiedCredentials : IAgentRuntimeCredentialService
@@ -223,7 +251,7 @@ internal static class LiveOperationsAssistant
     // Builds the Clinic capabilities through the production registration, so the tool set is exactly
     // what Main composes. Tool callbacks are answered by the suite, so the data dependencies behind the
     // tools are never called and are satisfied with mocks.
-    private static IEnumerable<IAssistantCapability> RealCapabilities()
+    internal static IEnumerable<IAssistantCapability> RealCapabilities()
     {
         ServiceCollection services = new();
         _ = services.AddLogging();

@@ -1,5 +1,6 @@
 using Vitarish.Intelligence.Agents;
 using Vitarish.Intelligence.Application.Agents;
+using Vitarish.Intelligence.Application.GuidedSurfaces;
 using Vitarish.Clinic.Application.Assistant;
 using Vitarish.Clinic.Application.Assistant.Operations;
 using Vitarish.Clinic.Application.Assistant.Staff;
@@ -27,12 +28,13 @@ public static class AssistantCapabilityKeys
     public const string Contents = "Contents";
     public const string Setup = Vitarish.Clinic.Application.Setup.ClinicSetupAssistant.CapabilityName;
     public const string Staff = AssistantStaffInvitation.CapabilityKey;
+    public const string Presentation = "Presentation";
 
     public static readonly string[] Patient =
     [Appointments, AppointmentReads, Prescriptions, PrescriptionReads, PatientReminderReads,
-        ClinicPatientReads, SeaPatientReads, ClinicalEvents, Surgeries];
+        ClinicPatientReads, SeaPatientReads, ClinicalEvents, Surgeries, Presentation];
 
-    public static readonly string[] OperationsProfile = [Operations, SeaManagement, SurgeryOperations, Search, Contents, Setup, Staff];
+    public static readonly string[] OperationsProfile = [Operations, SeaManagement, SurgeryOperations, Search, Contents, Setup, Staff, Presentation];
 
     /// <summary>Every key a profile composes; each one needs a registered capability pack.</summary>
     public static IEnumerable<string> All => Patient.Concat(OperationsProfile).Distinct(StringComparer.Ordinal);
@@ -84,4 +86,13 @@ public sealed class ContentsAssistantCapability(IEnumerable<IContentsAgentTool> 
     public override bool IsAvailable(AssistantContext context) =>
         Tools.Count > 0 && context.SubjectKind == "practice" &&
         string.Equals(context.Role, AssistantOperationsScope.TenantOwnerRole, StringComparison.Ordinal);
+}
+
+/// <summary>Lets both Clinic assistants show records they read as presented surfaces (ADR-0022 decision 8).</summary>
+public sealed class PresentationAssistantCapability(PresentSurfaceTool tool) : AssistantCapability([tool])
+{
+    public override string Name => AssistantCapabilityKeys.Presentation;
+    public override string Description => "Show records read in this turn as cards, lists, numbers or charts.";
+    public override IReadOnlySet<string> RequiredPermissions { get; } = new HashSet<string>(StringComparer.Ordinal);
+    public override bool IsAvailable(AssistantContext context) => true;
 }

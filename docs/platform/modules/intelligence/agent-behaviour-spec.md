@@ -6,7 +6,7 @@ The live agent behaviour suite checks what an assistant does with the real model
 
 - The real agent runtime image, in local Docker, against the configured OpenAI model (`gpt-6-luna` by default).
 - The operations assistant composed as production composes it: the real Clinic capabilities, tool definitions and instructions.
-- A local tool-callback endpoint in the test process. It records every tool call and answers with scripted results; the calendar conversion tool runs for real. No database, Main host or browser is involved.
+- A local tool-callback endpoint in the test process. It records every tool call and answers with scripted results; the calendar conversion tool runs for real. Presentation runs for real as Main runs it: the Clinic presentations attach handles to scripted reads, `present_surface` checks the model's surface, and the collector fills it. No database, Main host or browser is involved.
 
 ## Run it
 
@@ -23,5 +23,7 @@ Optional settings: `VITARISH_LIVE_AGENT_RUNTIME_IMAGE` (another image tag) and `
 ## Adding a scenario
 
 Add a test to the suite for the assistant: reset the runtime, script the results of the tools the scenario depends on, run one or more turns, and assert on the recorded tool calls and their arguments. Assert on choices and arguments that are stable for the product (the tool, a date in `yyyy-MM-dd`, a name passed to search), not on the model's wording. A scenario that needs a second turn passes the first turn's history, carried over with `AgentConversationHistory.CarryOver` when it simulates a configuration change.
+
+A presentation scenario asserts that the model called `present_surface` successfully and that the collected surface's data model holds the scripted records while its components hold none of their values; script reads in the shape the real tool serializes (the Operations tools write PascalCase).
 
 Each run calls the model, so keep scenarios few and specific. Run the suite after changing an assistant's instructions, tools or tool schemas, and after changing the agent runtime or the history carry-over.

@@ -34,6 +34,9 @@ internal static class IntelligenceAgentConversationResultMapper
         GuidedSurfaceBlockKind.ActionGroup => new(
             GuidedSurfaceBlockKindResponse.ActionGroup,
             ActionGroup: new(block.ActionGroup!.AgentRunId, block.ActionGroup.ActionIds)),
+        GuidedSurfaceBlockKind.Surface => new(
+            GuidedSurfaceBlockKindResponse.Surface,
+            Surface: new(block.Surface!.SurfaceId, block.Surface.Protocol, block.Surface.ProtocolVersion, block.Surface.CatalogId, block.Surface.Components, block.Surface.DataModel)),
         _ => throw new ArgumentOutOfRangeException(nameof(block), block.Kind, null)
     };
 }

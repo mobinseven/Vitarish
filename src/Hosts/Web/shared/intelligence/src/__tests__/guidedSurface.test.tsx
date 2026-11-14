@@ -35,7 +35,7 @@ describe("toGuidedSurface", () => {
   });
 
   it("returns an empty surface without blocks", () => {
-    expect(toGuidedSurface(undefined)).toEqual({ question: null, nextAction: null, actionGroups: [] });
+    expect(toGuidedSurface(undefined)).toEqual({ question: null, nextAction: null, actionGroups: [], surfaces: [] });
     expect(toGuidedSurface(null).question).toBeNull();
     expect(toGuidedSurface([]).actionGroups).toEqual([]);
   });
@@ -58,9 +58,10 @@ describe("toGuidedSurface", () => {
       { kind: GuidedSurfaceBlockKindResponse.Question },
       { kind: GuidedSurfaceBlockKindResponse.NextAction },
       { kind: GuidedSurfaceBlockKindResponse.ActionGroup },
+      { kind: GuidedSurfaceBlockKindResponse.Surface },
       { kind: GuidedSurfaceBlockKindResponse.ActionGroup, actionGroup: { agentRunId: "run-1", actionIds: [] } },
     ]);
-    expect(surface).toEqual({ question: null, nextAction: null, actionGroups: [] });
+    expect(surface).toEqual({ question: null, nextAction: null, actionGroups: [], surfaces: [] });
   });
 });
 

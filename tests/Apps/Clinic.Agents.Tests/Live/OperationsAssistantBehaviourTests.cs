@@ -3,6 +3,8 @@ using FluentAssertions;
 using Vitarish.Intelligence.Agents;
 using Vitarish.Clinic.Application.Assistant;
 using Vitarish.Intelligence.Application.Agents;
+using Vitarish.Intelligence.Application.GuidedSurfaces;
+using Vitarish.Clinic.Application.Assistant.Presentation;
 using Xunit;
 
 namespace Vitarish.Clinic.Agents.Tests.Live;
@@ -67,14 +69,40 @@ public sealed class OperationsAssistantBehaviourTests(LiveAgentRuntime runtime)
         next.Output.Should().ContainEquivalentOf("Sara");
     }
 
-    private Task<AgentRunResult> RunAsync(string message, string? history = null)
+    [LiveAgentFact]
+    public async Task Patients_it_finds_are_presented_from_the_search_result_not_typed_by_the_model()
+    {
+        runtime.Reset();
+        // The real search output: the Operations serializer writes PascalCase.
+        runtime.Script(ClinicPresentableToolNames.SearchPatients,
+            "{\"Candidates\":[{\"CandidateToken\":\"tok-1\",\"DisplayName\":\"Sara Ahmadi\",\"DateOfBirth\":\"1990-04-02\",\"MaskedIdentification\":\"***1234\",\"MaskedPhone\":\"0912***1234\"},{\"CandidateToken\":\"tok-2\",\"DisplayName\":\"Sara Karimi\",\"DateOfBirth\":\"1985-01-20\",\"MaskedIdentification\":\"***9876\",\"MaskedPhone\":\"0935***5678\"}],\"HasMore\":false}");
+
+        (AgentRunResult result, string executionId) = await RunWithIdAsync("Show me the patients named Sara.");
+
+        result.IsSuccess.Should().BeTrue(await runtime.FailureReasonAsync(result));
+        result.ToolExecutions.Should().Contain(execution => execution.ToolName == PresentSurfaceTool.Name && !execution.IsError,
+            "the model presents what it found; tool outputs: " + string.Join(" | ", result.ToolExecutions.Select(execution => $"{execution.ToolName}:{execution.Output}")));
+        IReadOnlyList<PresentedSurface> surfaces = await runtime.SurfacesAsync(executionId, result);
+        PresentedSurface surface = surfaces.Should().ContainSingle().Which;
+        string data = surface.DataModel.GetRawText();
+        data.Should().Contain("tok-1").And.Contain("Sara Karimi", "the data comes from the search, by handle");
+        surface.Components.GetRawText().Should().NotContain("Sara", "record values are never typed into the layout");
+    }
+
+    private async Task<AgentRunResult> RunAsync(string message, string? history = null) =>
+        (await RunWithIdAsync(message, history)).Result;
+
+    private Task<(AgentRunResult Result, string ExecutionId)> RunWithIdAsync(string message, string? history = null)
     {
         ComposedAgentManifest<AssistantCompositionContext> manifest = LiveOperationsAssistant.Compose(Now);
-        return runtime.Runner.RunAsync(
+        AgentExecutionContext context = LiveOperationsAssistant.ExecutionContext(Now);
+        return Run();
+
+        async Task<(AgentRunResult, string)> Run() => (await runtime.Runner.RunAsync(
             manifest.Definition,
             new AgentInput(message, history),
             manifest.Tools,
-            LiveOperationsAssistant.ExecutionContext(Now),
-            manifest.Limits with { Timeout = TimeSpan.FromMinutes(3) });
+            context,
+            manifest.Limits with { Timeout = TimeSpan.FromMinutes(3) }), context.ExecutionId);
     }
 }

@@ -7,7 +7,8 @@ public enum GuidedSurfaceBlockKind
 {
     Question,
     NextAction,
-    ActionGroup
+    ActionGroup,
+    Surface
 }
 
 /// <summary>
@@ -23,6 +24,7 @@ public sealed record GuidedSurfaceBlock
     public GuidedSurfaceQuestion? Question { get; private init; }
     public string? NextAction { get; private init; }
     public GuidedSurfaceActionGroup? ActionGroup { get; private init; }
+    public PresentedSurface? Surface { get; private init; }
 
     /// <summary>A question the model wrote; prompt and labels are required and already validated.</summary>
     public static GuidedSurfaceBlock ModelQuestion(AgentInteractiveQuestion question)
@@ -48,6 +50,13 @@ public sealed record GuidedSurfaceBlock
         if (actionIds.Count == 0)
             throw new ArgumentException("An action group needs at least one action.", nameof(actionIds));
         return new(GuidedSurfaceBlockKind.ActionGroup) { ActionGroup = new(agentRunId, actionIds.Distinct().ToArray()) };
+    }
+
+    /// <summary>A surface the model laid out from the catalog, with data the server filled from this run's reads.</summary>
+    public static GuidedSurfaceBlock Presented(PresentedSurface surface)
+    {
+        ArgumentNullException.ThrowIfNull(surface);
+        return new(GuidedSurfaceBlockKind.Surface) { Surface = surface };
     }
 
 }

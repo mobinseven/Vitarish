@@ -23,6 +23,11 @@ export type { GuidedSurface, GuidedSurfaceActionGroup } from "./interaction/guid
 export { ActionReviewGroup } from "./components/ActionReviewGroup";
 export type { ActionReviewGroupProps, ActionReviewItem, ActionReviewItemState } from "./components/ActionReviewGroup";
 export { GoalChecklist } from "./components/GoalChecklist";
+export { PresentedSurface } from "./surfaces/PresentedSurface";
+export type { GuidedSurfaceSurfaceResponse } from "./api/generated/intelligence/model";
+export { PresentedSurfaceAppearanceProvider, usePresentedSurfaceAppearance } from "./surfaces/PresentedSurfaceContext";
+export type { PresentedSurfaceAppearance } from "./surfaces/PresentedSurfaceContext";
+export type { PresentedRecord, PresentedResult, PresentedField, PresentedFieldType } from "./surfaces/presentedData";
 export type { ChecklistGoal, GoalChecklistProps } from "./components/GoalChecklist";
 export type { GuidedSurfaceBlockResponse } from "./api/generated/intelligence/model";
 export { RememberedNotes, UserMemorySection } from "./components/UserMemory";

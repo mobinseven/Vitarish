@@ -743,7 +743,8 @@
         "enum": [
           "Question",
           "NextAction",
-          "ActionGroup"
+          "ActionGroup",
+          "Surface"
         ]
       },
       "GuidedSurfaceBlockResponse": {
@@ -778,6 +779,16 @@
               },
               {
                 "$ref": "#/components/schemas/GuidedSurfaceActionGroupResponse"
+              }
+            ]
+          },
+          "surface": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/GuidedSurfaceSurfaceResponse"
               }
             ]
           }
@@ -822,6 +833,37 @@
               "string"
             ],
             "format": "int32"
+          }
+        }
+      },
+      "GuidedSurfaceSurfaceResponse": {
+        "required": [
+          "surfaceId",
+          "protocol",
+          "protocolVersion",
+          "catalogId",
+          "components",
+          "dataModel"
+        ],
+        "type": "object",
+        "properties": {
+          "surfaceId": {
+            "type": "string"
+          },
+          "protocol": {
+            "type": "string"
+          },
+          "protocolVersion": {
+            "type": "string"
+          },
+          "catalogId": {
+            "type": "string"
+          },
+          "components": {
+            "$ref": "#/components/schemas/JsonElement"
+          },
+          "dataModel": {
+            "$ref": "#/components/schemas/JsonElement"
           }
         }
       },

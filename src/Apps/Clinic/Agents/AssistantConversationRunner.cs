@@ -5,6 +5,7 @@ using Vitarish.Clinic.Application.Assistant;
 using Vitarish.Clinic.Application.Assistant.Actions;
 using Vitarish.Clinic.Application.Assistant.Capabilities;
 using Vitarish.Intelligence.Application.Agents;
+using Vitarish.Intelligence.Application.GuidedSurfaces;
 using Vitarish.Intelligence.Application.PreparedActions;
 using Vitarish.Intelligence.Domain.PreparedActions;
 
@@ -17,6 +18,7 @@ public sealed class AssistantConversationRunner(
     PreparedActionLifecycle preparedActions,
     AssistantCapabilityRegistry capabilityRegistry,
     TimeProvider timeProvider,
+    PresentedSurfaceCollector surfaces,
     ILogger<AssistantConversationRunner>? logger = null)
 {
     public async Task<AssistantResult> RunAsync(
@@ -64,6 +66,10 @@ public sealed class AssistantConversationRunner(
                         IsNewConversation = false
                     };
                     parsedResult = resultParser.Parse(output, manifest, persistedContext, run.ToolExecutions);
+                    parsedResult = parsedResult with
+                    {
+                        Surfaces = await surfaces.CollectAsync(manifest.ExecutionContext.ExecutionId, run.ToolExecutions, callbackCancellationToken)
+                    };
                     if (parsedResult.PreparedActions.Count > 0)
                     {
                         IReadOnlyList<AssistantAction> actions = await PersistActionsAsync(

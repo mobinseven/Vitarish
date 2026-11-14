@@ -743,6 +743,34 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
               actions: [],
               candidates: [{ candidateToken: mockPatientCandidateToken, displayName: isPersian ? "آدا لاولیس" : store.patients[0].name, maskedIdentification: "***4821", maskedPhone: "***0123", dateOfBirth: null }],
             },
+            // The model presented the search (ADR-0022 decision 8): its layout binds the handle, the data is the read.
+            blocks: [{
+              kind: "Surface",
+              surface: {
+                surfaceId: "mock-present-call",
+                protocol: "a2ui",
+                protocolVersion: "1.0",
+                catalogId: "vitarish:assistant-catalog:v1",
+                components: [
+                  { id: "root", component: "Column", children: ["title", "patients"] },
+                  { id: "title", component: "Heading", text: isPersian ? "بیماران پیدا‌شده" : "Matching patients" },
+                  { id: "patients", component: "RecordList", result: { path: "/r1" }, fields: ["dateOfBirth", "maskedPhone"] },
+                ],
+                dataModel: {
+                  r1: {
+                    kind: "clinic.patient-candidate",
+                    isList: true,
+                    hasMore: false,
+                    records: [{
+                      kind: "clinic.patient-candidate",
+                      reference: mockPatientCandidateToken,
+                      title: { type: "Text", value: isPersian ? "آدا لاولیس" : store.patients[0].name },
+                      fields: { dateOfBirth: { type: "Date", value: "1990-04-02" }, maskedPhone: { type: "Text", value: "***0123" } },
+                    }],
+                  },
+                },
+              },
+            }],
           });
         }
         return HttpResponse.json({

@@ -1,7 +1,8 @@
 "use client";
 
 import { Button, Tooltip } from "@heroui/react";
-import { GoalChecklist, InteractiveOptionPicker, type GuidedSurfaceActionGroup, type InteractiveQuestion } from "@vitarish/intelligence";
+import { GoalChecklist, InteractiveOptionPicker, type GuidedSurfaceActionGroup, type GuidedSurfaceSurfaceResponse, type InteractiveQuestion } from "@vitarish/intelligence";
+import { AssistantPresentedSurfaces } from "./AssistantPresentedSurfaces";
 import { FaIcon } from "@vitarish/ui";
 import { useClinicGetSetupProgress } from "../../api/generated/clinic/clinic";
 import { useLocalizedText } from "../../localization";
@@ -9,6 +10,10 @@ import { OperationsActionGroup } from "./AssistantActions";
 
 export interface OperationsGuidedReplyProps {
   actionGroups: readonly GuidedSurfaceActionGroup[];
+  /** What the reply presented from its reads (ADR-0022 decision 8). */
+  surfaces?: readonly GuidedSurfaceSurfaceResponse[];
+  /** Opens a patient a presented search shows. */
+  onSelectCandidate?: (candidateToken: string) => void;
   question: InteractiveQuestion | null;
   nextAction: string | null;
   /** Changes whenever a new message is sent, so an answered question resets. */
@@ -25,6 +30,8 @@ export interface OperationsGuidedReplyProps {
 /** The operations assistant's guided surface for its replies (ADR-0022), shared by every place it appears. */
 export function OperationsGuidedReply({
   actionGroups,
+  surfaces = [],
+  onSelectCandidate,
   question,
   nextAction,
   turnKey,
@@ -50,6 +57,7 @@ export function OperationsGuidedReply({
           />
         </div>
       ) : null}
+      <AssistantPresentedSurfaces surfaces={surfaces} onSelectCandidate={onSelectCandidate} />
       {actionGroups.map((group) => (
         <OperationsActionGroup key={`${group.agentRunId}:${group.actionIds[0]}`} actionIds={group.actionIds} onReplaced={replaceAction} />
       ))}

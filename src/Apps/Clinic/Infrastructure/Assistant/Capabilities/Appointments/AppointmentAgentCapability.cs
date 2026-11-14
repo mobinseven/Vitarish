@@ -169,7 +169,7 @@ public abstract class AppointmentQueryTool(PatientAppointmentQueryService querie
 
 public sealed class GetNextPatientAppointmentTool(PatientAppointmentQueryService queries) : AppointmentQueryTool(queries)
 {
-    public override AgentToolDefinition Definition { get; } = new("get_next_patient_appointment", "Get the current patient's next scheduled appointment.", "{\"type\":\"object\",\"properties\":{\"candidateToken\":{\"type\":\"string\"}},\"additionalProperties\":false}");
+    public override AgentToolDefinition Definition { get; } = new(Vitarish.Clinic.Application.Assistant.Presentation.ClinicPresentableToolNames.GetNextPatientAppointment, "Get the current patient's next scheduled appointment.", "{\"type\":\"object\",\"properties\":{\"candidateToken\":{\"type\":\"string\"}},\"additionalProperties\":false}");
     public override async Task<AgentToolResult> ExecuteAsync(AgentToolCall call, AgentExecutionContext context, CancellationToken cancellationToken = default)
     {
         using JsonDocument args = JsonDocument.Parse(call.ArgumentsJson);
@@ -181,7 +181,7 @@ public sealed class GetNextPatientAppointmentTool(PatientAppointmentQueryService
 public sealed class ListPatientAppointmentsTool(PatientAppointmentQueryService queries) : AppointmentQueryTool(queries)
 {
     private const string Schema = "{\"type\":\"object\",\"properties\":{\"period\":{\"type\":\"string\",\"enum\":[\"future\",\"past\"]},\"limit\":{\"type\":\"integer\"},\"candidateToken\":{\"type\":\"string\"}},\"additionalProperties\":false}";
-    public override AgentToolDefinition Definition { get; } = new("list_patient_appointments", "List the current patient's scheduled appointments in the past or future.", Schema);
+    public override AgentToolDefinition Definition { get; } = new(Vitarish.Clinic.Application.Assistant.Presentation.ClinicPresentableToolNames.ListPatientAppointments, "List the current patient's scheduled appointments in the past or future.", Schema);
     public override async Task<AgentToolResult> ExecuteAsync(AgentToolCall call, AgentExecutionContext context, CancellationToken cancellationToken = default)
     {
         using JsonDocument args = JsonDocument.Parse(call.ArgumentsJson);
@@ -193,7 +193,7 @@ public sealed class ListPatientAppointmentsTool(PatientAppointmentQueryService q
 
 public sealed class CountPatientAppointmentsTool(PatientAppointmentQueryService queries) : AppointmentQueryTool(queries)
 {
-    public override AgentToolDefinition Definition { get; } = new("count_patient_appointments", "Count the current patient's scheduled appointments in the past or future.", "{\"type\":\"object\",\"properties\":{\"period\":{\"type\":\"string\",\"enum\":[\"future\",\"past\"]},\"candidateToken\":{\"type\":\"string\"}},\"additionalProperties\":false}");
+    public override AgentToolDefinition Definition { get; } = new(Vitarish.Clinic.Application.Assistant.Presentation.ClinicPresentableToolNames.CountPatientAppointments, "Count the current patient's scheduled appointments in the past or future.", "{\"type\":\"object\",\"properties\":{\"period\":{\"type\":\"string\",\"enum\":[\"future\",\"past\"]},\"candidateToken\":{\"type\":\"string\"}},\"additionalProperties\":false}");
     public override async Task<AgentToolResult> ExecuteAsync(AgentToolCall call, AgentExecutionContext context, CancellationToken cancellationToken = default)
     {
         using JsonDocument args = JsonDocument.Parse(call.ArgumentsJson);
@@ -241,7 +241,7 @@ public abstract class AppointmentTool(IPatientAppointmentAgentCapability capabil
 
 public sealed class CheckAppointmentAvailabilityTool(IPatientAppointmentAgentCapability capability) : AppointmentTool(capability)
 {
-    public override AgentToolDefinition Definition { get; } = new("check_appointment_availability", "Check matching availability for the current patient and practice.", RequestSchema);
+    public override AgentToolDefinition Definition { get; } = new(Vitarish.Clinic.Application.Assistant.Presentation.ClinicPresentableToolNames.CheckAppointmentAvailability, "Check matching availability for the current patient and practice.", RequestSchema);
     public override async Task<AgentToolResult> ExecuteAsync(AgentToolCall call, AgentExecutionContext context, CancellationToken cancellationToken = default)
     {
         using JsonDocument args = JsonDocument.Parse(call.ArgumentsJson);

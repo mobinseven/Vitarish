@@ -11,6 +11,7 @@ import { useLocalizedText } from "../../localization";
 import { AssistantActionList } from "./AssistantActions";
 import { AssistantCandidateList } from "./AssistantCandidateList";
 import { OperationsGuidedReply } from "./OperationsGuidedReply";
+import { AssistantPresentedSurfaces, presentsPatientCandidates } from "./AssistantPresentedSurfaces";
 import type { NavigationIntent } from "../../navigation";
 import { isSetupGoal, setupGoalIntents } from "../clinic-setup/setupGoals";
 import { AssistantComposer, AssistantErrorState, AssistantMessageList } from "./AssistantPanel";
@@ -102,10 +103,17 @@ export function ClinicAssistantAside({
         <AssistantMessageList scope={patient ? "patient" : "operations"} messages={surface.messages} onRetry={surface.lastMessage ? () => void surface.retry() : undefined}>
           {conversation.isPending ? <ChatMessage.Assistant><ChatMessage.Avatar show alt={title} fallback="AI" /><ChatMessage.Body><ChatLoader.Dots label={patient ? t("clinic.clinicAssistant.running") : t("clinic.operationsAssistant.running")} /></ChatMessage.Body></ChatMessage.Assistant> : null}
           {conversation.isError ? <AssistantErrorState scope={patient ? "patient" : "operations"} onRetry={surface.lastMessage ? () => void surface.retry() : undefined} /> : null}
-          {!patient ? <AssistantCandidateList candidates={surface.candidates} onSelect={(token) => void selectCandidate(token)} hasError={selectionError} /> : null}
-          {patient ? <AssistantActionList patientId={patientId} actionIds={surface.actionIds} /> : (
+          {!patient && !presentsPatientCandidates(surface.surfaces) ? <AssistantCandidateList candidates={surface.candidates} onSelect={(token) => void selectCandidate(token)} hasError={selectionError} /> : null}
+          {patient ? (
+            <>
+              <AssistantPresentedSurfaces surfaces={surface.surfaces} />
+              <AssistantActionList patientId={patientId} actionIds={surface.actionIds} />
+            </>
+          ) : (
             <OperationsGuidedReply
               actionGroups={surface.actionGroups}
+              surfaces={surface.surfaces}
+              onSelectCandidate={(token) => void selectCandidate(token)}
               question={surface.question}
               nextAction={surface.nextAction}
               turnKey={surface.lastMessage}

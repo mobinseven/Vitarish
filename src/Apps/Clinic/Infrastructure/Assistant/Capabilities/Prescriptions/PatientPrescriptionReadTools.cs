@@ -34,7 +34,7 @@ public abstract class PatientPrescriptionReadTool(ISender sender) : IPrescriptio
 
 public sealed class ListPatientPrescriptionHistoryTool(ISender sender) : PatientPrescriptionReadTool(sender)
 {
-    public override AgentToolDefinition Definition { get; } = new("list_patient_prescription_history", "List up to 20 current-patient prescription records in newest-first order.", "{\"type\":\"object\",\"properties\":{\"limit\":{\"type\":\"integer\"}},\"additionalProperties\":false}");
+    public override AgentToolDefinition Definition { get; } = new(Vitarish.Clinic.Application.Assistant.Presentation.ClinicPresentableToolNames.ListPatientPrescriptionHistory, "List up to 20 current-patient prescription records in newest-first order.", "{\"type\":\"object\",\"properties\":{\"limit\":{\"type\":\"integer\"}},\"additionalProperties\":false}");
 
     public override async Task<AgentToolResult> ExecuteAsync(AgentToolCall call, AgentExecutionContext context, CancellationToken cancellationToken = default)
     {
@@ -56,7 +56,7 @@ public sealed class ListPatientPrescriptionHistoryTool(ISender sender) : Patient
 
 public sealed class GetPatientPrescriptionTool(ISender sender) : PatientPrescriptionReadTool(sender)
 {
-    public override AgentToolDefinition Definition { get; } = new("get_patient_prescription", "Get one prescription only after verifying it belongs to the current patient and clinic.", "{\"type\":\"object\",\"properties\":{\"prescriptionId\":{\"type\":\"string\"}},\"required\":[\"prescriptionId\"],\"additionalProperties\":false}");
+    public override AgentToolDefinition Definition { get; } = new(Vitarish.Clinic.Application.Assistant.Presentation.ClinicPresentableToolNames.GetPatientPrescription, "Get one prescription only after verifying it belongs to the current patient and clinic.", "{\"type\":\"object\",\"properties\":{\"prescriptionId\":{\"type\":\"string\"}},\"required\":[\"prescriptionId\"],\"additionalProperties\":false}");
 
     public override async Task<AgentToolResult> ExecuteAsync(AgentToolCall call, AgentExecutionContext context, CancellationToken cancellationToken = default)
     {
@@ -75,7 +75,7 @@ public sealed class GetPatientPrescriptionTool(ISender sender) : PatientPrescrip
 
 public sealed class GetPatientPrescriptionAttentionTool(ISender sender) : PatientPrescriptionReadTool(sender)
 {
-    public override AgentToolDefinition Definition { get; } = new("get_patient_prescription_attention", "Get the current patient's prescription attention count and up to 20 non-terminal records.", "{\"type\":\"object\",\"properties\":{\"limit\":{\"type\":\"integer\"}},\"additionalProperties\":false}");
+    public override AgentToolDefinition Definition { get; } = new(Vitarish.Clinic.Application.Assistant.Presentation.ClinicPresentableToolNames.GetPatientPrescriptionAttention, "Get the current patient's prescription attention count and up to 20 non-terminal records.", "{\"type\":\"object\",\"properties\":{\"limit\":{\"type\":\"integer\"}},\"additionalProperties\":false}");
 
     public override async Task<AgentToolResult> ExecuteAsync(AgentToolCall call, AgentExecutionContext context, CancellationToken cancellationToken = default)
     {

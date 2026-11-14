@@ -30,21 +30,21 @@ public static class SurgeryAssistantActions
     public const string DeleteType = "delete_surgery_type";
     public const string UpdateCancellationMessage = "update_surgery_cancellation_message";
 
-    public const string ListTool = "list_patient_surgeries";
+    public const string ListTool = Vitarish.Clinic.Application.Assistant.Presentation.ClinicPresentableToolNames.ListPatientSurgeries;
     public const string ListTypesTool = "list_surgery_types";
     public const string ListStaffTool = "list_surgery_staff";
-    public const string ConflictsTool = "find_surgery_conflicts";
+    public const string ConflictsTool = Vitarish.Clinic.Application.Assistant.Presentation.ClinicPresentableToolNames.FindSurgeryConflicts;
     public const string SuggestionsTool = "get_surgery_suggestions";
     public const string PrepareTool = "prepare_patient_surgery";
     public const string PrepareUpdateTool = "prepare_patient_surgery_update";
     public const string PrepareCompletionTool = "prepare_patient_surgery_completion";
     public const string PrepareCancellationTool = "prepare_patient_surgery_cancellation";
 
-    public const string OperationsListTool = "list_operations_surgeries";
-    public const string OperationsGetTool = "get_operations_surgery";
+    public const string OperationsListTool = Vitarish.Clinic.Application.Assistant.Presentation.ClinicPresentableToolNames.ListOperationsSurgeries;
+    public const string OperationsGetTool = Vitarish.Clinic.Application.Assistant.Presentation.ClinicPresentableToolNames.GetOperationsSurgery;
     public const string OperationsListTypesTool = "list_operations_surgery_types";
     public const string OperationsListStaffTool = "list_operations_surgery_staff";
-    public const string OperationsConflictsTool = "find_operations_surgery_conflicts";
+    public const string OperationsConflictsTool = Vitarish.Clinic.Application.Assistant.Presentation.ClinicPresentableToolNames.FindOperationsSurgeryConflicts;
     public const string OperationsSuggestionsTool = "get_operations_surgery_suggestions";
     public const string GetCancellationMessageTool = "get_surgery_cancellation_message";
     public const string OperationsPrepareTool = "prepare_operations_surgery";

@@ -31,12 +31,15 @@ describeSurgeryFlow("clinic-assistant-flow", [async ({ page, locale, capture }) 
     await page.getByRole("textbox", { name: clinic.operationsAssistant.composer.label }).fill(workspace.suggestions.items.findPatient.prompt);
     await page.getByRole("button", { name: clinic.operationsAssistant.composer.send }).click();
     // The newest turn is scrolled into view, below the earlier review cards.
-    await expect(page.getByRole("region", { name: clinic.operationsAssistant.candidates.label })).toBeInViewport({ timeout: pageCompileTimeoutMilliseconds });
+    // The model presented the search as a surface, so its card replaces the plain candidate list.
+    await expect(page.getByRole("heading", { name: locale === "fa" ? "بیماران پیدا‌شده" : "Matching patients" })).toBeInViewport({ timeout: pageCompileTimeoutMilliseconds });
+    await expect(page.getByRole("region", { name: clinic.operationsAssistant.candidates.label })).toHaveCount(0);
     await capture("assistant-patient-candidates");
   });
 
   await test.step("patient focus", async () => {
-    await page.getByRole("button", { name: clinic.operationsAssistant.candidates.select }).click();
+    const surface = intelligenceMessageCatalogs[locale].intelligence.surface;
+    await page.getByRole("log").getByRole("button", { name: new RegExp(`^${surface.openRecord.split("{")[0].trim()}`) }).first().click();
     await expect(page.getByRole("group", { name: workspace.focus.label })).toBeVisible({ timeout: pageCompileTimeoutMilliseconds });
     await expect(page.getByRole("separator").filter({ hasText: workspace.nowAbout.split("{")[0].trim() })).toBeInViewport();
     await capture("assistant-patient-focus");

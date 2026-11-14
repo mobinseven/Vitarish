@@ -16,12 +16,13 @@ A reply is text plus an optional ordered list of blocks. The envelope is `Guided
 | `Question` | prompt, options (key, label), max selections | The model. Its validated interactive reply (`AgentInteractiveReplyFormat`) is turned into a block with `GuidedSurfaceBlock.ModelQuestion`. |
 | `NextAction` | one key from the app's vocabulary | The model, limited to the keys the app allows (Clinic: the setup goal names, `AssistantNextActions`). |
 | `ActionGroup` | run ID and the IDs of the actions that run prepared | The app, from the prepared actions of one run (`GuidedSurfaceBlock.PreparedActions`). Clinic builds all three kinds in `AssistantGuidedSurface.Blocks`. |
+| `Surface` | a presented surface: protocol, protocol version, catalog ID, component tree, data model | The model lays it out through `present_surface`; the server fills the data model from this run's handles (`PresentedSurfaceCollector`, `GuidedSurfaceBlock.Presented`). |
 
 An action group carries IDs only, never a copy of the proposal; the web reads each action's current state by ID through the app's own route. Only the model's question carries display text.
 
 ## Transport
 
-The wire shape is `GuidedSurfaceBlockResponse` (`src/Modules/Intelligence/Contracts/GuidedSurfaceContracts.cs`), with kind enum `GuidedSurfaceBlockKindResponse`. It is the optional `blocks` field of the conversation response (`RunAgentConversationResponse`), mapped by `IntelligenceAgentConversationResultMapper` and omitted when empty. Replies without blocks behave exactly as before. Only the Clinic operations assistant sends blocks today.
+The wire shape is `GuidedSurfaceBlockResponse` (`src/Modules/Intelligence/Contracts/GuidedSurfaceContracts.cs`), with kind enum `GuidedSurfaceBlockKindResponse`. It is the optional `blocks` field of the conversation response (`RunAgentConversationResponse`), mapped by `IntelligenceAgentConversationResultMapper` and omitted when empty. Replies without blocks behave exactly as before. Both Clinic assistants (operations and patient) send blocks.
 
 ## Prepared actions and revise
 
@@ -31,10 +32,11 @@ Action groups depend on the [prepared-action lifecycle](prepared-actions.md). Re
 
 All live in `src/Hosts/Web/shared/intelligence` and are exported from its index.
 
-- `toGuidedSurface` (`src/interaction/guidedSurface.ts`) reads a reply's `blocks` into `{ question, nextAction, actionGroups }`; unknown or incomplete blocks are left out, and the last question or next action wins. `emptyGuidedSurface` is the no-blocks value.
+- `toGuidedSurface` (`src/interaction/guidedSurface.ts`) reads a reply's `blocks` into `{ question, nextAction, actionGroups, surfaces }`; unknown or incomplete blocks are left out, and the last question or next action wins. `emptyGuidedSurface` is the no-blocks value.
 - `ActionReviewGroup` (`src/components/ActionReviewGroup.tsx`) shows the items of one run. The app supplies each item's state (`pending`, `done`, `failed`, `closed`), whether a failure is retryable, its card, and a `confirm` function that calls its own route. "Confirm all" confirms pending items one by one; "Retry failed" confirms only retryable failures; one item's failure never stops the rest; a single item renders as its own card.
 - `GoalChecklist` (`src/components/GoalChecklist.tsx`) is an ordered list of goals with the next one highlighted; the app supplies keys, labels, done flags and an optional select handler.
 - The question reuses `InteractiveOptionPicker`. Texts are localized under `intelligence.guidedSurface.*`.
+- `PresentedSurface` (`src/surfaces/PresentedSurface.tsx`) renders one presented surface; `PresentedSurfaceAppearanceProvider` takes the app's field and status labels, kind icons and how a record opens. Texts are localized under `intelligence.surface.*`.
 
 ## How an app adopts it
 
@@ -46,26 +48,39 @@ All live in `src/Hosts/Web/shared/intelligence` and are exported from its index.
 
 Changing an agent's instructions, output schema or tool exposure changes its compatibility key. Open conversations continue: the next turn carries over only their user and assistant messages (ADR-0012).
 
-## Presented surfaces: chosen implementation
+## Presented surfaces
 
-ADR-0022 decision 8 sets the rules for presented surfaces and the requirements any UI protocol must meet. The protocol chosen is [A2UI](https://a2ui.org/) (Agent-to-User Interface, specification 1.0, Apache 2.0, source at `github.com/a2ui-project/a2ui`). Nothing of it is built yet.
+ADR-0022 decision 8 sets the rules and the requirements any UI protocol must meet. The protocol chosen is [A2UI](https://a2ui.org/) (Agent-to-User Interface, specification 1.0, Apache 2.0, source at `github.com/a2ui-project/a2ui`).
+
+How a surface reaches the screen:
+
+1. An app declares which read tools of which agents are presentable with `AgentToolPresentation` (projector from tool output to `PresentableResult`). Clinic's are `ClinicAssistantPresentations.All()`; every Clinic read tool is either declared there or listed in `ClinicAssistantPresentations.Exempt` with a reason, and `PresentationCoverageTests` enforces it.
+2. The Intelligence tool callback runs `PresentableResultPublisher` after each tool: a declared, successful read is stored by run in Redis (`RedisPresentableResultStore`, `intelligence:presentable:{executionId}`, 30 minutes) and its output gains a `presentation` property with the handle (`r1`, `r2`, ...) and its fields. If the store fails, the read still succeeds without a handle.
+3. The model calls `present_surface` (`PresentSurfaceTool`, contributed to Clinic by `PresentationAssistantCapability`). Its definition carries the catalog; the agent runtime validates the surface against it (`apps/agent-runtime/.../run/surface.ts`) before calling back, and marks the callback `surfaceValidated`. Main refuses unvalidated surfaces, handles of another run and fields the result does not declare, each as a tool error the model reads.
+4. At the end of the run `PresentedSurfaceCollector` turns each accepted `present_surface` call into a `Surface` block, with the data model filled from the handles. Values never come from the model.
+5. The web renders it with the A2UI React renderer on HeroUI components.
+
+The catalog is one file, `src/Hosts/Web/shared/intelligence/src/surfaces/assistant-catalog.json`, embedded in `Intelligence.Application` (`AssistantSurfaceCatalog`) and imported by the web. Components: `Column`, `Heading`, `Caption` (literal text), `RecordCard`, `RecordList`, `Metric`, `BarChart` (each `result` is a binding to a handle only).
 
 | Part | Package | Notes |
 | --- | --- | --- |
-| Web renderer | `@a2ui/react` with `@a2ui/web_core` | Catalog components are registered with `createComponentImplementation` and backed by HeroUI. User actions reach the `ActionListener` passed to the message processor. |
-| Surface validation in the agent runtime | `@a2ui/agent` | TypeScript agent SDK; validates a surface against the catalog schema. |
+| Web renderer | `@a2ui/react` 0.15 with `@a2ui/web_core` 0.15 | `presentedSurfaceCatalog()` builds the implementations from the catalog document; each view resolves its `result` binding through the surface's data context. |
+| Surface validation in the agent runtime | `@a2ui/agent` 0.1 | `validatePayload` against the catalog sent with the tool. |
 
-Known gaps when chosen (2026-11-14):
+Design standard (inline cards in a chat, after the OpenAI, Anthropic, Google and Microsoft inline-card guidance): cards size to their content with no inner scrolling and no fixed widths; a title of one or two lines and at most three facts; lists show five rows and then link to the full screen; one action per record, opening its screen; colors and components come from HeroUI as elsewhere in the app; text is rem-based.
 
-- All packages are pre-1.0 (`@a2ui/react` 0.15, `@a2ui/agent` 0.1) although the specification is 1.0.
-- `@a2ui/react` and `@a2ui/web_core` depend on zod `^3.25`; the web workspace uses zod 4. Check with a trial install before building.
-- The basic catalog has no chart; the project's Vega chart catalog is unpublished. Vitarish adds its own chart component.
+Known gaps:
+
+- All packages are pre-1.0 although the specification is 1.0. `@a2ui/react` and `@a2ui/web_core` bring their own zod 3 alongside the workspace's zod 4.
+- The A2UI basic catalog has no chart; Vitarish's `BarChart` uses HeroUI Pro's bar chart.
 - The specification has no text-direction or translation guidance; HeroUI and the platform localization provide both.
-- The basic catalog's text props accept literals. The Vitarish catalog declares data props as data bindings only (`{"@path": …}`).
+- The v1.0 resolver reads `@path`; the catalog also accepts `path`, which the web normalizes.
 
 ## Not built yet
 
-- The generic run collector of ADR-0022: tool-produced blocks are not gathered by Intelligence. Prepared actions are the only tool-produced blocks, and the app groups them by run.
+- Opening presented records other than Clinic's patient candidates: the other kinds render without an action until their screens are mapped.
+- Persisting presented surfaces: Clinic stores no presentation transcript and shows no earlier turns after a reload, so surfaces are not stored and redrawn.
+- Prepared-action review cards and the setup welcome as catalog components; they stay on the shared `ActionReviewGroup` and `GoalChecklist`.
 - Goal-checklist and destination-link blocks as wire kinds, and reference chips. The checklist is a component the app feeds from its own endpoint, and the next action is a key the app maps to a screen.
 - A server-built opening surface on the wire. Clinic's welcome is composed on the web from setup progress keys, because an app API cannot map shared block contracts without duplicating the Intelligence mapper.
 - Redrawing earlier blocks after a page reload. Pending actions stay reachable by ID. Within a browser tab, Clinic keeps what its assistant surfaces showed in memory (never browser storage), so navigating away and back shows the thread again; after a reload the conversation continues but its earlier messages are not shown until conversation history is built.

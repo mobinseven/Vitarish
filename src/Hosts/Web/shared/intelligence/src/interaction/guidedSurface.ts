@@ -1,5 +1,5 @@
 import { GuidedSurfaceBlockKindResponse } from "../api/generated/intelligence/model";
-import type { GuidedSurfaceBlockResponse } from "../api/generated/intelligence/model";
+import type { GuidedSurfaceBlockResponse, GuidedSurfaceSurfaceResponse } from "../api/generated/intelligence/model";
 import type { InteractiveQuestion } from "./interactiveReply";
 
 /** The actions one assistant run prepared, by ID; each app reads their current state itself. */
@@ -13,15 +13,18 @@ export interface GuidedSurface {
   question: InteractiveQuestion | null;
   nextAction: string | null;
   actionGroups: readonly GuidedSurfaceActionGroup[];
+  /** Surfaces the model presented from records it read in that turn (ADR-0022 decision 8). */
+  surfaces: readonly GuidedSurfaceSurfaceResponse[];
 }
 
-export const emptyGuidedSurface: GuidedSurface = { question: null, nextAction: null, actionGroups: [] };
+export const emptyGuidedSurface: GuidedSurface = { question: null, nextAction: null, actionGroups: [], surfaces: [] };
 
 /** Reads the blocks of a conversation reply; unknown or incomplete blocks are left out. */
 export function toGuidedSurface(blocks: readonly GuidedSurfaceBlockResponse[] | null | undefined): GuidedSurface {
   let question: InteractiveQuestion | null = null;
   let nextAction: string | null = null;
   const actionGroups: GuidedSurfaceActionGroup[] = [];
+  const surfaces: GuidedSurfaceSurfaceResponse[] = [];
   for (const block of blocks ?? []) {
     if (block.kind === GuidedSurfaceBlockKindResponse.Question && block.question) {
       const maxSelections = Number(block.question.maxSelections);
@@ -34,7 +37,9 @@ export function toGuidedSurface(blocks: readonly GuidedSurfaceBlockResponse[] | 
       nextAction = block.nextAction;
     } else if (block.kind === GuidedSurfaceBlockKindResponse.ActionGroup && block.actionGroup?.actionIds.length) {
       actionGroups.push({ agentRunId: block.actionGroup.agentRunId, actionIds: block.actionGroup.actionIds });
+    } else if (block.kind === GuidedSurfaceBlockKindResponse.Surface && block.surface?.components) {
+      surfaces.push(block.surface);
     }
   }
-  return { question, nextAction, actionGroups };
+  return { question, nextAction, actionGroups, surfaces };
 }

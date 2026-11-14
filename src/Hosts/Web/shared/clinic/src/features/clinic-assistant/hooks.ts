@@ -32,7 +32,7 @@ import type {
 } from "../../api/generated/clinic/model";
 
 export type AssistantAction = ClinicAssistantActionDetailsResponse;
-/** A Clinic assistant reply with its guided-surface blocks (only the operations assistant sends them). */
+/** A Clinic assistant reply with its guided-surface blocks. */
 export type ClinicAssistantReply = RunClinicAssistantResponse & { guidedSurface?: GuidedSurface };
 export type AssistantMessageResult = ClinicAssistantMessageResponse;
 export type ClinicAssistantChatMessage =
@@ -104,7 +104,10 @@ export function useAssistantConversation(patientId: string, isOpen: boolean) {
         message,
         conversationId,
       }, undefined, signal);
-      const result = response.result as unknown as RunClinicAssistantResponse;
+      const result: ClinicAssistantReply = {
+        ...(response.result as unknown as RunClinicAssistantResponse),
+        guidedSurface: toGuidedSurface(response.blocks),
+      };
       return { conversationId: response.conversationId, result };
     },
     [patientId],
@@ -337,6 +340,8 @@ export function useClinicAssistantConversationSurface(
     actionGroups,
     question: surface.question,
     nextAction: surface.nextAction,
+    /** Surfaces the latest reply presented (ADR-0022 decision 8). */
+    surfaces: surface.surfaces,
     lastMessage,
     candidates: candidatePresentation?.candidates ?? [],
     candidateRunId: candidatePresentation?.runId ?? null,
