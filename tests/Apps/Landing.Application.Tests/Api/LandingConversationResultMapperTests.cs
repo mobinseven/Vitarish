@@ -14,7 +14,6 @@ public sealed class LandingConversationResultMapperTests
     [Theory]
     [InlineData(AgentConversationOutcome.HistoryLimitExceeded)]
     [InlineData(AgentConversationOutcome.InvalidHistory)]
-    [InlineData(AgentConversationOutcome.ProfileChanged)]
     public async Task Client_triggerable_conversation_states_map_to_409_conflict(AgentConversationOutcome outcome)
     {
         DefaultHttpContext context = Context();

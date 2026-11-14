@@ -49,8 +49,7 @@ public enum AgentConversationOutcome
     Busy,
     HistoryLimitExceeded,
     ProviderFailure,
-    InvalidHistory,
-    ProfileChanged
+    InvalidHistory
 }
 
 /// <param name="ProfileCompatibilityKey">The configuration key the next history write records; null for callers without one.</param>

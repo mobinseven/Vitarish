@@ -89,9 +89,11 @@ public sealed class RunAgentConversationHandler(
                 request.Limits,
                 cancellationToken);
 
-            // The runtime rejects a history it cannot parse before any tool runs; one attempt on the
-            // carried-over history is the only retry, so it does not stack with any transport retry.
-            if (!run.IsSuccess && run.Error?.Code == AgentRunErrorCode.InvalidProviderResponse && !carriedOver && history is not null)
+            // A rejected history is retried once on its carried-over messages, and only when the runtime
+            // reports that no tool ran, so no tool (including a direct mutation) executes twice. This is
+            // the only retry; it does not stack with any transport retry.
+            if (!run.IsSuccess && run.Error?.Code == AgentRunErrorCode.InvalidProviderResponse &&
+                run.ToolCalls == 0 && run.ToolExecutions.Count == 0 && !carriedOver && history is not null)
             {
                 history = CarryOver(history, "rejected history", executionContext, request.Scope, lease);
                 run = await runner.RunAsync(

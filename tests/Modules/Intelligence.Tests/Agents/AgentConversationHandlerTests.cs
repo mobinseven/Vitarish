@@ -197,6 +197,20 @@ public sealed class AgentConversationHandlerTests
     }
 
     [Fact]
+    public async Task Handle_does_not_retry_a_rejected_history_after_a_tool_ran()
+    {
+        FakeStore store = new() { History = HistoryWithToolCall };
+        FakeRunner runner = new(new AgentRunResult(
+            false, null, null, new(0, 0), TimeSpan.Zero, 1, 1, new(AgentRunErrorCode.InvalidProviderResponse, "invalid")));
+
+        RunAgentConversationResult result =
+            await new RunAgentConversationHandler(store, runner).Handle(Request(store.ConversationId), default);
+
+        result.Outcome.Should().Be(AgentConversationOutcome.InvalidHistory);
+        runner.Inputs.Should().ContainSingle("a tool may have changed data, so the turn must not run again");
+    }
+
+    [Fact]
     public async Task Handle_does_not_retry_a_rejected_history_that_was_already_carried_over()
     {
         FakeStore store = new() { History = HistoryWithToolCall, LeaseProfileChanged = true };

@@ -231,8 +231,19 @@ internal static class LiveOperationsAssistant
         _ = services.AddSingleton<Microsoft.AspNetCore.DataProtection.IDataProtectionProvider>(
             new Microsoft.AspNetCore.DataProtection.EphemeralDataProtectionProvider());
         _ = services.AddClinicInfrastructure();
-        // Registered by the Sea module in production (SeaModule); the Clinic capability adapts it.
+        _ = services.AddAssistantComposition();
+        // The modules register these tools in their own startup (SeaModule, SearchModule, ContentsModule);
+        // the Clinic capabilities adapt them. Keep these lines in step with those registrations.
         _ = services.AddTransient<Vitarish.Sea.Application.Agents.ISeaManagementAgentTool, Vitarish.Sea.Infrastructure.Agents.SeaManagementAgentTool>();
+        _ = services.AddTransient<Vitarish.Search.Agents.ISearchAgentTool>(provider => new Vitarish.Search.Agents.SearchAgentTool(
+            provider.GetRequiredService<Vitarish.Search.Application.Abstractions.ISearchService>(), new Vitarish.Search.Agents.SearchAgentOptions()));
+        _ = services.AddTransient<Vitarish.Contents.Agents.IContentsAgentTool, Vitarish.Contents.Agents.ContentsListSitesAgentTool>();
+        _ = services.AddTransient<Vitarish.Contents.Agents.IContentsAgentTool, Vitarish.Contents.Agents.ContentsListTypesAgentTool>();
+        _ = services.AddTransient<Vitarish.Contents.Agents.IContentsAgentTool, Vitarish.Contents.Agents.ContentsListEntriesAgentTool>();
+        _ = services.AddTransient<Vitarish.Contents.Agents.IContentsAgentTool, Vitarish.Contents.Agents.ContentsGetEntryAgentTool>();
+        _ = services.AddTransient<Vitarish.Contents.Agents.IContentsAgentTool, Vitarish.Contents.Agents.ContentsCreateDraftEntryAgentTool>();
+        _ = services.AddTransient<Vitarish.Contents.Agents.IContentsAgentTool, Vitarish.Contents.Agents.ContentsSaveDraftAgentTool>();
+        _ = services.AddSingleton(new Mock<Vitarish.Search.Application.Abstractions.ISearchService>().Object);
         AddMocksForMissingDependencies(services);
         return services.BuildServiceProvider().GetServices<IAssistantCapability>();
     }

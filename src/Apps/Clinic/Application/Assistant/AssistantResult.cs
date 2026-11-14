@@ -29,7 +29,6 @@ public enum AssistantRunOutcome
     Succeeded,
     NotFound,
     Busy,
-    ProfileChanged,
     InvalidHistory,
     Failed
 }

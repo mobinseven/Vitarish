@@ -97,11 +97,6 @@ public sealed class AssistantConversationRunner(
         if (conversation.Outcome != AgentConversationOutcome.Succeeded ||
             runResult is null || !runResult.IsSuccess || runResult.StructuredOutput is not JsonElement)
         {
-            if (logger is not null && conversation.Outcome == AgentConversationOutcome.ProfileChanged)
-                AssistantTelemetry.ProfileConflict(
-                    logger,
-                    manifest.ExecutionContext.ExecutionId,
-                    conversation.ConversationId?.ToString("N") ?? context.ConversationId);
             AssistantResult failure = AssistantResult.Failure(
                 manifest.ExecutionContext.ExecutionId,
                 conversation.ConversationId?.ToString("N") ?? context.ConversationId,
@@ -112,7 +107,6 @@ public sealed class AssistantConversationRunner(
                 {
                     AgentConversationOutcome.NotFound => AssistantRunOutcome.NotFound,
                     AgentConversationOutcome.Busy => AssistantRunOutcome.Busy,
-                    AgentConversationOutcome.ProfileChanged => AssistantRunOutcome.ProfileChanged,
                     AgentConversationOutcome.InvalidHistory or AgentConversationOutcome.HistoryLimitExceeded => AssistantRunOutcome.InvalidHistory,
                     _ => AssistantRunOutcome.Failed
                 }

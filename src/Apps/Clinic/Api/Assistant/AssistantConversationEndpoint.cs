@@ -65,8 +65,6 @@ public sealed class AssistantConversationEndpoint(
             return new(AgentConversationOutcome.NotFound, result.AgentRunId, ParseConversationId(result.ConversationId));
         if (result.Outcome is AssistantRunOutcome.Busy)
             return new(AgentConversationOutcome.Busy, result.AgentRunId, ParseConversationId(result.ConversationId));
-        if (result.Outcome is AssistantRunOutcome.ProfileChanged)
-            return new(AgentConversationOutcome.ProfileChanged, result.AgentRunId, ParseConversationId(result.ConversationId));
         if (result.Outcome is AssistantRunOutcome.InvalidHistory)
             return new(AgentConversationOutcome.InvalidHistory, result.AgentRunId, ParseConversationId(result.ConversationId));
         if (result.Outcome is not AssistantRunOutcome.Succeeded || !Guid.TryParse(result.ConversationId, out Guid conversationId))

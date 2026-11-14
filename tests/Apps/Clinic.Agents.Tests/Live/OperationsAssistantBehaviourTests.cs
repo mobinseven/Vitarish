@@ -16,6 +16,15 @@ public sealed class OperationsAssistantBehaviourTests(LiveAgentRuntime runtime)
 {
     private static readonly DateTimeOffset Now = DateTimeOffset.UtcNow;
 
+    // Tool choice is only meaningful when the competing tools are present, as they are in production.
+    [Fact]
+    public void The_spec_offers_the_model_every_operations_capability()
+    {
+        ComposedAgentManifest<AssistantCompositionContext> manifest = LiveOperationsAssistant.Compose(Now);
+
+        manifest.ToolCapabilities.Values.Distinct().Should().Contain(AssistantCapabilityKeys.OperationsProfile);
+    }
+
     [LiveAgentFact]
     public async Task Finding_a_patient_by_name_searches_patients_with_that_name()
     {
