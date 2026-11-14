@@ -1,7 +1,7 @@
 # ADR-0022: Guided Surfaces
 
 Date: 2026-11-12
-Status: Accepted (amended 2026-11-12)
+Status: Accepted (amended 2026-11-12, 2026-11-14)
 Scope: Intelligence module and `shared/intelligence`; every app that offers an assistant
 Owner: Architecture
 Supersedes:
@@ -40,6 +40,15 @@ This decision completes the model around it.
   review payload, and carried out only according to its action policy,
   normally after a person confirms it.
 - **Run:** one assistant turn. Everything prepared in one run belongs together.
+- **Presentable result:** the successful result of a read tool that an app
+  declares can be shown, with the fields of it that may be shown.
+- **Handle:** a short server-minted name for one presentable result. It is
+  valid only within the run that produced it and carries no data.
+- **UI protocol:** the open, declarative agent-to-user interface standard the
+  platform adopts for presented surfaces (decision 8). Which standard and
+  which packages implement it are recorded in the module documentation.
+- **Presented surface:** a component tree in the UI protocol, from the
+  Vitarish catalog, whose data comes from presentable results (decision 8).
 
 ## Decision
 
@@ -57,13 +66,11 @@ This decision completes the model around it.
      because larger schemas fail more often; it never becomes a union of every
      kind.
    - *Tools* produce rich blocks, such as a review group of prepared actions or
-     a record summary. While prepared actions are the only tool-produced block,
-     the app builds the review-group block from the actions a run saved, by
-     run. An Intelligence-owned run collector, which gathers the blocks tool
-     results emit during a run, is introduced when a second kind of
-     tool-produced block exists. Such blocks refer to server records by ID, and
-     the renderer re-reads each record's current state by ID rather than
-     trusting the copy in the reply.
+     a presented surface (decision 8). The app builds the review-group block
+     from the actions a run saved, by run; presented surfaces are gathered by
+     an Intelligence-owned run collector. Such blocks refer to server records
+     by ID, and the renderer re-reads each record's current state by ID rather
+     than trusting a copy in the reply.
    - *A server policy, without a model call,* decides an opening surface, such
      as a welcome and a checklist of what is left. It sends the content as keys
      and data (each goal's state, the next goal), and the web composes the
@@ -92,6 +99,11 @@ This decision completes the model around it.
      renderers, and the review cards for its action types, to the shared
      renderer through an explicit registry. Nothing is discovered at runtime,
      as in ADR-0012.
+   - *Presented surfaces* travel in one platform kind, owned by Intelligence,
+     whose data is a presented surface (decision 8). The app owns which read tools
+     return presentable results, their presentable fields and record
+     references, and any catalog components it adds; Intelligence owns the
+     handle, the run collector, the catalog and the envelope.
    Each kind's key, data schema, validator and renderer has exactly one owner.
    The web receives kind keys from generated contracts, never as literals.
 
@@ -136,6 +148,55 @@ This decision completes the model around it.
    "present need" rule in `src/Apps/AGENTS.md`. The block contract is
    considered stable only after two distinct surfaces use it.
 
+8. **Presented surfaces: the model lays out, the server fills.** Rich
+   components such as record cards, lists and charts are presented surfaces.
+   The model composes a surface's layout from a Vitarish catalog; every value
+   a person reads as data comes from a read tool's result in the same run.
+   - *The UI protocol.* The platform adopts an existing open standard rather
+     than its own format. Any standard it adopts must be declarative (data,
+     not code), keep the component tree separate from a data model that
+     server code can fill, let the platform define its own catalog
+     implemented with its own design-system components, validate surfaces
+     against that catalog, and hand user actions to a handler the web
+     supplies. Replacing the standard does not change this decision.
+   - *Catalog.* Intelligence owns one Vitarish catalog, with its schema, and
+     `shared/intelligence` implements each catalog component with the
+     protocol's renderer on the platform's design-system components. Apps add
+     components through the same explicit registry as app kinds. In the
+     catalog, every prop that carries record data (names, dates, figures,
+     series) accepts only a data binding, never a literal; only headings and
+     captions may be literal model text. Charts are catalog components; their
+     series is computed by a read tool under the requesting person's
+     authorization.
+   - *Handles.* The server, not the model, attaches a handle to each
+     presentable result and keeps it server-side for the run, as run-scoped
+     record tokens already work for patient search candidates. A handle names
+     a result and the fields the app declares presentable from it.
+   - *Presenting.* A shared Intelligence `present` tool takes a surface whose
+     bindings point into handles. The agent runtime validates the surface
+     against the catalog with the protocol's agent tooling and
+     returns a failure to the model as a tool error. Main then checks that
+     each bound handle belongs to the current run and to a successful read,
+     and that each bound field is presentable, and builds the surface's data
+     model from those results. Anything that fails is reported to the model
+     and never reaches the reply.
+   - *Buttons.* User actions reach a handler the web supplies, never an
+     agent endpoint. The catalog's action names map only to existing
+     actions: a question option, a next-action key, a destination link, or a
+     prepared action from a preparation tool. There is no model-defined
+     button behaviour.
+   - *Persistence.* A presented surface is stored with the conversation's
+     protected presentation record as its component tree and the record
+     references behind its handles (IDs or query parameters), never as its
+     data model. Intelligence owns and versions this stored shape, and each
+     stored tree records its protocol and protocol version, so a later
+     standard can convert or decline older trees. Redrawing
+     it rebuilds the data model through the app's own routes, under the
+     viewer's authorization, so it shows current values, and a record the
+     viewer may no longer read is not shown. Model history is separate, so
+     carrying a history over (ADR-0012) does not remove what a conversation
+     showed.
+
 ## Consequences
 
 - An app adopts guided surfaces by declaring its vocabulary, action policies,
@@ -143,8 +204,8 @@ This decision completes the model around it.
   routes. It writes no state machine, store or generic card.
 - **Conversation compatibility.** A change to an agent's instructions, output
   schema or tool exposure changes its compatibility key, and open
-  conversations ask once to start again (ADR-0012). A kind produced only by a
-  tool result or a server policy does not change the key.
+  conversations continue on their carried-over messages (ADR-0012). A kind
+  produced only by a tool result or a server policy does not change the key.
 - **Changing the owner of stored actions.** Prepared actions are short-lived.
   When their owner or record format changes, pending actions from the previous
   format are not carried over: confirming one returns not found, and the
@@ -153,8 +214,23 @@ This decision completes the model around it.
   after the change. This is an owner-approved exception to
   expand-migrate-contract, valid only while actions live minutes rather than
   days.
-- **Past turns.** A guided surface does not promise to redraw earlier blocks
-  after a page reload; prepared actions stay reachable by ID.
+- **Past turns.** Presented surfaces can be redrawn after a page reload from
+  their stored tree and references, with current data, wherever an app shows
+  a conversation's earlier turns. Other earlier blocks are not promised;
+  prepared actions stay reachable by ID.
+- **Latency and reliability.** Presenting costs the model one more tool step
+  in a reply that shows something, and the catalog adds to its prompt. How
+  reliably the model writes valid surfaces is measured by the live agent
+  behaviour spec before a surface ships.
+- **An external standard as a dependency.** The UI protocol and its packages
+  evolve outside the platform; the module documentation records the
+  standard and packages in use and their known gaps. The agent runtime
+  becomes the validator of surface shape; Main remains the owner of handles,
+  data and authorization, so a shape the runtime wrongly accepts can still
+  show only presentable fields of this run's reads. Components the standard
+  lacks, such as charts, are Vitarish catalog components, and text direction
+  and translation come from the platform's design system and localization
+  (ADR-0007), not from the protocol.
 - **One conversation across an app's surfaces.** An app's assistant
   conversation may continue across the places it appears within one browser
   session: closing a surface keeps the conversation, an explicit reset deletes
@@ -181,7 +257,9 @@ next feature, and safety rules would drift meanwhile.
 ### Option 3: The model generates whole interfaces
 
 Rejected: model-authored layouts and data cannot be trusted, validated or
-localized, and a large output schema fails more often.
+localized, and a large output schema fails more often. Decision 8 allows
+model layout only inside a closed catalog, through a tool rather than the
+output schema, with every data prop bound to server data.
 
 ### Option 4: Scripted wizards per app
 
@@ -192,6 +270,40 @@ own.
 
 Rejected: actions live minutes, so a reader and an extra port would serve a
 window shorter than a release.
+
+### Option 6: A presentation tool that takes component data
+
+Rejected: the model would write the figures, labels and button targets a
+person reads and acts on. A chart of model-typed clinical numbers cannot be
+trusted. For the same reason the catalog does not adopt a standard's
+generic catalog where data props accept literals.
+
+### Option 7: Present every displayable read automatically, or by a reference in the reply
+
+Rejected: showing every read is noisy when a turn reads many records. A
+reference in the reply costs no tool step, but an invalid one can only be
+dropped silently; the `present` tool tells the model at once. ADR-0017's
+reply references still name items from an app's fixed catalog; handles name
+records read during the run.
+
+### Option 8: Store presented data as snapshots
+
+Rejected: a snapshot is a second copy of clinical data in the conversation
+store, with its own retention, shown again without a fresh authorization
+check.
+
+### Option 9: A Vitarish block format and renderer instead of an open standard
+
+Rejected by the owner: open agent-to-user interface standards already
+provide the component-tree format, data binding, catalog validation, action
+messages and renderers that map to an application's own components.
+Building these again would reinvent them.
+
+### Option 10: Server-authored surfaces only
+
+Rejected by the owner: the model could only pick what to show, not how to
+arrange it, which leaves most of the protocol unused. Binding-only data
+props keep the trust rule without it.
 
 ## Validation / Enforcement
 
@@ -206,10 +318,19 @@ window shorter than a release.
   shared lifecycle under its own authorization.
 - The two-host E2E proof covers a grouped confirmation through the shared
   lifecycle.
+- Intelligence tests cover presentation: a handle from another run, a failed
+  read, and a non-presentable tool or field are refused; stored surfaces hold
+  the tree and references only. Agent-runtime tests show a surface outside
+  the catalog, or with a literal in a data prop, is returned to the model as
+  a tool error. The live agent behaviour spec shows the model presents a record it
+  read, and measures how often its first surface is valid.
 
 ## Notes
 
 - Revisit if a group must commit all-or-nothing, if blocks must stream before a
-  run ends, if past turns must be redrawn after a reload, if actions must live
-  longer than minutes, or if an app needs kinds the platform set does not
-  cover.
+  run ends, if blocks other than presented surfaces must be redrawn after a
+  reload, if a presented surface must show data as it was rather than as it
+  is, if the extra presenting step proves too slow, if the model's surfaces
+  fail validation too often, if actions must live longer than minutes, or if
+  an app needs kinds the platform set does not cover. Replacing the UI
+  protocol with another that meets decision 8 is not a reason to revisit.

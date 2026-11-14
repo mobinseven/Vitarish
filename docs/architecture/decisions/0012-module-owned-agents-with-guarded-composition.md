@@ -12,7 +12,7 @@ Profiles and packs never authorize execution, bind tenants or subjects, approve 
 
 The composer uses explicit catalogs and produces a flattened runtime manifest. Provider SDKs, HTTP, persistence, infrastructure, reflection discovery, and service-provider activation remain outside Agents projects. The runtime receives only the flattened provider-neutral definition, tools, limits, and execution callback context.
 
-Versioned conversations persist an optional lowercase SHA-256 compatibility key. It is checked before lease acquisition and provider execution. A mismatch maps to the existing HTTP 409 conflict contract; legacy null-key callers retain their existing behavior. Canonical JSON schemas and stable effective instructions are hashed so formatting-only changes do not reset a conversation.
+Versioned conversations persist an optional lowercase SHA-256 compatibility key, written together with the model history it describes. The key identifies the configuration the stored history was produced under; it never decides authority, which is recomputed for every turn. A conversation always continues: when the key differs, the Intelligence conversation handler carries the history over as its user and assistant messages only, without tool items, reasoning or provider item links, and runs under the current configuration. The same carry-over compacts a history too large to grow and retries, once, a history the runtime rejects. Canonical JSON schemas and stable effective instructions are hashed so formatting-only changes do not change the key. Per-turn context (current time, locale, time zone, calendar) is not key material.
 
 ## Consequences and boundaries
 

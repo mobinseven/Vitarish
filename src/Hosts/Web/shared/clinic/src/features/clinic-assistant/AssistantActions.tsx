@@ -6,7 +6,7 @@ import { ActionReviewGroup, type ActionReviewItem, type ActionReviewItemState } 
 import { FaIcon } from "@vitarish/ui";
 import { useState } from "react";
 import { clinicGetAssistantAction } from "../../api/generated/clinic/clinic";
-import { ManageActionCard, StaffInviteActionCard } from "./ManageActionCard";
+import { ClinicProfileActionCard, ManageActionCard, StaffInviteActionCard, StaffRemovalActionCard } from "./ManageActionCard";
 import { operationsActionTypes } from "./operationsActionTypes";
 import { useLocalizedText } from "../../localization";
 import {
@@ -239,7 +239,10 @@ export function OperationsAssistantActionReview({
   return (
     <Card>
       <Card.Header className="flex justify-between gap-3">
-        <Card.Title>{action.actionType === operationsActionTypes.inviteMember ? t("clinic.operationsAssistant.invite.title") : t("clinic.operationsAssistant.reviewTitle")}</Card.Title>
+        <Card.Title>{action.actionType === operationsActionTypes.inviteMember ? t("clinic.operationsAssistant.invite.title")
+          : action.actionType === operationsActionTypes.removeMember ? t("clinic.operationsAssistant.removeMember.title")
+          : action.actionType === operationsActionTypes.updateClinicProfile ? t("clinic.operationsAssistant.clinicProfile.title")
+          : t("clinic.operationsAssistant.reviewTitle")}</Card.Title>
         <AssistantActionStatus status={pending ? "Confirming" : action.status} completionId={completionId} failure={action.failure?.message} />
       </Card.Header>
       <Card.Content className="space-y-4">
@@ -261,6 +264,10 @@ export function OperationsAssistantActionReview({
               onReplaced?.(action.actionId, replacement.actionId);
             } : undefined}
           />
+        ) : action.actionType === operationsActionTypes.removeMember ? (
+          <StaffRemovalActionCard reviewPayload={action.reviewPayload} />
+        ) : action.actionType === operationsActionTypes.updateClinicProfile ? (
+          <ClinicProfileActionCard reviewPayload={action.reviewPayload} />
         ) : (
           <OperationsActionCard payload={payload} expiresAt={action.expiresAt} />
         )}

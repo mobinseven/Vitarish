@@ -6,6 +6,7 @@ using Vitarish.Clinic.Application.Assistant.Operations;
 namespace Vitarish.Clinic.Infrastructure.Assistant.Capabilities.Operations;
 
 [JsonSerializable(typeof(IReadOnlyList<AssistantSearchCandidate>))]
+[JsonSerializable(typeof(AssistantSearchResult))]
 [JsonSerializable(typeof(OperationsAgentToolResponse<IReadOnlyList<OperationsAppointmentRead>>))]
 [JsonSerializable(typeof(OperationsAgentToolResponse<OperationsAppointmentRead>))]
 [JsonSerializable(typeof(AgentSchedulingResult))]

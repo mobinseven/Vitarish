@@ -197,3 +197,47 @@ export function StaffInviteActionCard({
     </div>
   );
 }
+
+/** Label, value and whether the value reads left to right (contacts, phones, addresses on the web). */
+type ReviewRow = [string, unknown, boolean?];
+
+function ReviewRows({ rows }: { rows: ReviewRow[] }) {
+  return (
+    <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      {rows.filter(([, value]) => typeof value === "string" && value.length > 0).map(([label, value, ltr]) => (
+        <div key={label}><dt className="text-muted">{label}</dt><dd dir={ltr ? "ltr" : undefined} className="text-start">{String(value)}</dd></div>
+      ))}
+    </dl>
+  );
+}
+
+/** A prepared staff removal: the member as the server found them. */
+export function StaffRemovalActionCard({ reviewPayload }: { reviewPayload: unknown }) {
+  const { t } = useLocalizedText();
+  const review = asRecord(reviewPayload);
+  return (
+    <ReviewRows rows={[
+      [t("clinic.operationsAssistant.removeMember.member"), review.name],
+      [t("clinic.operationsAssistant.removeMember.contact"), review.contact, true],
+    ]} />
+  );
+}
+
+/** A prepared clinic-profile change: only the parts that change. */
+export function ClinicProfileActionCard({ reviewPayload }: { reviewPayload: unknown }) {
+  const { t } = useLocalizedText();
+  const review = asRecord(reviewPayload);
+  const address = asRecord(review.address);
+  const separator = t("clinic.operationsAssistant.clinicProfile.separator");
+  const texts = (values: unknown[]) => values.filter((value): value is string => typeof value === "string" && value.length > 0);
+  const addressText = texts([address.province, address.city, address.street, address.postalCode]).join(separator);
+  const phones = Array.isArray(review.phones) ? texts(review.phones).join(separator) : undefined;
+  return (
+    <ReviewRows rows={[
+      [t("clinic.operationsAssistant.clinicProfile.description"), review.description],
+      [t("clinic.operationsAssistant.clinicProfile.address"), addressText],
+      [t("clinic.operationsAssistant.clinicProfile.phones"), phones, true],
+      [t("clinic.operationsAssistant.clinicProfile.website"), review.website, true],
+    ]} />
+  );
+}

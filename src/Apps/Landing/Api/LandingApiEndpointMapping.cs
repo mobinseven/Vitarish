@@ -121,7 +121,6 @@ public static class LandingApiEndpointMapping
         AgentConversationOutcome.Busy => Results.Conflict(new LandingError(LandingErrorCodes.Busy, "The conversation is already processing a message.")),
         AgentConversationOutcome.HistoryLimitExceeded => Results.Conflict(new LandingError(LandingErrorCodes.InvalidHistory, "The conversation history has reached its supported limit; start a new conversation.")),
         AgentConversationOutcome.InvalidHistory => Results.Conflict(new LandingError(LandingErrorCodes.InvalidHistory, "The conversation history is invalid.")),
-        AgentConversationOutcome.ProfileChanged => Results.Conflict(new LandingError(LandingErrorCodes.Conflict, "The assistant configuration changed; start a new conversation.")),
         _ => Results.Json(new LandingError(LandingErrorCodes.Unavailable, "The assistant is temporarily unavailable."), statusCode: StatusCodes.Status503ServiceUnavailable)
     };
 
@@ -239,7 +238,6 @@ public static class LandingApiEndpointMapping
         AgentConversationOutcome.Busy => Results.Conflict(new LandingError(LandingErrorCodes.Busy, "The conversation is already processing a message.")),
         AgentConversationOutcome.HistoryLimitExceeded => Results.Conflict(new LandingError(LandingErrorCodes.InvalidHistory, "The conversation history has reached its supported limit; start a new conversation.")),
         AgentConversationOutcome.InvalidHistory => Results.Conflict(new LandingError(LandingErrorCodes.InvalidHistory, "The conversation history is invalid.")),
-        AgentConversationOutcome.ProfileChanged => Results.Conflict(new LandingError(LandingErrorCodes.Conflict, "The assistant configuration changed; start a new conversation.")),
         _ => Results.Json(new LandingError(LandingErrorCodes.Unavailable, "The assistant is temporarily unavailable."), statusCode: StatusCodes.Status503ServiceUnavailable)
     };
 

@@ -76,8 +76,13 @@ public abstract class OperationsTool(IAppointmentSchedulingAgentCapability sched
             result.OperationId,
             result.Message));
     protected static Guid Guid(JsonElement args, string name) => args.GetProperty(name).GetGuid();
-    protected static DateOnly Date(JsonElement args, string name) => DateOnly.Parse(args.GetProperty(name).GetString()!);
-    protected static DateOnly? OptionalDate(JsonElement args, string name) => args.TryGetProperty(name, out JsonElement value) ? DateOnly.Parse(value.GetString()!) : null;
+    protected static DateOnly Date(JsonElement args, string name) => ParseDate(args.GetProperty(name), name);
+    protected static DateOnly? OptionalDate(JsonElement args, string name) => args.TryGetProperty(name, out JsonElement value) ? ParseDate(value, name) : null;
+    private static DateOnly ParseDate(JsonElement value, string name) =>
+        value.ValueKind == JsonValueKind.String &&
+        DateOnly.TryParseExact(value.GetString(), "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out DateOnly date)
+            ? date
+            : throw new JsonException($"{name} must be a Gregorian date written as yyyy-MM-dd; convert other calendars with {CalendarDateConversionTool.Name} first.");
     protected static int? OptionalInt(JsonElement args, string name) => args.TryGetProperty(name, out JsonElement value) ? value.GetInt32() : null;
     protected static string? OptionalString(JsonElement args, string name) => args.TryGetProperty(name, out JsonElement value) ? value.GetString() : null;
     protected static string Candidate(JsonElement args) => args.GetProperty("candidateToken").GetString() ?? throw new JsonException("candidateToken is required.");
@@ -107,7 +112,7 @@ public sealed class SearchPatientsTool(IAssistantPatientSearch search, IAppointm
 
 public sealed class ListOperationsAppointmentsTool(IAppointmentSchedulingAgentCapability scheduling) : OperationsTool(scheduling)
 {
-    public override AgentToolDefinition Definition { get; } = new("list_operations_appointments", "List appointments in the authenticated practice.", "{\"type\":\"object\",\"properties\":{\"dateFrom\":{\"type\":\"string\"},\"dateTo\":{\"type\":\"string\"},\"take\":{\"type\":\"integer\"}},\"additionalProperties\":false}");
+    public override AgentToolDefinition Definition { get; } = new("list_operations_appointments", "List appointments in the authenticated practice.", "{\"type\":\"object\",\"properties\":{\"dateFrom\":{\"type\":\"string\",\"format\":\"date\"},\"dateTo\":{\"type\":\"string\",\"format\":\"date\"},\"take\":{\"type\":\"integer\"}},\"additionalProperties\":false}");
     public override async Task<AgentToolResult> ExecuteAsync(AgentToolCall call, AgentExecutionContext context, CancellationToken cancellationToken = default)
     { using JsonDocument doc = JsonDocument.Parse(call.ArgumentsJson); JsonElement a = doc.RootElement; AgentSchedulingContext s = Scope(call, context); return ResultWithoutPatientIdentity(call, await Scheduling.ListAppointmentsAsync(s, new(DateFrom: OptionalDate(a,"dateFrom"), DateTo: OptionalDate(a,"dateTo"), Take: a.TryGetProperty("take", out JsonElement take) ? take.GetInt32() : 50), cancellationToken)); }
 }
@@ -121,7 +126,7 @@ public sealed class ListOperationsShiftsTool(IAppointmentSchedulingAgentCapabili
 
 public sealed class CountOperationsAppointmentsTool(IAppointmentSchedulingAgentCapability scheduling) : OperationsTool(scheduling)
 {
-    public override AgentToolDefinition Definition { get; } = new("count_operations_appointments", "Count appointments in the authenticated practice.", "{\"type\":\"object\",\"properties\":{\"dateFrom\":{\"type\":\"string\"},\"dateTo\":{\"type\":\"string\"}},\"additionalProperties\":false}");
+    public override AgentToolDefinition Definition { get; } = new("count_operations_appointments", "Count appointments in the authenticated practice.", "{\"type\":\"object\",\"properties\":{\"dateFrom\":{\"type\":\"string\",\"format\":\"date\"},\"dateTo\":{\"type\":\"string\",\"format\":\"date\"}},\"additionalProperties\":false}");
     public override async Task<AgentToolResult> ExecuteAsync(AgentToolCall call, AgentExecutionContext context, CancellationToken cancellationToken = default)
     { using JsonDocument doc = JsonDocument.Parse(call.ArgumentsJson); JsonElement a = doc.RootElement; return Result(call, await Scheduling.CountAppointmentsAsync(Scope(call,context), new(DateFrom: OptionalDate(a,"dateFrom"), DateTo: OptionalDate(a,"dateTo")), cancellationToken)); }
 }
@@ -135,7 +140,7 @@ public sealed class GetOperationsAppointmentTool(IAppointmentSchedulingAgentCapa
 
 public sealed class GetOperationsAvailabilityTool(IAppointmentSchedulingAgentCapability scheduling) : OperationsTool(scheduling)
 {
-    public override AgentToolDefinition Definition { get; } = new("get_operations_availability", "Get bookable appointment slots in the authenticated practice.", "{\"type\":\"object\",\"properties\":{\"dateFrom\":{\"type\":\"string\"},\"dateTo\":{\"type\":\"string\"},\"shiftId\":{\"type\":\"string\"}},\"required\":[\"dateFrom\",\"dateTo\"],\"additionalProperties\":false}");
+    public override AgentToolDefinition Definition { get; } = new("get_operations_availability", "Get bookable appointment slots in the authenticated practice.", "{\"type\":\"object\",\"properties\":{\"dateFrom\":{\"type\":\"string\",\"format\":\"date\"},\"dateTo\":{\"type\":\"string\",\"format\":\"date\"},\"shiftId\":{\"type\":\"string\"}},\"required\":[\"dateFrom\",\"dateTo\"],\"additionalProperties\":false}");
     public override async Task<AgentToolResult> ExecuteAsync(AgentToolCall call, AgentExecutionContext context, CancellationToken cancellationToken = default)
     { using JsonDocument doc = JsonDocument.Parse(call.ArgumentsJson); JsonElement a = doc.RootElement; return Result(call, await Scheduling.GetAvailabilityAsync(Scope(call,context), new(Date(a,"dateFrom"),Date(a,"dateTo"),a.TryGetProperty("shiftId",out JsonElement id)?id.GetGuid():null), cancellationToken)); }
 }
@@ -149,7 +154,7 @@ public sealed class GetOperationsShiftTool(IAppointmentSchedulingAgentCapability
 
 public sealed class GetOperationsOccurrencesTool(IAppointmentSchedulingAgentCapability scheduling) : OperationsTool(scheduling)
 {
-    public override AgentToolDefinition Definition { get; } = new("get_operations_shift_occurrences", "Get shift occurrences in the authenticated practice.", "{\"type\":\"object\",\"properties\":{\"shiftId\":{\"type\":\"string\"},\"dateFrom\":{\"type\":\"string\"},\"dateTo\":{\"type\":\"string\"}},\"required\":[\"shiftId\",\"dateFrom\",\"dateTo\"],\"additionalProperties\":false}");
+    public override AgentToolDefinition Definition { get; } = new("get_operations_shift_occurrences", "Get shift occurrences in the authenticated practice.", "{\"type\":\"object\",\"properties\":{\"shiftId\":{\"type\":\"string\"},\"dateFrom\":{\"type\":\"string\",\"format\":\"date\"},\"dateTo\":{\"type\":\"string\",\"format\":\"date\"}},\"required\":[\"shiftId\",\"dateFrom\",\"dateTo\"],\"additionalProperties\":false}");
     public override async Task<AgentToolResult> ExecuteAsync(AgentToolCall call, AgentExecutionContext context, CancellationToken cancellationToken = default)
     { using JsonDocument doc = JsonDocument.Parse(call.ArgumentsJson); JsonElement a=doc.RootElement; return Result(call, await Scheduling.GetShiftOccurrencesAsync(Scope(call,context), new(Guid(a,"shiftId"),Date(a,"dateFrom"),Date(a,"dateTo")), cancellationToken)); }
 }

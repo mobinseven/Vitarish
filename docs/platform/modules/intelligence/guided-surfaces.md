@@ -44,7 +44,24 @@ All live in `src/Hosts/Web/shared/intelligence` and are exported from its index.
 4. On the web, call `toGuidedSurface` on the reply, render each action group with `ActionReviewGroup` using the app's cards and confirm function, and render the question and next action. Clinic's composition is `OperationsGuidedReply` in `shared/clinic/src/features/clinic-assistant`. A full-page assistant uses the `AgentChatWorkspace` frame from `@vitarish/ui` (header, optional conversation list, thread, composer); Clinic's is `ClinicAssistantWorkspace`.
 5. Anything shown without a model call (a welcome, a goal list) is built from server keys and state in the app's web feature; Clinic does this in `features/clinic-setup`.
 
-Changing an agent's instructions, output schema or tool exposure changes its compatibility key, so open conversations ask once to start again.
+Changing an agent's instructions, output schema or tool exposure changes its compatibility key. Open conversations continue: the next turn carries over only their user and assistant messages (ADR-0012).
+
+## Presented surfaces: chosen implementation
+
+ADR-0022 decision 8 sets the rules for presented surfaces and the requirements any UI protocol must meet. The protocol chosen is [A2UI](https://a2ui.org/) (Agent-to-User Interface, specification 1.0, Apache 2.0, source at `github.com/a2ui-project/a2ui`). Nothing of it is built yet.
+
+| Part | Package | Notes |
+| --- | --- | --- |
+| Web renderer | `@a2ui/react` with `@a2ui/web_core` | Catalog components are registered with `createComponentImplementation` and backed by HeroUI. User actions reach the `ActionListener` passed to the message processor. |
+| Surface validation in the agent runtime | `@a2ui/agent` | TypeScript agent SDK; validates a surface against the catalog schema. |
+
+Known gaps when chosen (2026-11-14):
+
+- All packages are pre-1.0 (`@a2ui/react` 0.15, `@a2ui/agent` 0.1) although the specification is 1.0.
+- `@a2ui/react` and `@a2ui/web_core` depend on zod `^3.25`; the web workspace uses zod 4. Check with a trial install before building.
+- The basic catalog has no chart; the project's Vega chart catalog is unpublished. Vitarish adds its own chart component.
+- The specification has no text-direction or translation guidance; HeroUI and the platform localization provide both.
+- The basic catalog's text props accept literals. The Vitarish catalog declares data props as data bindings only (`{"@path": …}`).
 
 ## Not built yet
 

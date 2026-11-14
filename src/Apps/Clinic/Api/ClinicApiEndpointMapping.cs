@@ -705,7 +705,6 @@ public static class ClinicApiEndpointMapping
         AssistantResult result = await sender.Send(new RunAssistant(context, new AssistantInput(request.Message)), ct);
         if (result.Outcome == AssistantRunOutcome.NotFound) return Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "Operations-agent conversation was not found."));
         if (result.Outcome == AssistantRunOutcome.Busy) return Results.Conflict(new ClinicError(ClinicErrorCode.Conflict, "The conversation is active."));
-        if (result.Outcome == AssistantRunOutcome.ProfileChanged) return Results.Conflict(new ClinicError(ClinicErrorCode.Conflict, "The agent profile changed; start a new conversation."));
         if (result.Outcome == AssistantRunOutcome.InvalidHistory) return Results.Conflict(new ClinicError(ClinicErrorCode.InvalidHistory, "The conversation history is invalid."));
         if (result.Outcome != AssistantRunOutcome.Succeeded) return Results.Json(new ClinicError(ClinicErrorCode.UnexpectedFailure, "The operations agent failed."), statusCode: StatusCodes.Status502BadGateway);
         return Results.Ok(ToRunResponse(result));
@@ -850,8 +849,6 @@ public static class ClinicApiEndpointMapping
             return Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "Clinic assistant conversation was not found."));
         if (result.Outcome == AssistantRunOutcome.Busy)
             return Results.Conflict(new ClinicError(ClinicErrorCode.Conflict, "The conversation is active."));
-        if (result.Outcome == AssistantRunOutcome.ProfileChanged)
-            return Results.Conflict(new ClinicError(ClinicErrorCode.Conflict, "The agent profile changed; start a new conversation."));
         if (result.Outcome == AssistantRunOutcome.InvalidHistory)
             return Results.Conflict(new ClinicError(ClinicErrorCode.InvalidHistory, "The conversation history is invalid."));
         if (result.Outcome != AssistantRunOutcome.Succeeded)

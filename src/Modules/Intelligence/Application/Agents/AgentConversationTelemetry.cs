@@ -12,7 +12,7 @@ internal static partial class AgentConversationTelemetry
         Message = "Agent provider execution ended with {Outcome}; execution {ExecutionId}.")]
     internal static partial void ProviderOutcome(ILogger logger, string outcome, string executionId);
 
-    [LoggerMessage(EventId = 73603, Level = LogLevel.Warning,
-        Message = "Agent profile compatibility conflict rejected execution {ExecutionId}; agent {AgentKey}, conversation {ConversationId}.")]
-    internal static partial void ProfileConflict(ILogger logger, string executionId, string agentKey, string conversationId);
+    [LoggerMessage(EventId = 73604, Level = LogLevel.Information,
+        Message = "Agent conversation history carried over for {Reason}; execution {ExecutionId}, agent {AgentKey}, conversation {ConversationId}, carried {CarriedBytes} of {StoredBytes} bytes.")]
+    internal static partial void HistoryCarriedOver(ILogger logger, string reason, string executionId, string agentKey, string conversationId, int carriedBytes, int storedBytes);
 }

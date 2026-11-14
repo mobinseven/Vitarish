@@ -3,7 +3,9 @@ using Moq;
 using Vitarish.Appointments.Application.Abstractions;
 using Vitarish.Appointments.Application.AgentCapabilities;
 using Vitarish.Clinic.Application.Assistant;
+using Vitarish.Clinic.Application.Assistant.Capabilities;
 using Vitarish.Clinic.Application.Assistant.Operations;
+using Vitarish.Clinic.Application.Assistant.Policies;
 using Vitarish.Clinic.Infrastructure.Assistant.Capabilities.Operations;
 using Vitarish.Intelligence.Application.Agents;
 using Vitarish.Entities.Contracts.Models;
@@ -141,6 +143,43 @@ public sealed class OperationsAgentCapabilityTests
     }
 
     [Fact]
+    public async Task Appointment_administration_commits_the_setup_records_a_new_clinic_needs()
+    {
+        Mock<IServiceManager> services = new(MockBehavior.Strict);
+        services.Setup(x => x.AddAsync(It.IsAny<Vitarish.Appointments.Domain.Dto.ServiceWriteDto>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(EntityResult<Vitarish.Appointments.Domain.Dto.ServiceReadDto>.Success(new Vitarish.Appointments.Domain.Dto.ServiceReadDto()));
+        Mock<IServiceProviderManager> providers = new(MockBehavior.Strict);
+        providers.Setup(x => x.AddAsync(It.IsAny<Vitarish.Appointments.Domain.Dto.ServiceProviderWriteDto>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(EntityResult<Vitarish.Appointments.Domain.Dto.ServiceProviderReadDto>.Success(new Vitarish.Appointments.Domain.Dto.ServiceProviderReadDto()));
+        Mock<IShiftBookingPolicyManager> bookingPolicies = new(MockBehavior.Strict);
+        bookingPolicies.Setup(x => x.AddAsync(It.IsAny<Vitarish.Appointments.Domain.Dto.ShiftBookingPolicyWriteDto>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(EntityResult<Vitarish.Appointments.Domain.Dto.ShiftBookingPolicyReadDto>.Success(new Vitarish.Appointments.Domain.Dto.ShiftBookingPolicyReadDto()));
+        AppointmentAdministrationAgentTool tool = new(
+            new Mock<IAccessControlledReservationManager>().Object,
+            new Mock<IAccessControlledShiftManager>().Object,
+            services.Object,
+            new Mock<IServiceTypeManager>().Object,
+            providers.Object,
+            bookingPolicies.Object,
+            new Mock<IShiftReminderPolicyManager>().Object,
+            new Mock<IShiftBookableDateQueryService>().Object,
+            new Mock<ITemporaryHoldManager>().Object);
+        AgentExecutionContext confirmed = new("run-1", new Dictionary<string, string> { ["confirmedAction"] = "true" });
+
+        foreach (string operation in new[] { "create_service", "create_provider", "create_booking_policy" })
+        {
+            AgentToolResult result = await tool.ExecuteAsync(
+                new AgentToolCall("call-1", "appointment_manage", $$"""{"operation":"{{operation}}","payload":{"name":"Setup"},"commit":true}"""),
+                confirmed);
+            result.IsError.Should().BeFalse(result.Output);
+        }
+
+        services.VerifyAll();
+        providers.VerifyAll();
+        bookingPolicies.VerifyAll();
+    }
+
+    [Fact]
     public async Task Appointment_administration_refuses_an_unreadable_payload_before_proposing_it()
     {
         Mock<IAccessControlledShiftManager> shifts = new(MockBehavior.Strict);
@@ -163,4 +202,50 @@ public sealed class OperationsAgentCapabilityTests
         result.Output.Should().Contain("invalid");
         tool.GetPreparedAction(result).Should().BeNull();
     }
+    [Fact]
+    public async Task Patient_search_returns_candidates_in_the_shape_the_result_parser_reads()
+    {
+        Mock<IAssistantPatientSearch> search = new(MockBehavior.Strict);
+        search.Setup(service => service.SearchAsync("practice-1", "owner-1", "run-1", "Sara", null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new AssistantSearchResult([new AssistantSearchCandidate("opaque", "Sara", null, "1******9", "0******1")], false));
+        SearchPatientsTool tool = new(search.Object, new Mock<IAppointmentSchedulingAgentCapability>(MockBehavior.Strict).Object);
+
+        AgentToolResult result = await tool.ExecuteAsync(new AgentToolCall("call-1", "search_patients", """{"search":"Sara"}"""), PracticeExecution());
+
+        AssistantSearchResult? parsed = System.Text.Json.JsonSerializer.Deserialize<AssistantSearchResult>(result.Output);
+        parsed!.Candidates.Should().ContainSingle(candidate => candidate.CandidateToken == "opaque");
+        parsed.HasMore.Should().BeFalse();
+    }
+
+    [Theory]
+    [InlineData("2026-11-14T00:00:00")]
+    [InlineData("14/11/2026")]
+    public async Task An_unreadable_date_is_returned_to_the_model_as_a_correctable_tool_error(string dateFrom)
+    {
+        Mock<IAppointmentSchedulingAgentCapability> scheduling = new(MockBehavior.Strict);
+        ListOperationsAppointmentsTool handler = new(scheduling.Object);
+        AssistantContext context = new(
+            "practice-1", Guid.Empty, "owner-1", new HashSet<string>(StringComparer.Ordinal),
+            AssistantOperationsScope.TenantOwnerRole, "en-US", "UTC", "conversation-1", SubjectKind: "practice");
+        AgentExecutionContext execution = PracticeExecution();
+        IAgentTool guarded = new AssistantToolDispatcher(new AssistantCapabilityRegistry(
+                [], new AssistantAuthorizationPolicy(), new AssistantToolAvailabilityPolicy(), []))
+            .CreateGuardedTools(context, execution, [handler], new Dictionary<string, string> { [handler.Definition.Name] = "Operations" })
+            .Single();
+
+        AgentToolResult result = await guarded.ExecuteAsync(
+            new AgentToolCall("call-1", "list_operations_appointments", $$"""{"dateFrom":"{{dateFrom}}"}"""), execution);
+
+        result.IsError.Should().BeTrue();
+        result.Output.Should().Contain("dateFrom must be a Gregorian date written as yyyy-MM-dd");
+        scheduling.VerifyNoOtherCalls();
+    }
+
+    private static AgentExecutionContext PracticeExecution() => new("run-1", new Dictionary<string, string>
+    {
+        ["practiceId"] = "practice-1",
+        ["patientId"] = Guid.Empty.ToString("D"),
+        ["authenticatedUserId"] = "owner-1",
+        ["subjectKind"] = "practice"
+    });
 }

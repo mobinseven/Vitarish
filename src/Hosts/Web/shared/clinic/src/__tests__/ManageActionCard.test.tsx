@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ManageActionCard, StaffInviteActionCard } from "../features/clinic-assistant/ManageActionCard";
+import { ClinicProfileActionCard, ManageActionCard, StaffInviteActionCard, StaffRemovalActionCard } from "../features/clinic-assistant/ManageActionCard";
 import { LocalizationProvider, clinicMessageCatalogs } from "../localization";
 
 function Wrapper({ children }: { children: ReactNode }) {
@@ -156,5 +156,30 @@ describe("StaffInviteActionCard", () => {
   it("offers no edit without onRevise", () => {
     render(<StaffInviteActionCard reviewPayload={{ firstName: "Sara", lastName: "Rad", phoneNumber: "+989121234567" }} />, { wrapper: Wrapper });
     expect(screen.queryByRole("button", { name: /Edit/ })).toBeNull();
+  });
+});
+
+describe("StaffRemovalActionCard", () => {
+  it("names the member and shows only the masked contact", () => {
+    render(<StaffRemovalActionCard reviewPayload={{ userId: "staff-1", name: "Sara Karimi", contact: "+98•••••4567" }} />, { wrapper: Wrapper });
+
+    expect(screen.getByText("Sara Karimi")).toBeInTheDocument();
+    expect(screen.getByText("+98•••••4567")).toBeInTheDocument();
+    expect(screen.queryByText("staff-1")).toBeNull();
+  });
+});
+
+describe("ClinicProfileActionCard", () => {
+  it("shows only the parts of the profile that change", () => {
+    render(
+      <ClinicProfileActionCard reviewPayload={{ address: { city: "Tehran", street: "Valiasr 10" }, phones: ["021 1234", "021 5678"] }} />,
+      { wrapper: Wrapper },
+    );
+
+    expect(screen.getByText("Address")).toBeInTheDocument();
+    expect(screen.getByText("Tehran, Valiasr 10")).toBeInTheDocument();
+    expect(screen.getByText("021 1234, 021 5678")).toBeInTheDocument();
+    expect(screen.queryByText("Website")).toBeNull();
+    expect(screen.queryByText("Description")).toBeNull();
   });
 });

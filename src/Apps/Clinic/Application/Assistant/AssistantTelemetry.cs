@@ -20,11 +20,12 @@ internal static partial class AssistantTelemetry
     [LoggerMessage(
         EventId = 73702,
         Level = LogLevel.Warning,
-        Message = "Clinic agent tool {ToolName} in capability {Capability} failed in {ElapsedMilliseconds}ms; run {AgentRunId}, call {ToolCallId}.")]
+        Message = "Clinic agent tool {ToolName} in capability {Capability} failed with {ExceptionType} in {ElapsedMilliseconds}ms; run {AgentRunId}, call {ToolCallId}.")]
     internal static partial void ToolFailed(
         ILogger logger,
         string toolName,
         string capability,
+        string exceptionType,
         long elapsedMilliseconds,
         string agentRunId,
         string toolCallId);
