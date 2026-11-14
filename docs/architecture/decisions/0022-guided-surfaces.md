@@ -44,8 +44,11 @@ This decision completes the model around it.
   declares can be shown, with the fields of it that may be shown.
 - **Handle:** a short server-minted name for one presentable result. It is
   valid only within the run that produced it and carries no data.
-- **Presented surface:** an A2UI component tree from the Vitarish catalog
-  whose data comes from presentable results (decision 8).
+- **UI protocol:** the open, declarative agent-to-user interface standard the
+  platform adopts for presented surfaces (decision 8). Which standard and
+  which packages implement it are recorded in the module documentation.
+- **Presented surface:** a component tree in the UI protocol, from the
+  Vitarish catalog, whose data comes from presentable results (decision 8).
 
 ## Decision
 
@@ -97,7 +100,7 @@ This decision completes the model around it.
      renderer through an explicit registry. Nothing is discovered at runtime,
      as in ADR-0012.
    - *Presented surfaces* travel in one platform kind, owned by Intelligence,
-     whose data is an A2UI surface (decision 8). The app owns which read tools
+     whose data is a presented surface (decision 8). The app owns which read tools
      return presentable results, their presentable fields and record
      references, and any catalog components it adds; Intelligence owns the
      handle, the run collector, the catalog and the envelope.
@@ -145,14 +148,20 @@ This decision completes the model around it.
    "present need" rule in `src/Apps/AGENTS.md`. The block contract is
    considered stable only after two distinct surfaces use it.
 
-8. **Presented surfaces use A2UI: the model lays out, the server fills.**
-   Rich components such as record cards, lists and charts are A2UI surfaces
-   (the open Agent-to-User Interface protocol, version 1.0). The model
-   composes a surface's layout from a Vitarish catalog; every value a person
-   reads as data comes from a read tool's result in the same run.
-   - *Catalog.* Intelligence owns one Vitarish A2UI catalog, with its JSON
-     schema, and `shared/intelligence` implements each catalog component
-     with the A2UI React renderer on the platform's HeroUI components. Apps add
+8. **Presented surfaces: the model lays out, the server fills.** Rich
+   components such as record cards, lists and charts are presented surfaces.
+   The model composes a surface's layout from a Vitarish catalog; every value
+   a person reads as data comes from a read tool's result in the same run.
+   - *The UI protocol.* The platform adopts an existing open standard rather
+     than its own format. Any standard it adopts must be declarative (data,
+     not code), keep the component tree separate from a data model that
+     server code can fill, let the platform define its own catalog
+     implemented with its own design-system components, validate surfaces
+     against that catalog, and hand user actions to a handler the web
+     supplies. Replacing the standard does not change this decision.
+   - *Catalog.* Intelligence owns one Vitarish catalog, with its schema, and
+     `shared/intelligence` implements each catalog component with the
+     protocol's renderer on the platform's design-system components. Apps add
      components through the same explicit registry as app kinds. In the
      catalog, every prop that carries record data (names, dates, figures,
      series) accepts only a data binding, never a literal; only headings and
@@ -163,15 +172,15 @@ This decision completes the model around it.
      presentable result and keeps it server-side for the run, as run-scoped
      record tokens already work for patient search candidates. A handle names
      a result and the fields the app declares presentable from it.
-   - *Presenting.* A shared Intelligence `present` tool takes an A2UI surface
-     whose bindings point into handles. The agent runtime validates the
-     surface against the catalog with the A2UI agent SDK and
+   - *Presenting.* A shared Intelligence `present` tool takes a surface whose
+     bindings point into handles. The agent runtime validates the surface
+     against the catalog with the protocol's agent tooling and
      returns a failure to the model as a tool error. Main then checks that
      each bound handle belongs to the current run and to a successful read,
      and that each bound field is presentable, and builds the surface's data
      model from those results. Anything that fails is reported to the model
      and never reaches the reply.
-   - *Buttons.* A2UI actions reach a handler the web supplies, never an
+   - *Buttons.* User actions reach a handler the web supplies, never an
      agent endpoint. The catalog's action names map only to existing
      actions: a question option, a next-action key, a destination link, or a
      prepared action from a preparation tool. There is no model-defined
@@ -179,7 +188,9 @@ This decision completes the model around it.
    - *Persistence.* A presented surface is stored with the conversation's
      protected presentation record as its component tree and the record
      references behind its handles (IDs or query parameters), never as its
-     data model. Intelligence owns and versions this stored shape. Redrawing
+     data model. Intelligence owns and versions this stored shape, and each
+     stored tree records its protocol and protocol version, so a later
+     standard can convert or decline older trees. Redrawing
      it rebuilds the data model through the app's own routes, under the
      viewer's authorization, so it shows current values, and a record the
      viewer may no longer read is not shown. Model history is separate, so
@@ -211,14 +222,15 @@ This decision completes the model around it.
   in a reply that shows something, and the catalog adds to its prompt. How
   reliably the model writes valid surfaces is measured by the live agent
   behaviour spec before a surface ships.
-- **A2UI as a dependency.** The protocol is at version 1.0, but its renderer
-  and agent SDK releases are pre-1.0 and may change; the module
-  documentation records the packages in use. The agent runtime becomes the validator of surface shape; Main
-  remains the owner of handles, data and authorization, so a shape the
-  runtime wrongly accepts can still show only presentable fields of this
-  run's reads. A2UI has no chart component and no right-to-left guidance:
-  charts are Vitarish catalog components, and direction and translation come
-  from HeroUI and the platform's localization (ADR-0007).
+- **An external standard as a dependency.** The UI protocol and its packages
+  evolve outside the platform; the module documentation records the
+  standard and packages in use and their known gaps. The agent runtime
+  becomes the validator of surface shape; Main remains the owner of handles,
+  data and authorization, so a shape the runtime wrongly accepts can still
+  show only presentable fields of this run's reads. Components the standard
+  lacks, such as charts, are Vitarish catalog components, and text direction
+  and translation come from the platform's design system and localization
+  (ADR-0007), not from the protocol.
 - **One conversation across an app's surfaces.** An app's assistant
   conversation may continue across the places it appears within one browser
   session: closing a surface keeps the conversation, an explicit reset deletes
@@ -263,21 +275,8 @@ window shorter than a release.
 
 Rejected: the model would write the figures, labels and button targets a
 person reads and acts on. A chart of model-typed clinical numbers cannot be
-trusted. For the same reason the catalog does not use A2UI's basic catalog,
-whose props accept literals.
-
-### Option 9: A Vitarish block envelope and renderer instead of A2UI
-
-Rejected by the owner: A2UI already provides the component-tree format,
-data binding, catalog validation, action messages and a React renderer that
-maps to the platform's own components. Building these again would reinvent
-an open standard.
-
-### Option 10: Server-authored surfaces only
-
-Rejected by the owner: the model could only pick what to show, not how to
-arrange it, which leaves most of A2UI unused. Binding-only data props keep
-the trust rule without it.
+trusted. For the same reason the catalog does not adopt a standard's
+generic catalog where data props accept literals.
 
 ### Option 7: Present every displayable read automatically, or by a reference in the reply
 
@@ -292,6 +291,19 @@ records read during the run.
 Rejected: a snapshot is a second copy of clinical data in the conversation
 store, with its own retention, shown again without a fresh authorization
 check.
+
+### Option 9: A Vitarish block format and renderer instead of an open standard
+
+Rejected by the owner: open agent-to-user interface standards already
+provide the component-tree format, data binding, catalog validation, action
+messages and renderers that map to an application's own components.
+Building these again would reinvent them.
+
+### Option 10: Server-authored surfaces only
+
+Rejected by the owner: the model could only pick what to show, not how to
+arrange it, which leaves most of the protocol unused. Binding-only data
+props keep the trust rule without it.
 
 ## Validation / Enforcement
 
@@ -316,9 +328,9 @@ check.
 ## Notes
 
 - Revisit if a group must commit all-or-nothing, if blocks must stream before a
-  run ends, if blocks other than presented results must be redrawn after a
-  reload, if a presented block must show data as it was rather than as it is,
-  if the extra presenting step proves too slow, if the model's surfaces fail
-  validation too often, if an A2UI release breaks the catalog or renderer, if
-  actions must live longer than minutes, or if an app needs kinds the
-  platform set does not cover.
+  run ends, if blocks other than presented surfaces must be redrawn after a
+  reload, if a presented surface must show data as it was rather than as it
+  is, if the extra presenting step proves too slow, if the model's surfaces
+  fail validation too often, if actions must live longer than minutes, or if
+  an app needs kinds the platform set does not cover. Replacing the UI
+  protocol with another that meets decision 8 is not a reason to revisit.
