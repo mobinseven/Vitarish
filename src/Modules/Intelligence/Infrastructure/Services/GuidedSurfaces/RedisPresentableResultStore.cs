@@ -7,7 +7,7 @@ namespace Vitarish.Intelligence.Infrastructure.Services.GuidedSurfaces;
 
 /// <summary>
 /// Keeps a run's presentable results in one Redis hash under an Intelligence-owned key namespace. Handles are
-/// numbered per run (<c>r1</c>, <c>r2</c>, ...); the hash expires a while after the run's last read, long enough
+/// numbered per run and marked with the run (<see cref="PresentableHandles"/>); the hash expires a while after the run's last read, long enough
 /// for the run to finish and for its reply to be built.
 /// </summary>
 public sealed class RedisPresentableResultStore(IConnectionMultiplexer redis) : IPresentableResultStore
@@ -25,7 +25,7 @@ public sealed class RedisPresentableResultStore(IConnectionMultiplexer redis) : 
         cancellationToken.ThrowIfCancellationRequested();
         RedisKey key = Key(executionId);
         long number = await _database.HashIncrementAsync(key, CounterField);
-        string handle = "r" + number.ToString(CultureInfo.InvariantCulture);
+        string handle = PresentableHandles.Create(executionId, number);
         await _database.HashSetAsync(key, handle, JsonSerializer.Serialize(result, PresentableJsonContext.Default.PresentableResult));
         await _database.KeyExpireAsync(key, Lifetime);
         return handle;

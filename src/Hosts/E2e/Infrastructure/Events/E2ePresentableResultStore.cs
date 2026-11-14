@@ -17,7 +17,7 @@ internal sealed class E2ePresentableResultStore : IPresentableResultStore
         ConcurrentDictionary<string, PresentableResult> run = runs.GetOrAdd(executionId, _ => new(StringComparer.Ordinal));
         lock (run)
         {
-            string handle = "r" + (run.Count + 1).ToString(CultureInfo.InvariantCulture);
+            string handle = PresentableHandles.Create(executionId, run.Count + 1);
             run[handle] = result;
             return Task.FromResult(handle);
         }

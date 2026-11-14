@@ -43,6 +43,8 @@ export const intelligenceMessageCatalogs = {
         openRecordTooltip: "Open this record's page",
         showAll: "Show all",
         showAllTooltip: "Open the full list on its page",
+        moreCount: "{count} more not shown here.",
+        moreExist: "More results exist than are shown here.",
         chartLabel: "Chart of {metric}",
       },
       guidedSurface: {
@@ -144,6 +146,8 @@ export const intelligenceMessageCatalogs = {
         openRecordTooltip: "صفحهٔ این مورد را باز کنید",
         showAll: "نمایش همه",
         showAllTooltip: "فهرست کامل را در صفحهٔ خودش باز کنید",
+        moreCount: "{count} مورد دیگر اینجا نشان داده نشده است.",
+        moreExist: "نتایج بیشتری از آنچه اینجا آمده وجود دارد.",
         chartLabel: "نمودار {metric}",
       },
       guidedSurface: {

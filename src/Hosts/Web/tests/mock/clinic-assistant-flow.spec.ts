@@ -27,6 +27,13 @@ describeSurgeryFlow("clinic-assistant-flow", [async ({ page, locale, capture }) 
     await capture("assistant-prepared-group");
   });
 
+  await test.step("presented appointments", async () => {
+    await page.getByRole("textbox", { name: clinic.operationsAssistant.composer.label }).fill(locale === "fa" ? "نوبت‌های این هفته را نشان بده" : "Show me appointments this week");
+    await page.getByRole("button", { name: clinic.operationsAssistant.composer.send }).click();
+    await expect(page.getByRole("img", { name: new RegExp(intelligenceMessageCatalogs[locale].intelligence.surface.chartLabel.split("{")[0].trim()) })).toBeInViewport({ timeout: pageCompileTimeoutMilliseconds });
+    await capture("assistant-presented-appointments");
+  });
+
   await test.step("patient search results", async () => {
     await page.getByRole("textbox", { name: clinic.operationsAssistant.composer.label }).fill(workspace.suggestions.items.findPatient.prompt);
     await page.getByRole("button", { name: clinic.operationsAssistant.composer.send }).click();

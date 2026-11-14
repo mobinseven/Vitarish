@@ -82,6 +82,8 @@ public sealed class OperationsAssistantBehaviourTests(LiveAgentRuntime runtime)
         result.IsSuccess.Should().BeTrue(await runtime.FailureReasonAsync(result));
         result.ToolExecutions.Should().Contain(execution => execution.ToolName == PresentSurfaceTool.Name && !execution.IsError,
             "the model presents what it found; tool outputs: " + string.Join(" | ", result.ToolExecutions.Select(execution => $"{execution.ToolName}:{execution.Output}")));
+        result.ToolExecutions.Where(execution => execution.ToolName == PresentSurfaceTool.Name)
+            .Should().OnlyContain(execution => !execution.IsError, "the model's first surface is valid (ADR-0022: validity is measured)");
         IReadOnlyList<PresentedSurface> surfaces = await runtime.SurfacesAsync(executionId, result);
         PresentedSurface surface = surfaces.Should().ContainSingle().Which;
         string data = surface.DataModel.GetRawText();

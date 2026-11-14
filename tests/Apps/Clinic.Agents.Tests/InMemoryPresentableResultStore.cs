@@ -12,7 +12,7 @@ internal sealed class InMemoryPresentableResultStore : IPresentableResultStore
 
     public Task<string> SaveAsync(string executionId, PresentableResult result, CancellationToken cancellationToken)
     {
-        string handle = "r" + counters.AddOrUpdate(executionId, 1, (_, current) => current + 1).ToString(CultureInfo.InvariantCulture);
+        string handle = PresentableHandles.Create(executionId, counters.AddOrUpdate(executionId, 1, (_, current) => current + 1));
         results[(executionId, handle)] = result;
         return Task.FromResult(handle);
     }

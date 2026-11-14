@@ -55,7 +55,7 @@ ADR-0022 decision 8 sets the rules and the requirements any UI protocol must mee
 How a surface reaches the screen:
 
 1. An app declares which read tools of which agents are presentable with `AgentToolPresentation` (projector from tool output to `PresentableResult`). Clinic's are `ClinicAssistantPresentations.All()`; every Clinic read tool is either declared there or listed in `ClinicAssistantPresentations.Exempt` with a reason, and `PresentationCoverageTests` enforces it.
-2. The Intelligence tool callback runs `PresentableResultPublisher` after each tool: a declared, successful read is stored by run in Redis (`RedisPresentableResultStore`, `intelligence:presentable:{executionId}`, 30 minutes) and its output gains a `presentation` property with the handle (`r1`, `r2`, ...) and its fields. If the store fails, the read still succeeds without a handle.
+2. The Intelligence tool callback runs `PresentableResultPublisher` after each tool: a declared, successful read is stored by run in Redis (`RedisPresentableResultStore`, `intelligence:presentable:{executionId}`, 30 minutes, not encrypted: it holds only the masked values the screens show) and its output gains a `presentation` property with the handle and its fields. A handle is numbered and marked with its run (`r1-3f9c`, `PresentableHandles`), so one remembered from an earlier turn never names a result of the current one. If the store fails, the read still succeeds without a handle.
 3. The model calls `present_surface` (`PresentSurfaceTool`, contributed to Clinic by `PresentationAssistantCapability`). Its definition carries the catalog; the agent runtime validates the surface against it (`apps/agent-runtime/.../run/surface.ts`) before calling back, and marks the callback `surfaceValidated`. Main refuses unvalidated surfaces, handles of another run and fields the result does not declare, each as a tool error the model reads.
 4. At the end of the run `PresentedSurfaceCollector` turns each accepted `present_surface` call into a `Surface` block, with the data model filled from the handles. Values never come from the model.
 5. The web renders it with the A2UI React renderer on HeroUI components.
@@ -67,7 +67,7 @@ The catalog is one file, `src/Hosts/Web/shared/intelligence/src/surfaces/assista
 | Web renderer | `@a2ui/react` 0.15 with `@a2ui/web_core` 0.15 | `presentedSurfaceCatalog()` builds the implementations from the catalog document; each view resolves its `result` binding through the surface's data context. |
 | Surface validation in the agent runtime | `@a2ui/agent` 0.1 | `validatePayload` against the catalog sent with the tool. |
 
-Design standard (inline cards in a chat, after the OpenAI, Anthropic, Google and Microsoft inline-card guidance): cards size to their content with no inner scrolling and no fixed widths; a title of one or two lines and at most three facts; lists show five rows and then link to the full screen; one action per record, opening its screen; colors and components come from HeroUI as elsewhere in the app; text is rem-based.
+Design standard (inline cards in a chat, after the OpenAI, Anthropic, Google and Microsoft inline-card guidance): cards size to their content with no inner scrolling and no fixed widths; a title of one or two lines and at most three facts; lists show five rows and then say more exist (with a link to the full screen where the app supplies one); charts read right to left in Persian; one action per record, opening its screen; colors and components come from HeroUI as elsewhere in the app; text is rem-based.
 
 Known gaps:
 
@@ -78,7 +78,8 @@ Known gaps:
 
 ## Not built yet
 
-- Opening presented records other than Clinic's patient candidates: the other kinds render without an action until their screens are mapped.
+- Opening presented records other than Clinic's patient candidates, and a full-screen link under shortened lists: the other kinds render without an action until their screens are mapped.
+- The web's record-kind list (`shared/clinic/.../presentedKinds.ts`) is a hand-kept mirror of `ClinicPresentedRecordKinds`; it is not generated yet.
 - Persisting presented surfaces: Clinic stores no presentation transcript and shows no earlier turns after a reload, so surfaces are not stored and redrawn.
 - Prepared-action review cards and the setup welcome as catalog components; they stay on the shared `ActionReviewGroup` and `GoalChecklist`.
 - Goal-checklist and destination-link blocks as wire kinds, and reference chips. The checklist is a component the app feeds from its own endpoint, and the next action is a key the app maps to a screen.

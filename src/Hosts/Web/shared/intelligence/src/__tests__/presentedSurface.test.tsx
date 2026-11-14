@@ -67,6 +67,7 @@ describe("PresentedSurface", () => {
 
     expect(await screen.findByText("Patient 4")).toBeVisible();
     expect(screen.queryByText("Patient 5")).toBeNull();
+    expect(screen.getByText("intelligence.surface.moreExist")).toBeVisible();
     fireEvent.click(screen.getByRole("button", { name: /intelligence.surface.showAll/ }));
     expect(showAll).toHaveBeenCalledWith("clinic.patient-candidate");
   });

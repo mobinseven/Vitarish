@@ -6,7 +6,7 @@ import { BarChart } from "@heroui-pro/react/bar-chart";
 import { KPI } from "@heroui-pro/react/kpi";
 import { Catalog, type ComponentApi } from "@a2ui/web_core";
 import { createComponentImplementation, useSignalValue, type ReactComponentImplementation } from "@a2ui/react";
-import { useLocalizedText } from "@vitarish/localization";
+import { formatNumber, useLocalizedText } from "@vitarish/localization";
 import { FaIcon } from "@vitarish/ui";
 import { useMemo, type ReactNode } from "react";
 import catalogDocument from "./assistant-catalog.json";
@@ -96,7 +96,7 @@ const renderers: Record<string, Render> = {
     return record ? <RecordRow record={record} fields={stringList(props.fields)} variant="outline" /> : null;
   },
   RecordList: function RecordListView({ props }) {
-    const { t } = useLocalizedText();
+    const { t, locale } = useLocalizedText();
     const appearance = usePresentedSurfaceAppearance();
     const result = asPresentedResult(props.result);
     if (!result || result.records.length === 0) return null;
@@ -105,10 +105,17 @@ const renderers: Record<string, Render> = {
     return (
       <div className="flex w-full flex-col gap-2">
         <ul className="flex flex-col gap-2">
-          {shown.map((record) => (
-            <li key={record.reference}><RecordRow record={record} fields={stringList(props.fields)} variant="secondary" /></li>
+          {shown.map((record, index) => (
+            <li key={`${index}:${record.reference}`}><RecordRow record={record} fields={stringList(props.fields)} variant="secondary" /></li>
           ))}
         </ul>
+        {shortened ? (
+          <p className="text-sm text-muted">
+            {result.records.length > shown.length && !result.hasMore
+              ? t("intelligence.surface.moreCount", { count: formatNumber(result.records.length - shown.length, locale) })
+              : t("intelligence.surface.moreExist")}
+          </p>
+        ) : null}
         {shortened && appearance.showAll ? (
           <Tooltip delay={400}>
             <Button className="self-start" size="sm" variant="ghost" onPress={() => appearance.showAll?.(result.kind)}>
@@ -139,7 +146,8 @@ const renderers: Record<string, Render> = {
     );
   },
   BarChart: function BarChartView({ props }) {
-    const { t, locale } = useLocalizedText();
+    const { t, locale, direction } = useLocalizedText();
+    const rtl = direction === "rtl";
     const appearance = usePresentedSurfaceAppearance();
     const result = asPresentedResult(props.result);
     const field = typeof props.field === "string" ? props.field : "";
@@ -154,13 +162,14 @@ const renderers: Record<string, Render> = {
       <div className="w-full" role="img" aria-label={t("intelligence.surface.chartLabel", { metric })}>
         <BarChart data={series} height={200}>
           <BarChart.Grid vertical={false} />
-          <BarChart.XAxis dataKey="label" tickMargin={8} />
-          <BarChart.YAxis width={40} allowDecimals={false} />
+          {/* Right-to-left readers read time from right to left, with the value axis on the right. */}
+          <BarChart.XAxis dataKey="label" tickMargin={8} reversed={rtl} />
+          <BarChart.YAxis width={40} allowDecimals={false} orientation={rtl ? "right" : "left"} tickFormatter={(value: number) => formatNumber(value, locale)} />
           <BarChart.Bar dataKey="value" name={metric} fill="var(--accent)" radius={[6, 6, 0, 0]} maxBarSize={40} isAnimationActive={false} />
-          <BarChart.Tooltip content={<BarChart.TooltipContent />} />
+          <BarChart.Tooltip content={<BarChart.TooltipContent />} formatter={(value) => formatNumber(Number(value), locale)} />
         </BarChart>
         <dl className="sr-only">
-          {series.map((point) => <div key={point.label}><dt>{point.label}</dt><dd>{point.value}</dd></div>)}
+          {series.map((point, index) => <div key={`${index}:${point.label}`}><dt>{point.label}</dt><dd>{formatNumber(point.value, locale)}</dd></div>)}
         </dl>
       </div>
     );

@@ -83,6 +83,22 @@ public sealed class AgentToolPresentationCatalog
     public bool HasPresentations(string agentKey) => _presentations.Keys.Any(key => key.AgentKey == agentKey);
 }
 
+/// <summary>
+/// Handle names. A handle carries a short mark of its run as well as its number, so a handle the model remembers
+/// from an earlier turn never names a result of the current run.
+/// </summary>
+public static class PresentableHandles
+{
+    private const int RunMarkLength = 4;
+
+    public static string Create(string executionId, long number)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(executionId);
+        string mark = new string(executionId.Where(char.IsLetterOrDigit).TakeLast(RunMarkLength).ToArray()).ToLowerInvariant();
+        return string.Create(System.Globalization.CultureInfo.InvariantCulture, $"r{number}-{mark}");
+    }
+}
+
 /// <summary>Keeps the presentable results of one run, by handle, for minutes.</summary>
 public interface IPresentableResultStore
 {
