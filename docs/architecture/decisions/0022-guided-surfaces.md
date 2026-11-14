@@ -1,7 +1,7 @@
 # ADR-0022: Guided Surfaces
 
 Date: 2026-11-12
-Status: Accepted (amended 2026-11-12)
+Status: Accepted (amended 2026-11-12, 2026-11-14)
 Scope: Intelligence module and `shared/intelligence`; every app that offers an assistant
 Owner: Architecture
 Supersedes:
@@ -57,13 +57,11 @@ This decision completes the model around it.
      because larger schemas fail more often; it never becomes a union of every
      kind.
    - *Tools* produce rich blocks, such as a review group of prepared actions or
-     a record summary. While prepared actions are the only tool-produced block,
-     the app builds the review-group block from the actions a run saved, by
-     run. An Intelligence-owned run collector, which gathers the blocks tool
-     results emit during a run, is introduced when a second kind of
-     tool-produced block exists. Such blocks refer to server records by ID, and
-     the renderer re-reads each record's current state by ID rather than
-     trusting the copy in the reply.
+     a presented record (decision 8). The app builds the review-group block
+     from the actions a run saved, by run; presented records are gathered by
+     an Intelligence-owned run collector. Such blocks refer to server records
+     by ID, and the renderer re-reads each record's current state by ID rather
+     than trusting a copy in the reply.
    - *A server policy, without a model call,* decides an opening surface, such
      as a welcome and a checklist of what is left. It sends the content as keys
      and data (each goal's state, the next goal), and the web composes the
@@ -136,6 +134,32 @@ This decision completes the model around it.
    "present need" rule in `src/Apps/AGENTS.md`. The block contract is
    considered stable only after two distinct surfaces use it.
 
+8. **The model chooses what to show; the server fills it.** A component such
+   as a record card, list or chart is shown only from data a read tool
+   returned in the same run.
+   - *Presentable results.* An app declares which of its read tools return a
+     presentable result and the block kind each one becomes. The server, not
+     the model, attaches a handle to such a result. A handle is short, valid
+     only within its run, and names the result, not its data.
+   - *Presenting.* A shared Intelligence `present` tool takes only handles.
+     The run collector checks that each handle belongs to the current run and
+     to a successful read, and records the block. An invalid handle is
+     reported back to the model as a tool error and never reaches the reply.
+     The model never supplies a kind, figures, labels or a target; a chart's
+     series is computed by its read tool under the requesting person's
+     authorization. Because kinds come from tool results, adding one does not
+     change any agent's tool exposure or compatibility key.
+   - *Buttons.* A presented block offers only existing actions: a question
+     option, a next-action key, a destination link, or a prepared action from
+     a preparation tool. There is no model-defined button behaviour.
+   - *Persistence.* A presented block is stored with the conversation's
+     protected presentation record as its kind and record references (IDs or
+     query parameters), never as a copy of the data. Redrawing it re-reads the
+     current state through the app's own routes, under the viewer's
+     authorization, so it shows current values, and a record the viewer may no
+     longer read is not shown. Model history is separate, so carrying a
+     history over (ADR-0012) does not remove what a conversation showed.
+
 ## Consequences
 
 - An app adopts guided surfaces by declaring its vocabulary, action policies,
@@ -153,8 +177,15 @@ This decision completes the model around it.
   after the change. This is an owner-approved exception to
   expand-migrate-contract, valid only while actions live minutes rather than
   days.
-- **Past turns.** A guided surface does not promise to redraw earlier blocks
-  after a page reload; prepared actions stay reachable by ID.
+- **Past turns.** Presented records are redrawn after a page reload from their
+  stored references, with current data. Other earlier blocks are not
+  promised; prepared actions stay reachable by ID.
+- **Latency.** Presenting costs the model one more tool step in a reply that
+  shows something.
+- **Existing app-local displays.** Displays built before decision 8 (an app
+  parsing a read tool's output into its own response field, or snapshotting
+  fields from a reply reference) move onto presented records; until they do,
+  they are known drift, not a second pattern to copy.
 - **One conversation across an app's surfaces.** An app's assistant
   conversation may continue across the places it appears within one browser
   session: closing a surface keeps the conversation, an explicit reset deletes
@@ -193,6 +224,24 @@ own.
 Rejected: actions live minutes, so a reader and an extra port would serve a
 window shorter than a release.
 
+### Option 6: A presentation tool that takes component data
+
+Rejected: the model would write the figures, labels and button targets a
+person reads and acts on. This is option 3 through a tool, and a chart of
+model-typed clinical numbers cannot be trusted.
+
+### Option 7: Present every displayable read automatically, or by a reference in the reply
+
+Rejected: showing every read is noisy when a turn reads many records. A
+reference in the reply costs no tool step, but an invalid one can only be
+dropped silently; the `present` tool tells the model at once.
+
+### Option 8: Store presented data as snapshots
+
+Rejected: a snapshot is a second copy of clinical data in the conversation
+store, with its own retention, shown again without a fresh authorization
+check.
+
 ## Validation / Enforcement
 
 - Intelligence tests cover block validation (kinds outside the vocabulary
@@ -206,10 +255,16 @@ window shorter than a release.
   shared lifecycle under its own authorization.
 - The two-host E2E proof covers a grouped confirmation through the shared
   lifecycle.
+- Intelligence tests cover presentation: a handle from another run, a failed
+  read or a non-presentable tool is refused; stored blocks hold references
+  only. The live agent behaviour spec shows the model presents a record it
+  read.
 
 ## Notes
 
 - Revisit if a group must commit all-or-nothing, if blocks must stream before a
-  run ends, if past turns must be redrawn after a reload, if actions must live
+  run ends, if blocks other than presented records must be redrawn after a
+  reload, if a presented block must show data as it was rather than as it is,
+  if the extra presenting step proves too slow, if actions must live
   longer than minutes, or if an app needs kinds the platform set does not
   cover.
