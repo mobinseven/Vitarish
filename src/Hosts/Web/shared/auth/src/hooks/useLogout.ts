@@ -9,11 +9,13 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { ApiError } from "@vitarish/api-client";
 import { parseAuthError, getErrorMessage, type AuthError } from "../auth/errors";
+import { clearNavigationTransition } from "@vitarish/ui/navigation";
+import { AuthenticationWebRoutes } from "../routes";
 import { ignoreAuthNavigation, type AuthNavigate } from "./navigation";
 
 export type LogoutContextStatus = "loading" | "ready" | "already-signed-out" | "unavailable";
 
-export function useLogout(logoutId?: string, fallbackLoginHref = "/login", navigate: AuthNavigate = ignoreAuthNavigation) {
+export function useLogout(logoutId?: string, fallbackLoginHref: string = AuthenticationWebRoutes.SignIn, navigate: AuthNavigate = ignoreAuthNavigation) {
   const mutation = useAuthenticationLogoutPost();
   const contextQuery = useAuthenticationLogoutContext(logoutId ? { logoutId } : undefined);
   const queryClient = useQueryClient();
@@ -42,6 +44,7 @@ export function useLogout(logoutId?: string, fallbackLoginHref = "/login", navig
         const result = await mutation.mutateAsync({
           data: { logoutId: logoutId ?? null, returnUrl: returnUrl ?? fallbackLoginHref },
         });
+        clearNavigationTransition();
         queryClient.removeQueries({ queryKey: getAuthenticationSessionGetQueryKey() });
         if (result.redirectUrl) {
           navigate(result.redirectUrl);

@@ -4,7 +4,8 @@ import { headers } from "next/headers";
 import { Providers } from "@/components/providers/AppProviders";
 import { ContentSecurityPolicyNonceMeta, contentSecurityPolicyNonce } from "@vitarish/ui/content-security-policy";
 import { ThemePaletteClassScript } from "@vitarish/ui/theme-palette";
-import { InitialPageLoader } from "@/components/loading/InitialPageLoader";
+import { NavigationTransitionDocument, navigationTransitionDocument } from "@vitarish/ui/navigation-document";
+import { Routes } from "./routes";
 import { getMessages, I18nAppLayout, localizedMetadata } from "@/localization";
 import { applicationFontVariables } from "./fonts";
 import { themePaletteClasses } from "./theme";
@@ -40,10 +41,12 @@ export default async function RootLayout({
         vibrantPalette
         bodyClassName="bg-background text-foreground font-sans antialiased"
       >
+        <NavigationTransitionDocument nonce={nonce} signInHref={Routes.Login.Index} homeHref={Routes.Root} />
+        <div {...{ [navigationTransitionDocument.contentAttribute]: "" }} inert suppressHydrationWarning>
         <Providers nonce={nonce}>
-          <InitialPageLoader />
           <CentralAuthenticationSessionRenewal />{children}
         </Providers>
+        </div>
       </I18nAppLayout>
     </>
   );

@@ -1,6 +1,8 @@
 "use client";
 
 import { Button, Tooltip } from "@heroui/react";
+import { useRef } from "react";
+import { carryNavigationTransition, navigationTransitionSignal } from "@vitarish/ui/navigation";
 import { useLocalizedText } from "@vitarish/localization";
 import { FaIcon } from "@vitarish/ui";
 import { handoffUrl, hostUrl } from "../handoff/hostUrl";
@@ -16,11 +18,16 @@ interface TenantReadyPanelProps {
 
 export function TenantReadyPanel({ tenant, handoffPath, signInPath }: TenantReadyPanelProps) {
   const { t } = useLocalizedText();
+  const departing = useRef(false);
 
   const goToClinic = () => {
-    window.location.assign(tenant.handoffUrl ?? (tenant.handoffToken
+    if (departing.current) return;
+    departing.current = true;
+    const target = carryNavigationTransition(tenant.handoffUrl ?? (tenant.handoffToken
       ? handoffUrl(tenant.hostname, handoffPath, tenant.handoffToken)
       : hostUrl(tenant.hostname, signInPath).toString()));
+    navigationTransitionSignal()?.addEventListener("abort", () => { departing.current = false; }, { once: true });
+    window.location.assign(target);
   };
 
   return (

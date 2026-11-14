@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import http from "node:http";
 import https from "node:https";
 import net from "node:net";
+import { createTwoHostWebRouter } from "./two-host-web-router.mjs";
 import crypto from "node:crypto";
 import { signInUrlEnvironmentKey } from "../shared/journey/src/signInHost.ts";
 import { apiProxyTargetEnvironmentKey, browserApiBaseEnvironmentKey } from "./api-proxy-rewrites.mjs";
@@ -25,6 +26,9 @@ import {
   twoHostE2eProofScreenshotEnvironmentKey,
   twoHostE2eProofStorageStateEnvironmentKey,
   twoHostE2eSignInOrigin,
+  twoHostE2eLandingOrigin,
+  twoHostE2eOwnerListenerOrigin,
+  twoHostE2eLandingListenerOrigin,
   twoHostE2eSmsCapturePathEnvironmentKey,
   twoHostE2eOwnerUsernameEnvironmentKey,
 } from "./two-host-e2e-artifacts.mjs";
@@ -61,6 +65,7 @@ const originalAppNextEnv = readFileSync(appNextEnvPath, "utf8");
 const originalPlatformAdminTsconfig = readFileSync(platformAdminTsconfigPath, "utf8");
 const originalPlatformAdminNextEnv = readFileSync(platformAdminNextEnvPath, "utf8");
 const additionalApps = [
+  { name: "landing", origin: twoHostE2eLandingListenerOrigin, folder: "vitarish-landing" },
   { name: "patients", origin: twoHostE2ePatientsOrigin, folder: "patients" },
   { name: "project-management", origin: twoHostE2eProjectManagementOrigin, folder: "vitarish-pm" },
 ].map(app => {
@@ -87,6 +92,7 @@ mkdirSync(artifactDirectory);
 const processes = [];
 let stopping = false;
 let smtpServer;
+let browserRouter;
 
 function startSmtpCapture() {
   smtpServer = net.createServer((socket) => {
@@ -303,6 +309,10 @@ async function stopProcessTree(child) {
 
 async function stopAll() {
   stopping = true;
+  if (browserRouter?.listening) {
+    browserRouter.closeAllConnections();
+    await new Promise(resolveClose => browserRouter.close(resolveClose));
+  }
   await Promise.all(processes.slice().reverse().map(stopProcessTree));
 }
 
@@ -439,6 +449,7 @@ async function run() {
 
   await ensurePortAvailable("E2e", mainOrigin);
   await ensurePortAvailable("Private Practice Owner", webOrigin);
+  await ensurePortAvailable("Private Practice Owner listener", twoHostE2eOwnerListenerOrigin);
   await ensurePortAvailable("Platform Admin", platformAdminOrigin);
   for (const app of additionalApps) await ensurePortAvailable(app.name, app.origin);
 
@@ -471,7 +482,7 @@ async function run() {
   const web = startProcess(
     "web",
     process.execPath,
-    [nextCli, "start", "--port", new URL(webOrigin).port],
+    [nextCli, "start", "--port", new URL(twoHostE2eOwnerListenerOrigin).port],
     appRoot,
     nextEnvironment,
   );
@@ -486,9 +497,18 @@ async function run() {
   const additionalHosts = additionalApps.map(app => ({ ...app, process: startProcess(app.name,
     process.execPath, [nextCli, "start", "--port", new URL(app.origin).port], app.root, nextEnvironment) }));
 
-  await waitForHttp("Private Practice Owner", web, `${webOrigin}/`, nextReadinessTimeoutMs);
+  await waitForHttp("Private Practice Owner", web, `${twoHostE2eOwnerListenerOrigin}/`, nextReadinessTimeoutMs);
   await waitForHttp("Platform Admin", platformAdmin, `${platformAdminOrigin}/`, nextReadinessTimeoutMs);
   for (const host of additionalHosts) await waitForHttp(host.name, host.process, `${host.origin}/`, nextReadinessTimeoutMs);
+  browserRouter = createTwoHostWebRouter({
+    landingHost: new URL(twoHostE2eLandingOrigin).host,
+    landingTarget: twoHostE2eLandingListenerOrigin,
+    ownerTarget: twoHostE2eOwnerListenerOrigin,
+  });
+  await new Promise((resolveListen, rejectListen) => {
+    browserRouter.once("error", rejectListen);
+    browserRouter.listen(new URL(webOrigin).port, resolveListen);
+  });
 
   webEnvironment.PLAYWRIGHT_PLATFORM_ADMIN_ORIGIN = platformAdminOrigin;
   const playwrightEnvironment = {

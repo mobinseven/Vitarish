@@ -1,11 +1,18 @@
 "use client";
 
+import { usePathname } from "next/navigation";
+import { NavigationTransitionReadiness } from "@vitarish/auth/navigation-readiness";
+import { AuthenticationWebRoutes } from "@vitarish/auth/routes";
+
+import { themePreferenceStorageKey } from "@vitarish/ui/theme-mode";
+
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
 import { type ReactNode, useState } from "react";
 import { MockApiBootstrap } from "@vitarish/mock-runtime";
 
 export function Providers({ children, nonce }: { children: ReactNode; nonce?: string }) {
+  const pathname = usePathname();
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -17,7 +24,7 @@ export function Providers({ children, nonce }: { children: ReactNode; nonce?: st
 
   return (
     <MockApiBootstrap><QueryClientProvider client={queryClient}>
-      <ThemeProvider
+      <ThemeProvider storageKey={themePreferenceStorageKey}
         attribute="data-theme"
         defaultTheme="system"
         themes={["light", "dark"]}
@@ -25,6 +32,7 @@ export function Providers({ children, nonce }: { children: ReactNode; nonce?: st
         disableTransitionOnChange
         nonce={nonce}
       >
+        <NavigationTransitionReadiness sessionEnabled={pathname !== AuthenticationWebRoutes.Handoff} />
         {children}
       </ThemeProvider>
     </QueryClientProvider></MockApiBootstrap>

@@ -1,3 +1,5 @@
+import { NavigationTransitionDocument, navigationTransitionDocument } from "@vitarish/ui/navigation-document";
+import { Routes } from "./routes";
 import { CentralAuthenticationSessionRenewal } from "@vitarish/auth/central-server";
 import type { Viewport } from "next";
 import { headers } from "next/headers";
@@ -34,7 +36,10 @@ export default async function RootLayout({
         htmlClassName="bg-background text-foreground"
         bodyClassName="bg-background text-foreground font-sans antialiased"
       >
-        <Providers nonce={nonce}><CentralAuthenticationSessionRenewal />{children}</Providers>
+        <NavigationTransitionDocument nonce={nonce} signInHref={Routes.Login.Index} homeHref={Routes.Root} />
+        <div {...{ [navigationTransitionDocument.contentAttribute]: "" }} inert suppressHydrationWarning>
+          <Providers nonce={nonce}><CentralAuthenticationSessionRenewal />{children}</Providers>
+        </div>
       </I18nAppLayout>
     </>
   );

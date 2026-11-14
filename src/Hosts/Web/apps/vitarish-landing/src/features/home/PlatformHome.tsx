@@ -22,6 +22,8 @@ import {
 } from "@vitarish/platform";
 import { ChatConversation, ChatLoadingMessage, ChatMessage, FaIcon } from "@vitarish/ui";
 import { LandingRoutes } from "../../app/routes";
+import { carryNavigationTransition } from "@vitarish/ui/navigation";
+import { navigationTransitionStates, useNavigationTransitionParticipant } from "@vitarish/ui/navigation-runtime";
 import { HomeWorkspaces } from "./HomeWorkspaces";
 import { useHomeHandoff, type HomeHandoffTarget } from "./useHomeHandoff";
 
@@ -55,6 +57,7 @@ export function PlatformHome({ signInHref }: { signInHref: string }) {
   const router = useRouter();
   const navigate = useCallback((href: string) => router.push(href), [router]);
   const session = useAuthSession();
+  useNavigationTransitionParticipant(session.isLoading || (!session.isAuthenticated && !session.isError), session.isError ? navigationTransitionStates.Failed : undefined);
   const {
     logout,
     isLoading: isSigningOut,
@@ -75,7 +78,7 @@ export function PlatformHome({ signInHref }: { signInHref: string }) {
   const lastSubmission = useRef<HomeSubmission | null>(null);
 
   useEffect(() => {
-    if (!session.isLoading && !session.isError && !session.isAuthenticated) window.location.assign(signInHref);
+    if (!session.isLoading && !session.isError && !session.isAuthenticated) window.location.assign(carryNavigationTransition(signInHref));
   }, [session.isAuthenticated, session.isError, session.isLoading, signInHref]);
 
   const conversation = useConversationController<LandingHomeConversationResponse>({

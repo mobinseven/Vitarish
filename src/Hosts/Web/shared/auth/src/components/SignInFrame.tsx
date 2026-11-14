@@ -1,6 +1,7 @@
 "use client";
 
-import { Suspense, type ComponentType, type ReactNode } from "react";
+import { Suspense, useCallback, type ComponentType, type ReactNode } from "react";
+import { navigationTransitionRuntime, useNavigationTransitionParticipant } from "@vitarish/ui/navigation-runtime";
 import { isCentralContinuationReturnTo, isSafeRelativeReturnTo, signInReturnUrlQueryKey } from "../centralHost";
 import type { AuthNavigate } from "../hooks/navigation";
 import { AuthenticatedRedirectBoundary } from "./SessionRedirect";
@@ -41,6 +42,11 @@ interface SignInFrameProps extends SignInRedirectRoutes {
   loadingFallback: ReactNode;
 }
 
+function SignInDiscoveryFallback({ children }: { children: ReactNode }) {
+  const covered = useNavigationTransitionParticipant(true);
+  return covered ? null : <>{children}</>;
+}
+
 /** Sends a visitor who arrives signed in onward, and frames the sign-in pages for the hosting app. */
 export function SignInFrame({
   children,
@@ -53,18 +59,22 @@ export function SignInFrame({
   loadingFallback,
 }: SignInFrameProps) {
   const redirectOptions = authenticatedSignInRedirectOptions(continueOnSignInHost, searchParams, { homeHref, continueHref });
+  const continueSignedIn = useCallback((href: string) => {
+    // Auth's continuation is automatic work in the same document. Keep it covered
+    // across the gap between route commits instead of declaring the login ready.
+    if (continueOnSignInHost) navigationTransitionRuntime()?.departing();
+    onNavigate(href);
+  }, [continueOnSignInHost, onNavigate]);
 
   return (
-    <Frame>
-      <Suspense fallback={loadingFallback}>
+      <Suspense fallback={<SignInDiscoveryFallback>{loadingFallback}</SignInDiscoveryFallback>}>
         <AuthenticatedRedirectBoundary
           {...redirectOptions}
-          onNavigate={onNavigate}
+          onNavigate={continueSignedIn}
           loadingFallback={loadingFallback}
         >
-          {children}
+          <Frame>{children}</Frame>
         </AuthenticatedRedirectBoundary>
       </Suspense>
-    </Frame>
   );
 }

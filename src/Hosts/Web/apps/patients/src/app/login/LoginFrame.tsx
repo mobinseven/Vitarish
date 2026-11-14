@@ -6,9 +6,12 @@ import { AuthenticatedRedirectBoundary } from "@vitarish/auth";
 import { useLocalizedText } from "@/localization";
 import { Routes } from "@/app/routes";
 import { StandaloneCenteredPage } from "@vitarish/ui/layout";
+import { useNavigationTransitionParticipant } from "@vitarish/ui/navigation-runtime";
 
 function LoginRouteFallback() {
+  const covered = useNavigationTransitionParticipant(true);
   const { t } = useLocalizedText();
+  if (covered) return null;
 
   return (
     <StandaloneCenteredPage>

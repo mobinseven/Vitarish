@@ -12,7 +12,7 @@ const mocks = vi.hoisted(() => ({
   push: vi.fn(),
   replace: vi.fn(),
   useCurrentJourney: vi.fn(),
-  session: { isAuthenticated: true, isLoading: false } as { isAuthenticated: boolean; isLoading: boolean },
+  session: { isAuthenticated: true, isLoading: false } as { isAuthenticated: boolean; isLoading: boolean; isError?: boolean; refetch?: () => unknown },
 }));
 
 vi.mock("next/navigation", () => ({
@@ -162,4 +162,18 @@ describe("JourneyGateBoundary sign-in for signed-out visitors", () => {
     fireEvent.click(screen.getByRole("button", { name: "Retry journey" }));
     expect(query.refetch).toHaveBeenCalledTimes(1);
   });
+});
+
+
+it("keeps an unavailable session out of anonymous redirection and retries its owning query", () => {
+  const retrySession = vi.fn();
+  mocks.session = { isAuthenticated: false, isLoading: false, isError: true, refetch: retrySession };
+  mocks.useCurrentJourney.mockReturnValue({ data: undefined, isLoading: true, error: null, refetch: vi.fn() });
+  render(<JourneyGateBoundary><p>Protected destination</p></JourneyGateBoundary>);
+  expect(screen.getByText("Journey error")).toBeVisible();
+  expect(screen.queryByText("Protected destination")).toBeNull();
+  expect(screen.queryByText("Journey loading")).toBeNull();
+  expect(mocks.replace).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole("button", { name: "Retry journey" }));
+  expect(retrySession).toHaveBeenCalledOnce();
 });

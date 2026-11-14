@@ -6,6 +6,7 @@ import { AuthorizationGuard } from "@vitarish/auth";
 import { Routes } from "@/app/routes";
 import { JourneyGateBoundary } from "@/components/journey/JourneyGateBoundary";
 import { LoadingScreen } from "@/components/loading/LoadingScreen";
+import { carryNavigationTransition } from "@vitarish/ui/navigation";
 
 /**
  * The owner pages' access check. The journey runs first, so a host that is not a clinic (the clinic front page)
@@ -16,8 +17,8 @@ export function OwnerAccessGuard({ workspacesHref, children }: { workspacesHref:
   const router = useRouter();
   // Workspaces live on another host, so that address needs a full navigation.
   const navigate = useCallback(
-    (href: string) => (/^https?:\/\//.test(href) ? window.location.assign(href) : router.push(href)),
-    [router],
+    (href: string) => (/^https?:\/\//.test(href) ? window.location.assign(href === workspacesHref ? carryNavigationTransition(href) : href) : router.push(href)),
+    [router, workspacesHref],
   );
 
   return (

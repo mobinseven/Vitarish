@@ -1,8 +1,10 @@
 "use client";
 
-import { Alert, Card, Button } from "@heroui/react";
+import { Alert, Card, Button, Tooltip } from "@heroui/react";
+import { FaIcon } from "@vitarish/ui";
 import { useLocalizedText } from "@vitarish/localization";
 import { CenteredRegion } from "@vitarish/ui/layout";
+import { navigationTransitionStates, useNavigationTransitionParticipant } from "@vitarish/ui/navigation-runtime";
 
 interface JourneyErrorStateProps {
   title?: string;
@@ -15,6 +17,7 @@ export function JourneyErrorState({
   description,
   onRetry,
 }: JourneyErrorStateProps) {
+  useNavigationTransitionParticipant(false, navigationTransitionStates.Failed);
   const { t } = useLocalizedText();
   const resolvedTitle = title ?? t("journey.error.title");
   const resolvedDescription = description ?? t("journey.error.description");
@@ -31,9 +34,10 @@ export function JourneyErrorState({
             </Alert.Content>
           </Alert>
           {onRetry ? (
-            <Button variant="primary" onPress={onRetry}>
+            <Tooltip><Button variant="tertiary" onPress={onRetry}>
+              <FaIcon icon="rotate-right" aria-hidden="true" />
               {t("journey.error.retryAction")}
-            </Button>
+            </Button><Tooltip.Content>{t("journey.error.retryAction")}</Tooltip.Content></Tooltip>
           ) : null}
         </Card.Content>
       </Card>

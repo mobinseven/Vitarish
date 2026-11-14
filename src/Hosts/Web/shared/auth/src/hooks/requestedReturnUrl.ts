@@ -1,13 +1,16 @@
+import { withoutNavigationTransition } from "@vitarish/ui/navigation-context";
+import { AuthenticationSearchParams } from "../routes";
+
 export function getRequestedReturnUrl(
   searchParams: Pick<URLSearchParams, "get"> | undefined,
   explicitReturnUrl?: string
 ): string | undefined {
   const raw =
-    explicitReturnUrl ?? searchParams?.get("returnUrl") ?? undefined;
+    explicitReturnUrl ?? searchParams?.get(AuthenticationSearchParams.ReturnUrl) ?? undefined;
 
   if (!raw) return undefined;
 
-  const requestedReturnUrl = raw.trim();
+  const requestedReturnUrl = withoutNavigationTransition(raw.trim());
 
   if (!requestedReturnUrl || requestedReturnUrl === "/") {
     return undefined;
