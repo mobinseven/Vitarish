@@ -53,11 +53,15 @@ public enum AgentConversationOutcome
     ProfileChanged
 }
 
+/// <param name="ProfileCompatibilityKey">The configuration key the next history write records; null for callers without one.</param>
+/// <param name="ProfileChanged">True when the stored history was produced under a different configuration key.</param>
 public sealed record AgentConversationLease(
     Guid ConversationId,
     Guid LeaseId,
     long Revision,
-    string? History);
+    string? History,
+    string? ProfileCompatibilityKey = null,
+    bool ProfileChanged = false);
 
 public sealed record AgentConversationStoreResult(
     AgentConversationOutcome Outcome,

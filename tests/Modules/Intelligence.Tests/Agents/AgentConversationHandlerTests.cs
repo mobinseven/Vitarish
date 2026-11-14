@@ -147,6 +147,70 @@ public sealed class AgentConversationHandlerTests
         store.ReplacedPresentation.Should().Be(presentation);
     }
 
+    private const string HistoryWithToolCall =
+        "[{\"role\":\"user\",\"content\":\"find Sara\"},{\"type\":\"function_call\",\"callId\":\"c1\",\"name\":\"search_patients\",\"arguments\":\"{}\"},{\"type\":\"function_call_result\",\"callId\":\"c1\",\"name\":\"search_patients\",\"output\":\"[]\"},{\"role\":\"assistant\",\"content\":[{\"type\":\"output_text\",\"text\":\"none\"}]}]";
+
+    private const string CarriedHistory =
+        "[{\"role\":\"user\",\"content\":\"find Sara\"},{\"role\":\"assistant\",\"content\":[{\"type\":\"output_text\",\"text\":\"none\"}]}]";
+
+    [Fact]
+    public async Task Handle_continues_a_conversation_whose_configuration_changed_on_its_carried_over_messages()
+    {
+        FakeStore store = new() { History = HistoryWithToolCall, LeaseProfileChanged = true };
+        FakeRunner runner = new(new AgentRunResult(true, "answer", null, new(1, 1), TimeSpan.Zero, 1, 0) { History = "[]" });
+
+        RunAgentConversationResult result =
+            await new RunAgentConversationHandler(store, runner).Handle(Request(store.ConversationId), default);
+
+        result.Outcome.Should().Be(AgentConversationOutcome.Succeeded);
+        runner.Inputs.Single().History.Should().Be(CarriedHistory);
+        store.ReplacedHistory.Should().Be("[]");
+    }
+
+    [Fact]
+    public async Task Handle_compacts_a_history_too_large_to_grow_before_running()
+    {
+        string large = "[" + string.Join(',', Enumerable.Range(0, 8).Select(index =>
+            $"{{\"role\":\"user\",\"content\":\"{index}{new string('x', 100 * 1024)}\"}}")) + "]";
+        FakeStore store = new() { History = large };
+        FakeRunner runner = new(new AgentRunResult(true, "answer", null, new(1, 1), TimeSpan.Zero, 1, 0) { History = "[]" });
+
+        await new RunAgentConversationHandler(store, runner).Handle(Request(store.ConversationId), default);
+
+        System.Text.Encoding.UTF8.GetByteCount(runner.Inputs.Single().History!)
+            .Should().BeLessThanOrEqualTo(AgentConversationHistory.CompactionThresholdBytes);
+    }
+
+    [Fact]
+    public async Task Handle_retries_once_on_carried_over_messages_when_the_runtime_rejects_the_history()
+    {
+        FakeStore store = new() { History = HistoryWithToolCall };
+        FakeRunner runner = new(
+            new AgentRunResult(false, null, null, new(0, 0), TimeSpan.Zero, 0, 0, new(AgentRunErrorCode.InvalidProviderResponse, "invalid")),
+            new AgentRunResult(true, "answer", null, new(1, 1), TimeSpan.Zero, 1, 0) { History = "[]" });
+
+        RunAgentConversationResult result =
+            await new RunAgentConversationHandler(store, runner).Handle(Request(store.ConversationId), default);
+
+        result.Outcome.Should().Be(AgentConversationOutcome.Succeeded);
+        runner.Inputs.Select(input => input.History).Should().Equal(HistoryWithToolCall, CarriedHistory);
+    }
+
+    [Fact]
+    public async Task Handle_does_not_retry_a_rejected_history_that_was_already_carried_over()
+    {
+        FakeStore store = new() { History = HistoryWithToolCall, LeaseProfileChanged = true };
+        FakeRunner runner = new(new AgentRunResult(
+            false, null, null, new(0, 0), TimeSpan.Zero, 0, 0, new(AgentRunErrorCode.InvalidProviderResponse, "invalid")));
+
+        RunAgentConversationResult result =
+            await new RunAgentConversationHandler(store, runner).Handle(Request(store.ConversationId), default);
+
+        result.Outcome.Should().Be(AgentConversationOutcome.InvalidHistory);
+        runner.Inputs.Should().ContainSingle();
+        store.ReplacedHistory.Should().BeNull();
+    }
+
     [Fact]
     public async Task Delete_UsesOwnedStoreBoundary()
     {
@@ -168,10 +232,11 @@ public sealed class AgentConversationHandlerTests
         Context,
         Limits);
 
-    private sealed class FakeRunner(AgentRunResult result) : IAgentRunner
+    private sealed class FakeRunner(params AgentRunResult[] results) : IAgentRunner
     {
-        public AgentRunResult Result { get; } = result;
-        public AgentInput? Input { get; private set; }
+        public AgentRunResult Result => results[0];
+        public AgentInput? Input => Inputs.LastOrDefault();
+        public List<AgentInput> Inputs { get; } = [];
 
         public Task<AgentRunResult> RunAsync(
             AgentDefinition definition,
@@ -181,8 +246,8 @@ public sealed class AgentConversationHandlerTests
             AgentExecutionLimits limits,
             CancellationToken cancellationToken = default)
         {
-            Input = input;
-            return Task.FromResult(Result);
+            Inputs.Add(input);
+            return Task.FromResult(results[Math.Min(Inputs.Count - 1, results.Length - 1)]);
         }
     }
 
@@ -190,6 +255,7 @@ public sealed class AgentConversationHandlerTests
     {
         public Guid ConversationId { get; } = Guid.CreateVersion7();
         public string? History { get; init; }
+        public bool LeaseProfileChanged { get; init; }
         public AgentConversationOutcome AcquireOutcome { get; init; } = AgentConversationOutcome.Succeeded;
         public AgentConversationOutcome ReplaceOutcome { get; init; } = AgentConversationOutcome.Succeeded;
         public AgentConversationOutcome DeleteOutcome { get; init; } = AgentConversationOutcome.Succeeded;
@@ -206,7 +272,7 @@ public sealed class AgentConversationHandlerTests
             TimeSpan leaseDuration,
             CancellationToken cancellationToken) =>
             Task.FromResult(AcquireOutcome == AgentConversationOutcome.Succeeded
-                ? new AgentConversationStoreResult(AcquireOutcome, new(ConversationId, Guid.CreateVersion7(), 2, History))
+                ? new AgentConversationStoreResult(AcquireOutcome, new(ConversationId, Guid.CreateVersion7(), 2, History, ProfileChanged: LeaseProfileChanged))
                 : new AgentConversationStoreResult(AcquireOutcome));
 
         public Task<AgentConversationOutcome> ReplaceHistoryAsync(

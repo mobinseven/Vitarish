@@ -17,17 +17,8 @@ public sealed class EfAgentConversationStore(
         AgentConversationScope scope,
         TimeSpan leaseDuration,
         string compatibilityKey,
-        CancellationToken cancellationToken)
-    {
-        if (conversationId is { } id)
-        {
-            AgentConversationEntity? existing = await Owned(scope).AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
-            if (existing is null) return new(AgentConversationOutcome.NotFound);
-            if (existing.ProfileCompatibilityKey is null || !string.Equals(existing.ProfileCompatibilityKey, compatibilityKey, StringComparison.Ordinal))
-                return new(AgentConversationOutcome.ProfileChanged);
-        }
-        return await AcquireCoreAsync(conversationId, scope, leaseDuration, compatibilityKey, cancellationToken);
-    }
+        CancellationToken cancellationToken) =>
+        await AcquireCoreAsync(conversationId, scope, leaseDuration, compatibilityKey, cancellationToken);
     private static readonly JsonSerializerOptions PresentationJsonOptions = new(JsonSerializerDefaults.Web);
     public const int MaximumPlaintextBytes = 1024 * 1024;
     public const string ProtectorPurpose = "Vitarish.Intelligence.AgentConversationHistory.v1";
@@ -73,7 +64,7 @@ public sealed class EfAgentConversationStore(
             };
             dbContext.AgentConversations.Add(created);
             await dbContext.SaveChangesAsync(cancellationToken);
-            return new(AgentConversationOutcome.Succeeded, new(created.Id, leaseId, 0, null));
+            return new(AgentConversationOutcome.Succeeded, new(created.Id, leaseId, 0, null, compatibilityKey));
         }
 
         int acquired = await Owned(scope)
@@ -111,7 +102,9 @@ public sealed class EfAgentConversationStore(
             await ReleaseAsync(new(entity.Id, leaseId, entity.Revision, null), CancellationToken.None);
             return new(AgentConversationOutcome.HistoryLimitExceeded);
         }
-        return new(AgentConversationOutcome.Succeeded, new(entity.Id, leaseId, entity.Revision, history));
+        bool profileChanged = compatibilityKey is not null &&
+            !string.Equals(entity.ProfileCompatibilityKey, compatibilityKey, StringComparison.Ordinal);
+        return new(AgentConversationOutcome.Succeeded, new(entity.Id, leaseId, entity.Revision, history, compatibilityKey, profileChanged));
     }
 
     public async Task<AgentConversationOutcome> ReplaceHistoryAsync(
@@ -135,11 +128,14 @@ public sealed class EfAgentConversationStore(
             return AgentConversationOutcome.HistoryLimitExceeded;
         DateTimeOffset now = timeProvider.GetUtcNow();
         IQueryable<AgentConversationEntity> owned = Owned(scope).Where(conversation => conversation.Id == lease.ConversationId && conversation.ActiveLeaseId == lease.LeaseId && conversation.Revision == lease.Revision);
+        // The history and the configuration key it was produced under are written together.
+        string? profileKey = lease.ProfileCompatibilityKey;
         int updated;
         if (presentation is null)
         {
             updated = await owned.ExecuteUpdateAsync(update => update
                 .SetProperty(conversation => conversation.ProtectedHistory, protectedHistory)
+                .SetProperty(conversation => conversation.ProfileCompatibilityKey, conversation => profileKey ?? conversation.ProfileCompatibilityKey)
                 .SetProperty(conversation => conversation.HistoryFormat, historyFormat)
                 .SetProperty(conversation => conversation.UpdatedAt, now)
                 .SetProperty(conversation => conversation.Revision, lease.Revision + 1)
@@ -156,6 +152,7 @@ public sealed class EfAgentConversationStore(
                 .SetProperty(conversation => conversation.ProtectedPresentationTranscript, protectedPresentation)
                 .SetProperty(conversation => conversation.Title, presentation.Title is null ? promptTitle : presentation.Title.Trim())
                 .SetProperty(conversation => conversation.LatestTextPreview, assistantPreview)
+                .SetProperty(conversation => conversation.ProfileCompatibilityKey, conversation => profileKey ?? conversation.ProfileCompatibilityKey)
                 .SetProperty(conversation => conversation.HistoryFormat, historyFormat)
                 .SetProperty(conversation => conversation.UpdatedAt, now)
                 .SetProperty(conversation => conversation.Revision, lease.Revision + 1)
