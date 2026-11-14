@@ -103,6 +103,7 @@ namespace Vitarish.Clinic.Infrastructure.Extensions
             _ = services.AddTransient<IAssistantCapability, SeaPatientReadAgentCapability>();
             _ = services.AddTransient<IAssistantCapability, ClinicalEventAgentCapability>();
             _ = services.AddTransient<Vitarish.Clinic.Infrastructure.Assistant.Capabilities.Setup.GetClinicSetupProgressTool>();
+            _ = services.AddTransient<Vitarish.Clinic.Infrastructure.Assistant.Capabilities.Setup.PrepareUpdateClinicProfileTool>();
             _ = services.AddTransient<IAssistantCapability, Vitarish.Clinic.Infrastructure.Assistant.Capabilities.Setup.SetupAssistantCapability>();
             _ = services.AddTransient<IAssistantPatientSearch, AssistantSearch>();
             _ = services.AddTransient<IAssistantOperationsAccessVerifier, UserAssistantOperationsAccessVerifier>();
@@ -141,6 +142,8 @@ namespace Vitarish.Clinic.Infrastructure.Extensions
             }
             _ = services.AddTransient<IAssistantCapability, OperationsAgentCapability>();
             _ = services.AddTransient<PrepareInviteMemberTool>();
+            _ = services.AddTransient<ListStaffMembersTool>();
+            _ = services.AddTransient<PrepareRemoveMemberTool>();
             _ = services.AddTransient<IAssistantCapability, StaffAssistantCapability>();
             _ = services.AddTransient<AssistantCapabilityRegistry>();
             _ = services.AddTransient<AssistantToolDispatcher>();
@@ -153,6 +156,8 @@ namespace Vitarish.Clinic.Infrastructure.Extensions
             _ = services.AddTransient<IAssistantActionCommitter, AppointmentAdministrationAssistantActionCommitter>();
             _ = services.AddTransient<IAssistantActionCommitter, ReminderManagementAssistantActionCommitter>();
             _ = services.AddTransient<IAssistantActionCommitter, StaffInvitationAssistantActionCommitter>();
+            _ = services.AddTransient<IAssistantActionCommitter, StaffRemovalAssistantActionCommitter>();
+            _ = services.AddTransient<IAssistantActionCommitter, ClinicProfileAssistantActionCommitter>();
             _ = services.AddTransient<IAssistantActionCommitterRegistry, AssistantActionCommitterRegistry>();
 
             return services;

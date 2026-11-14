@@ -15,7 +15,16 @@ namespace Vitarish.Clinic.Infrastructure.Assistant.Capabilities.Setup;
 /// Guides a new clinic's owner through setup: the assistant reads the setup goals and the clinic's working hours,
 /// works on the next open goal, and proposes a whole step for review. It never commits anything itself.
 /// </summary>
-public sealed class SetupAssistantCapability(GetClinicSetupProgressTool tool) : AssistantCapability([tool])
+public sealed class SetupAssistantCapability(GetClinicSetupProgressTool tool, PrepareUpdateClinicProfileTool profileTool)
+    : AssistantCapability([tool, profileTool], [
+        AssistantActionPolicies.Prepare(
+            ClinicSetupAssistant.ProfileActionType,
+            ClinicSetupAssistant.ProfileWorkflowKey,
+            [],
+            [AssistantOperationsScope.TenantOwnerRole],
+            [ClinicSetupAssistant.PrepareProfileToolName],
+            retryClassification: AssistantActionRetryClassification.Retryable)
+    ])
 {
     public override string Name => ClinicSetupAssistant.CapabilityName;
     public override string Description => "Guide the clinic owner through setting up the clinic.";
@@ -30,7 +39,8 @@ public sealed class SetupAssistantCapability(GetClinicSetupProgressTool tool) : 
         Goals, in order: {nameof(ClinicSetupGoal.ServicesAndProviders)} (at least one service and one provider),
         {nameof(ClinicSetupGoal.ShiftsAndBookingRules)} (at least one active shift and one booking policy),
         {nameof(ClinicSetupGoal.StaffUsers)} (invite at least one staff member), {nameof(ClinicSetupGoal.ClinicProfile)}
-        (address and logo, edited by the owner in clinic settings).
+        (address and logo: prepare the address, description, phones and website with {ClinicSetupAssistant.PrepareProfileToolName};
+        the owner uploads the logo in clinic settings).
         Propose a whole step in one reply: prepare every needed item with the preparing tools (for example one shift per
         working day seeded from the clinic's working hours with appointment_manage in prepare mode), and never commit.
         The owner reviews and confirms everything you prepare.
