@@ -1,10 +1,13 @@
 "use client";
 
+import { useNavigationTransitionParticipant } from "@vitarish/ui/navigation-runtime";
 import { useLocalizedText } from "@/localization";
 import { LoadingSpinner, StandaloneCenteredPage } from "@vitarish/ui";
 
 export function LoadingScreen() {
   const { t } = useLocalizedText();
+  const covered = useNavigationTransitionParticipant(true);
+  if (covered) return null;
 
   return (
     <StandaloneCenteredPage

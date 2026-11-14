@@ -8,6 +8,7 @@ import { isSafeRelativeReturnTo, signInReturnUrlQueryKey } from "@vitarish/journ
 import { Routes } from "@/app/routes";
 import { useCurrentJourney } from "@/hooks/journey/useCurrentJourney";
 import { JourneyErrorState, JourneyLoadingState } from "@vitarish/journey";
+import { navigationTransitionStates, useNavigationTransitionParticipant } from "@vitarish/ui/navigation-runtime";
 
 interface JourneyGateBoundaryProps {
   children: React.ReactNode;
@@ -55,8 +56,13 @@ function JourneyGateContent({ children, central = false }: JourneyGateBoundaryPr
   const { data: decision, isLoading, error, refetch } = useCurrentJourney(central ? requestedReturnUrl ?? pathname ?? undefined : returnUrl);
   const session = useAuthSession();
   // A signed-out visitor is sent to sign-in and comes back here; it is not a failed check.
-  const signedOut = (!session.isLoading && !session.isAuthenticated) ||
+  const signedOut = (!session.isLoading && !session.isError && !session.isAuthenticated) ||
     (error instanceof ApiError && error.status === 401);
+  const blockingGate = decision?.step.blockingGate;
+  const gateHere = Boolean(blockingGate && matchesJourneyDestination(pathname, currentSearch, blockingGate.destinationUrl));
+  const gateRedirect = Boolean(blockingGate && !gateHere);
+  useNavigationTransitionParticipant(signedOut || isLoading || gateRedirect,
+    (session.isError || error) && !signedOut ? navigationTransitionStates.Failed : gateHere ? navigationTransitionStates.InteractionRequired : undefined);
 
   useEffect(() => {
     if (signedOut) router.replace(signInHrefReturningTo(currentReturnPath(), Routes.Login.Index));
@@ -82,12 +88,12 @@ function JourneyGateContent({ children, central = false }: JourneyGateBoundaryPr
       router.replace(step.destinationUrl);
   }, [decision, isLoading, error, router, pathname, currentSearch, central, requestedReturnUrl, signedOut]);
 
-  if (signedOut || isLoading) {
-    return <JourneyLoadingState />;
+  if (!signedOut && (session.isError || error)) {
+    return <JourneyErrorState onRetry={() => void (session.isError ? session.refetch() : refetch())} />;
   }
 
-  if (error) {
-    return <JourneyErrorState onRetry={() => void refetch()} />;
+  if (signedOut || isLoading) {
+    return <JourneyLoadingState />;
   }
 
   if (decision?.step?.blockingGate) {

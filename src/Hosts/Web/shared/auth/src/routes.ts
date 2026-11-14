@@ -1,3 +1,5 @@
+import { withoutNavigationTransition } from "@vitarish/ui/navigation-context";
+
 const signInPath = "/login";
 
 /** Routes shared by the authentication surfaces in every Web app. */
@@ -31,5 +33,5 @@ export function signInHrefReturningTo(returnPath: string | null | undefined, sig
 
 /** The current page as a sign-in return target: its path and query on this host. */
 export function currentReturnPath(): string | undefined {
-  return typeof window === "undefined" ? undefined : window.location.pathname + window.location.search;
+  return typeof window === "undefined" ? undefined : withoutNavigationTransition(window.location.pathname + window.location.search);
 }

@@ -3,6 +3,7 @@
 import { Card, Spinner } from "@heroui/react";
 import { useLocalizedText } from "@vitarish/localization";
 import { CenteredRegion } from "@vitarish/ui/layout";
+import { useNavigationTransitionParticipant } from "@vitarish/ui/navigation-runtime";
 
 interface JourneyLoadingStateProps {
   title?: string;
@@ -13,9 +14,11 @@ export function JourneyLoadingState({
   title,
   description,
 }: JourneyLoadingStateProps) {
+  const covered = useNavigationTransitionParticipant(true);
   const { t } = useLocalizedText();
   const resolvedTitle = title ?? t("journey.loading.title");
   const resolvedDescription = description ?? t("journey.loading.description");
+  if (covered) return null;
 
   return (
     <CenteredRegion>
