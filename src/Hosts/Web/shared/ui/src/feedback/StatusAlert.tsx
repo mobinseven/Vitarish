@@ -15,10 +15,11 @@ export function StatusAlert({
 }: StatusAlertProps) {
   return (
     <Alert
+      role={type === "error" ? "alert" : "status"}
       status={type === "error" ? "danger" : "success"}
       className={className}
     >
-      <Alert.Indicator />
+      <Alert.Indicator><i className={type === "error" ? "fa-light fa-circle-exclamation" : "fa-light fa-circle-check"} aria-hidden="true" /></Alert.Indicator>
       <Alert.Content>{message}</Alert.Content>
     </Alert>
   );

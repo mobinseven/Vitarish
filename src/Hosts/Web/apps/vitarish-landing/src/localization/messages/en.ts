@@ -16,7 +16,6 @@ export const enMessages = {
     brand: {
       name: "Vitarish",
     },
-    loading: { label: "Loading Vitarish" },
     header: {
       language: "فارسی",
       languageTooltip: "Show this page in Persian",

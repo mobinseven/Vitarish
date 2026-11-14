@@ -69,7 +69,7 @@ test(`platform account deletion, refusal and attributable audit detail ${locale}
   expect(password, "The disposable host supplies the fixture password.").toBeTruthy();
   await page.context().addCookies([{ name: localeCookieName, value: locale, url: origin }]);
   await page.setExtraHTTPHeaders({ [forwardedForHeaderName]: twoHostE2eAccountDeletionClientIp });
-  await page.goto(`${origin}${Routes.LoginPassword}`);
+  await page.goto(`${origin}${Routes.LoginPassword}`, { waitUntil: "networkidle" });
   await page.locator('input[name="username"]').fill(administrator);
   await page.locator('input[name="password"]').fill(password!);
   const [signIn] = await Promise.all([
@@ -84,7 +84,7 @@ test(`platform account deletion, refusal and attributable audit detail ${locale}
   const actorId = session.user!.userId;
   try {
     // Self-deletion proves a denial through the real application and its confirmation UI.
-    await page.goto(`${origin}${Routes.Users.Detail(actorId)}`);
+    await page.goto(`${origin}${Routes.Users.Detail(actorId)}`, { waitUntil: "networkidle" });
     await page.getByRole("button", { name: text.deleteAccount, exact: true }).click();
     const [denial] = await Promise.all([
       page.waitForResponse(response => response.url().endsWith(deletePath(actorId)) && response.request().method() === "POST"),
@@ -97,7 +97,7 @@ test(`platform account deletion, refusal and attributable audit detail ${locale}
 
     // This scenario owns the newly created account; no shared patient/staff identity is erased.
     const contact = `account-deletion-${randomUUID()}@example.test`;
-    await page.goto(`${origin}${Routes.Users.New}`);
+    await page.goto(`${origin}${Routes.Users.New}`, { waitUntil: "networkidle" });
     await page.getByRole("textbox", { name: text.emailContact, exact: true }).fill(contact);
     const [created] = await Promise.all([
       page.waitForResponse(response => response.url().endsWith(generatedOperationPath(usersAdministrationCreateWithEmail)) && response.request().method() === "POST"),
@@ -105,7 +105,7 @@ test(`platform account deletion, refusal and attributable audit detail ${locale}
     ]);
     expect(created.status()).toBe(200);
     const subject = await created.json() as UserSummaryResponse;
-    await page.goto(`${origin}${Routes.Users.Detail(subject.id)}`);
+    await page.goto(`${origin}${Routes.Users.Detail(subject.id)}`, { waitUntil: "networkidle" });
     await page.getByRole("button", { name: text.deleteAccount, exact: true }).click();
     await page.getByRole("dialog").getByRole("button", { name: text.cancel, exact: true }).click();
     await expect(page.getByRole("button", { name: text.deleteAccount, exact: true })).toBeEnabled();
@@ -135,7 +135,7 @@ test(`platform account deletion, refusal and attributable audit detail ${locale}
 
     await page.setViewportSize(auditDetailEvidenceViewport);
     const openDetail = async (eventId: string, eventName: string) => {
-      await page.goto(`${origin}${Routes.Audit}`);
+      await page.goto(`${origin}${Routes.Audit}`, { waitUntil: "networkidle" });
       await page.getByRole("textbox", { name: auditText.eventId, exact: true }).fill(eventId);
       await page.getByRole("button", { name: auditText.applyFilters, exact: true }).click();
       await page.getByRole("row").filter({ hasText: localizePlatformAuditEvent(locale, eventName, eventName) }).first().click();

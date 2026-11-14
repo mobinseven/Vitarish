@@ -12,7 +12,13 @@
     "./typography.css": "./src/typography.css",
     "./content-security-policy": "./src/contentSecurityPolicyNonce.tsx",
     "./theme-palette": "./src/themePaletteClass.tsx",
-    "./chroma": "./src/actions/chromaColor.ts"
+    "./theme-mode": "./src/themeMode.ts",
+    "./chroma": "./src/actions/chromaColor.ts",
+    "./navigation-context": "./src/navigation/transitionContext.ts",
+    "./navigation-messages": "./src/navigation/navigationMessages.ts",
+    "./navigation": "./src/navigation/transitionNavigation.ts",
+    "./navigation-document": "./src/navigation/transitionDocument.tsx",
+    "./navigation-runtime": "./src/navigation/transitionRuntime.tsx"
   },
   "sideEffects": [
     "./src/layout.css",

@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { Button, Spinner, Tooltip } from "@heroui/react";
 import { useLocalizedText } from "@vitarish/localization";
 import { FaIcon } from "@vitarish/ui";
+import { carryNavigationTransition, takeNavigationTransition, isCurrentNavigationTransition, navigationTransitionSignal } from "@vitarish/ui/navigation";
+import { navigationTransitionStates, useNavigationTransitionParticipant } from "@vitarish/ui/navigation-runtime";
 import { authenticationTenantHandoffRedeem } from "../api/generated/authentication/authentication";
 import { JourneyGateCard } from "../components/JourneyGateCard";
 import { JourneyGateHeader } from "../components/JourneyGateHeader";
@@ -28,22 +30,25 @@ export function TenantHandoffPage({ signInPath, destination }: TenantHandoffPage
   const { t } = useLocalizedText();
   const [failed, setFailed] = useState(false);
   const started = useRef(false);
+  const covered = useNavigationTransitionParticipant(!failed, failed ? navigationTransitionStates.Failed : undefined);
 
   useEffect(() => {
     // The token works once, so a second effect run (React strict mode) must not spend it again.
     if (started.current) return;
     started.current = true;
+    const attempt = takeNavigationTransition();
     const token = takeTokenFromFragment();
     if (!token) {
       setFailed(true);
       return;
     }
-    authenticationTenantHandoffRedeem({ token })
+    authenticationTenantHandoffRedeem({ token }, undefined, navigationTransitionSignal())
       // A full load picks up the new session everywhere in the app.
-      .then((result) => window.location.assign(destination ?? result.returnUrl))
-      .catch(() => setFailed(true));
+      .then((result) => { if (isCurrentNavigationTransition(attempt)) window.location.assign(carryNavigationTransition(destination ?? result.returnUrl)); })
+      .catch(() => { if (isCurrentNavigationTransition(attempt)) setFailed(true); });
   }, [destination]);
 
+  if (!failed && covered) return null;
   return (
     <JourneyGateLayout>
       <JourneyGateCard

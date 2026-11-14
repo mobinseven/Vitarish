@@ -1,3 +1,5 @@
+import { takeNavigationTransition } from "@vitarish/ui/navigation";
+import { navigationTransitionStorageKey } from "@vitarish/ui/navigation-context";
 import { beforeEach, describe, expect, it } from "vitest";
 import { renderHook, act, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -60,6 +62,8 @@ describe("useLogout", () => {
       user: { userId: "user-1", displayName: "Avery Stone" },
     });
 
+    takeNavigationTransition();
+    expect(sessionStorage.getItem(navigationTransitionStorageKey)).not.toBeNull();
     const { result } = renderHook(() => useLogout(), { wrapper });
 
     await act(async () => {
@@ -74,5 +78,6 @@ describe("useLogout", () => {
       queryClient.getQueryData(getAuthenticationSessionGetQueryKey()),
     ).toBeUndefined();
     expect(result.current.error).toBeNull();
+    expect(sessionStorage.getItem(navigationTransitionStorageKey)).toBeNull();
   });
 });

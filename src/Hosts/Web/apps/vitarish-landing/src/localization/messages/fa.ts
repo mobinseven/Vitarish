@@ -16,7 +16,6 @@ export const faMessages = {
     brand: {
       name: "ویتاریش",
     },
-    loading: { label: "در حال بارگذاری ویتاریش" },
     header: {
       language: "English",
       languageTooltip: "نمایش این صفحه به انگلیسی",

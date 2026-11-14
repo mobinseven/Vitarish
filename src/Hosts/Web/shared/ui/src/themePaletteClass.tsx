@@ -1,5 +1,5 @@
-/** Root attribute next-themes writes the resolved `light` | `dark` mode to. */
-export const themeModeAttribute = "data-theme";
+import { themeModeAttribute } from "./themeMode";
+export { themeModeAttribute, resolvedThemeModes, type ResolvedThemeMode } from "./themeMode";
 
 /** HeroUI Pro palette class applied for each resolved next-themes mode. */
 export type ThemePaletteClasses = Readonly<Record<"light" | "dark", string>>;

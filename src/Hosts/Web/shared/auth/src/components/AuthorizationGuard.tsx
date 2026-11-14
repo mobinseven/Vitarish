@@ -13,6 +13,8 @@ import { ignoreAuthNavigation, type AuthNavigate } from "../hooks/navigation";
 import { useAuthErrorDisplay } from "../hooks/useAuthErrorDisplay";
 import { useLogout } from "../hooks/useLogout";
 import { currentReturnPath, signInHrefReturningTo } from "../routes";
+import { navigationTransitionStates, useNavigationTransitionParticipant } from "@vitarish/ui/navigation-runtime";
+import { AuthenticationEntryFailure } from "./AuthenticationEntryFailure";
 
 interface AuthorizationGuardProps {
   requiredRole?: TenantRole;
@@ -38,17 +40,22 @@ export function AuthorizationGuard({
   loadingFallback,
   children,
 }: AuthorizationGuardProps) {
-  const { isAuthenticated, isLoading, hasAccess } =
+  const { isAuthenticated, isLoading, isError, error, hasAccess } =
     useTenantAuthorization(requiredRole);
+  const covered = useNavigationTransitionParticipant(isLoading || (!isAuthenticated && !isError),
+    isError ? navigationTransitionStates.Failed : !isLoading && isAuthenticated && !hasAccess ? navigationTransitionStates.InteractionRequired : undefined);
   const { t } = useLocalizedText();
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
+    if (!isLoading && !isError && !isAuthenticated) {
       // Sign-in brings the person back to the page they opened.
       onNavigate(signInHrefReturningTo(currentReturnPath(), loginHref));
     }
-  }, [isLoading, isAuthenticated, loginHref, onNavigate]);
+  }, [isLoading, isError, isAuthenticated, loginHref, onNavigate]);
+
+  if (isError) return <AuthenticationEntryFailure error={error} signInHref={loginHref} />;
 
   if (isLoading) {
+    if (covered) return null;
     if (loadingFallback) {
       return <>{loadingFallback}</>;
     }

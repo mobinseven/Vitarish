@@ -1,3 +1,5 @@
+import { NavigationTransitionDocument, navigationTransitionDocument } from "@vitarish/ui/navigation-document";
+import { Routes } from "./routes";
 import { CentralAuthenticationSessionRenewal } from "@vitarish/auth/central-server";
 import type { Viewport } from "next";
 import { headers } from "next/headers";
@@ -19,6 +21,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <link rel="stylesheet" href="/fontawesome/css/all.min.css" />
       <ContentSecurityPolicyNonceMeta nonce={nonce} /></head>
     <I18nAppLayout cookieHeader={headerStore.get("cookie")} acceptLanguageHeader={headerStore.get("accept-language")} getMessages={getMessages} htmlClassName="bg-background text-foreground" bodyClassName="bg-background text-foreground font-sans antialiased">
+      <NavigationTransitionDocument nonce={nonce} signInHref={Routes.Login} homeHref={Routes.Root} />
+      <div {...{ [navigationTransitionDocument.contentAttribute]: "" }} inert suppressHydrationWarning>
       <header className="w-full">
         <picture>
           <source media="(prefers-color-scheme: dark)" srcSet="/Master-Hel-Logotype-Dark.svg" />
@@ -32,6 +36,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <img src="/Master-Hel-Logotype-©.svg" alt="Vitarish" className="block h-auto w-full" />
         </picture>
       </header>
+      </div>
     </I18nAppLayout>
   </>;
 }

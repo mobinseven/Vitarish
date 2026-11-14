@@ -1,9 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Button, Link, Spinner, Tooltip } from "@heroui/react";
+import { Link, Spinner, Tooltip } from "@heroui/react";
+import { withoutNavigationTransition } from "@vitarish/ui/navigation-context";
 import { useLocalizedText } from "@vitarish/localization";
 import { FaIcon } from "@vitarish/ui";
+import { carryNavigationTransition, takeNavigationTransition, isCurrentNavigationTransition, navigationTransitionSignal } from "@vitarish/ui/navigation";
+import { navigationTransitionStates, useNavigationTransitionParticipant } from "@vitarish/ui/navigation-runtime";
 import { partiesIssueSignInHomeHandoff } from "../api/generated/parties/parties";
 import { JourneyGateCard } from "../components/JourneyGateCard";
 import { JourneyGateHeader } from "../components/JourneyGateHeader";
@@ -26,14 +29,17 @@ export function SignInContinuePage({ signInPath }: SignInContinuePageProps) {
   const [failed, setFailed] = useState(false);
   const [safeReturnUrl, setSafeReturnUrl] = useState<string | undefined>();
   const started = useRef(false);
+  const covered = useNavigationTransitionParticipant(!failed, failed ? navigationTransitionStates.Failed : undefined);
 
   const continueHome = useCallback(() => {
     setFailed(false);
-    const requested = new URLSearchParams(window.location.search).get(signInReturnUrlQueryKey);
+    const attempt = takeNavigationTransition();
+    const rawRequested = new URLSearchParams(window.location.search).get(signInReturnUrlQueryKey);
+    const requested = rawRequested ? withoutNavigationTransition(rawRequested) : null;
     setSafeReturnUrl(isSafeRelativeReturnTo(requested) ? requested : undefined);
-    partiesIssueSignInHomeHandoff({ returnTo: requested })
-      .then((handoff) => window.location.assign(handoff.handoffUrl ?? handoffUrl(handoff.hostname, tenantHandoffPath, handoff.token, handoff.returnTo)))
-      .catch(() => setFailed(true));
+    partiesIssueSignInHomeHandoff({ returnTo: requested }, undefined, navigationTransitionSignal())
+      .then((handoff) => { if (isCurrentNavigationTransition(attempt)) window.location.assign(carryNavigationTransition(handoff.handoffUrl ?? handoffUrl(handoff.hostname, tenantHandoffPath, handoff.token, handoff.returnTo))); })
+      .catch(() => { if (isCurrentNavigationTransition(attempt)) setFailed(true); });
   }, []);
 
   useEffect(() => {
@@ -43,6 +49,7 @@ export function SignInContinuePage({ signInPath }: SignInContinuePageProps) {
     continueHome();
   }, [continueHome]);
 
+  if (!failed && covered) return null;
   return (
     <JourneyGateLayout>
       <JourneyGateCard
@@ -55,13 +62,6 @@ export function SignInContinuePage({ signInPath }: SignInContinuePageProps) {
       >
         {failed ? (
           <div className="flex flex-wrap gap-3">
-            <Tooltip>
-              <Button className="self-start" onPress={continueHome}>
-                <FaIcon icon="rotate-right" aria-hidden="true" />
-                {t("journey.continue.retry")}
-              </Button>
-              <Tooltip.Content>{t("journey.continue.retry")}</Tooltip.Content>
-            </Tooltip>
             <Tooltip>
               <Link
                 className="inline-flex items-center gap-2 self-start"

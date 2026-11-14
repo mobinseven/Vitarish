@@ -13,6 +13,9 @@ export const twoHostE2eAccountDeletionClientIp = "198.51.100.241";
 export const twoHostE2eForwardedForHeaderName = "X-Forwarded-For";
 export const twoHostE2eClinicOrigin = "http://localhost:3005";
 export const twoHostE2eLandingOrigin = "http://landing.localhost:3005";
+/** Internal listeners behind the test ingress; never browser/authentication origins. */
+export const twoHostE2eOwnerListenerOrigin = "http://127.0.0.1:3015";
+export const twoHostE2eLandingListenerOrigin = "http://127.0.0.1:3012";
 export const twoHostE2eTenantBClinicOrigin = "http://tenant-b.localhost:3005";
 export const twoHostE2eTenantBOwnerUsernameEnvironmentKey = "VITARISH_E2E_TENANT_B_OWNER_USERNAME";
 export const twoHostE2eTenantBOwnerUsername = "e2e-tenant-b-owner";

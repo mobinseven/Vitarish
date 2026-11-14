@@ -141,7 +141,7 @@ Run npm workspace commands from `src/Hosts/Web`.
 | `shared/sea` | SEA feature and generated API boundary. |
 | `shared/api-client` | Shared browser transport: base URL, credentials, tenant header, CSRF, cancellation, and transport errors. |
 | `shared/localization` | Locale state, providers, formatting, and feature namespace registration. |
-| `shared/ui` | Generic Web presentation, layout primitives, and design tokens. |
+| `shared/ui` | Generic Web presentation, layout primitives, design tokens, and [browser navigation transitions](hosts/web/navigation-transitions.md). |
 
 App `src/app/**/page.tsx` files own route entry points and compose exported
 feature surfaces. Reusable workflow UI, hooks, generated clients, and

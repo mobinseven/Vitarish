@@ -21,10 +21,22 @@ const passwordLoginPath = generatedOperationPath(authenticationLoginPassword);
 const antiforgeryPath = generatedOperationPath(authenticationAntiforgeryGet);
 const sessionPath = getAuthenticationSessionGetQueryKey()[0];
 const landingWorkspacesPath = generatedOperationPath(landingListWorkspaces);
+const landingDirectoryResponses = new WeakMap<Page, Response>();
+const observedPages = new WeakSet<Page>();
+function observeLandingDirectory(page: Page) {
+  if (observedPages.has(page)) return;
+  observedPages.add(page);
+  page.on("response", response => {
+    const url = new URL(response.url());
+    if (url.origin === twoHostE2eLandingOrigin && url.pathname === landingWorkspacesPath && response.request().method() === "GET") landingDirectoryResponses.set(page, response);
+  });
+}
 const landingWorkspaceHandoffPathTemplate = generatedOperationPath(landingIssueWorkspaceHandoff);
 
 /** Submits the password form on the sign-in host and returns the sign-in response. */
 export async function submitPasswordOnSignInHost(page: Page, username: string, password: string): Promise<Response> {
+  observeLandingDirectory(page);
+  landingDirectoryResponses.delete(page);
   await page.goto(`${signInOrigin}${Routes.Login.Password}`, { waitUntil: "domcontentloaded" });
   await expect(page.locator("form")).toHaveAttribute("method", "post", { timeout: 60_000 });
   await expect(page.locator('button[type="submit"]')).toBeEnabled({ timeout: 60_000 });
@@ -42,12 +54,12 @@ export async function submitPasswordOnSignInHost(page: Page, username: string, p
  * Resolves once the landing-issued workspace handoff is redeemed.
  */
 export async function continueToClinic(page: Page, clinicOrigin = defaultClinicOrigin): Promise<void> {
+  observeLandingDirectory(page);
   const requestedClinic = new URL(clinicOrigin);
   const requestedClinicOrigin = requestedClinic.origin;
   const requestedClinicHostname = requestedClinic.hostname.toLowerCase();
 
-  // The two-host runner serves the owner app at landing.localhost; the browser page still
-  // carries the landing-host session and can exercise its real tenant-scoped API.
+  // The test ingress serves the actual landing app with its host-only linked session.
   await page.waitForURL((url) => url.origin === twoHostE2eLandingOrigin && url.pathname === LandingRoutes.PlatformHome, {
     waitUntil: "domcontentloaded",
     timeout: handoffTimeoutMilliseconds,
@@ -62,18 +74,10 @@ export async function continueToClinic(page: Page, clinicOrigin = defaultClinicO
     timeout: handoffTimeoutMilliseconds,
   }).toBe(200);
 
-  const directoryResult = await page.evaluate(async ({ tenantHostHeader, requestIdHeader, path }) => {
-    const response = await fetch(path, {
-      credentials: "include",
-      headers: {
-        [tenantHostHeader]: window.location.host,
-        [requestIdHeader]: `e2e-workspace-list-${crypto.randomUUID()}`,
-      },
-    });
-    return { status: response.status, body: response.ok ? await response.json() : null };
-  }, { tenantHostHeader: TENANT_HOST_HEADER, requestIdHeader: REQUEST_ID_HEADER, path: landingWorkspacesPath });
-  expect(directoryResult.status, "the signed-in landing workspace directory must be available").toBe(200);
-  const directory = directoryResult.body as LandingWorkspacesResponse | null;
+  // Consume the real home's own query; issuing a duplicate read consumes the
+  // same per-user rate budget as the workspace handoff.
+  await expect.poll(() => landingDirectoryResponses.get(page)?.status(), { timeout: handoffTimeoutMilliseconds }).toBe(200);
+  const directory = await landingDirectoryResponses.get(page)!.json() as LandingWorkspacesResponse;
   expect(directory, "the landing workspace response must include its directory").not.toBeNull();
   const workspace = directory!.workspaces.find((candidate) => candidate.hostname.toLowerCase() === requestedClinicHostname);
   expect(workspace, `the signed-in person must have a workspace at ${requestedClinicHostname}`).toBeDefined();

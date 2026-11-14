@@ -69,7 +69,7 @@ test("a doctor connects Tamin and prescribes a drug with its consumption values"
 
   // The scenario prescribes for its own patient, so it leaves the shared fixture patient untouched.
   const stamp = Date.now().toString().slice(-6);
-  await page.goto(`${defaultClinicOrigin}${ClinicRoutes.Clinic.Patients.New}`, { waitUntil: "domcontentloaded" });
+  await page.goto(`${defaultClinicOrigin}${ClinicRoutes.Clinic.Patients.New}`, { waitUntil: "networkidle" });
   await page.getByRole("textbox", { name: new RegExp(messages.patient.fields.firstName) }).fill("Rx");
   await page.getByRole("textbox", { name: new RegExp(messages.patient.fields.lastName) }).fill(`Patient ${stamp}`);
   await page.getByRole("textbox", { name: new RegExp(messages.patient.fields.identificationCode) }).fill(`E2E-RX-${stamp}`);

@@ -2,7 +2,8 @@
 
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { useAuthSession, usePlatformAuthorization } from "@vitarish/auth";
+import { currentReturnPath, useAuthSession, usePlatformAuthorization } from "@vitarish/auth";
+import { navigationTransitionStates, useNavigationTransitionParticipant } from "@vitarish/ui/navigation-runtime";
 import { CenteredRegion, LoadingSpinner } from "@vitarish/ui";
 import { useLocalizedText } from "@vitarish/localization";
 import { ItemCard } from "@heroui-pro/react";
@@ -22,10 +23,12 @@ export function PlatformAdminAccessBoundary({
   const { hasAccess } = usePlatformAuthorization();
   const { t } = useLocalizedText();
   const isAuthenticationRoute = pathname.startsWith(Routes.Login) || pathname === AuthenticationWebRoutes.Handoff;
+  const covered = useNavigationTransitionParticipant(!isAuthenticationRoute && (isLoading || (!isAuthenticated && !isError)),
+    !isAuthenticationRoute && isError ? navigationTransitionStates.Failed : !isAuthenticationRoute && isAuthenticated && !hasAccess ? navigationTransitionStates.InteractionRequired : undefined);
 
   useEffect(() => {
     if (!isAuthenticationRoute && !isLoading && !isError && !isAuthenticated) {
-      const query = new URLSearchParams({ [AuthenticationSearchParams.ReturnUrl]: pathname + window.location.search });
+      const query = new URLSearchParams({ [AuthenticationSearchParams.ReturnUrl]: currentReturnPath() ?? pathname });
       router.replace(`${Routes.Login}?${query}`);
     }
   }, [isAuthenticated, isError, isLoading, isAuthenticationRoute, pathname, router]);
@@ -35,6 +38,7 @@ export function PlatformAdminAccessBoundary({
   }
 
   if (isLoading) {
+    if (covered) return null;
     return (
       <CenteredRegion>
         <div role="status" aria-label={t("common.states.loading")}>
@@ -55,6 +59,7 @@ export function PlatformAdminAccessBoundary({
   }
 
   if (!isAuthenticated) {
+    if (covered) return null;
     return (
       <CenteredRegion>
         <div role="status" aria-label={t("common.states.loading")}>

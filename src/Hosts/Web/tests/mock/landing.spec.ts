@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import path from "node:path";
 import { LandingRoutes } from "../../apps/vitarish-landing/src/app/routes";
-import { splashAttribute } from "../../apps/vitarish-landing/src/components/splash/splash-attributes";
+import { navigationTransitionDocument } from "../../shared/ui/src/navigation/transitionContract";
 import { catalogs } from "../../apps/vitarish-landing/src/localization/messages";
 import {
   landingMockApp,
@@ -18,7 +18,7 @@ const scenario = process.env[mockScreenshotScenarioEnvironmentKey] ?? readyScena
 const outputRoot = process.env[mockScreenshotOutputEnvironmentKey] ?? mockScreenshotRootFor(landingMockApp);
 const frontDoorPath = LandingRoutes.Home;
 const settleDelayMilliseconds = 500;
-const splashSelector = `[${splashAttribute}]`;
+const transitionSelector = `#${navigationTransitionDocument.surfaceId}`;
 
 test.describe.configure({ mode: "parallel" });
 
@@ -32,8 +32,8 @@ for (const locale of supportedLocales) {
     await page.goto(frontDoorPath, { waitUntil: "load" });
     await page.waitForFunction(() => navigator.serviceWorker.controller !== null);
     await page.waitForLoadState("networkidle");
-    // The splash screen covers the page until the document has loaded; the screenshot is of the page behind it.
-    await page.locator(splashSelector).waitFor({ state: "detached" });
+    // Capture the usable page after its shared navigation readiness has settled.
+    await page.locator(transitionSelector).waitFor({ state: "hidden" });
     // The mock server runs in development mode; keep the framework's development indicator out of the captures.
     await page.addStyleTag({ content: "nextjs-portal { display: none !important; }" });
     await page.waitForTimeout(settleDelayMilliseconds);
@@ -53,11 +53,11 @@ for (const locale of supportedLocales) {
     await context.addCookies([{ name: localeCookieName, value: locale, url: origin }]);
     await page.goto(LandingRoutes.Home, { waitUntil: "load" });
     await page.waitForFunction(() => navigator.serviceWorker.controller !== null);
-    await page.locator(splashSelector).waitFor({ state: "detached" });
+    await page.locator(transitionSelector).waitFor({ state: "hidden" });
     await page.getByRole("main").getByRole("link", { name: text.purpose.readMore }).click();
     await expect(page).toHaveURL(new URL(LandingRoutes.Purpose, origin).toString(), { timeout: 60_000 });
     await page.waitForLoadState("networkidle");
-    await page.locator(splashSelector).waitFor({ state: "detached" });
+    await page.locator(transitionSelector).waitFor({ state: "hidden" });
     await expect(page).toHaveTitle(text.purpose.title);
     await expect(page.locator("html")).toHaveAttribute("dir", getLocaleDirection(locale));
     await expect(page.getByRole("heading", { level: 1, name: text.purpose.title })).toBeVisible();
@@ -80,7 +80,7 @@ for (const locale of supportedLocales) {
     expect(overlaps(menuBounds!, brandBounds!)).toBe(false);
     expect(overlaps(brandBounds!, languageBounds!)).toBe(false);
     const menu = page.getByRole("menu", { name: text.editorial.navigation });
-    // A real click waits until the splash no longer covers the article.
+    // A real click waits until the navigation transition no longer covers the article.
     await menuButton.click();
     await expect(menu.getByRole("menuitem", { name: desktopNavigation ? text.apps.practice.discover : text.editorial.home })).toBeVisible();
     await page.keyboard.press("Escape");
@@ -119,7 +119,7 @@ for (const locale of supportedLocales) {
     const otherText = catalogs[otherLocale].landing;
     await page.getByRole("button", { name: text.header.language }).click();
     await page.waitForLoadState("networkidle");
-    await page.locator(splashSelector).waitFor({ state: "detached" });
+    await page.locator(transitionSelector).waitFor({ state: "hidden" });
     await expect(page.getByRole("heading", { level: 1, name: otherText.purpose.title })).toBeVisible();
     await expect(page).toHaveTitle(otherText.purpose.title);
     const otherHeader = page.getByRole("banner");
@@ -162,7 +162,7 @@ for (const locale of supportedLocales) {
     await page.goto(LandingRoutes.Studio, { waitUntil: "load" });
     await page.waitForFunction(() => navigator.serviceWorker.controller !== null);
     await page.waitForLoadState("networkidle");
-    await page.locator(splashSelector).waitFor({ state: "detached" });
+    await page.locator(transitionSelector).waitFor({ state: "hidden" });
     await page.addStyleTag({ content: "nextjs-portal { display: none !important; }" });
     await expect(page.getByRole("heading", { level: 1, name: text.title })).toBeVisible();
     // The studio is a working tool: it fits the viewport width whatever the locale.

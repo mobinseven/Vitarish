@@ -11,7 +11,8 @@
     "./routes": "./src/routes.ts",
     "./central-host": "./src/centralHost.ts",
     "./central-server": "./src/centralServer.tsx",
-    "./central": "./src/components/CentralAuthentication.tsx"
+    "./central": "./src/components/CentralAuthentication.tsx",
+    "./navigation-readiness": "./src/components/NavigationTransitionReadiness.tsx"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",

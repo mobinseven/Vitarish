@@ -1,5 +1,9 @@
 "use client";
 
+import { usePathname } from "next/navigation";
+import { NavigationTransitionReadiness } from "@vitarish/auth/navigation-readiness";
+import { AuthenticationWebRoutes } from "@vitarish/auth/routes";
+
 import { Toast } from "@heroui/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
@@ -9,6 +13,7 @@ import { themeModeAttribute } from "@vitarish/ui/theme-palette";
 import { themeModeOptions, themePreferenceStorageKey } from "./themeMode";
 
 export function Providers({ children, nonce }: { children: ReactNode; nonce?: string }) {
+  const pathname = usePathname();
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -29,6 +34,7 @@ export function Providers({ children, nonce }: { children: ReactNode; nonce?: st
         disableTransitionOnChange
         nonce={nonce}
       >
+        <NavigationTransitionReadiness sessionEnabled={pathname !== AuthenticationWebRoutes.Handoff} />
         {children}
         <Toast.Provider placement="bottom" />
       </ThemeProvider>

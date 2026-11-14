@@ -1,4 +1,5 @@
 import { enMessages } from "../../apps/private-practice-owner/src/localization/messages/en";
+import { LandingRoutes } from "../../apps/vitarish-landing/src/app/routes";
 import { AuthenticationSearchParams } from "../../shared/auth/src/routes";
 import { expect, test, type Page } from "@playwright/test";
 import crypto from "node:crypto";
@@ -94,13 +95,15 @@ test("a new phone number signs in on the landing host without a clinic and carri
   await warmUp.goto(`${onboardingOrigin}${tenantHandoffPath}`, { waitUntil: "domcontentloaded", timeout: 120_000 });
   await warmUp.close();
   // Any page on the landing host will do for its same-origin API calls; sign-in pages redirect to the sign-in host.
-  await page.goto(`${landingOrigin}${Routes.Root}`, { waitUntil: "domcontentloaded", timeout: 120_000 });
+  await page.goto(`${landingOrigin}${LandingRoutes.Home}`, { waitUntil: "domcontentloaded", timeout: 120_000 });
 
   // Anonymous visitors cannot ask for a handoff.
   expect((await callApi(page, "POST", handoffPath)).status).toBe(401);
 
   // Interactive sign-in belongs to Auth; the return continuation restores the landing session.
-  await page.goto(`${landingOrigin}${Routes.Login.Phone}`);
+  await page.goto(`${landingOrigin}${LandingRoutes.SignIn}`);
+  await expect(page).toHaveURL(url => url.origin === twoHostE2eSignInOrigin && url.pathname === Routes.Login.Index);
+  await page.getByRole("link", { name: enMessages.auth.login.phoneMethod }).click();
   await expect(page).toHaveURL(url => url.origin === twoHostE2eSignInOrigin && url.pathname === Routes.Login.Phone);
   const returnUrl = new URL(page.url()).searchParams.get(AuthenticationSearchParams.ReturnUrl);
   expect(returnUrl).toBeTruthy();

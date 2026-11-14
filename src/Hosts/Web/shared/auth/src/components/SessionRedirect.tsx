@@ -8,6 +8,8 @@ import {
   type AuthReturnUrlSearchParams,
 } from "../hooks/navigation";
 import { StandaloneCenteredPage } from "@vitarish/ui/layout";
+import { navigationTransitionStates, useNavigationTransitionParticipant } from "@vitarish/ui/navigation-runtime";
+import { AuthenticationEntryFailure } from "./AuthenticationEntryFailure";
 
 interface RedirectSessionState {
   isLoading: boolean;
@@ -54,6 +56,8 @@ function SessionRedirectMessage({
   label: string;
   fallback?: ReactNode;
 }) {
+  const covered = useNavigationTransitionParticipant(true);
+  if (covered) return null;
   if (fallback) {
     return <>{fallback}</>;
   }
@@ -72,13 +76,14 @@ export function SessionRedirect({
   loadingFallback,
   onNavigate = ignoreAuthNavigation,
 }: SessionRedirectProps) {
-  const { isAuthenticated, isLoading } = useAuthSession();
-  const redirectTarget = resolveSessionRedirectTarget({
+  const { isAuthenticated, isLoading, isError, error } = useAuthSession();
+  const redirectTarget = isError ? null : resolveSessionRedirectTarget({
     isLoading,
     isAuthenticated,
     authenticatedHref,
     anonymousHref,
   });
+  useNavigationTransitionParticipant(!isError, isError ? navigationTransitionStates.Failed : undefined);
 
   useEffect(() => {
     if (redirectTarget) {
@@ -86,7 +91,7 @@ export function SessionRedirect({
     }
   }, [redirectTarget, onNavigate]);
 
-  return <SessionRedirectMessage label={loadingLabel} fallback={loadingFallback} />;
+  return isError ? <AuthenticationEntryFailure error={error} /> : <SessionRedirectMessage label={loadingLabel} fallback={loadingFallback} />;
 }
 
 export function AuthenticatedRedirectBoundary({
@@ -97,12 +102,12 @@ export function AuthenticatedRedirectBoundary({
   onNavigate = ignoreAuthNavigation,
   returnUrlSearchParams,
 }: AuthenticatedRedirectBoundaryProps) {
-  const { isAuthenticated, isLoading } = useAuthSession();
+  const { isAuthenticated, isLoading, isError, error } = useAuthSession();
   // Only a visitor who arrives signed in is sent away. Someone who signs in on this page is
   // sent on by the sign-in form, which knows the server's destination; a second navigation
   // from here would race it.
   const arrivedSignedIn = useRef<boolean | null>(null);
-  if (!isLoading && arrivedSignedIn.current === null) {
+  if (!isLoading && !isError && arrivedSignedIn.current === null) {
     arrivedSignedIn.current = isAuthenticated;
   }
 
@@ -114,12 +119,16 @@ export function AuthenticatedRedirectBoundary({
       ? returnUrl
       : null;
 
-  const redirectTarget = resolveSessionRedirectTarget({
+  const redirectTarget = isError ? null : resolveSessionRedirectTarget({
     isLoading,
     isAuthenticated: isAuthenticated && arrivedSignedIn.current === true,
     authenticatedHref: safeReturnUrl || authenticatedHref,
     anonymousHref: null,
   });
+  const discovering = isLoading && arrivedSignedIn.current === null;
+  const discoveryFailed = isError && arrivedSignedIn.current !== false;
+  useNavigationTransitionParticipant(discovering || Boolean(redirectTarget),
+    discoveryFailed ? navigationTransitionStates.Failed : !discovering && !redirectTarget ? navigationTransitionStates.InteractionRequired : undefined);
 
   useEffect(() => {
     if (redirectTarget) {
@@ -130,6 +139,7 @@ export function AuthenticatedRedirectBoundary({
   // Anonymous session queries can return to loading while a focus refetch is
   // in flight after a 401. Only initial discovery may replace the form:
   // unmounting it here destroys the pending OTP challenge and entered values.
+  if (discoveryFailed) return <AuthenticationEntryFailure error={error} />;
   if ((isLoading && arrivedSignedIn.current === null) || redirectTarget) {
     return <SessionRedirectMessage label={loadingLabel} fallback={loadingFallback} />;
   }

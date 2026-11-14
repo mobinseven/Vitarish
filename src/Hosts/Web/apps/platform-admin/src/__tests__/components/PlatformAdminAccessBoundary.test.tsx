@@ -9,6 +9,7 @@ const state = vi.hoisted(() => ({
 }));
 vi.mock("next/navigation", () => ({ usePathname: () => state.pathname, useRouter: () => ({ replace: state.replace }) }));
 vi.mock("@vitarish/auth", () => ({
+  currentReturnPath: () => state.pathname,
   useAuthSession: () => ({ isAuthenticated: state.isAuthenticated, isLoading: false, isError: false }),
   usePlatformAuthorization: () => ({ hasAccess: state.hasAccess }),
 }));

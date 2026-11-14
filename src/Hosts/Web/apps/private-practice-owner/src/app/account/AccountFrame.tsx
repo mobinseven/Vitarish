@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuthSession } from "@vitarish/auth";
+import { currentReturnPath, useAuthSession } from "@vitarish/auth";
 import { AuthenticationSearchParams } from "@vitarish/auth/routes";
 import { JourneyGateBoundary } from "@/components/journey/JourneyGateBoundary";
 import { DashboardShell } from "@/components/shell";
@@ -13,6 +13,8 @@ import {
 } from "@/components/shell/dashboardShellNavigation";
 import { Routes } from "@/app/routes";
 import { LoadingScreen } from "@/components/loading/LoadingScreen";
+import { JourneyErrorState } from "@vitarish/journey";
+import { navigationTransitionStates, useNavigationTransitionParticipant } from "@vitarish/ui/navigation-runtime";
 import { ContainedPage } from "@vitarish/ui/layout";
 
 export function AccountFrame({
@@ -22,14 +24,18 @@ export function AccountFrame({
   children: React.ReactNode;
   central: boolean;
 }) {
-  const { isAuthenticated, isLoading } = useAuthSession();
+  const session = useAuthSession();
+  const { isAuthenticated, isLoading, isError } = session;
+  useNavigationTransitionParticipant(isLoading || (!isAuthenticated && !isError), isError ? navigationTransitionStates.Failed : undefined);
   const router = useRouter();
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.push(`${Routes.Login.Index}?${AuthenticationSearchParams.ReturnUrl}=${encodeURIComponent(window.location.pathname + window.location.search)}`);
+    if (!isLoading && !isError && !isAuthenticated) {
+      router.push(`${Routes.Login.Index}?${AuthenticationSearchParams.ReturnUrl}=${encodeURIComponent(currentReturnPath() ?? Routes.Root)}`);
     }
-  }, [isLoading, isAuthenticated, router]);
+  }, [isLoading, isError, isAuthenticated, router]);
+
+  if (isError) return <JourneyErrorState onRetry={() => void session.refetch()} />;
 
   if (isLoading) {
     return <LoadingScreen />;

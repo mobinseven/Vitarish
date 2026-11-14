@@ -1,3 +1,5 @@
+import { navigationTransitionMessages } from "../../shared/ui/src/navigation/navigationMessages";
+import { navigationTransitionDocument } from "../../shared/ui/src/navigation/transitionContract";
 import { AuthenticationSearchParams, AuthenticationWebRoutes } from "../../shared/auth/src/routes";
 import { twoHostE2eSignInOrigin } from "../../scripts/two-host-e2e-artifacts.mjs";
 import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
@@ -312,8 +314,8 @@ test("uses the real Web and Main hosts for an authenticated tenant-scoped reques
   );
   expect(sessionNotices.status).toBe(200);
   expect(sessionNotices.body).toEqual(expect.any(Array));
-  // The E2E Web host is next dev, where hydrating the dashboard takes several seconds.
-  await expect(page.locator("#initial-page-loader")).toHaveCount(0, { timeout: 15_000 });
+  // Assert the current presenter has yielded to the authenticated destination.
+  await expect(page.locator(`#${navigationTransitionDocument.surfaceId}`)).toBeHidden({ timeout: 15_000 });
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible({ timeout: 30_000 });
 
   const browserDisclosure = await page.evaluate((secret) => ({
@@ -335,8 +337,17 @@ test("uses the real Web and Main hosts for an authenticated tenant-scoped reques
   expect(health.status).toBe(200);
   expect(health.body).toMatchObject({ succeeded: true });
 
-  const removedAnonymousRoute = await fetchJson(page, "/__e2e/authenticate");
-  expect(removedAnonymousRoute.status).toBe(404);
+  const browser = page.context().browser();
+  expect(browser, "an isolated browser is required to prove the removed E2E route cannot authenticate anonymously").toBeTruthy();
+  const anonymousContext = await browser!.newContext();
+  try {
+    const anonymousPage = await anonymousContext.newPage();
+    await anonymousPage.goto(`${webOrigin}/__e2e/authenticate`, { waitUntil: "domcontentloaded" });
+    const anonymousSession = await fetchJson(anonymousPage, generatedOperationPath(authenticationSessionGet));
+    expect(anonymousSession.status).toBe(401);
+  } finally {
+    await anonymousContext.close();
+  }
 
   await expect.poll(() => page.locator("body").innerText()).toMatch(/patients|patients/i);
 
@@ -1261,8 +1272,9 @@ test("enforces platform-admin authorization through the API", async ({ page }) =
 test("refuses administration entry while recording each denied audit review once", async ({ page, request }, testInfo) => {
   test.setTimeout(120_000);
   await login(page, tenantBOwnerUsername, platformAdminOrigin, e2ePassword, "198.51.100.23", false);
-  await expect(page.getByText(catalogs.en.auth.failures.providerFailure, { exact: true })).toBeVisible();
-  await expect(page.getByRole("link", { name: catalogs.en.auth.login.signInAction, exact: true })).toHaveAttribute("href", AuthenticationWebRoutes.SignIn);
+  // Preserve the authoritative concealed-resource denial rather than relabel it as a dependency failure.
+  await expect(page.getByRole("alert").filter({ hasText: "Not Found" })).toHaveText("Not Found");
+  await expect(page.getByRole("link", { name: navigationTransitionMessages.en.signIn, exact: true })).toHaveAttribute("href", AuthenticationWebRoutes.SignIn);
   expect((await page.request.get(platformAdminOrigin + generatedOperationPath(authenticationSessionGet))).status()).toBe(401);
   if (forbiddenScreenshotPath) {
     mkdirSync(dirname(forbiddenScreenshotPath), { recursive: true });
