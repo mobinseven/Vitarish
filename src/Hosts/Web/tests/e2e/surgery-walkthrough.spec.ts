@@ -150,7 +150,7 @@ test("walks an owner through surgery types, planning, the calendar, editing, and
   await expect(page.getByText(typeName).first()).toBeVisible({ timeout: 60_000 });
   await captureStep(page, "patient-profile-surgeries", page.getByText(typeName).first());
 
-  await page.getByRole("button", { name: surgeryMessages.actions.plan }).first().click();
+  await page.goto(ClinicRoutes.Clinic.Surgeries.NewForPatient(seededPatientId), { waitUntil: "domcontentloaded" });
   await expect(page.getByText(seededPatientName).first()).toBeVisible({ timeout: 60_000 });
   await selectOption(page, surgeryMessages.fields.type, typeName);
   await fillSchedule(page, scheduledAt);

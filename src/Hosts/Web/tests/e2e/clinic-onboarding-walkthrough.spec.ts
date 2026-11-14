@@ -545,7 +545,7 @@ test("a new phone number signs up, creates a clinic, lands signed in on it, and 
   await expect(page.getByText(surgeryLocation).first()).toBeVisible();
   await captureStep(page, "surgery-planned");
 
-  await page.goto(`${clinicOrigin}${Routes.Clinic.Appointments.Shifts.New}`, { waitUntil: "domcontentloaded" });
+  await page.goto(`${clinicOrigin}${Routes.Clinic.Settings.Shifts.New}`, { waitUntil: "domcontentloaded" });
   await expect(
     page.getByRole("heading", { level: 1, name: clinicMessages.appointments.shifts.createTitle }),
   ).toBeVisible({ timeout: pageCompileTimeoutMilliseconds });

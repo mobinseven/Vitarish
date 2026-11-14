@@ -3,7 +3,7 @@ import { Routes } from "../../apps/private-practice-owner/src/app/routes";
 import { twoHostE2eClinicOrigin, twoHostE2eLandingOrigin, twoHostE2eForwardedForHeaderName, twoHostE2eLocaleEnvironmentKey, twoHostE2eOwnerUsernameEnvironmentKey, twoHostE2ePasswordEnvironmentKey, twoHostE2eSignInOrigin } from "../../scripts/two-host-e2e-artifacts.mjs";
 import { localeCookieName } from "../../shared/localization/src/localeCookie";
 import { navigationTransitionQueryKey, navigationTransitionPolicy, navigationTransitionVersion, navigationTransitionStorageKey, withNavigationTransition, parseNavigationTransition, type NavigationTransitionContext } from "../../shared/ui/src/navigation/transitionContext";
-import { navigationTransitionDocument } from "../../shared/ui/src/navigation/transitionDocument";
+import { navigationTransitionDocument, navigationTransitionStates } from "../../shared/ui/src/navigation/transitionDocument";
 import { authenticationAntiforgeryGet, authenticationContinuationBegin, authenticationLogoutPost, authenticationTenantHandoffRedeem } from "../../shared/auth/src/api/generated/authentication/authentication";
 import { REQUEST_ID_HEADER, TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
 import { generatedOperationPath } from "./generatedOperationPath";
@@ -17,6 +17,52 @@ import { AuthenticationWebRoutes } from "../../shared/auth/src/routes";
 
 const transitionClientIp = "198.51.100.219";
 const locale = process.env[twoHostE2eLocaleEnvironmentKey] === "fa" ? "fa" : "en";
+const reactHydrationMismatchCode = 418;
+const reactErrorArgumentsQueryKey = "args[]";
+const reactHydrationMismatchArguments = new Set(["text", "HTML"]);
+const nextStaticChunksPrefix = "/_next/static/chunks/";
+const nextStaticChunksRoute = `**${nextStaticChunksPrefix}**`;
+const hydrationConsolePattern = new RegExp(`hydration|didn't match|did not match|React error #${reactHydrationMismatchCode}`, "i");
+
+type BrowserLocation = { origin: string; path: string };
+type HydrationConsoleError = BrowserLocation & { type: string };
+type PageErrorEvidence = BrowserLocation & {
+  name: string;
+  reactCode?: number;
+  reactArguments?: string[];
+  script?: string;
+};
+
+function browserLocation(rawUrl: string): BrowserLocation {
+  const url = new URL(rawUrl);
+  return { origin: url.origin, path: url.pathname };
+}
+
+function firstStackScript(stack: string | undefined): string | undefined {
+  for (const line of stack?.split(/\r?\n/) ?? []) {
+    const match = /^\s+at (?:.*?\()?((?:https?:\/\/)[^\s)]+?)(?::\d+){1,2}\)?\s*$/.exec(line);
+    if (!match) continue;
+    const url = new URL(match[1]);
+    return `${url.origin}${url.pathname}`;
+  }
+  return undefined;
+}
+
+function pageErrorEvidence(error: Error): Omit<PageErrorEvidence, keyof BrowserLocation> {
+  const reactCode = /(?:Minified React error #|React error #|react\.dev\/errors\/)(\d+)/i.exec(error.message)?.[1];
+  const reactErrorUrl = /https?:\/\/react\.dev\/errors\/\d+\?[^\s)]+/.exec(error.message)?.[0];
+  const reactArguments = reactErrorUrl
+    ? new URL(reactErrorUrl).searchParams.getAll(reactErrorArgumentsQueryKey).filter(value => reactHydrationMismatchArguments.has(value))
+    : [];
+  const script = firstStackScript(error.stack);
+
+  return {
+    name: error.name,
+    ...(reactCode ? { reactCode: Number(reactCode) } : {}),
+    ...(reactArguments.length > 0 ? { reactArguments } : {}),
+    ...(script ? { script } : {}),
+  };
+}
 
 test("navigation-transition preserves the presentation attempt through correlated central entry", async ({ page, context }, testInfo) => {
   test.setTimeout(360_000);
@@ -29,6 +75,8 @@ test("navigation-transition preserves the presentation attempt through correlate
   let signedIn = false;
   let releaseChunks = () => {};
   let releaseIssuance = () => {};
+  const pageErrors: PageErrorEvidence[] = [];
+  const hydrationConsoleErrors: HydrationConsoleError[] = [];
   try {
     const directoryResponse = page.waitForResponse(response => new URL(response.url()).pathname === generatedOperationPath(landingListWorkspaces) && response.request().method() === "GET");
     expect((await submitPasswordOnSignInHost(page, username!, password!)).status()).toBe(200);
@@ -40,9 +88,14 @@ test("navigation-transition preserves the presentation attempt through correlate
     await expect(page.locator(`#${navigationTransitionDocument.surfaceId}`)).toBeHidden();
     const incoming: { origin: string; path: string; carried: boolean; attempt: string | undefined }[] = [];
     const apiReturnPaths: unknown[] = [];
-    const hydrationErrors: string[] = [];
-    page.on("console", message => { if (/hydration|didn't match|did not match|React error #418/i.test(message.text())) hydrationErrors.push(message.type()); });
-    page.on("pageerror", error => hydrationErrors.push(error.name));
+    page.on("console", message => {
+      if (message.type() === "error" && hydrationConsolePattern.test(message.text())) {
+        hydrationConsoleErrors.push({ ...browserLocation(page.url()), type: message.type() });
+      }
+    });
+    page.on("pageerror", error => {
+      pageErrors.push({ ...browserLocation(page.url()), ...pageErrorEvidence(error) });
+    });
     page.on("request", request => {
       const url = new URL(request.url());
       if (request.isNavigationRequest() && request.frame() === page.mainFrame()) {
@@ -63,8 +116,7 @@ test("navigation-transition preserves the presentation attempt through correlate
       } catch (error) { issuedHandoff.reject(error); await route.abort(); }
     });
     const chunksBarrier = new Promise<void>(resolve => { releaseChunks = resolve; });
-    const clientChunks = "**/_next/static/chunks/**";
-    await page.route(clientChunks, async route => { await chunksBarrier; await route.continue(); });
+    await page.route(nextStaticChunksRoute, async route => { await chunksBarrier; await route.continue(); });
     const redeemed = page.waitForResponse(response => new URL(response.url()).pathname === generatedOperationPath(authenticationTenantHandoffRedeem) && response.request().method() === "POST");
     const openLabel = homeMessageCatalogs[locale].home.workspaces.openNamed.replace("{name}", workspace!.name);
     await page.getByRole("button", { name: openLabel, exact: true }).click();
@@ -90,12 +142,21 @@ test("navigation-transition preserves the presentation attempt through correlate
       { origin: twoHostE2eClinicOrigin, path: Routes.Handoff, carried: true, attempt: attempt.attempt },
     ]);
     expect(apiReturnPaths.map(value => value === expectedReturnPath)).toEqual([true]);
-    expect(hydrationErrors).toEqual([]);
+    expect([...hydrationConsoleErrors, ...pageErrors.filter(error => error.reactCode === reactHydrationMismatchCode)]).toEqual([]);
+    expect(pageErrors).toEqual([]);
     await page.screenshot({ path: testInfo.outputPath("02-navigation-destination.png") });
     await testInfo.attach("sanitized-transition-hops", { body: JSON.stringify(incoming), contentType: "application/json" });
   } finally {
     releaseChunks();
     releaseIssuance();
+    try {
+      if (pageErrors.length > 0) {
+        await testInfo.attach("sanitized-page-errors", { body: JSON.stringify(pageErrors), contentType: "application/json" });
+      }
+      if (hydrationConsoleErrors.length > 0) {
+        await testInfo.attach("sanitized-hydration-console-errors", { body: JSON.stringify(hydrationConsoleErrors), contentType: "application/json" });
+      }
+    } finally {
       if (signedIn) {
         const headers = { [TENANT_HOST_HEADER]: new URL(twoHostE2eSignInOrigin).host, [twoHostE2eForwardedForHeaderName]: transitionClientIp };
         const antiforgery = await context.request.get(twoHostE2eSignInOrigin + generatedOperationPath(authenticationAntiforgeryGet), { headers });
@@ -107,6 +168,7 @@ test("navigation-transition preserves the presentation attempt through correlate
         });
         expect(logout.status()).toBe(200);
       }
+    }
   }
 });
 
@@ -116,7 +178,7 @@ test("navigation-transition bounds a hung bootstrap and offers fresh entry witho
   await page.emulateMedia({ reducedMotion: "reduce" });
   let release = () => {};
   const barrier = new Promise<void>(resolve => { release = resolve; });
-  await page.route("**/_next/static/chunks/**", async route => { await barrier; await route.abort(); });
+  await page.route(nextStaticChunksRoute, async route => { await barrier; await route.abort(); });
   const attempt: NavigationTransitionContext = {
     version: navigationTransitionVersion, attempt: crypto.randomUUID(),
     started: Date.now() - navigationTransitionPolicy.recoveryMilliseconds + 6_000,
@@ -171,29 +233,84 @@ test("navigation-transition yields to an interactive sign-in and survives refres
 
 
 test("navigation-transition remains tab-local and cancels on browser Back when storage is denied", async ({ page, context }) => {
-  await context.addInitScript(() => {
-    for (const method of ["getItem", "setItem", "removeItem"]) Object.defineProperty(Storage.prototype, method, { value: () => { throw new DOMException("fixture storage denied", "SecurityError"); } });
-  });
+  await context.addInitScript((storageKey: string) => {
+    const session = window.sessionStorage;
+    for (const method of ["getItem", "setItem", "removeItem"] as const) {
+      const original = Storage.prototype[method] as (this: Storage, ...args: unknown[]) => unknown;
+      Object.defineProperty(Storage.prototype, method, {
+        configurable: true,
+        writable: true,
+        value(this: Storage, key: string, ...rest: unknown[]) {
+          if (this === session && key === storageKey) throw new DOMException("fixture storage denied", "SecurityError");
+          return original.call(this, key, ...rest);
+        },
+      });
+    }
+  }, navigationTransitionStorageKey);
   await context.addCookies([{ name: localeCookieName, value: locale, url: twoHostE2eSignInOrigin }]);
   await page.goto(twoHostE2eSignInOrigin + Routes.Login.Password);
   const surface = page.locator(`#${navigationTransitionDocument.surfaceId}`);
+  await expect.poll(() => page.evaluate(runtimeKey =>
+    (window as unknown as Record<string, import("../../shared/ui/src/navigation/transitionContract").NavigationTransitionRuntime | undefined>)[runtimeKey]?.state,
+  navigationTransitionDocument.runtime)).toBe(navigationTransitionStates.InteractionRequired);
+  const initialState = await page.evaluate(runtimeKey => {
+    const runtime = (window as unknown as Record<string, import("../../shared/ui/src/navigation/transitionContract").NavigationTransitionRuntime>)[runtimeKey];
+    return { state: runtime.state, active: runtime.active() };
+  }, navigationTransitionDocument.runtime);
+  expect(initialState).toEqual({ state: navigationTransitionStates.InteractionRequired, active: false });
+  await expect(surface).toHaveAttribute(navigationTransitionDocument.stateAttribute, navigationTransitionStates.InteractionRequired);
   await expect(surface).toBeHidden();
+  await page.evaluate(async () => {
+    history.pushState({ fixture: true }, "", location.href);
+    await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+  });
+  await expect.poll(() => page.evaluate(runtimeKey =>
+    (window as unknown as Record<string, import("../../shared/ui/src/navigation/transitionContract").NavigationTransitionRuntime>)[runtimeKey].state,
+  navigationTransitionDocument.runtime)).toBe(navigationTransitionStates.InteractionRequired);
+  const attempt = await page.evaluate(async ({ owner, storageKey }) => {
+    const runtime = (window as unknown as Record<string, import("../../shared/ui/src/navigation/transitionContract").NavigationTransitionRuntime>)[owner.runtime];
+    runtime.start({ ...runtime.context, attempt: crypto.randomUUID(), started: Date.now() });
+    const stateAtStart = runtime.state;
+    let denied = false;
+    try { sessionStorage.getItem(storageKey); } catch { denied = true; }
+    const unrelatedKey = `${storageKey}:unrelated`;
+    let unrelatedStorageAvailable = false;
+    try {
+      sessionStorage.setItem(unrelatedKey, storageKey);
+      const storedValue = sessionStorage.getItem(unrelatedKey);
+      sessionStorage.removeItem(unrelatedKey);
+      unrelatedStorageAvailable = storedValue === storageKey && sessionStorage.getItem(unrelatedKey) === null;
+    } catch { /* The assertion below reports a fixture that denies unrelated storage. */ }
+    const activeAtStart = runtime.active();
+    await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+    return {
+      id: runtime.context.attempt,
+      denied,
+      unrelatedStorageAvailable,
+      stateAtStart,
+      activeAtStart,
+      stateAfterFrames: runtime.state,
+      activeAfterFrames: runtime.active(),
+    };
+  }, { owner: navigationTransitionDocument, storageKey: navigationTransitionStorageKey });
+  expect(attempt.denied).toBe(true);
+  expect(attempt.unrelatedStorageAvailable).toBe(true);
+  expect(attempt.stateAtStart).toBe(navigationTransitionStates.Pending);
+  expect(attempt.activeAtStart).toBe(true);
+  expect([navigationTransitionStates.Pending, navigationTransitionStates.Resolving]).toContain(attempt.stateAfterFrames);
+  expect(attempt.activeAfterFrames).toBe(true);
+  await expect(surface).toHaveAttribute(navigationTransitionDocument.stateAttribute, attempt.stateAfterFrames);
+  await expect(surface).toBeVisible();
   const other = await context.newPage();
   try {
     await other.goto(twoHostE2eSignInOrigin + Routes.Login.Password);
     await expect(other.locator(`#${navigationTransitionDocument.surfaceId}`)).toBeHidden();
-    const attempt = await page.evaluate(({ owner, storageKey }) => {
-      const runtime = (window as unknown as Record<string, import("../../shared/ui/src/navigation/transitionContract").NavigationTransitionRuntime>)[owner.runtime];
-      runtime.start({ ...runtime.context, attempt: crypto.randomUUID(), started: Date.now() });
-      history.pushState({ fixture: true }, "", location.href);
-      let denied = false;
-      try { sessionStorage.getItem(storageKey); } catch { denied = true; }
-      return { id: runtime.context.attempt, denied };
-    }, { owner: navigationTransitionDocument, storageKey: navigationTransitionStorageKey });
-    expect(attempt.denied).toBe(true);
-    await expect(surface).toBeVisible();
-    await expect(other.locator(`#${navigationTransitionDocument.surfaceId}`)).toBeHidden();
     await page.goBack();
+    await expect.poll(() => page.evaluate(runtimeKey => {
+      const runtime = (window as unknown as Record<string, import("../../shared/ui/src/navigation/transitionContract").NavigationTransitionRuntime>)[runtimeKey];
+      return { attempt: runtime.context.attempt, state: runtime.state };
+    }, navigationTransitionDocument.runtime)).toEqual({ attempt: attempt.id, state: navigationTransitionStates.Cancelled });
+    await expect(surface).toHaveAttribute(navigationTransitionDocument.stateAttribute, navigationTransitionStates.Cancelled);
     await expect(surface).toBeHidden();
     await expect(page.locator('input[name="username"]')).toBeEditable();
   } finally { await other.close(); }

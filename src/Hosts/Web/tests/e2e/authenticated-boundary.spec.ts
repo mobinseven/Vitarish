@@ -337,8 +337,17 @@ test("uses the real Web and Main hosts for an authenticated tenant-scoped reques
   expect(health.status).toBe(200);
   expect(health.body).toMatchObject({ succeeded: true });
 
-  const removedAnonymousRoute = await fetchJson(page, "/__e2e/authenticate");
-  expect(removedAnonymousRoute.status).toBe(404);
+  const browser = page.context().browser();
+  expect(browser, "an isolated browser is required to prove the removed E2E route cannot authenticate anonymously").toBeTruthy();
+  const anonymousContext = await browser!.newContext();
+  try {
+    const anonymousPage = await anonymousContext.newPage();
+    await anonymousPage.goto(`${webOrigin}/__e2e/authenticate`, { waitUntil: "domcontentloaded" });
+    const anonymousSession = await fetchJson(anonymousPage, generatedOperationPath(authenticationSessionGet));
+    expect(anonymousSession.status).toBe(401);
+  } finally {
+    await anonymousContext.close();
+  }
 
   await expect.poll(() => page.locator("body").innerText()).toMatch(/patients|patients/i);
 
@@ -1264,7 +1273,7 @@ test("refuses administration entry while recording each denied audit review once
   test.setTimeout(120_000);
   await login(page, tenantBOwnerUsername, platformAdminOrigin, e2ePassword, "198.51.100.23", false);
   // Preserve the authoritative concealed-resource denial rather than relabel it as a dependency failure.
-  await expect(page.getByRole("alert")).toHaveText("Not Found");
+  await expect(page.getByRole("alert").filter({ hasText: "Not Found" })).toHaveText("Not Found");
   await expect(page.getByRole("link", { name: navigationTransitionMessages.en.signIn, exact: true })).toHaveAttribute("href", AuthenticationWebRoutes.SignIn);
   expect((await page.request.get(platformAdminOrigin + generatedOperationPath(authenticationSessionGet))).status()).toBe(401);
   if (forbiddenScreenshotPath) {

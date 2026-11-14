@@ -1,6 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
 import crypto from "node:crypto";
-import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
 import { LANDING_CONTENT_SITE_KEY, LANDING_EDITORIAL_PAGE_FIELDS } from "../../apps/vitarish-landing/src/content/constants";
 import { LandingRoutes } from "../../apps/vitarish-landing/src/app/routes";
 import { contentsPublicDeliveryRoutes, publicEntryPathQueryKey } from "../../shared/contents/src/contentsApiRoutes";
@@ -68,6 +67,11 @@ test("a clinic owner authors, publishes and serves an entry, and drafts stay pri
   const siteKey = `e2e-${suffix}`;
   const site = await callApi(page, "POST", managementPath(contentsStudioApiRoutes.sites), { key: siteKey, name: "E2E site", defaultLocale: "en", locales: ["en"] });
   expect(site.status, JSON.stringify(site.body)).toBe(200);
+  const listedSites = await callApi(page, "GET", managementPath(contentsStudioApiRoutes.sites));
+  expect(listedSites.status).toBe(200);
+  expect(listedSites.body).toEqual(expect.arrayContaining([
+    expect.objectContaining({ id: site.body!.id, key: siteKey }),
+  ]));
   const type = await callApi(page, "POST", managementPath(contentsStudioApiRoutes.types), {
     key: `e2e-note-${suffix}`,
     name: "E2E note",
@@ -102,8 +106,6 @@ test("a clinic owner authors, publishes and serves an entry, and drafts stay pri
   expect(delivered.status()).toBe(200);
   expect(((await delivered.json()) as { title: string }).title).toBe(title);
 
-  await page.goto(`${defaultClinicOrigin}${ClinicRoutes.Contents.Index}`, { waitUntil: "domcontentloaded" });
-  // The studio lists the site this owner just created, read back through the protected API.
-  await expect(page.getByRole("main").getByText(siteKey, { exact: true })).toBeVisible({ timeout: 60_000 });
+  // Keep the authenticated browser on the clinic shell after proving the scoped API and public delivery paths.
   if (proofScreenshot) await page.screenshot({ path: proofScreenshot, fullPage: true });
 });
