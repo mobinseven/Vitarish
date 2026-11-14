@@ -143,6 +143,43 @@ public sealed class OperationsAgentCapabilityTests
     }
 
     [Fact]
+    public async Task Appointment_administration_commits_the_setup_records_a_new_clinic_needs()
+    {
+        Mock<IServiceManager> services = new(MockBehavior.Strict);
+        services.Setup(x => x.AddAsync(It.IsAny<Vitarish.Appointments.Domain.Dto.ServiceWriteDto>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(EntityResult<Vitarish.Appointments.Domain.Dto.ServiceReadDto>.Success(new Vitarish.Appointments.Domain.Dto.ServiceReadDto()));
+        Mock<IServiceProviderManager> providers = new(MockBehavior.Strict);
+        providers.Setup(x => x.AddAsync(It.IsAny<Vitarish.Appointments.Domain.Dto.ServiceProviderWriteDto>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(EntityResult<Vitarish.Appointments.Domain.Dto.ServiceProviderReadDto>.Success(new Vitarish.Appointments.Domain.Dto.ServiceProviderReadDto()));
+        Mock<IShiftBookingPolicyManager> bookingPolicies = new(MockBehavior.Strict);
+        bookingPolicies.Setup(x => x.AddAsync(It.IsAny<Vitarish.Appointments.Domain.Dto.ShiftBookingPolicyWriteDto>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(EntityResult<Vitarish.Appointments.Domain.Dto.ShiftBookingPolicyReadDto>.Success(new Vitarish.Appointments.Domain.Dto.ShiftBookingPolicyReadDto()));
+        AppointmentAdministrationAgentTool tool = new(
+            new Mock<IAccessControlledReservationManager>().Object,
+            new Mock<IAccessControlledShiftManager>().Object,
+            services.Object,
+            new Mock<IServiceTypeManager>().Object,
+            providers.Object,
+            bookingPolicies.Object,
+            new Mock<IShiftReminderPolicyManager>().Object,
+            new Mock<IShiftBookableDateQueryService>().Object,
+            new Mock<ITemporaryHoldManager>().Object);
+        AgentExecutionContext confirmed = new("run-1", new Dictionary<string, string> { ["confirmedAction"] = "true" });
+
+        foreach (string operation in new[] { "create_service", "create_provider", "create_booking_policy" })
+        {
+            AgentToolResult result = await tool.ExecuteAsync(
+                new AgentToolCall("call-1", "appointment_manage", $$"""{"operation":"{{operation}}","payload":{"name":"Setup"},"commit":true}"""),
+                confirmed);
+            result.IsError.Should().BeFalse(result.Output);
+        }
+
+        services.VerifyAll();
+        providers.VerifyAll();
+        bookingPolicies.VerifyAll();
+    }
+
+    [Fact]
     public async Task Appointment_administration_refuses_an_unreadable_payload_before_proposing_it()
     {
         Mock<IAccessControlledShiftManager> shifts = new(MockBehavior.Strict);

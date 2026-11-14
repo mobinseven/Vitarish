@@ -123,7 +123,7 @@ public sealed class SetupAssistantCapabilityTests
         return new("Clinic", null, null, null, details, false);
     }
 
-    private static SetupAssistantCapability NewCapability(ISender sender) => new(new GetClinicSetupProgressTool(sender));
+    private static SetupAssistantCapability NewCapability(ISender sender) => new(new GetClinicSetupProgressTool(sender), new PrepareUpdateClinicProfileTool(sender));
 
     private static AssistantContext Context(string role, string subjectKind) =>
         new("practice-1", Guid.Empty, "user-1", new HashSet<string>(StringComparer.Ordinal), role,

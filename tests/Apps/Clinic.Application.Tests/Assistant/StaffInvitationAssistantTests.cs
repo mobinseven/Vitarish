@@ -37,7 +37,7 @@ public sealed class StaffInvitationAssistantTests
     [InlineData(StaffRole, false)]
     public void Capability_and_action_are_available_only_to_owners_and_platform_admins(string role, bool expected)
     {
-        StaffAssistantCapability capability = new(new PrepareInviteMemberTool(Protection));
+        StaffAssistantCapability capability = StaffCapability();
         AssistantContext context = PracticeContext(role);
         AssistantCapabilityRegistry registry = Registry(capability, new StaffInvitationAssistantActionCommitter(new Mock<ISender>().Object));
 
@@ -49,7 +49,7 @@ public sealed class StaffInvitationAssistantTests
     [Fact]
     public void Capability_is_not_available_outside_the_practice_subject()
     {
-        StaffAssistantCapability capability = new(new PrepareInviteMemberTool(Protection));
+        StaffAssistantCapability capability = StaffCapability();
 
         capability.IsAvailable(PracticeContext(AssistantOperationsScope.TenantOwnerRole) with { SubjectKind = AssistantSubjects.PatientKind })
             .Should().BeFalse();
@@ -60,13 +60,13 @@ public sealed class StaffInvitationAssistantTests
     {
         AssistantCapabilityKeys.OperationsProfile.Should().Contain(AssistantCapabilityKeys.Staff);
         AssistantCapabilityKeys.Patient.Should().NotContain(AssistantCapabilityKeys.Staff);
-        AssistantCapabilityKeys.Staff.Should().Be(new StaffAssistantCapability(new PrepareInviteMemberTool(Protection)).Name);
+        AssistantCapabilityKeys.Staff.Should().Be(StaffCapability().Name);
     }
 
     [Fact]
     public void Policy_is_prepared_for_owners_and_retryable()
     {
-        AssistantActionPolicy policy = new StaffAssistantCapability(new PrepareInviteMemberTool(Protection)).ActionPolicies.Single();
+        AssistantActionPolicy policy = StaffCapability().ActionPolicies.Single(item => item.ActionType == AssistantStaffInvitation.ActionType);
 
         policy.ActionType.Should().Be(AssistantStaffInvitation.ActionType);
         policy.OwningWorkflow.Should().Be(AssistantStaffInvitation.WorkflowKey);
@@ -82,12 +82,12 @@ public sealed class StaffInvitationAssistantTests
     public void Registry_validation_accepts_the_policy_tool_and_committer_together()
     {
         Action compose = () => Registry(
-            new StaffAssistantCapability(new PrepareInviteMemberTool(Protection)),
+            StaffCapability(),
             new StaffInvitationAssistantActionCommitter(new Mock<ISender>().Object));
 
         compose.Should().NotThrow();
         Registry(
-            new StaffAssistantCapability(new PrepareInviteMemberTool(Protection)),
+            StaffCapability(),
             new StaffInvitationAssistantActionCommitter(new Mock<ISender>().Object))
             .ResolveTool(AssistantStaffInvitation.PrepareToolName)!.ActionType.Should().Be(AssistantStaffInvitation.ActionType);
     }
@@ -95,7 +95,7 @@ public sealed class StaffInvitationAssistantTests
     [Fact]
     public void Registry_validation_requires_the_committer_for_the_prepared_action()
     {
-        Action compose = () => Registry(new StaffAssistantCapability(new PrepareInviteMemberTool(Protection)));
+        Action compose = () => Registry(StaffCapability());
 
         compose.Should().Throw<InvalidOperationException>().WithMessage("*has no committer*");
     }
@@ -105,11 +105,48 @@ public sealed class StaffInvitationAssistantTests
     {
         Mock<ISender> sender = new(MockBehavior.Strict);
         StaffInvitationAssistantActionCommitter committer = new(sender.Object);
-        AssistantCapabilityRegistry registry = Registry(new StaffAssistantCapability(new PrepareInviteMemberTool(Protection)), committer);
+        AssistantCapabilityRegistry registry = Registry(StaffCapability(), committer);
         InMemoryActionStore store = new(PreparedInvitation());
         ConfirmAssistantActionHandler handler = new(
             new PreparedActionLifecycle(store, new FixedTimeProvider(Now)),
             new AssistantActionCommitterRegistry([committer]),
+            registry);
+
+        AssistantActionResult result = await handler.Handle(
+            new(store.Current.ActionId, PracticeContext(StaffRole)), CancellationToken.None);
+
+        result.Outcome.Should().Be(AssistantActionOutcome.PermissionDenied);
+        store.Current.Status.Should().Be(PreparedActionStatus.Proposed);
+        sender.VerifyNoOtherCalls();
+    }
+
+    [Theory]
+    [InlineData(AssistantStaffManagement.RemoveActionType)]
+    [InlineData(Vitarish.Clinic.Application.Setup.ClinicSetupAssistant.ProfileActionType)]
+    public async Task Staff_member_cannot_confirm_a_removal_or_a_profile_change(string actionType)
+    {
+        Mock<ISender> sender = new(MockBehavior.Strict);
+        IAssistantActionCommitter[] committers =
+        [
+            new StaffInvitationAssistantActionCommitter(sender.Object),
+            new StaffRemovalAssistantActionCommitter(sender.Object),
+            new ClinicProfileAssistantActionCommitter(sender.Object)
+        ];
+        AssistantCapabilityRegistry registry = new(
+            [StaffCapability(), new Vitarish.Clinic.Infrastructure.Assistant.Capabilities.Setup.SetupAssistantCapability(
+                new Vitarish.Clinic.Infrastructure.Assistant.Capabilities.Setup.GetClinicSetupProgressTool(sender.Object),
+                new Vitarish.Clinic.Infrastructure.Assistant.Capabilities.Setup.PrepareUpdateClinicProfileTool(sender.Object))],
+            new AssistantAuthorizationPolicy(), new AssistantToolAvailabilityPolicy(), committers);
+        InMemoryActionStore store = new(PreparedInvitation() with
+        {
+            ActionType = actionType,
+            ReviewPayload = actionType == AssistantStaffManagement.RemoveActionType
+                ? """{"userId":"staff-1","name":"Sara Karimi","contact":""}"""
+                : """{"website":"https://clinic.example.test"}"""
+        });
+        ConfirmAssistantActionHandler handler = new(
+            new PreparedActionLifecycle(store, new FixedTimeProvider(Now)),
+            new AssistantActionCommitterRegistry(committers),
             registry);
 
         AssistantActionResult result = await handler.Handle(
@@ -131,7 +168,7 @@ public sealed class StaffInvitationAssistantTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ProvisionTenantMemberResult(new User { Id = "user-9" }, "TenantUser", true, false));
         StaffInvitationAssistantActionCommitter committer = new(sender.Object);
-        AssistantCapabilityRegistry registry = Registry(new StaffAssistantCapability(new PrepareInviteMemberTool(Protection)), committer);
+        AssistantCapabilityRegistry registry = Registry(StaffCapability(), committer);
         InMemoryActionStore store = new(PreparedInvitation());
         ConfirmAssistantActionHandler handler = new(
             new PreparedActionLifecycle(store, new FixedTimeProvider(Now)),
@@ -355,10 +392,20 @@ public sealed class StaffInvitationAssistantTests
             CancellationToken.None);
     }
 
+    /// <summary>A registry for the staff capability. With any committer given, the removal committer is added too.</summary>
     private static AssistantCapabilityRegistry Registry(
         StaffAssistantCapability capability,
         params IAssistantActionCommitter[] committers) =>
-        new([capability], new AssistantAuthorizationPolicy(), new AssistantToolAvailabilityPolicy(), committers);
+        new([capability], new AssistantAuthorizationPolicy(), new AssistantToolAvailabilityPolicy(),
+            committers.Length == 0 || committers.Any(item => item.ActionType == AssistantStaffManagement.RemoveActionType)
+                ? committers
+                : [.. committers, new StaffRemovalAssistantActionCommitter(new Mock<ISender>().Object)]);
+
+    private static StaffAssistantCapability StaffCapability()
+    {
+        Mock<ISender> sender = new();
+        return new(new PrepareInviteMemberTool(Protection), new ListStaffMembersTool(sender.Object), new PrepareRemoveMemberTool(sender.Object));
+    }
 
     private static AgentExecutionContext Execution() => new("run-1");
 

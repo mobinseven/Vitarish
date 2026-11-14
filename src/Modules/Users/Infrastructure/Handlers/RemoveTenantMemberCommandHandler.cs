@@ -32,65 +32,20 @@ internal sealed class RemoveTenantMemberCommandHandler(
             return Failed(UsersCommandErrorCodes.Unauthorized, UsersCommandErrorCodes.UnauthorizedDescription);
         }
 
-        await using IDbContextTransaction? transaction = dbContext.Database.IsRelational()
-            ? await dbContext.Database.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken)
-            : null;
+        RemovalOutcome outcome;
         try
         {
-            string ownerRoleName = TenantRoleDefinitions.BuildRoleName(tenantId, IdentityDefinitions.TenantOwner);
-            IdentityRole? ownerRole = await dbContext.Roles.SingleOrDefaultAsync(role => role.Name == ownerRoleName, cancellationToken);
-            if (ownerRole is not null && await dbContext.UserRoles.AnyAsync(membership => membership.UserId == request.UserId && membership.RoleId == ownerRole.Id, cancellationToken))
-            {
-                await WriteAuditAsync(request, tenantId, operationKey, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.MutationRejected, cancellationToken);
-                return Failed(UsersCommandErrorCodes.TenantOwnerRemovalRejected, UsersCommandErrorCodes.TenantOwnerRemovalRejectedDescription);
-            }
-
-            IdentityRole? memberRole = await dbContext.Roles.SingleOrDefaultAsync(
-                role => role.Name == TenantRoleDefinitions.BuildRoleName(tenantId, IdentityDefinitions.TenantUser), cancellationToken);
-            if (memberRole is null)
-            {
-                await WriteAuditAsync(request, tenantId, operationKey, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.TenantRoleNotFound, cancellationToken);
-                return Failed(UsersCommandErrorCodes.RoleNotFound, UsersCommandErrorCodes.RoleNotFoundDescription);
-            }
-
-            IdentityUserRole<string>? membership = await dbContext.UserRoles.SingleOrDefaultAsync(
-                value => value.UserId == request.UserId && value.RoleId == memberRole.Id, cancellationToken);
-            if (membership is null)
-            {
-                if (transaction is not null)
-                    await transaction.CommitAsync(cancellationToken);
-                await WriteAuditAsync(request, tenantId, operationKey, SecurityAuditOutcome.Succeeded, null, cancellationToken);
-                return IdentityResult.Success;
-            }
-
-            if (await activeSessionQuery.HasActiveSessionAsync(request.UserId, cancellationToken))
-            {
-                await WriteAuditAsync(request, tenantId, operationKey, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.ActiveSessionConflict, cancellationToken);
-                return Failed(UsersCommandErrorCodes.ActiveSessionConflict, UsersCommandErrorCodes.ActiveSessionConflictDescription);
-            }
-
-            dbContext.UserRoles.Remove(membership);
-            _ = await dbContext.SaveChangesAsync(cancellationToken);
-            if (transaction is not null)
-                await transaction.CommitAsync(cancellationToken);
-            await WriteAuditAsync(
-                request,
-                tenantId,
-                operationKey,
-                SecurityAuditOutcome.Succeeded,
-                null,
-                cancellationToken,
-                [new SecurityAuditChange(
-                    SecurityAuditChangeFields.TenantRole,
-                    SecurityAuditReasonCatalog.TenantRoleStateUser,
-                    SecurityAuditReasonCatalog.TenantRoleStateNone)]);
-            return IdentityResult.Success;
+            // A retrying execution strategy refuses a user-initiated transaction unless the strategy runs it.
+            IExecutionStrategy strategy = dbContext.Database.CreateExecutionStrategy();
+            outcome = await strategy.ExecuteAsync(async () => await RemoveCoreAsync(request, tenantId, cancellationToken));
         }
         catch (DbUpdateConcurrencyException)
         {
             dbContext.ChangeTracker.Clear();
-            await WriteAuditAsync(request, tenantId, operationKey, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.TenantRoleConcurrencyConflict, cancellationToken);
-            return Failed(UsersCommandErrorCodes.TenantMemberConflict, UsersCommandErrorCodes.TenantMemberConflictDescription);
+            outcome = new(
+                Failed(UsersCommandErrorCodes.TenantMemberConflict, UsersCommandErrorCodes.TenantMemberConflictDescription),
+                SecurityAuditOutcome.Denied,
+                SecurityAuditReasonCatalog.TenantRoleConcurrencyConflict);
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
@@ -98,6 +53,71 @@ internal sealed class RemoveTenantMemberCommandHandler(
             await WriteAuditAsync(request, tenantId, operationKey, SecurityAuditOutcome.Failed, SecurityAuditReasonCatalog.TenantRolePersistenceFailure, CancellationToken.None);
             throw;
         }
+
+        await WriteAuditAsync(request, tenantId, operationKey, outcome.AuditOutcome, outcome.Reason, cancellationToken, outcome.Changes);
+        return outcome.Result;
+    }
+
+    /// <summary>
+    /// One attempt of the removal in its own transaction. The execution strategy may run it again after a
+    /// transient failure, so it only decides the outcome and leaves auditing to the caller.
+    /// </summary>
+    private async Task<RemovalOutcome> RemoveCoreAsync(RemoveTenantMemberCommand request, Guid tenantId, CancellationToken cancellationToken)
+    {
+        dbContext.ChangeTracker.Clear();
+        await using IDbContextTransaction? transaction = dbContext.Database.IsRelational()
+            ? await dbContext.Database.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken)
+            : null;
+
+        string ownerRoleName = TenantRoleDefinitions.BuildRoleName(tenantId, IdentityDefinitions.TenantOwner);
+        IdentityRole? ownerRole = await dbContext.Roles.SingleOrDefaultAsync(role => role.Name == ownerRoleName, cancellationToken);
+        if (ownerRole is not null && await dbContext.UserRoles.AnyAsync(membership => membership.UserId == request.UserId && membership.RoleId == ownerRole.Id, cancellationToken))
+        {
+            return new(
+                Failed(UsersCommandErrorCodes.TenantOwnerRemovalRejected, UsersCommandErrorCodes.TenantOwnerRemovalRejectedDescription),
+                SecurityAuditOutcome.Denied,
+                SecurityAuditReasonCatalog.MutationRejected);
+        }
+
+        IdentityRole? memberRole = await dbContext.Roles.SingleOrDefaultAsync(
+            role => role.Name == TenantRoleDefinitions.BuildRoleName(tenantId, IdentityDefinitions.TenantUser), cancellationToken);
+        if (memberRole is null)
+        {
+            return new(
+                Failed(UsersCommandErrorCodes.RoleNotFound, UsersCommandErrorCodes.RoleNotFoundDescription),
+                SecurityAuditOutcome.Denied,
+                SecurityAuditReasonCatalog.TenantRoleNotFound);
+        }
+
+        IdentityUserRole<string>? membership = await dbContext.UserRoles.SingleOrDefaultAsync(
+            value => value.UserId == request.UserId && value.RoleId == memberRole.Id, cancellationToken);
+        if (membership is null)
+        {
+            if (transaction is not null)
+                await transaction.CommitAsync(cancellationToken);
+            return new(IdentityResult.Success, SecurityAuditOutcome.Succeeded, null);
+        }
+
+        if (await activeSessionQuery.HasActiveSessionAsync(request.UserId, cancellationToken))
+        {
+            return new(
+                Failed(UsersCommandErrorCodes.ActiveSessionConflict, UsersCommandErrorCodes.ActiveSessionConflictDescription),
+                SecurityAuditOutcome.Denied,
+                SecurityAuditReasonCatalog.ActiveSessionConflict);
+        }
+
+        dbContext.UserRoles.Remove(membership);
+        _ = await dbContext.SaveChangesAsync(cancellationToken);
+        if (transaction is not null)
+            await transaction.CommitAsync(cancellationToken);
+        return new(
+            IdentityResult.Success,
+            SecurityAuditOutcome.Succeeded,
+            null,
+            [new SecurityAuditChange(
+                SecurityAuditChangeFields.TenantRole,
+                SecurityAuditReasonCatalog.TenantRoleStateUser,
+                SecurityAuditReasonCatalog.TenantRoleStateNone)]);
     }
 
     private async Task WriteAuditAsync(
@@ -136,4 +156,10 @@ internal sealed class RemoveTenantMemberCommandHandler(
 
     private static IdentityResult Failed(string code, string description) =>
         IdentityResult.Failed(new IdentityError { Code = code, Description = description });
+
+    private sealed record RemovalOutcome(
+        IdentityResult Result,
+        string AuditOutcome,
+        string? Reason,
+        IReadOnlyList<SecurityAuditChange>? Changes = null);
 }

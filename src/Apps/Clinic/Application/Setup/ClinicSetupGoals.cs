@@ -6,6 +6,16 @@ namespace Vitarish.Clinic.Application.Setup;
 public static class ClinicSetupAssistant
 {
     public const string CapabilityName = "Setup";
+    public const string PrepareProfileToolName = "prepare_update_clinic_profile";
+    public const string ProfileActionType = "update_clinic_profile";
+    public const string ProfileWorkflowKey = "clinic-profile";
+
+    public static class ProfileFailureCodes
+    {
+        public const string InvalidReview = "invalid_clinic_profile";
+        public const string NotFound = "clinic_not_found";
+        public const string Invalid = "clinic_profile_invalid";
+    }
 }
 
 /// <summary>The things a new clinic sets up, in the order the guide works through them.</summary>
