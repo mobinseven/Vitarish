@@ -19,4 +19,7 @@ public sealed class PartiesJourneyHostReader(ISender sender, IAuthenticationCent
 
     public Task<bool> IsSignInHostAsync(CancellationToken cancellationToken = default) =>
         sender.Send(new IsSignInHostQuery(), cancellationToken);
+
+    public Task<bool> IsClinicFrontPageAsync(CancellationToken cancellationToken = default) =>
+        sender.Send(new IsClinicFrontPageHostQuery(), cancellationToken);
 }

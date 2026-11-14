@@ -89,6 +89,11 @@ public sealed class JourneyResolver(
         if (centralReturnUrl is not null)
             return new JourneyStep(JourneyDestinationKind.ReturnUrl, centralReturnUrl);
 
+        // The clinic front page is not a clinic: its own page lists the person's clinics to open.
+        var clinicFrontPageGate = JourneyPolicy.EvaluateClinicFrontPage(await hostReader.IsClinicFrontPageAsync(cancellationToken));
+        if (clinicFrontPageGate is not null)
+            return new JourneyStep(JourneyDestinationKind.Gate, clinicFrontPageGate.DestinationUrl, clinicFrontPageGate);
+
         // Priority 6: Continue to platform home on the shared sign-in host
         var signInContinueGate = JourneyPolicy.EvaluateSignInContinue(
             isCentralHost,

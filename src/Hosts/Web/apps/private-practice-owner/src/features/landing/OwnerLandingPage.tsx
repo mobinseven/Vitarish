@@ -6,6 +6,7 @@ import { useReducedMotion } from "motion/react";
 import { Button, Tooltip } from "@heroui/react";
 import { FaIcon, ImmersiveRegion, MarketingActionLink, StandaloneDocumentPage, ViewportReveal } from "@vitarish/ui";
 import { useAuthSession } from "@vitarish/auth";
+import { hostUrl, usePlatformHostClinics } from "@vitarish/journey";
 import { Routes } from "@/app/routes";
 import { darmanLogotypes } from "@/components/branding/darmanLogotypes";
 import { supportedLocales, useLocalizedText, useSetLocaleCookie } from "@/localization";
@@ -43,6 +44,17 @@ export function OwnerLandingPage({ onboardingUrl }: OwnerLandingPageProps) {
   const [sceneLive, setSceneLive] = useState(false);
   const reducedMotion = useReducedMotion();
 
+  // On the clinic front page, which is not a clinic, a signed-in person opens one of their clinics from here.
+  const hostClinics = usePlatformHostClinics(isAuthenticated);
+  const clinicActions = hostClinics.status === "platform-host"
+    ? hostClinics.clinics.map((clinic) => ({
+        label: t("practiceLanding.openNamedClinic", { clinic: clinic.name }),
+        href: hostUrl(clinic.hostname, Routes.Clinic.Index).toString(),
+        external: true,
+        tooltip: t("practiceLanding.openNamedClinicTooltip", { clinic: clinic.name }),
+        icon: <FaIcon aria-hidden="true" icon="house-medical" size="1x" />,
+      }))
+    : null;
   const leadAction = isAuthenticated
     ? {
         label: t("practiceLanding.openClinic"),
@@ -65,6 +77,11 @@ export function OwnerLandingPage({ onboardingUrl }: OwnerLandingPageProps) {
       }
     : null;
   const primaryAction = isAuthenticated ? leadAction : createClinicAction ?? leadAction;
+  // The front page lists the person's clinics; with none yet, it offers to create one.
+  const heroActions = clinicActions
+    ? (clinicActions.length > 0 ? clinicActions : createClinicAction ? [createClinicAction] : [])
+    : [primaryAction];
+  const headerAction = clinicActions ? clinicActions[0] ?? createClinicAction : leadAction;
 
   return (
     <StandaloneDocumentPage ref={pageRef} aria-label={t("practiceLanding.mainContent")} className={styles.page}>
@@ -95,7 +112,7 @@ export function OwnerLandingPage({ onboardingUrl }: OwnerLandingPageProps) {
                 }}
               />
             )}
-            <MarketingActionLink className={styles.onAnchor} action={{ ...leadAction, tone: "quiet" }} />
+            {headerAction ? <MarketingActionLink className={styles.onAnchor} action={{ ...headerAction, tone: "quiet" }} /> : null}
           </nav>
         </header>
       </div>
@@ -110,8 +127,9 @@ export function OwnerLandingPage({ onboardingUrl }: OwnerLandingPageProps) {
             <p className={styles.eyebrow}>{t("practiceLanding.eyebrow")}</p>
             <h1 className={`${styles.heroTitle} font-tone-confident`} id={sectionIds.opening}>{t("practiceLanding.heroTitle")}</h1>
             <p className={styles.heroIntro}>{t("practiceLanding.description")}</p>
-            <div className={styles.actions}>
-              <MarketingActionLink action={primaryAction} />
+            <div className={styles.actions} role={clinicActions ? "group" : undefined} aria-label={clinicActions ? t("practiceLanding.yourClinics") : undefined}>
+              {heroActions.map((action) => <MarketingActionLink key={action.href} action={action} />)}
+              {hostClinics.status === "failed" ? <p role="alert" className={styles.heroIntro}>{t("practiceLanding.clinicsUnavailable")}</p> : null}
               <Link className={styles.scrollLink} href={`#${sectionIds.showcase}`}>
                 {t("practiceLanding.explore")}
                 <FaIcon aria-hidden="true" icon="arrow-down" />
@@ -131,7 +149,7 @@ export function OwnerLandingPage({ onboardingUrl }: OwnerLandingPageProps) {
           <h2 className={`${styles.closingTitle} font-tone-confident`} id={sectionIds.closing}>{t("practiceLanding.closingTitle")}</h2>
           <p className={styles.heroIntro}>{t("practiceLanding.closingDescription")}</p>
           <div className={styles.actions}>
-            <MarketingActionLink action={primaryAction} />
+            {heroActions.map((action) => <MarketingActionLink key={action.href} action={action} />)}
             <Link className={styles.scrollLink} href={Routes.PracticeOverview}>{t("practiceLanding.editorial.readMore")}</Link>
           </div>
         </ViewportReveal>

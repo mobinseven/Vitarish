@@ -25,7 +25,9 @@ export { TenantHandoffPage } from "./pages/TenantHandoffPage";
 export { SignInContinuePage } from "./pages/SignInContinuePage";
 
 // Cross-host handoff
-export { handoffUrl } from "./features/handoff/hostUrl";
+export { handoffUrl, hostUrl } from "./features/handoff/hostUrl";
+export { usePlatformHostClinics } from "./features/handoff/usePlatformHostClinics";
+export type { PlatformHostClinics } from "./features/handoff/usePlatformHostClinics";
 
 // Clinic home
 export { TenantLogoPrompt } from "./features/tenantLogo/TenantLogoPrompt";

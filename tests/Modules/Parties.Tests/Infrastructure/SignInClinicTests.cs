@@ -72,6 +72,26 @@ public sealed class SignInClinicTests
     }
 
     [Fact]
+    public async Task Lists_only_the_requested_apps_workspaces_when_an_app_is_given()
+    {
+        Guid clinic = Guid.NewGuid();
+        Guid project = Guid.NewGuid();
+        Mock<IWorkspaceDirectory> directory = new();
+        directory.Setup(item => item.ListAsync(UserId, It.IsAny<CancellationToken>())).ReturnsAsync([
+            new WorkspaceDirectoryEntry(project, "projects", "Projects", "projects.example.test", IdentityDefinitions.TenantOwner, HasLogo: false),
+            new WorkspaceDirectoryEntry(clinic, "clinic", "Clinic", "clinic.example.test", IdentityDefinitions.TenantOwner, HasLogo: false)]);
+        Mock<IRequestContext> requestContext = new();
+        requestContext.SetupGet(item => item.UserId).Returns(UserId);
+        ListSignInClinicsQueryHandler handler = new(directory.Object, requestContext.Object);
+
+        IReadOnlyList<WorkspaceDirectoryEntry>? clinicsOnly = await handler.Handle(new ListSignInClinicsQuery("clinic"), CancellationToken.None);
+        IReadOnlyList<WorkspaceDirectoryEntry>? all = await handler.Handle(new ListSignInClinicsQuery(), CancellationToken.None);
+
+        clinicsOnly.Should().ContainSingle().Which.TenantId.Should().Be(clinic);
+        all.Should().HaveCount(2);
+    }
+
+    [Fact]
     public async Task Hands_off_only_to_a_clinic_of_the_user_at_its_own_host()
     {
         Guid mine = Guid.NewGuid();

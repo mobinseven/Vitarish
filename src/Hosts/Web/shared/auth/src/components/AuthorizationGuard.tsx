@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Button, Tooltip } from "@heroui/react";
 import {
   useTenantAuthorization,
   type TenantRole,
 } from "../hooks/useTenantAuthorization";
 import { useLocalizedText } from "@vitarish/localization";
-import { FaIcon, StatusAlert } from "@vitarish/ui";
+import { ConfirmDialog, FaIcon, StatusAlert } from "@vitarish/ui";
 import { StandaloneCenteredPage } from "@vitarish/ui/layout";
 import { ignoreAuthNavigation, type AuthNavigate } from "../hooks/navigation";
 import { useAuthErrorDisplay } from "../hooks/useAuthErrorDisplay";
@@ -19,6 +19,11 @@ interface AuthorizationGuardProps {
   loginHref: string;
   /** Where the denied screen offers to go; sign-out also returns here. Omit to offer sign-out only. */
   homeHref?: string;
+  /**
+   * Ask before signing out from the denied screen, because it ends every linked app in this browser. The app's
+   * catalog then defines `auth.guard.signOutConfirmTitle` and `auth.guard.signOutConfirmDescription`.
+   */
+  confirmSignOut?: boolean;
   onNavigate?: AuthNavigate;
   loadingFallback?: ReactNode;
   children: React.ReactNode;
@@ -28,6 +33,7 @@ export function AuthorizationGuard({
   requiredRole,
   loginHref,
   homeHref,
+  confirmSignOut = false,
   onNavigate = ignoreAuthNavigation,
   loadingFallback,
   children,
@@ -61,7 +67,7 @@ export function AuthorizationGuard({
   if (!hasAccess) {
     return (
       <StandaloneCenteredPage>
-        <AccessDenied loginHref={loginHref} homeHref={homeHref} onNavigate={onNavigate} />
+        <AccessDenied loginHref={loginHref} homeHref={homeHref} confirmSignOut={confirmSignOut} onNavigate={onNavigate} />
       </StandaloneCenteredPage>
     );
   }
@@ -69,11 +75,13 @@ export function AuthorizationGuard({
   return <>{children}</>;
 }
 
-function AccessDenied({ loginHref, homeHref, onNavigate }: {
+function AccessDenied({ loginHref, homeHref, confirmSignOut, onNavigate }: {
   loginHref: string;
   homeHref?: string;
+  confirmSignOut: boolean;
   onNavigate: AuthNavigate;
 }) {
+  const [confirming, setConfirming] = useState(false);
   const { t } = useLocalizedText();
   const { logout, isLoading, isContextLoading, error, errorMessage } = useLogout(
     undefined,
@@ -104,7 +112,7 @@ function AccessDenied({ loginHref, homeHref, onNavigate }: {
             variant="tertiary"
             isDisabled={isLoading || isContextLoading}
             isPending={isLoading}
-            onPress={() => void logout(homeHref)}
+            onPress={() => (confirmSignOut ? setConfirming(true) : void logout(homeHref))}
           >
             <FaIcon icon="arrow-right-from-bracket" aria-hidden="true" className="rtl:-scale-x-100" />
             {t("auth.guard.signOut")}
@@ -112,6 +120,19 @@ function AccessDenied({ loginHref, homeHref, onNavigate }: {
           <Tooltip.Content>{t("auth.guard.signOut")}</Tooltip.Content>
         </Tooltip>
       </div>
+      {confirmSignOut ? (
+        <ConfirmDialog
+          isOpen={confirming}
+          isPending={isLoading}
+          title={t("auth.guard.signOutConfirmTitle")}
+          message={t("auth.guard.signOutConfirmDescription")}
+          confirmLabel={t("auth.guard.signOut")}
+          cancelLabel={t("common.actions.cancel")}
+          confirmIcon="arrow-right-from-bracket"
+          onCancel={() => setConfirming(false)}
+          onConfirm={() => void logout(homeHref)}
+        />
+      ) : null}
     </div>
   );
 }

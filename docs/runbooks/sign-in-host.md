@@ -50,7 +50,11 @@ confirmed, the account cannot complete this sign-in. See the
    - **Open** on one lands signed in on that clinic's `/home`.
    - With one clinic, sign-in still reaches home and waits for an explicit choice.
    - `https://<clinic host>/api/modules/parties/sign-in/clinics` answers 404:
-     the compatibility endpoint exists only on the sign-in host.
+     the list answers only on the sign-in host and on the clinic front page
+     (the clinic base domain itself), where it lists only clinics.
+   - Signed in on the clinic front page, the page offers "Open <clinic>" for
+     each of your clinics, and `/home` or `/assistant` there return to that
+     list instead of a "no access" screen.
    - `https://<clinic host>/login` redirects to the sign-in host's `/login`.
    - After a clinic opens, Auth stays signed in. Opening another authorized app
      installs its linked session without asking for credentials again.
