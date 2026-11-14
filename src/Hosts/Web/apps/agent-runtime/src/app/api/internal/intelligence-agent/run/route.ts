@@ -2,6 +2,7 @@ import { Agent, OpenAIProvider, Runner, tool, type Model, type ModelProvider } f
 import { NextRequest } from "next/server";
 import { AGENT_CREDENTIAL_HEADER } from "../credential-header";
 import { parseHistory } from "./history";
+import { adaptToolParameters } from "./tool-parameters";
 
 interface AgentDefinition {
   name?: string | null;
@@ -261,15 +262,16 @@ export async function POST(request: NextRequest) {
   const timeout = setTimeout(() => timeoutController.abort(), timeoutMs);
   const runSignal = AbortSignal.any([request.signal, timeoutController.signal]);
   const tools = input.tools.map((definition) => {
-    const schema: unknown = JSON.parse(definition.parametersJsonSchema);
+    const parameters = adaptToolParameters(JSON.parse(definition.parametersJsonSchema));
 
     return tool({
       name: definition.name,
       description: definition.description,
-      parameters: schema as never,
+      parameters: parameters.parameters as never,
       strict: true,
       timeoutMs: 120_000,
       execute: async (argumentsValue: unknown, _context: unknown, details: unknown) => {
+        argumentsValue = parameters.decodeArguments(argumentsValue);
         const callId = toolCallId(details);
         if (toolCallsUsed >= input.limits.maxToolCalls) {
           throw new AgentRuntimeLimitError("ToolCallLimitExceeded");
