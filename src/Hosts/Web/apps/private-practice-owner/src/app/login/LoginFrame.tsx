@@ -7,6 +7,10 @@ import { Routes } from "@/app/routes";
 import { BrandedPageFrame } from "@/components/branding/BrandedPageFrame";
 import { LoadingScreen } from "@/components/loading/LoadingScreen";
 
+function CentralSignInFrame({ children }: { children: ReactNode }) {
+  return <BrandedPageFrame showApplicationLogotype={false}>{children}</BrandedPageFrame>;
+}
+
 /** The clinic app's router, chrome and destinations around the shared sign-in pages. */
 export function LoginFrame({
   children,
@@ -24,7 +28,7 @@ export function LoginFrame({
       onNavigate={navigate}
       homeHref={Routes.Home}
       continueHref={Routes.SignInContinue}
-      frame={BrandedPageFrame}
+      frame={continueOnSignInHost ? CentralSignInFrame : BrandedPageFrame}
       loadingFallback={<LoadingScreen />}
     >
       {children}
