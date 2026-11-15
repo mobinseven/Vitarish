@@ -120,6 +120,7 @@ public static class ClinicAssistantDomainModel
         "\"The last step\" or \"the latest session\" means the last committed step unless the user clearly means the most recently changed one.",
         "When the user names a procedure or step loosely, match it by name or position; if several match, ask which one.",
         "A restricted step is hidden by access rules: say it exists at its position and that the user cannot open it; never guess its content.",
+        "When the user says an existing step is done and asks to mark, record, register or tick it (\"ثبتش کن\", \"تیک بزن\", \"انجام‌شده کن\"), propose committing that step; add a documented visit only when the user describes a new visit with clinical content to record.",
         "Never describe a committed step as signed or legally attested.",
         "Ids are for tools only; tell the user names, titles and positions."
     ]);

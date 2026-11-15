@@ -17,13 +17,17 @@ public sealed class ProcedureUnderstandingBehaviourTests(LiveAgentRuntime runtim
     private static readonly DateTimeOffset Now = DateTimeOffset.UtcNow;
     private const string ProcedureId = "5b0c7f0e-2f9a-4b1e-9f43-0d8f6c1a2b3c";
     private const string StepId = "9e1d2c3b-4a5f-4e6d-8c7b-1a2b3c4d5e6f";
+    private const string NextStepId = "1c2d3e4f-5a6b-4c7d-8e9f-0a1b2c3d4e5f";
     private const string CandidateToken = "candidate-live-1";
 
     private static readonly string Progress =
-        """{"procedures":[{"id":"@PROCEDURE","name":"Implant treatment","stats":{"state":"Half","events":4,"committedEvents":2},"sourceUpdatedAt":"2026-11-10T09:00:00Z","stepCount":4,"committedStepCount":2,"currentStep":{"id":"@STEP","title":"Fixture placement","position":2,"committedAt":"2026-11-10T09:00:00Z","restricted":false},"nextStep":{"id":"1c2d3e4f-5a6b-4c7d-8e9f-0a1b2c3d4e5f","title":"Healing check","position":3,"restricted":false}}],"hasMore":false}""".Replace("@PROCEDURE", ProcedureId).Replace("@STEP", StepId);
+        """{"procedures":[{"id":"@PROCEDURE","name":"Implant treatment","stats":{"state":"Half","events":4,"committedEvents":2},"sourceUpdatedAt":"2026-11-10T09:00:00Z","stepCount":4,"committedStepCount":2,"currentStep":{"id":"@STEP","title":"Fixture placement","position":2,"committedAt":"2026-11-10T09:00:00Z","restricted":false},"nextStep":{"id":"@NEXT","title":"Healing check","position":3,"restricted":false}}],"hasMore":false}""".Replace("@PROCEDURE", ProcedureId).Replace("@STEP", StepId).Replace("@NEXT", NextStepId);
 
     private static readonly string Step =
         """{"found":true,"restricted":false,"step":{"id":"@STEP","title":"Fixture placement","description":"","position":2,"isCommitted":true,"committedAt":"2026-11-10T09:00:00Z","sourceUpdatedAt":"2026-11-10T09:00:00Z","procedureId":"@PROCEDURE","procedureName":"Implant treatment","notes":[{"id":"2b3c4d5e-6f7a-4b8c-9d0e-1f2a3b4c5d6e","text":"Torque 35 Ncm, no complications.","truncated":false,"createdAt":"2026-11-10T09:05:00Z"}],"moreNotes":false,"files":[],"moreFiles":false,"reminderCount":1}}""".Replace("@PROCEDURE", ProcedureId).Replace("@STEP", StepId);
+
+    private static readonly string NextStep =
+        """{"found":true,"restricted":false,"step":{"id":"@NEXT","title":"Healing check","description":"","position":3,"isCommitted":false,"sourceUpdatedAt":"2026-11-12T09:00:00Z","procedureId":"@PROCEDURE","procedureName":"Implant treatment","notes":[],"moreNotes":false,"files":[],"moreFiles":false,"reminderCount":0}}""".Replace("@PROCEDURE", ProcedureId).Replace("@NEXT", NextStepId);
 
     [LiveAgentTheory]
     [InlineData("Report the patient's procedure latest state.")]
@@ -79,8 +83,8 @@ public sealed class ProcedureUnderstandingBehaviourTests(LiveAgentRuntime runtim
     }
 
     [LiveAgentTheory]
-    [InlineData("The fixture placement is done, mark it.", "status")]
-    [InlineData("مرحله کاشت فیکسچر انجام شد، ثبتش کن.", "status")]
+    [InlineData("The healing check is done, mark it.", "status")]
+    [InlineData("مرحله کنترل ترمیم (Healing check) انجام شد، ثبتش کن.", "status")]
     [InlineData("Add a note to the last session: sutures removed, healing well.", "note")]
     [InlineData("به جلسه آخر یادداشت اضافه کن: بخیه‌ها کشیده شد.", "note")]
     public async Task On_the_patient_page_a_coordinator_request_prepares_the_matching_step_change(string message, string change)
@@ -88,14 +92,19 @@ public sealed class ProcedureUnderstandingBehaviourTests(LiveAgentRuntime runtim
         runtime.Reset();
         runtime.Script(ClinicPresentableToolNames.ListPatientProcedureProgress, Progress);
         runtime.Script(ClinicPresentableToolNames.ListPatientProcedureSteps,
-            """{"found":true,"procedureName":"Implant treatment","steps":[{"id":"@STEP","title":"Fixture placement","position":2,"isCommitted":false,"restricted":false}],"hasMore":false}""".Replace("@STEP", StepId));
-        runtime.Script(ClinicPresentableToolNames.GetPatientProcedureStep, Step);
+            """{"found":true,"procedureName":"Implant treatment","steps":[{"id":"@STEP","title":"Fixture placement","position":2,"isCommitted":true,"restricted":false},{"id":"@NEXT","title":"Healing check","position":3,"isCommitted":false,"restricted":false}],"hasMore":false}""".Replace("@STEP", StepId).Replace("@NEXT", NextStepId));
+        // The scripted read answers with the step the scenario is about: the open next step, or the last committed one.
+        runtime.Script(ClinicPresentableToolNames.GetPatientProcedureStep, change == "status" ? NextStep : Step);
 
         AgentRunResult result = await RunPatientAsync(message);
 
         result.IsSuccess.Should().BeTrue(await runtime.FailureReasonAsync(result));
-        string tool = change == "status" ? ClinicPresentableToolNames.PrepareStepStatus : ClinicPresentableToolNames.PrepareStepNote;
-        runtime.Calls.Should().Contain(call => call.ToolName == tool && call.Arguments.GetProperty("stepId").GetString() == StepId);
+        // Marking done targets the open next step; a note on "the last session" targets the last committed step.
+        if (change == "status")
+            runtime.Calls.Should().Contain(call => call.ToolName == ClinicPresentableToolNames.PrepareStepStatus &&
+                call.Arguments.GetProperty("stepId").GetString() == NextStepId && call.Arguments.GetProperty("status").GetString() == "committed");
+        else
+            runtime.Calls.Should().Contain(call => call.ToolName == ClinicPresentableToolNames.PrepareStepNote && call.Arguments.GetProperty("stepId").GetString() == StepId);
     }
 
     private async Task<AgentRunResult> RunPatientAsync(string message)
