@@ -27,6 +27,30 @@ public sealed class PresentedSurfaceTests
                     new Dictionary<string, PresentableField> { ["size"] = PresentableField.Number(item.GetProperty("size").GetDouble()) })).ToArray())
             : null;
 
+    // The model fills an exact shape per component instead of writing the surface as free JSON text.
+    [Fact]
+    public void The_present_tool_takes_a_strict_shape_per_catalog_component()
+    {
+        using JsonDocument schema = JsonDocument.Parse(new PresentSurfaceTool(_store).Definition.ParametersJsonSchema);
+        JsonElement items = schema.RootElement.GetProperty("properties").GetProperty("surface")
+            .GetProperty("properties").GetProperty("components").GetProperty("items").GetProperty("anyOf");
+        using JsonDocument catalog = JsonDocument.Parse(AssistantSurfaceCatalog.Json);
+
+        items.EnumerateArray().Select(shape => shape.GetProperty("properties").GetProperty("component").GetProperty("enum")[0].GetString())
+            .Should().BeEquivalentTo(catalog.RootElement.GetProperty("components").EnumerateObject().Select(component => component.Name));
+        foreach (JsonElement shape in items.EnumerateArray())
+        {
+            shape.GetProperty("additionalProperties").GetBoolean().Should().BeFalse();
+            shape.GetProperty("required").EnumerateArray().Select(name => name.GetString())
+                .Should().BeEquivalentTo(shape.GetProperty("properties").EnumerateObject().Select(property => property.Name), "strict schemas require every property");
+        }
+        JsonElement list = items.EnumerateArray().Single(shape => shape.GetProperty("properties").GetProperty("component").GetProperty("enum")[0].GetString() == "RecordList");
+        list.GetProperty("properties").GetProperty("result").GetProperty("required")[0].GetString().Should().Be("path");
+        list.GetProperty("properties").GetProperty("fields").GetProperty("maxItems").GetInt32().Should().Be(3);
+        JsonElement column = items.EnumerateArray().Single(shape => shape.GetProperty("properties").GetProperty("component").GetProperty("enum")[0].GetString() == "Column");
+        column.GetProperty("properties").GetProperty("children").GetProperty("items").GetProperty("type").GetString().Should().Be("string");
+    }
+
     private PresentableResultPublisher Publisher() => new(
         new AgentToolPresentationCatalog([new AgentToolPresentation([AgentKey], ReadTool, Things)]),
         _store,

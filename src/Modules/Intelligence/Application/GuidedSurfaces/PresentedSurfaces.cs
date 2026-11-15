@@ -47,6 +47,100 @@ public static class AssistantSurfaceCatalog
     public static string ProtocolVersion => Parsed.Value.Version;
     public static string Instructions => Parsed.Value.Instructions;
     public static string ComponentSummary => Parsed.Value.Components;
+
+    /// <summary>
+    /// The present tool's parameters as a strict function schema derived from the catalog: one exact shape per
+    /// component, so the model fills fields instead of writing the surface as free JSON text. Every property is
+    /// required, as strict schemas demand; length and count limits move into descriptions and the catalog
+    /// validation in the agent runtime still enforces them.
+    /// </summary>
+    public static string ToolParameters => ParametersSchema.Value;
+
+    private static readonly Lazy<string> ParametersSchema = new(() =>
+    {
+        using JsonDocument document = JsonDocument.Parse(Document.Value);
+        JsonArray shapes = [];
+        foreach (JsonProperty component in document.RootElement.GetProperty("components").EnumerateObject())
+        {
+            JsonObject properties = new()
+            {
+                ["id"] = new JsonObject { ["type"] = "string", ["description"] = "Unique within the surface; the top component's id is \"root\"." },
+                ["component"] = new JsonObject { ["type"] = "string", ["enum"] = new JsonArray(component.Name) }
+            };
+            foreach (JsonProperty property in component.Value.GetProperty("properties").EnumerateObject())
+            {
+                if (property.Name != "component")
+                    properties[property.Name] = StrictProperty(property.Value);
+            }
+            shapes.Add(new JsonObject
+            {
+                ["type"] = "object",
+                ["description"] = $"{component.Name}: {component.Value.GetProperty("description").GetString()}",
+                ["properties"] = properties,
+                ["required"] = new JsonArray([.. properties.Select(property => (JsonNode)property.Key)]),
+                ["additionalProperties"] = false
+            });
+        }
+        JsonObject schema = new()
+        {
+            ["type"] = "object",
+            ["properties"] = new JsonObject
+            {
+                ["surface"] = new JsonObject
+                {
+                    ["type"] = "object",
+                    ["properties"] = new JsonObject
+                    {
+                        ["components"] = new JsonObject
+                        {
+                            ["type"] = "array",
+                            ["description"] = "The components; exactly one has id \"root\". Use a Column as root to show more than one.",
+                            ["items"] = new JsonObject { ["anyOf"] = shapes }
+                        }
+                    },
+                    ["required"] = new JsonArray("components"),
+                    ["additionalProperties"] = false
+                }
+            },
+            ["required"] = new JsonArray("surface"),
+            ["additionalProperties"] = false
+        };
+        return schema.ToJsonString();
+    });
+
+    private static JsonObject StrictProperty(JsonElement property)
+    {
+        string description = property.TryGetProperty("description", out JsonElement text) ? text.GetString() ?? string.Empty : string.Empty;
+        if (property.TryGetProperty("$ref", out JsonElement reference))
+        {
+            string name = reference.GetString()!;
+            if (name.EndsWith("/DataBinding", StringComparison.Ordinal))
+                return new JsonObject
+                {
+                    ["type"] = "object",
+                    ["description"] = description,
+                    ["properties"] = new JsonObject { ["path"] = new JsonObject { ["type"] = "string", ["description"] = "\"/\" followed by the handle from the read result's presentation." } },
+                    ["required"] = new JsonArray("path"),
+                    ["additionalProperties"] = false
+                };
+            if (name.EndsWith("/ChildList", StringComparison.Ordinal))
+                return new JsonObject { ["type"] = "array", ["description"] = description, ["items"] = new JsonObject { ["type"] = "string" } };
+            throw new InvalidOperationException($"The assistant surface catalog references an unsupported type {name}.");
+        }
+        string type = property.GetProperty("type").GetString()!;
+        List<string> limits = [];
+        if (property.TryGetProperty("maxItems", out JsonElement maxItems)) limits.Add($"At most {maxItems.GetInt32()} items.");
+        if (property.TryGetProperty("maxLength", out JsonElement maxLength)) limits.Add($"At most {maxLength.GetInt32()} characters.");
+        if (property.TryGetProperty("minimum", out JsonElement minimum)) limits.Add($"At least {minimum.GetInt32()}.");
+        JsonObject strict = new() { ["type"] = type, ["description"] = string.Join(' ', [description, .. limits]).Trim() };
+        if (type == "array")
+        {
+            strict["items"] = new JsonObject { ["type"] = property.GetProperty("items").GetProperty("type").GetString() };
+            // Strict schemas support item counts, so the model is held to the limit, not only told it.
+            if (property.TryGetProperty("maxItems", out JsonElement count)) strict["maxItems"] = count.GetInt32();
+        }
+        return strict;
+    }
 }
 
 /// <summary>One surface the model presented, with the data the server filled for it.</summary>
@@ -129,8 +223,8 @@ public sealed class PresentSurfaceTool(IPresentableResultStore store) : IIntelli
         $"Show the person records you read in this turn as cards, lists, numbers or a chart, in addition to your reply. " +
         $"Only results whose output has a \"{PresentableResultPublisher.OutputProperty}\" property can be shown. " +
         $"{AssistantSurfaceCatalog.Instructions}\nComponents (catalog {AssistantSurfaceCatalog.Id}):\n{AssistantSurfaceCatalog.ComponentSummary}" +
-        "Pass {\"components\":[...]} where each component has a unique \"id\" and a \"component\" name.",
-        """{"type":"object","properties":{"surface":{"type":"object","description":"The surface: {\"components\": [ ... ]}."}},"required":["surface"],"additionalProperties":false}""",
+        "Example for a list result with handle r1-ab12: {\"surface\":{\"components\":[{\"id\":\"root\",\"component\":\"RecordList\",\"result\":{\"path\":\"/r1-ab12\"},\"fields\":[\"status\",\"date\"]}]}}.",
+        AssistantSurfaceCatalog.ToolParameters,
         AssistantSurfaceCatalog.Json);
 
     public async Task<AgentToolResult> ExecuteAsync(AgentToolCall call, AgentExecutionContext context, CancellationToken cancellationToken = default)

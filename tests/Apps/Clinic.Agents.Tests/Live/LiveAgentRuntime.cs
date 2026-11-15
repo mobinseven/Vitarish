@@ -55,6 +55,15 @@ internal sealed class LiveAgentFactAttribute : FactAttribute
     }
 }
 
+internal sealed class LiveAgentTheoryAttribute : TheoryAttribute
+{
+    public LiveAgentTheoryAttribute()
+    {
+        if (string.IsNullOrWhiteSpace(LiveAgentSettings.OpenAiKey))
+            Skip = $"The live agent behaviour suite runs only when {LiveAgentSettings.OpenAiKeyVariable} is set.";
+    }
+}
+
 /// <summary>One recorded tool call the model made through the runtime.</summary>
 internal sealed record RecordedToolCall(string ToolName, JsonElement Arguments);
 
