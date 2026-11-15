@@ -95,4 +95,11 @@ public sealed class PresentationAssistantCapability(PresentSurfaceTool tool) : A
     public override string Description => "Show records read in this turn as cards, lists, numbers or charts.";
     public override IReadOnlySet<string> RequiredPermissions { get; } = new HashSet<string>(StringComparer.Ordinal);
     public override bool IsAvailable(AssistantContext context) => true;
+
+    public override string GetInstructions() =>
+        "Whenever a read tool returned records the user asked to see (patients, appointments, availability, shifts, surgeries, staff, setup progress, a count or a patient's own records), " +
+        $"call {PresentSurfaceTool.Name} in the same turn with the handle from that result's presentation before you answer. " +
+        "Use a RecordList for several records, a RecordCard for one, a Metric for a count and a BarChart only for counts compared across groups. " +
+        "Then answer in one or two short sentences that point to what is shown; do not repeat the shown records in text. " +
+        "Skip it only when the read found nothing, when the read only resolved IDs for another tool, or when the user asked a yes/no question.";
 }
