@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -78,8 +79,11 @@ internal static class ProcedureChangeTools
     }
 }
 
-/// <summary>A prepared change as the model reads it and as the review card and committer store it.</summary>
-public sealed record ProcedureChangeResult(string Status, ProcedureChangeReview? Change = null, SeaManagementPreparedAction? Confirmation = null, string? Message = null)
+/// <summary>
+/// A prepared change as the model reads it. <see cref="Confirmation"/> is the workflow's prepared action, encoded so
+/// the model reads an opaque token rather than workflow terms; it is decoded into the stored review payload.
+/// </summary>
+public sealed record ProcedureChangeResult(string Status, ProcedureChangeReview? Change = null, string? Confirmation = null, string? Message = null)
 {
     public const string Prepared = "prepared";
     public const string NotPermitted = "not_permitted";
@@ -103,6 +107,7 @@ public sealed record ProcedureChangePayload(ProcedureChangeReview Change, SeaMan
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase, DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)]
 [JsonSerializable(typeof(ProcedureChangeResult))]
 [JsonSerializable(typeof(ProcedureChangePayload))]
+[JsonSerializable(typeof(SeaManagementPreparedAction))]
 internal sealed partial class ProcedureChangeJsonSerializerContext : JsonSerializerContext;
 
 internal abstract class ProcedureChangeTool(PatientProcedureRecords records, ISeaManagementAgentTool workflow, ProcedureToolWorkspace workspace)
@@ -136,7 +141,7 @@ internal abstract class ProcedureChangeTool(PatientProcedureRecords records, ISe
     public AssistantPreparedAction? GetPreparedAction(AgentToolResult result)
     {
         ProcedureChangeResult? change = JsonSerializer.Deserialize(result.Output, ProcedureChangeJsonSerializerContext.Default.ProcedureChangeResult);
-        return change is { Status: ProcedureChangeResult.Prepared, Change: { } review, Confirmation: { } confirmation }
+        return change is { Status: ProcedureChangeResult.Prepared, Change: { } review, Confirmation: { } token } && Decode(token) is { } confirmation
             ? new(CapabilityName, ActionType, confirmation.ActionId,
                 JsonSerializer.Serialize(new ProcedureChangePayload(review, confirmation), ProcedureChangeJsonSerializerContext.Default.ProcedureChangePayload),
                 confirmation.ExpiresAt)
@@ -152,7 +157,17 @@ internal abstract class ProcedureChangeTool(PatientProcedureRecords records, ISe
         AgentToolResult prepared = await workflow.ExecuteAsync(new(call.Id, call.Name, arguments), context, ct);
         SeaManagementPreparedAction confirmation = workflow.ParsePreparedAction(prepared)
             ?? throw new InvalidOperationException("The workflow did not prepare the change.");
-        return new(ProcedureChangeResult.Prepared, review, confirmation);
+        return new(ProcedureChangeResult.Prepared, review, Encode(confirmation));
+    }
+
+    private static string Encode(SeaManagementPreparedAction confirmation) =>
+        Convert.ToBase64String(JsonSerializer.SerializeToUtf8Bytes(confirmation, ProcedureChangeJsonSerializerContext.Default.SeaManagementPreparedAction));
+
+    private static SeaManagementPreparedAction? Decode(string token)
+    {
+        try { return JsonSerializer.Deserialize(Convert.FromBase64String(token), ProcedureChangeJsonSerializerContext.Default.SeaManagementPreparedAction); }
+        catch (FormatException) { return null; }
+        catch (JsonException) { return null; }
     }
 
     protected string Name(string patientTool, string operationsTool) => IsOperations ? operationsTool : patientTool;
@@ -237,6 +252,8 @@ internal sealed class StepReminderTool(PatientProcedureRecords records, ISeaMana
     : ProcedureChangeTool(records, workflow, workspace)
 {
     public const int MaxLength = 500;
+    private static bool HasOffset(string value) =>
+        value.EndsWith('Z') || value.EndsWith('z') || (value.Length > 6 && value[^6] is '+' or '-' && value[^3] == ':');
     private const string EmailChannel = "email";
     private const string SmsChannel = "sms";
     protected override string ActionType => ChangeAction(false);
@@ -252,8 +269,9 @@ internal sealed class StepReminderTool(PatientProcedureRecords records, ISeaMana
     {
         string message = RequiredText(arguments, "message", MaxLength);
         string remindAtText = RequiredText(arguments, "remindAt", 40);
-        if (!DateTimeOffset.TryParse(remindAtText, out DateTimeOffset remindAt))
-            throw new JsonException("remindAt must be an ISO 8601 date-time with offset.");
+        // A time without an offset would be read in the server's zone; the user's intent must carry its own offset.
+        if (!HasOffset(remindAtText) || !DateTimeOffset.TryParse(remindAtText, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTimeOffset remindAt))
+            throw new JsonException("remindAt must be an ISO 8601 date-time with an offset, such as 2030-01-12T09:00:00+03:30.");
         string channel = arguments.GetProperty("channel").GetString() == EmailChannel ? EmailChannel : SmsChannel;
         if (await StepAsync(arguments, patientId, context, ct) is not { } target) return new(ProcedureChangeResult.NotFound, Message: "No such step of this patient that the user can open.");
         ProcedureChangeReview review = new(ProcedureChangeKinds.AddReminder, target.ProcedureName, target.Step.Title, target.Position, message, remindAt, channel);

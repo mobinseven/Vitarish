@@ -57,6 +57,7 @@ internal static class SeaPreparedActionExecution
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
         catch (JsonException exception) { return AssistantActionCommitResult.Failed("invalid_sea_action", exception.Message); }
         catch (UnauthorizedAccessException) { return AssistantActionCommitResult.Failed("not_permitted", "The user's access does not allow this change."); }
+        catch (ArgumentException exception) { return AssistantActionCommitResult.Failed("invalid_change", exception.Message); }
         catch (Exception) { return AssistantActionCommitResult.Failed("unknown_commit_outcome", "The SEA action returned an unknown outcome."); }
     }
 }

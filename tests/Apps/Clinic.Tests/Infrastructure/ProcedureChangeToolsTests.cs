@@ -15,6 +15,11 @@ using Vitarish.Sea.Application.Agents;
 using Vitarish.Sea.Domain.Dto;
 using Vitarish.Sea.Domain.Enums;
 using Vitarish.Sea.Infrastructure.Agents;
+using Vitarish.Communications.Application.Abstractions;
+using Vitarish.Communications.Domain.Dto;
+using Vitarish.Communications.Domain.Enums;
+using Vitarish.Users.Application.Abstractions;
+using Vitarish.Users.Domain.Entities;
 using Names = Vitarish.Clinic.Application.Assistant.Presentation.ClinicPresentableToolNames;
 
 namespace Vitarish.Clinic.Tests.Infrastructure;
@@ -33,6 +38,8 @@ public sealed class ProcedureChangeToolsTests
     private readonly Mock<IEventsService> events = new();
     private readonly Mock<IAttachmentsService> attachments = new();
     private readonly Mock<ISeaManagementAccessEvaluator> access = new();
+    private readonly Mock<IRemindersService> reminders = new();
+    private readonly Mock<IUsersService> users = new();
     private readonly EventReadDto step = new()
     {
         Id = Guid.NewGuid(), ProjectId = PatientId, ProcedureId = ProcedureId, Title = "Fixture placement", Description = "", CreatedAt = DateTime.UtcNow
@@ -48,8 +55,12 @@ public sealed class ProcedureChangeToolsTests
         attachments.Setup(service => service.GetByEventAsync(step.Id, It.IsAny<CancellationToken>())).ReturnsAsync([]);
         access.Setup(evaluator => evaluator.CanReadEventAsync(It.IsAny<SeaManagementAgentSubject>(), step.Id, It.IsAny<CancellationToken>())).ReturnsAsync(true);
         access.Setup(evaluator => evaluator.IsAuthorizedAsync(It.IsAny<SeaManagementAgentSubject>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);
+        projects.Setup(service => service.GetAsync(PatientId, It.IsAny<CancellationToken>())).ReturnsAsync(EntityResult<ProjectReadDto>.Success(new ProjectReadDto { Id = PatientId, Name = "Sara" }));
+        users.Setup(service => service.CheckUserRoleAsync(UserId.ToString("D"), It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);
+        users.Setup(service => service.GetUserAsync(UserId.ToString("D"), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new User { Id = UserId.ToString("D"), PhoneNumber = "+989120000000", PhoneNumberConfirmed = true, EmailConfirmed = false });
         workflow = new(projects.Object, procedures.Object, events.Object, attachments.Object, Mock.Of<IReceiptsService>(), Mock.Of<IRolesService>(),
-            Mock.Of<IUserRolesService>(), Mock.Of<IEventRolesService>(), Mock.Of<IDatabaseStatisticsService>(), access.Object);
+            Mock.Of<IUserRolesService>(), Mock.Of<IEventRolesService>(), Mock.Of<IDatabaseStatisticsService>(), access.Object, reminders.Object, users.Object);
     }
 
     private IAgentTool Tool(string name, ProcedureToolWorkspace workspace = ProcedureToolWorkspace.Patient)
@@ -122,6 +133,39 @@ public sealed class ProcedureChangeToolsTests
         prepared!.ActionType.Should().Be(ProcedureActionTypes.Create);
         (await ConfirmAsync(prepared)).Succeeded.Should().BeTrue();
         procedures.Verify(service => service.AddAsync(It.Is<ProcedureWriteDto>(dto => dto.ProjectId == PatientId && dto.Name == "Orthodontics" && dto.Description == "Upper arch"), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task A_reminder_is_sent_to_the_signed_in_user_at_the_given_instant_by_their_verified_channel()
+    {
+        reminders.Setup(service => service.AddRangeAsync(step.Id, It.IsAny<IReadOnlyList<ReminderRecipientReadDto>>(), "Fixture placement", "Call the patient", It.IsAny<DateTime>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync([new ReminderReadDto { Id = Guid.NewGuid(), SourceId = step.Id }]);
+
+        (AgentToolResult result, AssistantPreparedAction? prepared) = await PrepareAsync(Names.PrepareStepReminder,
+            $$"""{"stepId":"{{step.Id}}","remindAt":"2030-01-12T09:00:00+03:30","channel":"sms","message":"Call the patient"}""");
+
+        prepared.Should().NotBeNull(result.Output);
+        result.Output.Should().NotContain(SeaManagementOperations.CreateReminder);
+        (await ConfirmAsync(prepared!)).Succeeded.Should().BeTrue();
+        reminders.Verify(service => service.AddRangeAsync(step.Id,
+            It.Is<IReadOnlyList<ReminderRecipientReadDto>>(recipients => recipients.Single().Kind == ReminderKind.Sms && recipients.Single().RecipientUserId == UserId.ToString("D") && recipients.Single().Recipient == "+989120000000"),
+            "Fixture placement", "Call the patient", new DateTime(2030, 1, 12, 5, 30, 0, DateTimeKind.Utc), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task A_reminder_time_without_an_offset_is_rejected_and_an_unverified_channel_fails_on_confirmation()
+    {
+        await FluentActions.Awaiting(() => PrepareAsync(Names.PrepareStepReminder,
+                $$"""{"stepId":"{{step.Id}}","remindAt":"2030-01-12T09:00:00","channel":"sms","message":"Call"}"""))
+            .Should().ThrowAsync<JsonException>().WithMessage("*offset*");
+
+        (_, AssistantPreparedAction? prepared) = await PrepareAsync(Names.PrepareStepReminder,
+            $$"""{"stepId":"{{step.Id}}","remindAt":"2030-01-12T09:00:00Z","channel":"email","message":"Call"}""");
+        AssistantActionCommitResult result = await ConfirmAsync(prepared!);
+
+        result.Succeeded.Should().BeFalse();
+        result.Failure!.Code.Should().Be("invalid_change");
+        reminders.Verify(service => service.AddRangeAsync(It.IsAny<Guid>(), It.IsAny<IReadOnlyList<ReminderRecipientReadDto>>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateTime>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]

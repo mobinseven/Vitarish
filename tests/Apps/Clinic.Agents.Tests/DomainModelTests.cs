@@ -1,4 +1,6 @@
 using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
+using Vitarish.Clinic.Application.Assistant.Capabilities;
 using Vitarish.Clinic.Agents.Tests.Live;
 using Vitarish.Clinic.Application.Assistant;
 using Vitarish.Clinic.Application.Assistant.Presentation;
@@ -19,6 +21,17 @@ public sealed class DomainModelTests
         HashSet<string> registered = [.. LiveOperationsAssistant.RealCapabilities().SelectMany(capability => capability.Tools).Select(tool => tool.Definition.Name)];
 
         ClinicAssistantDomainModel.Create().ToolNames.Should().BeSubsetOf(registered);
+    }
+
+    [Fact]
+    public void The_production_registration_validates_every_procedure_action_with_its_committer()
+    {
+        AssistantCapabilityRegistry registry = LiveOperationsAssistant.RealServices().GetRequiredService<AssistantCapabilityRegistry>();
+
+        foreach (string actionType in ProcedureActionTypes.All)
+            registry.ResolveAction(actionType).Should().NotBeNull(actionType);
+        registry.ResolveTool(ClinicPresentableToolNames.PrepareOperationsStepNote)!.ActionType.Should().Be(ProcedureActionTypes.OperationsStepChange);
+        registry.ResolveTool(ClinicPresentableToolNames.ManageCareTeamAccess)!.ActionType.Should().Be("sea_manage");
     }
 
     [Fact]

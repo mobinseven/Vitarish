@@ -324,7 +324,10 @@ internal static class LiveOperationsAssistant
     // Builds the Clinic capabilities through the production registration, so the tool set is exactly
     // what Main composes. Tool callbacks are answered by the suite, so the data dependencies behind the
     // tools are never called and are satisfied with mocks.
-    internal static IEnumerable<IAssistantCapability> RealCapabilities()
+    internal static IEnumerable<IAssistantCapability> RealCapabilities() => RealServices().GetServices<IAssistantCapability>();
+
+    /// <summary>The production Clinic assistant registration, with data dependencies mocked.</summary>
+    internal static IServiceProvider RealServices()
     {
         ServiceCollection services = new();
         _ = services.AddLogging();
@@ -345,7 +348,7 @@ internal static class LiveOperationsAssistant
         _ = services.AddTransient<Vitarish.Contents.Agents.IContentsAgentTool, Vitarish.Contents.Agents.ContentsSaveDraftAgentTool>();
         _ = services.AddSingleton(new Mock<Vitarish.Search.Application.Abstractions.ISearchService>().Object);
         AddMocksForMissingDependencies(services);
-        return services.BuildServiceProvider().GetServices<IAssistantCapability>();
+        return services.BuildServiceProvider();
     }
 
     private static void AddMocksForMissingDependencies(ServiceCollection services)
