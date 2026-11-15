@@ -14,5 +14,6 @@
     <ProjectReference Include="..\..\..\src\Apps\Clinic\Api\Clinic.Api.csproj" />
     <ProjectReference Include="..\..\..\src\Apps\Clinic\Infrastructure\Clinic.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\src\Modules\Intelligence\Application\Intelligence.Application.csproj" />
+    <ProjectReference Include="..\..\..\src\Modules\Sea\Infrastructure\Sea.Infrastructure.csproj" />
   </ItemGroup>
 </Project>

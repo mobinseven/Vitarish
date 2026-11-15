@@ -40,8 +40,8 @@ public sealed class SeaManagementAgentTool(
     {
         using JsonDocument document = JsonDocument.Parse(call.ArgumentsJson);
         JsonElement root = document.RootElement;
-        string operation = RequiredString(root, "operation");
-        JsonElement payload = root.TryGetProperty("payload", out JsonElement supplied) ? supplied : default;
+        string operation = RequiredString(root, SeaManagementOperations.Operation);
+        JsonElement payload = root.TryGetProperty(SeaManagementOperations.Payload, out JsonElement supplied) ? supplied : default;
         string payloadJson = payload.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null ? "{}" : payload.GetRawText();
         SeaManagementAgentSubject subject = Subject(context);
         if (!await access.IsAuthorizedAsync(subject, operation, payloadJson, cancellationToken))
@@ -72,7 +72,7 @@ public sealed class SeaManagementAgentTool(
             "get_project_snapshot" => await projects.CaptureSnapshotAsync(Id(payload), cancellationToken) ?? throw new InvalidOperationException("SEA project was not found."),
             "list_procedures" => await ListProcedures(payload, subject, cancellationToken),
             "get_procedure" => await Get(procedures, Id(payload), cancellationToken),
-            "create_procedure" => await Add(procedures, Read<ProcedureWriteDto>(payload), cancellationToken),
+            SeaManagementOperations.CreateProcedure => await Add(procedures, Read<ProcedureWriteDto>(payload), cancellationToken),
             "update_procedure" => await Update(procedures, Read<ProcedureWriteDto>(payload), cancellationToken),
             "delete_procedure" => await DeleteProcedure(payload, cancellationToken),
             "list_events" => await ListEvents(payload, subject, cancellationToken),
@@ -85,36 +85,36 @@ public sealed class SeaManagementAgentTool(
             "move_event_up" => await MoveEvent(payload, true, cancellationToken),
             "move_event_down" => await MoveEvent(payload, false, cancellationToken),
             "repair_event_chain" => await RepairEventChain(payload, cancellationToken),
-            "commit_event" => await CommitEvent(payload, context, cancellationToken),
+            SeaManagementOperations.CommitEvent => await CommitEvent(payload, context, cancellationToken),
             "commit_procedure_events" => await CommitProcedureEvents(payload, context, cancellationToken),
-            "uncommit_event" => await UncommitEvent(payload, cancellationToken),
+            SeaManagementOperations.UncommitEvent => await UncommitEvent(payload, cancellationToken),
             "uncommit_procedure_events" => await events.UncommitAllByProcedureAsync(Id(payload), cancellationToken),
             "get_event_reminders_count" => await events.GetRemindersCountAsync(Id(payload), cancellationToken),
             "list_reminders" => await ListReminders(payload, cancellationToken),
             "get_reminder" => await GetReminder(payload, cancellationToken),
-            "create_reminder" => await CreateReminder(payload, subject, cancellationToken),
+            SeaManagementOperations.CreateReminder => await CreateReminder(payload, subject, cancellationToken),
             "update_reminder" => await UpdateReminder(payload, subject, cancellationToken),
             "delete_reminder" => await DeleteReminder(payload, cancellationToken),
             "list_attachments" => await ListAttachments(payload, cancellationToken),
             "count_attachments" => await attachments.GetCountByEventAsync(Id(payload), cancellationToken),
-            "create_attachment" => await CreateAttachment(payload, cancellationToken),
+            SeaManagementOperations.CreateAttachment => await CreateAttachment(payload, cancellationToken),
             "create_attachment_batch" => await CreateAttachmentBatch(payload, cancellationToken),
             "update_attachment" => await UpdateAttachment(payload, cancellationToken),
             "delete_attachment" => await DeleteAttachment(payload, cancellationToken),
             "mark_read" or "mark_unread" => await MarkRead(payload, operation == "mark_read", cancellationToken),
-            "list_roles" => await roles.GetPagedAsync(new RoleDescriptorDto(), cancellationToken),
-            "create_role" => await roles.AddAsync(RequiredString(payload, "name"), cancellationToken),
-            "update_role" => await UpdateRole(payload, cancellationToken),
-            "delete_role" => await roles.RemoveAsync(Id(payload), cancellationToken),
-            "list_user_roles" => await userRoles.GetListAsync(new UserRoleDescriptorDto { UserId = Id(payload) }, cancellationToken),
-            "assign_user_role" => await AssignUserRole(payload, cancellationToken),
-            "remove_user_role" => await RemoveUserRole(payload, cancellationToken),
-            "list_event_roles" => await eventRoles.GetIdsAsync(Id(payload), cancellationToken),
-            "get_event_read_roles" => await eventRoles.GetReadIdsAsync(Id(payload), cancellationToken),
-            "get_event_write_roles" => await eventRoles.GetWriteIdsAsync(Id(payload), cancellationToken),
-            "assign_event_role" => await AssignEventRole(payload, true, cancellationToken),
-            "remove_event_role" => await AssignEventRole(payload, false, cancellationToken),
-            "get_statistics" => await statistics.GetAsync(cancellationToken),
+            SeaManagementOperations.ListRoles => await roles.GetPagedAsync(new RoleDescriptorDto(), cancellationToken),
+            SeaManagementOperations.CreateRole => await roles.AddAsync(RequiredString(payload, "name"), cancellationToken),
+            SeaManagementOperations.UpdateRole => await UpdateRole(payload, cancellationToken),
+            SeaManagementOperations.DeleteRole => await roles.RemoveAsync(Id(payload), cancellationToken),
+            SeaManagementOperations.ListUserRoles => await userRoles.GetListAsync(new UserRoleDescriptorDto { UserId = Id(payload) }, cancellationToken),
+            SeaManagementOperations.AssignUserRole => await AssignUserRole(payload, cancellationToken),
+            SeaManagementOperations.RemoveUserRole => await RemoveUserRole(payload, cancellationToken),
+            SeaManagementOperations.ListEventRoles => await eventRoles.GetIdsAsync(Id(payload), cancellationToken),
+            SeaManagementOperations.GetEventReadRoles => await eventRoles.GetReadIdsAsync(Id(payload), cancellationToken),
+            SeaManagementOperations.GetEventWriteRoles => await eventRoles.GetWriteIdsAsync(Id(payload), cancellationToken),
+            SeaManagementOperations.AssignEventRole => await AssignEventRole(payload, true, cancellationToken),
+            SeaManagementOperations.RemoveEventRole => await AssignEventRole(payload, false, cancellationToken),
+            SeaManagementOperations.GetStatistics => await statistics.GetAsync(cancellationToken),
             _ => throw new JsonException($"Unsupported SEA operation: {operation}.")
         };
         return new(callId, JsonSerializer.Serialize(result));
