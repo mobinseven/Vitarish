@@ -8,7 +8,7 @@ import { Catalog, type ComponentApi } from "@a2ui/web_core";
 import { createComponentImplementation, useSignalValue, type ReactComponentImplementation } from "@a2ui/react";
 import { formatNumber, useLocalizedText } from "@vitarish/localization";
 import { FaIcon } from "@vitarish/ui";
-import { useMemo, type ReactNode } from "react";
+import { useEffect, useMemo, type ReactNode } from "react";
 import catalogDocument from "./assistant-catalog.json";
 import { usePresentedSurfaceAppearance } from "./PresentedSurfaceContext";
 import { asPresentedResult, formatPresentedValue, type PresentedRecord } from "./presentedData";
@@ -197,6 +197,10 @@ function asBinding(value: unknown): unknown {
 function BoundView({ props, buildChild, context, render }: BoundViewProps & { render: Render }) {
   const signal = useMemo(() => context.dataContext.resolveSignal<unknown>(asBinding(props.result)), [context, props.result]);
   const result = useSignalValue(signal);
+  const unbound = props.result !== undefined && asPresentedResult(result) === null;
+  useEffect(() => {
+    if (unbound) console.error("A presented surface component's result binding resolved to no data.", props.result);
+  }, [unbound, props.result]);
   return <>{render({ props: props.result === undefined ? props : { ...props, result }, buildChild })}</>;
 }
 

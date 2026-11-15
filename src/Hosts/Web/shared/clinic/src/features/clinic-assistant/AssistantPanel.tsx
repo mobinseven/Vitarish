@@ -10,6 +10,7 @@ import { useLocalizedText } from "../../localization";
 import type { ClinicAssistantChatMessage } from "./hooks";
 import { patientComposerSessionKey, useClinicAssistantConversationSurface, useAssistantConversation } from "./hooks";
 import { AssistantActionList } from "./AssistantActions";
+import { AssistantPresentedSurfaces } from "./AssistantPresentedSurfaces";
 import {
   AssistantActivity,
   AssistantErrorState,
@@ -117,6 +118,8 @@ export function AssistantMessage({
   if (message.kind === "Failure") {
     return <AssistantErrorState onRetry={onRetry} scope={scope} />;
   }
+
+  if (message.kind === "Presented") return <AssistantPresentedSurfaces surfaces={message.surfaces} />;
 
   const labels = {
     AssistantMessage: "assistant",

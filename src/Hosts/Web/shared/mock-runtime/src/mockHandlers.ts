@@ -729,6 +729,36 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
       const isClinic = body?.agentKey === "clinic.assistant.patient";
       // The operations assistant prepares a surgery cancellation, so its review card can be captured.
       if (body?.agentKey === "clinic.assistant.operations") {
+        // A free-slot question gets the reply production sent: a record list, laid out by the model, as the whole surface.
+        if (typeof body.message === "string" && /free slots|آزاد/i.test(body.message)) {
+          const isPersian = isPersianRequest(request);
+          const slot = (date: string) => ({
+            kind: "clinic.shift-occurrence", reference: "mock-shift", title: { type: "Date", value: date },
+            fields: { startTime: { type: "Text", value: "16:00" }, endTime: { type: "Text", value: "18:00" }, availableSeats: { type: "Number", value: 10 }, totalSeats: { type: "Number", value: 10 }, state: { type: "Status", value: "open" } },
+          });
+          return HttpResponse.json({
+            agentRunId: "mock-agent-run",
+            conversationId: "mock-agent-conversation",
+            result: {
+              agentRunId: "mock-agent-run",
+              conversationId: "mock-agent-conversation",
+              previousResponseId: null,
+              messages: [{ kind: "AssistantMessage", content: isPersian ? "این هفته دو بازهٔ آزاد پیدا شد؛ جزئیاتشان را در فهرست می‌بینید." : "Two free slots this week; the list shows them." }],
+              actions: [],
+            },
+            blocks: [{
+              kind: "Surface",
+              surface: {
+                surfaceId: "mock-present-slots",
+                protocol: "a2ui",
+                protocolVersion: "1.0",
+                catalogId: "vitarish:assistant-catalog:v1",
+                components: [{ id: "root", component: "RecordList", result: { path: "/r1-slots" }, fields: ["startTime", "endTime", "availableSeats"] }],
+                dataModel: { "r1-slots": { kind: "clinic.shift-occurrence", isList: true, hasMore: false, records: [slot("2026-11-15"), slot("2026-11-22")] } },
+              },
+            }],
+          });
+        }
         // An appointment question gets a presented count, chart and card, so every data component can be captured.
         if (typeof body.message === "string" && /appointments this week|نوبت‌های این هفته/i.test(body.message)) {
           const isPersian = isPersianRequest(request);

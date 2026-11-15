@@ -34,6 +34,16 @@ describeSurgeryFlow("clinic-assistant-flow", [async ({ page, locale, capture }) 
     await capture("assistant-presented-appointments");
   });
 
+  await test.step("presented free slots", async () => {
+    await page.getByRole("textbox", { name: clinic.operationsAssistant.composer.label }).fill(locale === "fa" ? "کدام زمان‌های نوبت این هفته هنوز آزاد است؟" : "Which free slots are left this week?");
+    await page.getByRole("button", { name: clinic.operationsAssistant.composer.send }).click();
+    // A list that is the whole surface renders its records, one card per slot.
+    await expect(page.getByRole("log").getByRole("listitem").filter({ hasText: "16:00" })).toHaveCount(2, { timeout: pageCompileTimeoutMilliseconds });
+    // The earlier reply keeps its own chart under it.
+    await expect(page.getByRole("img", { name: new RegExp(intelligenceMessageCatalogs[locale].intelligence.surface.chartLabel.split("{")[0].trim()) })).toHaveCount(1);
+    await capture("assistant-presented-slots");
+  });
+
   await test.step("patient search results", async () => {
     await page.getByRole("textbox", { name: clinic.operationsAssistant.composer.label }).fill(workspace.suggestions.items.findPatient.prompt);
     await page.getByRole("button", { name: clinic.operationsAssistant.composer.send }).click();
