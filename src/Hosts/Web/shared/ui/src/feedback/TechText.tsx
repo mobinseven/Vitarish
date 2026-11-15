@@ -59,11 +59,12 @@ export interface TechTextProps {
   intro?: 'none' | 'type' | 'assemble' | 'metrics';
   introDuration?: number;
   guides?: boolean;
+  onReady?: () => void;
   className?: string;
   style?: CSSProperties;
 }
 
-type Settings = Required<Omit<TechTextProps, 'className' | 'style'>>;
+type Settings = Required<Omit<TechTextProps, 'onReady' | 'className' | 'style'>>;
 
 const LABEL_FONT = '10px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
 const FALLOFF_STEPS = 8;
@@ -122,12 +123,14 @@ const TechText = ({
   intro = 'none',
   introDuration = 2,
   guides = false,
+  onReady,
   className = '',
   style
 }: TechTextProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const settingsRef = useRef<Settings | null>(null);
+  const onReadyRef = useRef(onReady);
   const wakeRef = useRef<() => void>(() => {});
 
   useEffect(() => {
@@ -159,6 +162,7 @@ const TechText = ({
       introDuration,
       guides
     };
+    onReadyRef.current = onReady;
     wakeRef.current();
   });
 
@@ -178,6 +182,7 @@ const TechText = ({
     let last = performance.now();
     let visible = false;
     let alive = true;
+    let notifiedReady = false;
     let layoutKey = '';
     let requestedFont = '';
     let word: Word | null = null;
@@ -934,6 +939,10 @@ const TechText = ({
       });
       if (presence > 0.001) drawReveal(s);
       drawFrame(s, accent);
+      if (!notifiedReady) {
+        notifiedReady = true;
+        onReadyRef.current?.();
+      }
 
       const settling =
         moving ||
