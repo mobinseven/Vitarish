@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text.Json;
 using Vitarish.Appointments.Application.AgentCapabilities;
 using Vitarish.Appointments.Domain.Enums;
+using Vitarish.Clinic.Application.Assistant.Capabilities;
 using Vitarish.Clinic.Application.Assistant.Staff;
 using Vitarish.Intelligence.Application.GuidedSurfaces;
 
@@ -75,9 +76,13 @@ public static class ClinicPresentableToolNames
     public const string GetPatientPrescription = "get_patient_prescription";
     public const string GetPatientPrescriptionAttention = "get_patient_prescription_attention";
     public const string ListPatientProcedureProgress = "list_patient_procedure_progress";
-    public const string ListPatientProcedureEvents = "list_patient_procedure_events";
-    public const string GetPatientProcedureEvent = "get_patient_procedure_event";
-    public const string ListPatientEventAttachmentMetadata = "list_patient_event_attachment_metadata";
+    public const string ListPatientProcedureSteps = "list_patient_procedure_steps";
+    public const string GetPatientProcedureStep = "get_patient_procedure_step";
+    public const string ListPatientStepFiles = "list_patient_step_files";
+    public const string ListOperationsPatientProcedures = "list_operations_patient_procedures";
+    public const string ListOperationsProcedureSteps = "list_operations_procedure_steps";
+    public const string GetOperationsProcedureStep = "get_operations_procedure_step";
+    public const string ListOperationsStepFiles = "list_operations_step_files";
     public const string ListPatientSurgeries = "list_patient_surgeries";
     public const string FindSurgeryConflicts = "find_surgery_conflicts";
     public const string ListOperationsSurgeries = "list_operations_surgeries";
@@ -112,7 +117,7 @@ public static class ClinicAssistantPresentations
         ["get_prescription_template_requirements"] = "Template requirements that only guide preparing a prescription.",
         ["search_prescription_templates"] = "Lookup that only resolves a template for preparing a prescription.",
         ["get_patient_recorded_clinical_facts"] = "Clinical free text is never projected.",
-        ["get_patient_procedure_context"] = "Internal state fingerprint that only guides preparing a clinical event.",
+        [ClinicalEventToolNames.ProcedureContext] = "Internal state fingerprint that only guides preparing a clinical event.",
         ["search"] = "Cross-module search owned by the Search module; results open through its own surface.",
         ["contents_list_sites"] = "Contents catalog read owned by the Contents module.",
         ["contents_list_types"] = "Contents catalog read owned by the Contents module.",
@@ -138,6 +143,10 @@ public static class ClinicAssistantPresentations
         yield return new(operations, ClinicPresentableToolNames.FindOperationsSurgeryConflicts, SurgeryConflicts);
         yield return new(operations, ClinicPresentableToolNames.GetClinicSetupProgress, SetupGoals);
         yield return new(operations, AssistantStaffManagement.ListToolName, StaffMembers);
+        yield return new(operations, ClinicPresentableToolNames.ListOperationsPatientProcedures, Procedures);
+        yield return new(operations, ClinicPresentableToolNames.ListOperationsProcedureSteps, ProcedureSteps);
+        yield return new(operations, ClinicPresentableToolNames.GetOperationsProcedureStep, ProcedureStepDetail);
+        yield return new(operations, ClinicPresentableToolNames.ListOperationsStepFiles, StepFiles);
 
         yield return new(patient, ClinicPresentableToolNames.GetNextPatientAppointment, NextPatientAppointment);
         yield return new(patient, ClinicPresentableToolNames.ListPatientAppointments, PatientAppointmentList);
@@ -150,9 +159,9 @@ public static class ClinicAssistantPresentations
         yield return new(patient, ClinicPresentableToolNames.GetPatientPrescription, PrescriptionDetail);
         yield return new(patient, ClinicPresentableToolNames.GetPatientPrescriptionAttention, PrescriptionAttention);
         yield return new(patient, ClinicPresentableToolNames.ListPatientProcedureProgress, Procedures);
-        yield return new(patient, ClinicPresentableToolNames.ListPatientProcedureEvents, ProcedureEvents);
-        yield return new(patient, ClinicPresentableToolNames.GetPatientProcedureEvent, ProcedureEventDetail);
-        yield return new(patient, ClinicPresentableToolNames.ListPatientEventAttachmentMetadata, EventAttachments);
+        yield return new(patient, ClinicPresentableToolNames.ListPatientProcedureSteps, ProcedureSteps);
+        yield return new(patient, ClinicPresentableToolNames.GetPatientProcedureStep, ProcedureStepDetail);
+        yield return new(patient, ClinicPresentableToolNames.ListPatientStepFiles, StepFiles);
         yield return new(patient, ClinicPresentableToolNames.ListPatientSurgeries, PatientSurgeryList);
         yield return new(patient, ClinicPresentableToolNames.FindSurgeryConflicts, SurgeryConflicts);
     }
@@ -425,17 +434,19 @@ public static class ClinicAssistantPresentations
             })
             : null;
 
-    internal static PresentableResult? ProcedureEvents(JsonElement output) =>
-        TryArray(output, "events", out JsonElement values)
-            ? List(ClinicPresentedRecordKinds.ProcedureEvent, values, Bool(output, "hasMore"), ProcedureEventRecord)
+    /// <summary>Steps of a procedure; a step restricted by access rules carries no id and is not projected.</summary>
+    internal static PresentableResult? ProcedureSteps(JsonElement output) =>
+        TryArray(output, "steps", out JsonElement values)
+            ? List(ClinicPresentedRecordKinds.ProcedureEvent, values, Bool(output, "hasMore"), ProcedureStepRecord)
             : null;
 
-    internal static PresentableResult? ProcedureEventDetail(JsonElement output) =>
-        TryProperty(output, "event", out JsonElement value) && value.ValueKind == JsonValueKind.Object
-            ? Single(ClinicPresentedRecordKinds.ProcedureEvent, ProcedureEventRecord(value))
+    /// <summary>One step: title and commit state only; its notes are clinical free text and are never projected.</summary>
+    internal static PresentableResult? ProcedureStepDetail(JsonElement output) =>
+        TryProperty(output, "step", out JsonElement value) && value.ValueKind == JsonValueKind.Object
+            ? Single(ClinicPresentedRecordKinds.ProcedureEvent, ProcedureStepRecord(value))
             : null;
 
-    private static PresentableRecord? ProcedureEventRecord(JsonElement item)
+    private static PresentableRecord? ProcedureStepRecord(JsonElement item)
     {
         string? id = Text(item, "id");
         return id is null ? null : new(
@@ -448,8 +459,8 @@ public static class ClinicAssistantPresentations
                 ("updatedAt", DateTimeField(item, "sourceUpdatedAt"))));
     }
 
-    internal static PresentableResult? EventAttachments(JsonElement output) =>
-        TryArray(output, "attachments", out JsonElement values)
+    internal static PresentableResult? StepFiles(JsonElement output) =>
+        TryArray(output, "files", out JsonElement values)
             ? List(ClinicPresentedRecordKinds.EventAttachment, values, Bool(output, "hasMore"), attachment =>
             {
                 string? id = Text(attachment, "id");
@@ -458,7 +469,6 @@ public static class ClinicAssistantPresentations
                     id,
                     PresentableField.Text(Text(attachment, "fileName")),
                     Fields(
-                        ("kind", StatusField(attachment, "kind")),
                         ("contentType", TextField(attachment, "contentType")),
                         ("sizeBytes", NumberField(attachment, "size"))));
             })

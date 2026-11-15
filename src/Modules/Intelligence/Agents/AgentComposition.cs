@@ -71,6 +71,16 @@ public sealed class AgentProfileComposer<TContext>(
             toolCapabilities.Add(tool.Definition.Name, IntelligenceAgentToolCatalog.CapabilityKey);
         }
 
+        if (resolved.DomainModel is { } domainModel)
+        {
+            if (instructions.Any(x => x.Key == AgentDomainModelInstructions.SectionKey))
+                throw new InvalidOperationException($"Instruction '{AgentDomainModelInstructions.SectionKey}' was duplicated.");
+            instructions.Add(new(
+                AgentDomainModelInstructions.SectionKey,
+                AgentDomainModelInstructions.Render(domainModel, tools.Select(tool => tool.Definition.Name)),
+                resolved.DomainModelOrder));
+        }
+
         string flattenedInstructions = string.Join("\n\n", instructions.OrderBy(x => x.Order).ThenBy(x => x.Key, StringComparer.Ordinal).Select(x => x.Text));
         AgentDefinition definition = new(resolved.Model, flattenedInstructions, resolved.Result, resolved.ReasoningLevel, resolved.DisplayName);
         string compatibilityKey = AgentManifestCompatibility.Calculate(resolved, definition, tools, capabilityRevisions, exposureRevisions, instructions);

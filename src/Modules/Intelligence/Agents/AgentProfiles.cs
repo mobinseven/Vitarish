@@ -26,6 +26,8 @@ public sealed class AgentProfileBuilder<TContext>
     private AgentReasoningLevel _reasoningLevel = AgentReasoningLevel.Low;
     private AgentResultDefinition? _result;
     private AgentExecutionLimits _limits = new();
+    private AgentDomainModel? _domainModel;
+    private int _domainModelOrder;
 
     public void ApplyLayer(string layerKey, int revision, Action<AgentProfileBuilder<TContext>> configure)
     {
@@ -51,6 +53,16 @@ public sealed class AgentProfileBuilder<TContext>
 
     public void SetResult(AgentResultDefinition? result) => _result = result;
     public void SetLimits(AgentExecutionLimits limits) => _limits = limits ?? throw new ArgumentNullException(nameof(limits));
+
+    /// <summary>
+    /// Declares the app's domain model (ADR-0023). The composer renders it from the tools it exposes and adds it as the
+    /// <see cref="AgentDomainModelInstructions.SectionKey"/> instruction at <paramref name="order"/>.
+    /// </summary>
+    public void SetDomainModel(AgentDomainModel model, int order)
+    {
+        _domainModel = model ?? throw new ArgumentNullException(nameof(model));
+        _domainModelOrder = order;
+    }
 
     public void AddInstruction(string key, string text, int order) => AddInstruction(key, text, order, null);
 
@@ -96,7 +108,8 @@ public sealed class AgentProfileBuilder<TContext>
         _reasoningLevel, _result, ValidateLimits(_limits),
         _instructions.Values.OrderBy(x => x.Order).ThenBy(x => x.Key, StringComparer.Ordinal).ToArray(),
         _capabilities.ToArray(), _layers.ToArray(),
-        _compatibilityMaterials.ToDictionary(x => x.Key, x => x.Value, StringComparer.Ordinal));
+        _compatibilityMaterials.ToDictionary(x => x.Key, x => x.Value, StringComparer.Ordinal),
+        _domainModel, _domainModelOrder);
 
     private static AgentExecutionLimits ValidateLimits(AgentExecutionLimits limits)
     {
@@ -115,4 +128,6 @@ public sealed record ResolvedAgentProfile<TContext>(
     string AgentKey, string DisplayName, string Model, AgentReasoningLevel ReasoningLevel,
     AgentResultDefinition? Result, AgentExecutionLimits Limits, IReadOnlyList<InstructionSection> Instructions,
     IReadOnlyList<string> CapabilityKeys, IReadOnlyList<AgentProfileLayer> Layers,
-    IReadOnlyDictionary<string, string> CompatibilityMaterials);
+    IReadOnlyDictionary<string, string> CompatibilityMaterials,
+    AgentDomainModel? DomainModel = null,
+    int DomainModelOrder = 0);
