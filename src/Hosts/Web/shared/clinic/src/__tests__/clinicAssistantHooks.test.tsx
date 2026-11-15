@@ -21,7 +21,10 @@ import {
   useAssistantConversation,
   useRejectOperationsAssistantAction,
   useRejectAssistantAction,
+  useClinicAssistantConversationSurface,
+  type ClinicAssistantReply,
 } from "../features/clinic-assistant/hooks";
+import type { ConversationController, GuidedSurfaceSurfaceResponse } from "@vitarish/intelligence";
 
 vi.mock("../api/generated/clinic/clinic", () => ({
   clinicDeletePatientAssistantConversation: vi.fn(),
@@ -330,5 +333,39 @@ describe("operations assistant conversation across surfaces", () => {
     expect(result.current.isError).toBe(false);
     expect(vi.mocked(intelligenceRunAgentConversation).mock.calls[0][0]).toMatchObject({ conversationId: null });
     expect(vi.mocked(intelligenceRunAgentConversation).mock.calls[1][0]).toMatchObject({ conversationId: "in-memory" });
+  });
+});
+
+describe("presented surfaces across turns", () => {
+  const presented = (surfaceId: string) => ({ surfaceId, protocol: "a2ui", protocolVersion: "1.0", catalogId: "catalog", components: [], dataModel: {} }) as unknown as GuidedSurfaceSurfaceResponse;
+  const reply = (content: string, surfaceId: string): ClinicAssistantReply => ({
+    agentRunId: `run-${surfaceId}`,
+    conversationId: "conversation",
+    messages: [{ kind: "AssistantMessage", content }],
+    actions: [],
+    guidedSurface: { question: null, nextAction: null, actionGroups: [], surfaces: [presented(surfaceId)] },
+  }) as unknown as ClinicAssistantReply;
+
+  it("keeps each reply's surfaces under that reply and leaves only the newest live", async () => {
+    const replies = [reply("Appointments", "first"), reply("Free slots", "second")];
+    const conversation = {
+      isPending: false,
+      isError: false,
+      submit: vi.fn(async () => replies.shift()),
+      retry: vi.fn(),
+      reset: vi.fn(),
+      deleteCurrent: vi.fn(),
+      cancel: vi.fn(),
+    } as unknown as ConversationController<ClinicAssistantReply>;
+    const { result } = renderHook(() => useClinicAssistantConversationSurface(conversation, "practice"));
+
+    await act(() => result.current.submit("appointments"));
+    await act(() => result.current.submit("free slots"));
+
+    expect(result.current.messages.map((message) => message.kind)).toEqual([
+      "UserMessage", "AssistantMessage", "Presented", "UserMessage", "AssistantMessage",
+    ]);
+    expect(result.current.messages[2]).toMatchObject({ surfaces: [{ surfaceId: "first" }] });
+    expect(result.current.surfaces.map(({ surfaceId }) => surfaceId)).toEqual(["second"]);
   });
 });

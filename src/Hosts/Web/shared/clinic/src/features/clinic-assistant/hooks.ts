@@ -10,6 +10,7 @@ import {
   type ConversationController,
   type GuidedSurface,
   type GuidedSurfaceActionGroup,
+  type GuidedSurfaceSurfaceResponse,
 } from "@vitarish/intelligence";
 import {
   clinicConfirmAssistantAction,
@@ -39,7 +40,9 @@ export type ClinicAssistantChatMessage =
   | AssistantMessageResult
   | { kind: "UserMessage"; content: string }
   /** The person stopped waiting for a turn; work the server already did is kept. */
-  | { kind: "Stopped" };
+  | { kind: "Stopped" }
+  /** What an earlier reply presented, kept under that reply once the next message is sent. */
+  | { kind: "Presented"; surfaces: readonly GuidedSurfaceSurfaceResponse[] };
 
 /** What one conversation surface shows; kept in memory so the same browser tab can show it again after navigating. */
 export interface ClinicAssistantSurfaceSnapshot {
@@ -281,13 +284,18 @@ export function useClinicAssistantConversationSurface(
       requestSequence.current = requestId;
       setCandidatePresentation(null);
       setLastMessage(message);
+      // The reply being answered keeps what it presented in its place; only the newest reply's surfaces stay live,
+      // because candidate references belong to the run that produced them.
+      const presented = surface.surfaces;
+      setSurface((current) => ({ ...current, surfaces: [] }));
       setMessages((current) => [
         ...current,
+        ...(presented.length > 0 ? [{ kind: "Presented", surfaces: presented } as const] : []),
         { kind: "UserMessage", content: message },
       ]);
       appendResult(await conversation.submit(message), submittedScope, message, requestId);
     },
-    [appendResult, conversation],
+    [appendResult, conversation, surface.surfaces],
   );
 
   const retry = useCallback(async () => {
