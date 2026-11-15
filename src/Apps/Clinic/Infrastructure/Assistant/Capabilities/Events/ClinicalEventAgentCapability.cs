@@ -10,7 +10,7 @@ public sealed class ClinicalEventAgentCapability(
     GetPatientProcedureContextTool context,
     PrepareClinicalEventTool prepare)
     : AssistantCapability([context, prepare], [
-        AssistantActionPolicies.Prepare("add_clinical_event", "clinical-events", ["ClinicalEvents.Create"], toolNames: ["prepare_clinical_event"])
+        AssistantActionPolicies.Prepare("add_clinical_event", "clinical-events", ["ClinicalEvents.Create"], toolNames: [ClinicalEventToolNames.Prepare])
     ])
 {
     public override string Name => "ClinicalEvents";
@@ -45,7 +45,7 @@ public abstract class ClinicalEventTool : IClinicalEventsAssistantTool
 
 public sealed class GetPatientProcedureContextTool(GetPatientProcedureContext useCase) : ClinicalEventTool
 {
-    public override AgentToolDefinition Definition { get; } = new("get_patient_procedure_context", "Validate a procedure and return the next valid visit for the current patient.", """{"type":"object","properties":{"procedureId":{"type":"string"}},"required":["procedureId"],"additionalProperties":false}""");
+    public override AgentToolDefinition Definition { get; } = new(ClinicalEventToolNames.ProcedureContext, "Validate a procedure and return the next valid visit for the current patient.", """{"type":"object","properties":{"procedureId":{"type":"string"}},"required":["procedureId"],"additionalProperties":false}""");
 
     public override async Task<AgentToolResult> ExecuteAsync(AgentToolCall call, AgentExecutionContext context, CancellationToken cancellationToken = default)
     {
@@ -61,7 +61,7 @@ public sealed class PrepareClinicalEventTool(PrepareClinicalEvent useCase) : Cli
         {"type":"object","properties":{"procedureId":{"type":"string"},"visitNumber":{"type":"integer","minimum":1},"eventType":{"type":"string"},"completionStatus":{"type":"string"},"performedAt":{"type":"string"},"observations":{"type":"string"},"diagnosis":{"type":"string"},"diagnosisExplicitlyAssertedByClinician":{"type":"boolean"},"planOrFollowUp":{"type":"string"},"attachmentReferences":{"type":"array","items":{"type":"string"}},"narrativeNote":{"type":"string"}},"required":["procedureId","visitNumber","eventType","completionStatus","performedAt","diagnosisExplicitlyAssertedByClinician"],"additionalProperties":false}
         """;
 
-    public override AgentToolDefinition Definition { get; } = new("prepare_clinical_event", "Prepare a Clinic-owned clinical event proposal for explicit review; this does not confirm it.", Schema);
+    public override AgentToolDefinition Definition { get; } = new(ClinicalEventToolNames.Prepare, "Prepare a Clinic-owned clinical event proposal for explicit review; this does not confirm it.", Schema);
 
     public override async Task<AgentToolResult> ExecuteAsync(AgentToolCall call, AgentExecutionContext context, CancellationToken cancellationToken = default)
     {

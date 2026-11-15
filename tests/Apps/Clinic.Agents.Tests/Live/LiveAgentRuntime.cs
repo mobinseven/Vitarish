@@ -257,6 +257,70 @@ internal static class LiveOperationsAssistant
             ["correlationId"] = "live-spec"
         });
 
+    /// <summary>The patient-page assistant for one patient, composed with every patient capability unlocked.</summary>
+    internal static class Patient
+    {
+        public static readonly Guid PatientId = Guid.Parse("7a1f3a52-6a3e-4a39-9f0e-3d1c2b4a5e61");
+
+        public static AssistantContext Context => new(
+            "practice-1",
+            PatientId,
+            "3f2b8c1e-9d4a-4e7b-8a6c-5b1d2e3f4a5b",
+            RealCapabilities()
+                .Where(capability => AssistantCapabilityKeys.Patient.Contains(capability.Name, StringComparer.Ordinal))
+                .SelectMany(capability => capability.RequiredPermissions.Concat(capability.ActionPolicies.SelectMany(policy => policy.RequiredPermissions)))
+                .ToHashSet(StringComparer.Ordinal),
+            AssistantOperationsScope.TenantOwnerRole,
+            "en-US",
+            "UTC",
+            "conversation-2",
+            SubjectKind: AssistantSubjects.PatientKind);
+
+        public static ComposedAgentManifest<AssistantCompositionContext> Compose(DateTimeOffset now)
+        {
+            AssistantContext context = Context;
+            IReadOnlyCollection<IAssistantCapability> capabilities = RealCapabilities()
+                .Where(capability => AssistantCapabilityKeys.Patient.Contains(capability.Name, StringComparer.Ordinal))
+                .Where(capability => capability.IsAvailable(context))
+                .ToArray();
+            AssistantCompositionContext composition = new(context, capabilities, now);
+            AgentProfileComposer<AssistantCompositionContext> composer = new(
+                new AgentCapabilityCatalog<AssistantCompositionContext>(
+                    AssistantCapabilityKeys.Patient.Select(key => (IAgentCapabilityPack<AssistantCompositionContext>)new AssistantCapabilityPack(key))),
+                new IntelligenceAgentToolCatalog([new CalendarDateConversionTool()]));
+            return composer.Compose(
+                new ClinicPatientAssistantProfile(composition, new AssistantOptions(LiveAgentSettings.Model)),
+                composition,
+                _ => new AgentExposureDecision(true, "enabled"));
+        }
+
+        public static AgentExecutionContext ExecutionContext(DateTimeOffset now)
+        {
+            AssistantContext context = Context;
+            return new(
+                "live-" + Guid.NewGuid().ToString("N"),
+                new Dictionary<string, string>
+                {
+                    ["tenantId"] = context.PracticeId,
+                    ["practiceId"] = context.PracticeId,
+                    ["subjectKind"] = AssistantSubjects.PatientKind,
+                    ["subjectId"] = PatientId.ToString("D"),
+                    ["patientId"] = PatientId.ToString("D"),
+                    ["authenticatedUserId"] = context.AuthenticatedUserId,
+                    ["conversationId"] = context.ConversationId,
+                    ["agentKey"] = AssistantSubjects.PatientAgentKey,
+                    ["permissions"] = System.Text.Json.JsonSerializer.Serialize(context.Permissions),
+                    ["role"] = context.Role,
+                    ["locale"] = context.Locale,
+                    ["timeZone"] = context.TimeZone,
+                    ["calendar"] = context.Calendar,
+                    ["currentUtc"] = now.ToString("O"),
+                    ["currentLocal"] = now.ToString("O"),
+                    ["correlationId"] = "live-spec"
+                });
+        }
+    }
+
     // Builds the Clinic capabilities through the production registration, so the tool set is exactly
     // what Main composes. Tool callbacks are answered by the suite, so the data dependencies behind the
     // tools are never called and are satisfied with mocks.

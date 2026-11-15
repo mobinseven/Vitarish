@@ -339,30 +339,40 @@ public sealed class ClinicAssistantPresentationsTests
     }
 
     [Fact]
-    public void Procedure_events_and_one_event_show_title_and_commit_state_but_not_the_description()
+    public void Procedure_steps_and_one_step_show_title_and_commit_state_but_not_details_notes_or_restricted_steps()
     {
-        PresentableResult list = Project(AssistantSubjects.PatientAgentKey, ClinicPresentableToolNames.ListPatientProcedureEvents,
-            """{"found":true,"events":[{"id":"@1","title":"Visit 1","isCommitted":true,"committedAt":"2030-01-01T00:00:00","sourceUpdatedAt":"2030-01-01T00:00:00"}],"hasMore":false}""");
-        PresentableResult detail = Project(AssistantSubjects.PatientAgentKey, ClinicPresentableToolNames.GetPatientProcedureEvent,
-            """{"found":true,"event":{"id":"@1","title":"Visit 1","description":"diagnosis text","isCommitted":false,"committedAt":null,"sourceUpdatedAt":"2030-01-01T00:00:00"}}""");
+        PresentableResult list = Project(AssistantSubjects.PatientAgentKey, ClinicPresentableToolNames.ListPatientProcedureSteps,
+            """{"found":true,"procedureName":"Root canal","steps":[{"id":"@1","title":"Visit 1","position":1,"isCommitted":true,"committedAt":"2030-01-01T00:00:00","sourceUpdatedAt":"2030-01-01T00:00:00","restricted":false},{"position":2,"isCommitted":false,"restricted":true}],"hasMore":false}""");
+        PresentableResult detail = Project(AssistantSubjects.PatientAgentKey, ClinicPresentableToolNames.GetPatientProcedureStep,
+            """{"found":true,"restricted":false,"step":{"id":"@1","title":"Visit 1","description":"diagnosis text","position":1,"isCommitted":false,"sourceUpdatedAt":"2030-01-01T00:00:00","procedureId":"@2","notes":[{"id":"@2","text":"private note text","truncated":false,"createdAt":"2030-01-01T00:00:00"}],"moreNotes":false,"files":[],"moreFiles":false,"reminderCount":0}}""");
 
         list.Records.Single().Reference.Should().Be(Guid1);
         Field(list.Records.Single(), "state").Should().Be("committed");
         detail.IsList.Should().BeFalse();
         Field(detail.Records.Single(), "state").Should().Be("draft");
-        Leaks(detail, "diagnosis text").Should().BeFalse();
+        Leaks(detail, "diagnosis text", "private note text").Should().BeFalse();
     }
 
     [Fact]
-    public void Attachment_metadata_projects_name_kind_and_size()
+    public void The_practice_workspace_presents_procedures_with_the_same_projection()
     {
-        PresentableResult result = Project(AssistantSubjects.PatientAgentKey, ClinicPresentableToolNames.ListPatientEventAttachmentMetadata,
-            """{"found":true,"attachments":[{"id":"@1","fileName":"xray.png","contentType":"image/png","size":2048,"kind":"Image","sourceUpdatedAt":"2030-01-01T00:00:00"}],"hasMore":false}""");
+        PresentableResult result = Project(AssistantSubjects.OperationsAgentKey, ClinicPresentableToolNames.ListOperationsPatientProcedures,
+            """{"procedures":[{"id":"@1","name":"Implant","description":"private plan text","stats":{"state":"Half","events":2,"committedEvents":1},"sourceUpdatedAt":"2030-01-01T00:00:00","stepCount":2,"committedStepCount":1,"currentStep":{"id":"@2","title":"Fixture placed","position":1,"restricted":false}}],"hasMore":false}""");
+
+        Title(result.Records.Single()).Should().Be("Implant");
+        Leaks(result, "private plan text", "Fixture placed").Should().BeFalse();
+    }
+
+    [Fact]
+    public void Step_files_project_name_type_and_size()
+    {
+        PresentableResult result = Project(AssistantSubjects.PatientAgentKey, ClinicPresentableToolNames.ListPatientStepFiles,
+            """{"found":true,"restricted":false,"files":[{"id":"@1","fileName":"xray.png","contentType":"image/png","size":2048,"createdAt":"2030-01-01T00:00:00"}],"hasMore":false}""");
 
         PresentableRecord record = result.Records.Single();
         Title(record).Should().Be("xray.png");
         Number(record, "sizeBytes").Should().Be(2048);
-        Field(record, "kind").Should().Be("Image");
+        Field(record, "contentType").Should().Be("image/png");
     }
 
     [Fact]

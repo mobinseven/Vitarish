@@ -33,6 +33,7 @@ This index is the authoritative navigation point for global ADRs. Scoped platfor
 | [0020](0020-platform-home-and-app-aware-workspaces.md) | Platform home and app-aware workspaces | Accepted | 2026-11-06 |
 | [0021](0021-central-browser-authentication.md) | Central browser authentication | Accepted | 2026-11-07 |
 | [0022](0022-guided-surfaces.md) | Guided surfaces | Accepted | 2026-11-12 |
+| [0023](0023-agent-domain-models.md) | Agent domain models | Accepted | 2026-11-15 |
 
 ## Related global architecture documents
 
