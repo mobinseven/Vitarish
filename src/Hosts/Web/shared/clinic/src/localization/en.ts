@@ -242,6 +242,12 @@ export const clinicEnMessages = {
       error: "The clinic assistant request could not be completed. Your reviewed actions remain unchanged.",
       actionError: "The action could not be updated. Review it and try again.",
       actionUnavailable: "This action type cannot be reviewed in this client.",
+      procedureChange: {
+        title: { commit_step: "Mark step done", reopen_step: "Reopen step", add_note: "Add a note to a step", add_reminder: "Add a reminder to a step", add_procedure: "Add a procedure" },
+        confirm: "Confirm change",
+        fields: { procedure: "Procedure", step: "Step", stepAt: "Step {position}: {title}", note: "Note", message: "Message", remindAt: "Remind at", channel: "Send by", description: "Details" },
+        channels: { sms: "SMS", email: "Email" },
+      },
       retry: "Retry request",
       composer: { label: "Message to the clinic assistant", placeholder: "Describe what you want to do for this patient…", send: "Send message" },
       messages: { label: "Clinic assistant conversation", assistant: "Assistant", information: "Information", missing: "More information needed", failure: "Failure" },

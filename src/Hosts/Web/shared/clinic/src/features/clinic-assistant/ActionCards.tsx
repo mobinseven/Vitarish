@@ -21,6 +21,7 @@ import {
   type AssistantReviewPayload,
 } from "./actionPayload";
 import { surgeryActionLabelKeys, type SurgeryActionType } from "./surgeryActionTypes";
+import { procedureChangeTitleKey } from "./procedureActionTypes";
 
 interface ActionCardProps {
   payload: AssistantReviewPayload;
@@ -406,6 +407,54 @@ export function SurgeryActionCard({
           <ReviewField key={row.key} label={row.label} value={row.value} />
         ))}
         <ReviewField label={t("clinic.clinicAssistant.fields.expiration")} value={formatDateTime(expiresAt, locale)} />
+      </dl>
+    </div>
+  );
+}
+
+/**
+ * A prepared change to a patient's procedure or step: what it does, the server-resolved procedure and step,
+ * and exactly what will be written.
+ */
+export function ProcedureChangeActionCard({ payload }: ActionCardProps) {
+  const { t, locale } = useLocalizedText();
+  const change = asRecord(payload.change);
+  const kind = asText(change.kind);
+  const titleKey = procedureChangeTitleKey(kind);
+  const position = asNumber(change.stepPosition);
+  const stepTitle = asText(change.stepTitle);
+  const remindAt = asText(change.remindAt);
+  const channel = asText(change.channel);
+  const isNote = kind === "add_note";
+  if (!titleKey) {
+    return (
+      <Alert status="danger">
+        <Alert.Content>
+          <Alert.Description>{t("clinic.clinicAssistant.actionUnavailable")}</Alert.Description>
+        </Alert.Content>
+      </Alert>
+    );
+  }
+  return (
+    <div className="flex flex-col gap-3">
+      <p className="font-semibold">{t(titleKey)}</p>
+      <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <ReviewField label={t("clinic.clinicAssistant.procedureChange.fields.procedure")} value={asText(change.procedureName)} />
+        <ReviewField
+          label={t("clinic.clinicAssistant.procedureChange.fields.step")}
+          value={position != null && stepTitle ? t("clinic.clinicAssistant.procedureChange.fields.stepAt", { position: formatNumber(position, locale), title: stepTitle }) : stepTitle}
+        />
+        <ReviewField label={t("clinic.clinicAssistant.procedureChange.fields.remindAt")} value={remindAt ? formatDateTime(remindAt, locale) : null} />
+        <ReviewField
+          label={t("clinic.clinicAssistant.procedureChange.fields.channel")}
+          value={channel === "email" ? t("clinic.clinicAssistant.procedureChange.channels.email") : channel === "sms" ? t("clinic.clinicAssistant.procedureChange.channels.sms") : null}
+        />
+        <ReviewField
+          clinicianAuthored
+          label={t(isNote ? "clinic.clinicAssistant.procedureChange.fields.note" : "clinic.clinicAssistant.procedureChange.fields.message")}
+          value={asText(change.text)}
+        />
+        <ReviewField label={t("clinic.clinicAssistant.procedureChange.fields.description")} value={asText(change.description)} />
       </dl>
     </div>
   );

@@ -83,6 +83,15 @@ public static class ClinicPresentableToolNames
     public const string ListOperationsProcedureSteps = "list_operations_procedure_steps";
     public const string GetOperationsProcedureStep = "get_operations_procedure_step";
     public const string ListOperationsStepFiles = "list_operations_step_files";
+    public const string PrepareStepStatus = "prepare_step_status";
+    public const string PrepareStepNote = "prepare_step_note";
+    public const string PrepareStepReminder = "prepare_step_reminder";
+    public const string PreparePatientProcedure = "prepare_patient_procedure";
+    public const string PrepareOperationsStepStatus = "prepare_operations_step_status";
+    public const string PrepareOperationsStepNote = "prepare_operations_step_note";
+    public const string PrepareOperationsStepReminder = "prepare_operations_step_reminder";
+    public const string PrepareOperationsPatientProcedure = "prepare_operations_patient_procedure";
+    public const string ManageCareTeamAccess = "manage_care_team_access";
     public const string ListPatientSurgeries = "list_patient_surgeries";
     public const string FindSurgeryConflicts = "find_surgery_conflicts";
     public const string ListOperationsSurgeries = "list_operations_surgeries";

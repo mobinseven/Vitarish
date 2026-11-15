@@ -242,6 +242,12 @@ export const clinicFaMessages = {
       error: "درخواست دستیار بیمار انجام نشد. اقدامات بازبینی‌شده بدون تغییر باقی ماندند.",
       actionError: "اقدام به‌روزرسانی نشد. آن را بازبینی و دوباره تلاش کنید.",
       actionUnavailable: "این نوع اقدام در این برنامه قابل بازبینی نیست.",
+      procedureChange: {
+        title: { commit_step: "انجام‌شده کردن مرحله", reopen_step: "بازگشایی مرحله", add_note: "افزودن یادداشت به مرحله", add_reminder: "افزودن یادآور به مرحله", add_procedure: "افزودن روند درمان" },
+        confirm: "تأیید تغییر",
+        fields: { procedure: "روند درمان", step: "مرحله", stepAt: "مرحله {position}: {title}", note: "یادداشت", message: "پیام", remindAt: "زمان یادآوری", channel: "ارسال با", description: "توضیحات" },
+        channels: { sms: "پیامک", email: "ایمیل" },
+      },
       retry: "تلاش دوباره",
       composer: { label: "پیام به دستیار بیمار", placeholder: "کاری را که می‌خواهید برای این بیمار انجام شود شرح دهید…", send: "ارسال پیام" },
       messages: { label: "گفت‌وگوی دستیار بیمار", assistant: "دستیار", information: "اطلاعات", missing: "اطلاعات بیشتری لازم است", failure: "خطا" },

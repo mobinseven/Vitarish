@@ -39,7 +39,7 @@ public static class ClinicAssistantDomainModel
             operations:
             [
                 new("list with progress, current step and next step", [Names.ListPatientProcedureProgress, Names.ListOperationsPatientProcedures]),
-                new("create", [], whenUnavailable: PatientPage)
+                new("add", [Names.PreparePatientProcedure, Names.PrepareOperationsPatientProcedure], "an empty procedure; practice owners only", PatientPage)
             ]),
         new("Step",
             "One ordered item of a procedure: a visit or session, a milestone, a measurement, an intervention or a follow-up checkpoint. Steps have a fixed order and a 1-based position.",
@@ -58,7 +58,7 @@ public static class ClinicAssistantDomainModel
                 new("list in order", [Names.ListPatientProcedureSteps, Names.ListOperationsProcedureSteps]),
                 new("read with its notes, files and reminder count", [Names.GetPatientProcedureStep, Names.GetOperationsProcedureStep]),
                 new("add a documented visit", [ClinicalEventToolNames.Prepare], "for a visit the clinician performed, with clinical content", PatientPage),
-                new("commit or reopen", [], whenUnavailable: StepScreen),
+                new("commit (mark done) or reopen", [Names.PrepareStepStatus, Names.PrepareOperationsStepStatus], "a proposal the user confirms", StepScreen),
                 new("edit, reorder or delete", [], whenUnavailable: StepScreen)
             ]),
         new("Note",
@@ -68,7 +68,7 @@ public static class ClinicAssistantDomainModel
             operations:
             [
                 new("read", [Names.GetPatientProcedureStep, Names.GetOperationsProcedureStep], "the step's latest notes are in the step"),
-                new("add", [], whenUnavailable: StepScreen)
+                new("add", [Names.PrepareStepNote, Names.PrepareOperationsStepNote], "in the user's own words; a proposal the user confirms", StepScreen)
             ]),
         new("File",
             "A document or image attached to one step, such as a consent form, a scan, a photo or a lab result. Only its name, type and size can be read, never its content.",
@@ -87,8 +87,13 @@ public static class ClinicAssistantDomainModel
             operations:
             [
                 new("read delivery status", [Names.ListPatientReminderStatus]),
-                new("add to a step", [], whenUnavailable: StepScreen)
+                new("add to a step", [Names.PrepareStepReminder, Names.PrepareOperationsStepReminder], "sent to the signed-in user; a proposal the user confirms", StepScreen)
             ]),
+        new("Access role",
+            "A named group of staff, such as assistants or a specialist team, that may read or change chosen steps. A step with roles is restricted to them.",
+            ["نقش", "نقش دسترسی", "تیم درمان", "role", "care team", "access"],
+            ["Staff members are assigned roles; steps grant read or change access to roles."],
+            operations: [new("manage", [Names.ManageCareTeamAccess], "roles, members, a step's roles and practice statistics", "practice owners can do this in the practice workspace")]),
         new("Procedure template",
             "A reusable standard procedure with its standard steps, used to start a patient's procedure. It is not about any patient.",
             ["الگو", "قالب", "پروتکل", "template", "protocol", "routine"],

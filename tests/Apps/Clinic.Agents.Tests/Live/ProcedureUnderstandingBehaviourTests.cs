@@ -78,6 +78,26 @@ public sealed class ProcedureUnderstandingBehaviourTests(LiveAgentRuntime runtim
             call.Arguments.GetProperty("candidateToken").GetString() == CandidateToken);
     }
 
+    [LiveAgentTheory]
+    [InlineData("The fixture placement is done, mark it.", "status")]
+    [InlineData("مرحله کاشت فیکسچر انجام شد، ثبتش کن.", "status")]
+    [InlineData("Add a note to the last session: sutures removed, healing well.", "note")]
+    [InlineData("به جلسه آخر یادداشت اضافه کن: بخیه‌ها کشیده شد.", "note")]
+    public async Task On_the_patient_page_a_coordinator_request_prepares_the_matching_step_change(string message, string change)
+    {
+        runtime.Reset();
+        runtime.Script(ClinicPresentableToolNames.ListPatientProcedureProgress, Progress);
+        runtime.Script(ClinicPresentableToolNames.ListPatientProcedureSteps,
+            """{"found":true,"procedureName":"Implant treatment","steps":[{"id":"@STEP","title":"Fixture placement","position":2,"isCommitted":false,"restricted":false}],"hasMore":false}""".Replace("@STEP", StepId));
+        runtime.Script(ClinicPresentableToolNames.GetPatientProcedureStep, Step);
+
+        AgentRunResult result = await RunPatientAsync(message);
+
+        result.IsSuccess.Should().BeTrue(await runtime.FailureReasonAsync(result));
+        string tool = change == "status" ? ClinicPresentableToolNames.PrepareStepStatus : ClinicPresentableToolNames.PrepareStepNote;
+        runtime.Calls.Should().Contain(call => call.ToolName == tool && call.Arguments.GetProperty("stepId").GetString() == StepId);
+    }
+
     private async Task<AgentRunResult> RunPatientAsync(string message)
     {
         ComposedAgentManifest<AssistantCompositionContext> manifest = LiveOperationsAssistant.Patient.Compose(Now);

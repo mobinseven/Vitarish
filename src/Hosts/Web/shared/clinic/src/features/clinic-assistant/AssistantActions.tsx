@@ -14,8 +14,10 @@ import {
   ClinicalEventActionCard,
   OperationsActionCard,
   PrescriptionActionCard,
+  ProcedureChangeActionCard,
   SurgeryActionCard,
 } from "./ActionCards";
+import { isDescribableProcedureChange, isProcedureActionType } from "./procedureActionTypes";
 import { asRecord, asText } from "./actionPayload";
 import { isSurgeryActionType } from "./surgeryActionTypes";
 import type { AssistantAction } from "./hooks";
@@ -89,6 +91,7 @@ export function AssistantActionReview({
   const isAppointment = action.actionType === "create_appointment";
   const isPrescription = action.actionType === "create_prescription";
   const isClinicalEvent = action.actionType === "add_clinical_event";
+  const isProcedureChange = isProcedureActionType(action.actionType);
   const surgeryActionType = isSurgeryActionType(action.actionType) ? action.actionType : null;
   const confirmLabel = surgeryActionType
     ? t("clinic.surgeries.assistant.confirm")
@@ -98,7 +101,9 @@ export function AssistantActionReview({
       ? t("clinic.clinicAssistant.actions.confirmPrescription")
       : isClinicalEvent
         ? t("clinic.clinicAssistant.actions.confirmClinicalEvent")
-        : null;
+        : isProcedureChange && isDescribableProcedureChange(action.reviewPayload)
+          ? t("clinic.clinicAssistant.procedureChange.confirm")
+          : null;
   const review = surgeryActionType ? (
     <SurgeryActionCard actionType={surgeryActionType} payload={payload} expiresAt={action.expiresAt} />
   ) : isAppointment ? (
@@ -107,6 +112,8 @@ export function AssistantActionReview({
     <PrescriptionActionCard payload={payload} expiresAt={action.expiresAt} />
   ) : isClinicalEvent ? (
     <ClinicalEventActionCard payload={payload} expiresAt={action.expiresAt} />
+  ) : isProcedureChange ? (
+    <ProcedureChangeActionCard payload={payload} expiresAt={action.expiresAt} />
   ) : null;
 
   const update = async (kind: "confirm" | "reject") => {
@@ -248,6 +255,8 @@ export function OperationsAssistantActionReview({
       <Card.Content className="space-y-4">
         {isSurgeryActionType(action.actionType) ? (
           <SurgeryActionCard actionType={action.actionType} payload={payload} expiresAt={action.expiresAt} />
+        ) : isProcedureActionType(action.actionType) ? (
+          <ProcedureChangeActionCard payload={payload} expiresAt={action.expiresAt} />
         ) : action.actionType === operationsActionTypes.appointmentManage ? (
           <ManageActionCard
             reviewPayload={action.reviewPayload}
@@ -272,7 +281,7 @@ export function OperationsAssistantActionReview({
           <OperationsActionCard payload={payload} expiresAt={action.expiresAt} />
         )}
         {requestError ? <p role="alert" className="text-sm text-danger">{t("clinic.operationsAssistant.actionError")}</p> : null}
-        {action.status === "Proposed" ? (
+        {action.status === "Proposed" && (!isProcedureActionType(action.actionType) || isDescribableProcedureChange(action.reviewPayload)) ? (
           <div className="flex flex-wrap gap-2">
             <Tooltip><Button variant="primary" isDisabled={pending} onPress={() => void update("confirm")}><FaIcon icon="check" aria-hidden="true" />{t("clinic.operationsAssistant.confirm")}</Button><Tooltip.Content>{t("clinic.operationsAssistant.confirm")}</Tooltip.Content></Tooltip>
             <Tooltip><Button variant="outline" isDisabled={pending} onPress={() => void update("reject")}><FaIcon icon="xmark" aria-hidden="true" />{t("clinic.operationsAssistant.reject")}</Button><Tooltip.Content>{t("clinic.operationsAssistant.reject")}</Tooltip.Content></Tooltip>

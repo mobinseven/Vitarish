@@ -23,7 +23,9 @@ public static class AssistantCapabilityKeys
     public const string ClinicalEvents = "ClinicalEvents";
     public const string Surgeries = "Surgeries";
     public const string SurgeryOperations = "SurgeryOperations";
-    public const string SeaManagement = "SeaManagement";
+    public const string CareTeamAccess = ProcedureCapabilityNames.CareTeamAccess;
+    public const string ProcedureChanges = ProcedureCapabilityNames.Changes;
+    public const string OperationsProcedureChanges = ProcedureCapabilityNames.OperationsChanges;
     public const string Operations = "Operations";
     public const string Search = "Search";
     public const string Contents = "Contents";
@@ -33,9 +35,9 @@ public static class AssistantCapabilityKeys
 
     public static readonly string[] Patient =
     [Appointments, AppointmentReads, Prescriptions, PrescriptionReads, PatientReminderReads,
-        ClinicPatientReads, ProcedureReads, ClinicalEvents, Surgeries, Presentation];
+        ClinicPatientReads, ProcedureReads, ProcedureChanges, ClinicalEvents, Surgeries, Presentation];
 
-    public static readonly string[] OperationsProfile = [Operations, OperationsProcedureReads, SeaManagement, SurgeryOperations, Search, Contents, Setup, Staff, Presentation];
+    public static readonly string[] OperationsProfile = [Operations, OperationsProcedureReads, OperationsProcedureChanges, CareTeamAccess, SurgeryOperations, Search, Contents, Setup, Staff, Presentation];
 
     /// <summary>Every key a profile composes; each one needs a registered capability pack.</summary>
     public static IEnumerable<string> All => Patient.Concat(OperationsProfile).Distinct(StringComparer.Ordinal);
