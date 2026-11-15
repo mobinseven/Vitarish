@@ -17,13 +17,19 @@ function Logotype({ src, alt }: { src: string; alt: string }) {
   );
 }
 
-/** The brand frame of the standalone pages (sign-in, clinic setup, handoff): logotypes above and below the content. */
-export function BrandedPageFrame({ children }: { children: ReactNode }) {
+/** The owner app's shared page frame, optionally carrying its application logotype. */
+export function BrandedPageFrame({
+  children,
+  showApplicationLogotype = true,
+}: {
+  children: ReactNode;
+  showApplicationLogotype?: boolean;
+}) {
   const { t } = useLocalizedText();
 
   return (
     <div className="bg-anchor">
-      <Logotype src={darmanLogotypes.onDark} alt={t("practiceLanding.subBrand")} />
+      {showApplicationLogotype && <Logotype src={darmanLogotypes.onDark} alt={t("practiceLanding.subBrand")} />}
       {children}
       <Logotype src="/Master-Hel-Logotype-©.svg" alt="" />
     </div>
