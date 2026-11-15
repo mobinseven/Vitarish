@@ -11,4 +11,8 @@ internal static partial class IntelligenceAgentRuntimeTelemetry
     [LoggerMessage(EventId = 73903, Level = LogLevel.Warning,
         Message = "Agent-runtime tool {ToolName} failed with {ExceptionType}; execution {ExecutionId}, agent {AgentKey}.")]
     internal static partial void ToolExecutionFailed(ILogger logger, string toolName, string exceptionType, string executionId, string agentKey);
+
+    [LoggerMessage(EventId = 73904, Level = LogLevel.Information,
+        Message = "Agent-runtime tool {ToolName} handled in {DurationMs} ms; execution {ExecutionId}, agent {AgentKey}.")]
+    internal static partial void ToolExecutionHandled(ILogger logger, string toolName, long durationMs, string executionId, string agentKey);
 }

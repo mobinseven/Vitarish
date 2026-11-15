@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text.Json;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -71,6 +72,7 @@ public static class IntelligenceApiEndpointMapping
         }
         IAgentRuntimeToolEndpoint? endpoint = endpoints.Value.Resolve(envelope.AgentKey);
         if (endpoint is null) return Results.NotFound();
+        long handlingStartedAt = Stopwatch.GetTimestamp();
         try
         {
             AgentExecutionContext context = envelope.ToExecutionContext();
@@ -79,6 +81,7 @@ public static class IntelligenceApiEndpointMapping
             AgentToolResult result = await endpoint.ExecuteAsync(
                 new(new AgentToolCall(envelope.ToolCallId, envelope.ToolName, request.ArgumentsJson), context, envelope), ct);
             result = await presentation.PublishAsync(envelope, result, ct);
+            IntelligenceAgentRuntimeTelemetry.ToolExecutionHandled(logger, envelope.ToolName, (long)Stopwatch.GetElapsedTime(handlingStartedAt).TotalMilliseconds, envelope.ExecutionId, envelope.AgentKey);
             return Results.Ok(new InternalAgentToolExecutionResponse(result.CallId, result.Output, result.IsError));
         }
         catch (KeyNotFoundException) { return Results.NotFound(); }

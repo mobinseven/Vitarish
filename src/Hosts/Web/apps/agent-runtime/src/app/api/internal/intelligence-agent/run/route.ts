@@ -128,24 +128,36 @@ class AgentRuntimeLimitError extends Error {
   }
 }
 
-function budgetedModelProvider(maxTokens: number, usedTokens: { value: number }): ModelProvider {
+function budgetedModelProvider(maxTokens: number, usedTokens: { value: number }, executionId: string): ModelProvider {
   const provider = new OpenAIProvider();
   return {
     getModel: (modelName?: string) => {
       const model = provider.getModel(modelName);
       if (model instanceof Promise) {
-        return model.then((resolved) => budgetedModel(resolved, maxTokens, usedTokens));
+        return model.then((resolved) => budgetedModel(resolved, maxTokens, usedTokens, executionId));
       }
-      return budgetedModel(model, maxTokens, usedTokens);
+      return budgetedModel(model, maxTokens, usedTokens, executionId);
     },
   };
 }
 
-function budgetedModel(model: Model, maxTokens: number, usedTokens: { value: number }): Model {
+function budgetedModel(model: Model, maxTokens: number, usedTokens: { value: number }, executionId: string): Model {
+  let turn = 0;
   return {
     getResponse: async (request) => {
       if (usedTokens.value >= maxTokens) throw new AgentRuntimeLimitError("TokenLimitExceeded");
+      turn += 1;
+      const startedAt = performance.now();
       const response = await model.getResponse(request);
+      // Durations and counts only: prompts, tool arguments and replies are clinical data and are never logged.
+      console.info("Agent model call completed", {
+        executionId,
+        turn,
+        durationMs: Math.round(performance.now() - startedAt),
+        inputTokens: response.usage.inputTokens,
+        outputTokens: response.usage.outputTokens,
+        reasoningTokens: (response.usage.outputTokensDetails ?? []).reduce((total, details) => total + (details.reasoning_tokens ?? 0), 0),
+      });
       usedTokens.value += response.usage.totalTokens;
       if (usedTokens.value > maxTokens) throw new AgentRuntimeLimitError("TokenLimitExceeded");
       return response;
@@ -294,6 +306,7 @@ export async function POST(request: NextRequest) {
           callback: location,
         });
         let response: Response;
+        const callbackStartedAt = performance.now();
         try {
           const callbackEnvelope: AgentRuntimeExecutionEnvelope = {
             ...input.executionEnvelope,
@@ -351,6 +364,7 @@ export async function POST(request: NextRequest) {
           toolName: definition.name,
           status: response.status,
           isToolError: result.isError,
+          callbackDurationMs: Math.round(performance.now() - callbackStartedAt),
         });
         return result.output;
       },
@@ -387,10 +401,11 @@ export async function POST(request: NextRequest) {
       outputType,
     });
     const runner = new Runner({
-      modelProvider: budgetedModelProvider(input.limits.maxTokens, usedTokens),
+      modelProvider: budgetedModelProvider(input.limits.maxTokens, usedTokens, input.executionEnvelope.executionId),
       tracingDisabled: true,
       traceIncludeSensitiveData: false,
     });
+    const runStartedAt = performance.now();
     const result = await runner.run(agent, [
       ...priorHistory,
       { role: "user", content: input.input.userInput },
@@ -400,6 +415,14 @@ export async function POST(request: NextRequest) {
       signal: runSignal,
     });
     const usage = result.runContext.usage;
+    console.info("Agent run completed", {
+      executionId: input.executionEnvelope.executionId,
+      durationMs: Math.round(performance.now() - runStartedAt),
+      modelCalls: result.rawResponses?.length ?? 1,
+      toolCalls: toolCallsUsed,
+      inputTokens: usage?.inputTokens ?? 0,
+      outputTokens: usage?.outputTokens ?? 0,
+    });
     const history = JSON.stringify(result.history);
     if (Buffer.byteLength(history, "utf8") > 1024 * 1024)
       throw new Error("InvalidHistory");
