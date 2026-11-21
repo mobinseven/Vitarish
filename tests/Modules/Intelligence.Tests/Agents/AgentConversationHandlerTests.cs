@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using Vitarish.Intelligence.Application.Agents;
 
 namespace Intelligence.Tests.Agents;
@@ -235,6 +236,99 @@ public sealed class AgentConversationHandlerTests
 
         result.Should().Be(AgentConversationOutcome.NotFound);
         store.DeletedScope.Should().Be(Scope);
+    }
+
+    [Fact]
+    public async Task Handle_records_each_phase_in_order_with_call_counts_and_tokens_and_no_payload()
+    {
+        FakeStore store = new() { History = "[{\"role\":\"user\",\"content\":\"prior secret\"}]" };
+        FakeRunner runner = new(new AgentRunResult(true, "answer text", null, new(120, 30), TimeSpan.Zero, 3, 2) { History = "[]" });
+        CapturingLogger logger = new();
+
+        await new RunAgentConversationHandler(store, runner, logger: logger)
+            .Handle(Request(store.ConversationId) with { BeforeCommit = (_, _, _) => Task.FromResult(AgentConversationOutcome.Succeeded) }, default);
+
+        logger.Messages.Where(message => message.Contains("phase") || message.Contains("runtime attempt"))
+            .Select(message => message.Split(" ended")[0])
+            .Should().Equal(
+                "Agent turn phase LeaseAcquire",
+                "Agent turn phase HistoryPreparation",
+                "Agent runtime attempt 1",
+                "Agent turn phase OutputValidation",
+                "Agent turn phase Persistence",
+                "Agent turn phase LeaseRelease");
+        logger.Messages.Should().Contain(message =>
+            message.Contains("model rounds 3, tool calls 2, input tokens 120, output tokens 30") &&
+            message.Contains("execution execution-1"));
+        logger.Messages.Last().Should().StartWith("Agent conversation workflow ended with Succeeded")
+            .And.Contain("attempts 1");
+        logger.Messages.Should().NotContain(message =>
+            message.Contains("prior secret") || message.Contains("new input") || message.Contains("answer text"));
+    }
+
+    [Fact]
+    public async Task Handle_records_a_busy_conversation_without_runtime_or_release_spans()
+    {
+        FakeStore store = new() { AcquireOutcome = AgentConversationOutcome.Busy };
+        CapturingLogger logger = new();
+
+        await new RunAgentConversationHandler(store, new FakeRunner(), logger: logger).Handle(Request(store.ConversationId), default);
+
+        logger.Messages.Should().Contain(message => message.StartsWith("Agent turn phase LeaseAcquire ended with Busy"));
+        logger.Messages.Should().NotContain(message => message.Contains("runtime attempt") || message.Contains("LeaseRelease"));
+        logger.Messages.Last().Should().StartWith("Agent conversation workflow ended with Busy");
+    }
+
+    [Fact]
+    public async Task Handle_records_both_attempts_when_a_rejected_history_is_retried()
+    {
+        FakeStore store = new() { History = HistoryWithToolCall };
+        FakeRunner runner = new(
+            new AgentRunResult(false, null, null, new(5, 0), TimeSpan.Zero, 1, 0, new(AgentRunErrorCode.InvalidProviderResponse, "invalid")),
+            new AgentRunResult(true, "answer", null, new(7, 3), TimeSpan.Zero, 1, 0) { History = "[]" });
+        CapturingLogger logger = new();
+
+        await new RunAgentConversationHandler(store, runner, logger: logger).Handle(Request(store.ConversationId), default);
+
+        logger.Messages.Should().Contain(message => message.StartsWith("Agent runtime attempt 1 ended with InvalidProviderResponse"));
+        logger.Messages.Should().Contain(message => message.StartsWith("Agent runtime attempt 2 ended with Succeeded"));
+        logger.Messages.Last().Should().Contain("attempts 2");
+    }
+
+    [Fact]
+    public async Task Handle_records_cancellation_and_still_records_the_lease_release()
+    {
+        FakeStore store = new() { History = "[]" };
+        CapturingLogger logger = new();
+        ThrowingRunner runner = new();
+
+        Func<Task> act = () => new RunAgentConversationHandler(store, runner, logger: logger).Handle(Request(store.ConversationId), default);
+
+        await act.Should().ThrowAsync<OperationCanceledException>();
+        logger.Messages.Should().Contain(message => message.StartsWith("Agent runtime attempt 1 ended with Cancelled"));
+        logger.Messages.Should().Contain(message => message.StartsWith("Agent turn phase LeaseRelease ended with Succeeded"));
+        logger.Messages.Last().Should().StartWith("Agent conversation workflow ended with Cancelled");
+        store.Released.Should().BeTrue();
+    }
+
+    private sealed class CapturingLogger : ILogger<RunAgentConversationHandler>
+    {
+        public List<string> Messages { get; } = [];
+        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+        public bool IsEnabled(LogLevel logLevel) => true;
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter) =>
+            Messages.Add(formatter(state, exception));
+    }
+
+    private sealed class ThrowingRunner : IAgentRunner
+    {
+        public Task<AgentRunResult> RunAsync(
+            AgentDefinition definition,
+            AgentInput input,
+            IReadOnlyCollection<IAgentTool> tools,
+            AgentExecutionContext context,
+            AgentExecutionLimits limits,
+            CancellationToken cancellationToken = default) => throw new OperationCanceledException();
     }
 
     private static RunAgentConversation Request(Guid? conversationId) => new(
