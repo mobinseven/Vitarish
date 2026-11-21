@@ -53,6 +53,7 @@ const messageId = "answer-1";
 const answerField = "answer";
 const secretReasoning = "secret-reasoning";
 const secretField = "secret-other-field";
+const providerFailureCode = 10;
 const tokenLimitCode = 6;
 const toolDefinition = { name: "lookup", description: "lookup", parametersJsonSchema: JSON.stringify({ type: "object", properties: {}, additionalProperties: false }) };
 const resultDefinition = { name: "reply", strict: true, jsonSchema: JSON.stringify({ type: "object" }) };
@@ -207,14 +208,14 @@ describe("agent runtime answer-field streaming", () => {
     expect(terminalOf(received)).toMatchObject({ isSuccess: true });
   });
 
-  it("stops streaming on malformed, wrong-typed or duplicate fields and still returns the buffered terminal result", async () => {
+  it("stops streaming on malformed or wrong-typed fields and still returns the buffered terminal result", async () => {
     const buffered = await (await bufferedPost(runRequest("run"))).json();
     const cases: Array<[string, string]> = [
       [`{"${answerField}":42}`, ""],
-      [`{"${answerField}":"first","${answerField}":"second"}`, "first"],
       [`{"other":"x"}}{"${answerField}":"late"}`, ""],
+      [`{"other":garbage,"${answerField}":"visible"}`, ""],
+      [`{"other":01,"${answerField}":"visible"}`, ""],
       [`{"nested":{"${answerField}":"wrong"},"${answerField}":"right"}`, "right"],
-      [`{"${answerField}":"ok" "more":1}`, "ok"],
     ];
     for (const [output, expectedText] of cases) {
       scriptRound(...chunked(output, 2));
@@ -226,13 +227,32 @@ describe("agent runtime answer-field streaming", () => {
     }
   });
 
-  it("keeps the terminal result authoritative when the output is invalid after text was streamed", async () => {
-    scriptRound(...chunked(`{"${answerField}":"visible","count":`, 6));
+  it("fails the run when text was streamed from output that was not one well-formed object", async () => {
+    const cases: Array<[string, string]> = [
+      [`{"${answerField}":"visible","count":`, "visible"],
+      [`{"${answerField}":"first","${answerField}":"second"}`, "first"],
+      [`{"${answerField}":"ok" "more":1}`, "ok"],
+      [`{"${answerField}":"ok","count":01}`, "ok"],
+      [`{"${answerField}":"ok"}{"${answerField}":"again"}`, "ok"],
+    ];
+    for (const [output, expectedText] of cases) {
+      scriptRound(...chunked(output, 2));
+
+      const received = await frames(await streamedPost(runRequest("run/stream")));
+
+      expect(answerText(received), output).toBe(expectedText);
+      expect(terminalOf(received), output).toMatchObject({ kind: AgentRunFrameKind.Result, isSuccess: false, error: { code: providerFailureCode } });
+      expect(received.filter((frame) => frame.kind === AgentRunFrameKind.Result)).toHaveLength(1);
+    }
+  });
+
+  it("does not fail a run whose malformed output never streamed any text", async () => {
+    scriptRound(`{"${answerField}":"first","${answerField}":"second"}`);
 
     const received = await frames(await streamedPost(runRequest("run/stream")));
 
-    expect(answerText(received)).toBe("visible");
-    expect(terminalOf(received)).toMatchObject({ kind: AgentRunFrameKind.Result, isSuccess: true, structuredOutput: { answer: "terminal" } });
+    expect(deltas(received)).toHaveLength(0);
+    expect(terminalOf(received)).toMatchObject({ isSuccess: true });
   });
 
   it("fails with the token-limit result when the budget is exhausted after streaming started", async () => {

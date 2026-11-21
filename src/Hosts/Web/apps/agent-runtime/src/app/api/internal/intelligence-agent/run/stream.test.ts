@@ -86,7 +86,7 @@ function abortedProviderStream(request: ModelCall, onStopped: () => void): Async
   })();
 }
 
-function runRequest(path: string, signal?: AbortSignal, authorization = `Bearer ${sharedSecret}`): NextRequest {
+function runRequest(path: string, signal?: AbortSignal, authorization = `Bearer ${sharedSecret}`, maxToolCalls = 2): NextRequest {
   const now = new Date();
   return new NextRequest(`http://localhost/api/internal/intelligence-agent/${path}`, {
     method: "POST",
@@ -103,7 +103,7 @@ function runRequest(path: string, signal?: AbortSignal, authorization = `Bearer 
         correlationId: "correlation", role: "owner", locale: "en", timeZone: "UTC", calendar: "gregory",
         currentUtc: now.toISOString(), currentLocal: now.toISOString(), permissions: ["read"],
       },
-      limits: { maxIterations: 4, maxToolCalls: 2, maxTokens, effectiveTimeout: "00:01:00" },
+      limits: { maxIterations: 4, maxToolCalls, maxTokens, effectiveTimeout: "00:01:00" },
       callbackUrl: "http://localhost/callback",
       callbackCredential: "credential",
     }),
@@ -271,6 +271,62 @@ describe("agent runtime streamed run", () => {
       Array.from({ length: rounds }, (_, index) => index + 1),
     );
     expect(received[rounds].kind).toBe(AgentRunFrameKind.Result);
+  });
+
+  it("resumes every concurrent tool-stage writer blocked on a full queue once the consumer drains it", async () => {
+    const concurrentTools = 10;
+    scenario.drive = async (_model, tools) => {
+      await Promise.all(Array.from({ length: concurrentTools }, (_, call) => tools[0].execute({}, {}, { toolCall: { callId: `call-${call}` } })));
+    };
+
+    const response = await streamedPost(runRequest(streamedPath, undefined, undefined, concurrentTools));
+    await tick();
+    await tick();
+    const received = await frames(response);
+
+    const stages = received.filter((frame) => frame.kind === AgentRunFrameKind.Stage) as Array<{ stage: string; ordinal: number }>;
+    expect(stages.filter((frame) => frame.stage === AgentRunStage.ToolStarted).map((frame) => frame.ordinal).sort((a, b) => a - b))
+      .toEqual(Array.from({ length: concurrentTools }, (_, index) => index + 1));
+    expect(stages.filter((frame) => frame.stage === AgentRunStage.ToolCompleted)).toHaveLength(concurrentTools);
+    expect(received[received.length - 1]).toMatchObject({ kind: AgentRunFrameKind.Result, isSuccess: true });
+  });
+
+  it("releases writers waiting on a full queue when the consumer cancels", async () => {
+    const concurrentTools = 10;
+    let settled = 0;
+    scenario.drive = async (_model, tools) => {
+      await Promise.all(Array.from({ length: concurrentTools }, (_, call) =>
+        tools[0].execute({}, {}, { toolCall: { callId: `call-${call}` } }).catch(() => undefined).finally(() => { settled += 1; })));
+    };
+
+    const response = await streamedPost(runRequest(streamedPath, undefined, undefined, concurrentTools));
+    await tick();
+    expect(settled).toBe(0);
+    await response.body!.cancel();
+    await tick();
+
+    expect(settled).toBe(concurrentTools);
+  });
+
+  it("does not accumulate abort listeners over a long sequence of frames to a slow consumer", async () => {
+    const rounds = 120;
+    scenario.model.getStreamedResponse = () => stream(done(1));
+    scenario.drive = async (model) => {
+      for (let round = 0; round < rounds; round += 1) await drain(model.getStreamedResponse({}));
+    };
+    const added = vi.spyOn(AbortSignal.prototype, "addEventListener");
+    const removed = vi.spyOn(AbortSignal.prototype, "removeEventListener");
+
+    const response = await streamedPost(runRequest(streamedPath, undefined, undefined, 2));
+    const reader = response.body!.getReader();
+    for (;;) {
+      const { done: finished } = await reader.read();
+      if (finished) break;
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    }
+
+    const abortCalls = (spy: typeof added) => spy.mock.calls.filter(([type]) => type === "abort").length;
+    expect(abortCalls(added) - abortCalls(removed)).toBeLessThanOrEqual(2);
   });
 
   it("never puts tool names, arguments, outputs, answer text or reasoning in a stage frame", async () => {

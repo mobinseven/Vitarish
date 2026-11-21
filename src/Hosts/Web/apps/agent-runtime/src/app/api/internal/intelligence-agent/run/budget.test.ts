@@ -141,6 +141,72 @@ describe("agent runtime token budget parity between buffered and streamed model 
     expect(requests.map((request) => request.modelSettings?.maxTokens)).toEqual([10_000, 6_000, 2_000]);
   });
 
+  it("clamps buffered and streamed requests to the same remaining budget", async () => {
+    const buffered: Array<number | undefined> = [];
+    const streamed: Array<number | undefined> = [];
+    const usage = { inputTokens: 0, outputTokens: 0, totalTokens: 4_000 };
+    scenario.model.getResponse = async (request) => {
+      buffered.push(request.modelSettings?.maxTokens);
+      return { usage, output: [] };
+    };
+    scenario.model.getStreamedResponse = (request) => {
+      streamed.push(request.modelSettings?.maxTokens);
+      return stream(done(4_000));
+    };
+    const rounds = async (call: (model: ScriptedModel, settings: ModelCall) => Promise<unknown>, model: ScriptedModel) => {
+      await call(model, { modelSettings: { maxTokens } });
+      await call(model, { modelSettings: { maxTokens: 3_000 } });
+      await call(model, {});
+    };
+    scenario.drive = (model) => rounds((m, request) => m.getResponse(request), model);
+    await POST(runRequest());
+    scenario.drive = (model) => rounds((m, request) => drain(m.getStreamedResponse(request)), model);
+    await POST(runRequest());
+
+    expect(buffered).toEqual([10_000, 3_000, 2_000]);
+    expect(streamed).toEqual(buffered);
+  });
+
+  it("logs the same per-call timing and usage record for streamed and buffered calls, without content", async () => {
+    const info = vi.spyOn(console, "info").mockImplementation(() => undefined);
+    const reported = {
+      inputTokens: 120, outputTokens: 45, totalTokens: 165,
+      inputTokensDetails: { cached_tokens: 100 }, outputTokensDetails: { reasoning_tokens: 30 },
+    };
+    scenario.model.getResponse = async () => ({ usage: reported, output: [] });
+    scenario.model.getStreamedResponse = () => stream(
+      { type: "output_text_delta", delta: "secret-answer-text" },
+      { type: "response_done", response: { id: "r", usage: reported, output: [] } },
+    );
+    const modelCalls = () => info.mock.calls.filter(([message]) => message === "Agent model call completed").map(([, fields]) => fields);
+
+    scenario.drive = async (model) => {
+      await model.getResponse({});
+      await model.getResponse({});
+    };
+    await POST(runRequest());
+    const bufferedCalls = modelCalls();
+    info.mockClear();
+    scenario.drive = async (model) => {
+      await drain(model.getStreamedResponse({}));
+      await drain(model.getStreamedResponse({}));
+    };
+    await POST(runRequest());
+    const streamedCalls = modelCalls();
+
+    const shared = { executionId: "execution-1", inputTokens: 120, outputTokens: 45, reasoningTokens: 30, cachedInputTokens: 100 };
+    expect(bufferedCalls.map((call) => call.turn)).toEqual([1, 2]);
+    expect(streamedCalls.map((call) => call.turn)).toEqual([1, 2]);
+    for (const call of [...bufferedCalls, ...streamedCalls]) {
+      expect(call).toMatchObject(shared);
+      expect(call.durationMs).toBeGreaterThanOrEqual(0);
+    }
+    expect(bufferedCalls.every((call) => call.streamed === false)).toBe(true);
+    expect(streamedCalls.every((call) => call.streamed === true)).toBe(true);
+    expect(Object.keys(streamedCalls[0]).sort()).toEqual(Object.keys(bufferedCalls[0]).sort());
+    expect(JSON.stringify(info.mock.calls)).not.toContain("secret");
+  });
+
   it("forwards the abort signal to the provider and blocks later rounds and tools after a mid-stream cancellation", async () => {
     const controller = new AbortController();
     scenario.model.getStreamedResponse = (request) => {

@@ -2,6 +2,7 @@ import { Agent, OpenAIProvider, Runner, tool, type Model, type ModelProvider, ty
 import { NextRequest } from "next/server";
 import { AGENT_CREDENTIAL_HEADER } from "../credential-header";
 import { AnswerStream, isValidAnswerStreamRequest, type AnswerStreamRequest } from "./answer-stream";
+import { AgentRunFailure, agentRunFailureWire, type AgentRunFailureCode } from "./failure-codes";
 import { parseHistory } from "./history";
 import { surfaceProblem } from "./surface";
 import { adaptToolParameters } from "./tool-parameters";
@@ -130,14 +131,14 @@ interface ToolExecution {
 }
 
 class AgentRuntimeLimitError extends Error {
-  constructor(readonly code: "ToolCallLimitExceeded" | "TokenLimitExceeded" | "Timeout") {
+  constructor(readonly code: typeof AgentRunFailure.ToolCallLimitExceeded | typeof AgentRunFailure.TokenLimitExceeded | typeof AgentRunFailure.Timeout) {
     super(code);
   }
 }
 
 /** Single owner of cumulative token accounting for the buffered and streamed model paths. */
 function assertTokenBudgetRemains(maxTokens: number, usedTokens: { value: number }): void {
-  if (usedTokens.value >= maxTokens) throw new AgentRuntimeLimitError("TokenLimitExceeded");
+  if (usedTokens.value >= maxTokens) throw new AgentRuntimeLimitError(AgentRunFailure.TokenLimitExceeded);
 }
 
 /** Adds reported usage to the cumulative total; usage the provider did not report is treated as budget exhaustion. */
@@ -145,10 +146,57 @@ function recordTokenUsage(maxTokens: number, usedTokens: { value: number }, usag
   const total = usage?.totalTokens;
   if (typeof total !== "number" || !Number.isFinite(total) || total < 0) {
     usedTokens.value = maxTokens;
-    throw new AgentRuntimeLimitError("TokenLimitExceeded");
+    throw new AgentRuntimeLimitError(AgentRunFailure.TokenLimitExceeded);
   }
   usedTokens.value += total;
-  if (usedTokens.value > maxTokens) throw new AgentRuntimeLimitError("TokenLimitExceeded");
+  if (usedTokens.value > maxTokens) throw new AgentRuntimeLimitError(AgentRunFailure.TokenLimitExceeded);
+}
+
+/** The provider request every model call of the run uses: its output allowance never exceeds the remaining budget. */
+function clampToRemainingBudget<TRequest extends { modelSettings?: { maxTokens?: number | null } }>(
+  request: TRequest,
+  maxTokens: number,
+  usedTokens: { value: number },
+): TRequest {
+  const remaining = maxTokens - usedTokens.value;
+  const requested = request.modelSettings?.maxTokens;
+  return {
+    ...request,
+    modelSettings: { ...request.modelSettings, maxTokens: typeof requested === "number" ? Math.min(requested, remaining) : remaining },
+  };
+}
+
+type ReportedUsage = {
+  inputTokens?: number;
+  outputTokens?: number;
+  inputTokensDetails?: Record<string, number> | Array<Record<string, number>>;
+  outputTokensDetails?: Record<string, number> | Array<Record<string, number>>;
+};
+
+/** Sums one named counter of a provider usage detail, reported either as one record or as a record per request. */
+function usageDetail(details: ReportedUsage["inputTokensDetails"], name: string): number {
+  return (Array.isArray(details) ? details : details ? [details] : []).reduce((total, entry) => total + (entry[name] ?? 0), 0);
+}
+
+const reasoningTokensDetail = "reasoning_tokens";
+const cachedTokensDetail = "cached_tokens";
+
+/**
+ * Single owner of the per-model-call record for the buffered and streamed paths. Durations and counts only:
+ * prompts, tool arguments and replies are clinical data and are never logged. The turn is the model-call ordinal
+ * of the run, the same number a streamed run reports as the model round ordinal.
+ */
+function logModelCall(executionId: string, turn: number, streamed: boolean, startedAt: number, usage: ReportedUsage | undefined): void {
+  console.info("Agent model call completed", {
+    executionId,
+    turn,
+    streamed,
+    durationMs: Math.round(performance.now() - startedAt),
+    inputTokens: usage?.inputTokens,
+    outputTokens: usage?.outputTokens,
+    reasoningTokens: usageDetail(usage?.outputTokensDetails, reasoningTokensDetail),
+    cachedInputTokens: usageDetail(usage?.inputTokensDetails, cachedTokensDetail),
+  });
 }
 
 /**
@@ -184,30 +232,27 @@ function guardObserver(observer: AgentRunObserver, signal: AbortSignal): AgentRu
 }
 
 /**
- * Streamed counterpart of the buffered budget check: each provider request is clamped to the remaining budget,
- * usage is accounted on provider completion, and a stream that ends or is cancelled without reported usage
- * exhausts the budget so later rounds and tools are blocked.
+ * Streamed counterpart of the buffered budget check: usage is accounted on provider completion, and a stream
+ * that ends or is cancelled without reported usage exhausts the budget so later rounds and tools are blocked.
+ * The caller supplies the already clamped request.
  */
 async function* budgetedStream(
   model: Model,
   request: Parameters<Model["getStreamedResponse"]>[0],
   maxTokens: number,
   usedTokens: { value: number },
+  executionId: string,
+  turn: number,
   answer?: AnswerStream,
 ): AsyncGenerator<StreamEvent> {
-  assertTokenBudgetRemains(maxTokens, usedTokens);
-  const remaining = maxTokens - usedTokens.value;
-  const requested = request.modelSettings?.maxTokens;
-  const clamped = {
-    ...request,
-    modelSettings: { ...request.modelSettings, maxTokens: typeof requested === "number" ? Math.min(requested, remaining) : remaining },
-  };
+  const startedAt = performance.now();
   let accounted = false;
   try {
-    for await (const event of model.getStreamedResponse(clamped)) {
+    for await (const event of model.getStreamedResponse(request)) {
       if (event.type === "response_done") {
         accounted = true;
-        answer?.close();
+        answer?.completeRound();
+        logModelCall(executionId, turn, true, startedAt, event.response.usage);
         recordTokenUsage(maxTokens, usedTokens, event.response.usage);
       } else if (event.type === "output_text_delta") {
         await answer?.text(event.delta);
@@ -255,16 +300,8 @@ function budgetedModel(
       assertTokenBudgetRemains(maxTokens, usedTokens);
       turn += 1;
       const startedAt = performance.now();
-      const response = await model.getResponse(request);
-      // Durations and counts only: prompts, tool arguments and replies are clinical data and are never logged.
-      console.info("Agent model call completed", {
-        executionId,
-        turn,
-        durationMs: Math.round(performance.now() - startedAt),
-        inputTokens: response.usage.inputTokens,
-        outputTokens: response.usage.outputTokens,
-        reasoningTokens: (response.usage.outputTokensDetails ?? []).reduce((total, details) => total + (details.reasoning_tokens ?? 0), 0),
-      });
+      const response = await model.getResponse(clampToRemainingBudget(request, maxTokens, usedTokens));
+      logModelCall(executionId, turn, false, startedAt, response.usage);
       recordTokenUsage(maxTokens, usedTokens, response.usage);
       return response;
     },
@@ -274,7 +311,7 @@ function budgetedModel(
         assertTokenBudgetRemains(maxTokens, usedTokens);
         turn += 1;
         await observer?.modelRoundStarted(turn);
-        yield* budgetedStream(model, request, maxTokens, usedTokens, answer);
+        yield* budgetedStream(model, clampToRemainingBudget(request, maxTokens, usedTokens), maxTokens, usedTokens, executionId, turn, answer);
       })(),
     getRetryAdvice: model.getRetryAdvice?.bind(model),
   };
@@ -399,8 +436,6 @@ export async function prepareAgentRun(request: NextRequest): Promise<PreparedAge
   return { input, timeoutMs };
 }
 
-type AgentRunFailureCode = AgentRuntimeLimitError["code"] | "InvalidHistory" | "ProviderFailure";
-
 /** Single owner of the coded failure body shared by the buffered response and the streamed result frame. */
 export function agentRunFailureBody(code: AgentRunFailureCode, executions: ToolExecution[] = []): AgentRunResponseBody {
   return {
@@ -411,18 +446,7 @@ export function agentRunFailureBody(code: AgentRunFailureCode, executions: ToolE
     iterations: 0,
     toolCalls: executions.length,
     toolExecutions: executions,
-    error: {
-      code: code === "ToolCallLimitExceeded" ? 5 : code === "TokenLimitExceeded" ? 6 : code === "Timeout" ? 7 : code === "InvalidHistory" ? 11 : 10,
-      message: code === "ToolCallLimitExceeded"
-        ? "The agent tool-call limit was exceeded."
-        : code === "TokenLimitExceeded"
-          ? "The agent token limit was exceeded."
-          : code === "Timeout"
-            ? "The agent execution timed out."
-            : code === "InvalidHistory"
-              ? "The agent history is invalid."
-              : "The agent runtime failed.",
-    },
+    error: agentRunFailureWire[code],
   };
 }
 
@@ -462,7 +486,7 @@ export async function executeAgentRun(
         const callId = toolCallId(details);
         assertTokenBudgetRemains(input.limits.maxTokens, usedTokens);
         if (toolCallsUsed >= input.limits.maxToolCalls) {
-          throw new AgentRuntimeLimitError("ToolCallLimitExceeded");
+          throw new AgentRuntimeLimitError(AgentRunFailure.ToolCallLimitExceeded);
         }
         toolCallsUsed += 1;
         const ordinal = toolCallsUsed;
@@ -597,6 +621,8 @@ export async function executeAgentRun(
           return streamed;
         })()
       : await runner.run(agent, runInput, runOptions);
+    // The provisional text was streamed from output that was not one well-formed object: the run cannot vouch for it.
+    if (answerStream?.inconsistent) throw new Error(AgentRunFailure.ProviderFailure);
     const usage = result.runContext.usage;
     console.info("Agent run completed", {
       executionId: input.executionEnvelope.executionId,
@@ -608,7 +634,7 @@ export async function executeAgentRun(
     });
     const history = JSON.stringify(result.history);
     if (Buffer.byteLength(history, "utf8") > 1024 * 1024)
-      throw new Error("InvalidHistory");
+      throw new Error(AgentRunFailure.InvalidHistory);
     return {
       isSuccess: true,
       output: typeof result.finalOutput === "string" ? result.finalOutput : JSON.stringify(result.finalOutput),
@@ -622,11 +648,11 @@ export async function executeAgentRun(
   } catch (error) {
     const code = error instanceof AgentRuntimeLimitError
       ? error.code
-      : error instanceof Error && error.message === "InvalidHistory"
-        ? "InvalidHistory"
+      : error instanceof Error && error.message === AgentRunFailure.InvalidHistory
+        ? AgentRunFailure.InvalidHistory
       : timeoutController.signal.aborted
-        ? "Timeout"
-        : "ProviderFailure";
+        ? AgentRunFailure.Timeout
+        : AgentRunFailure.ProviderFailure;
     console.error("Intelligence agent runtime run failed", {
       executionId: input.executionEnvelope.executionId,
       code,
