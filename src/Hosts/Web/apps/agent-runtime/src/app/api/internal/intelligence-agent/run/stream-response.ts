@@ -1,3 +1,4 @@
+import { AgentRunFailure } from "./failure-codes";
 import { agentRunFailureBody, executeAgentRun, type AgentRunObserver, type PreparedAgentRun } from "./agent-run";
 import {
   AGENT_RUN_FRAME_BUFFER_LIMIT,
@@ -20,7 +21,11 @@ export function streamAgentRun(prepared: PreparedAgentRun, requestSignal: AbortS
   const consumerGone = new AbortController();
   const signal = AbortSignal.any([requestSignal, consumerGone.signal]);
   let queue!: ReadableStreamDefaultController<Uint8Array>;
-  let wake: (() => void) | undefined;
+  // Every producer blocked on a full queue; a drain or a consumer cancel releases all of them.
+  const waiting = new Set<() => void>();
+  const releaseWaiting = () => {
+    for (const release of [...waiting]) release();
+  };
 
   async function write(line: Uint8Array, giveUp: AbortSignal): Promise<void> {
     for (;;) {
@@ -31,8 +36,13 @@ export function streamAgentRun(prepared: PreparedAgentRun, requestSignal: AbortS
         return;
       }
       await new Promise<void>((resolve) => {
-        wake = resolve;
-        giveUp.addEventListener("abort", () => resolve(), { once: true });
+        const release = () => {
+          waiting.delete(release);
+          giveUp.removeEventListener("abort", release);
+          resolve();
+        };
+        waiting.add(release);
+        giveUp.addEventListener("abort", release, { once: true });
       });
     }
   }
@@ -50,7 +60,7 @@ export function streamAgentRun(prepared: PreparedAgentRun, requestSignal: AbortS
     try {
       const body = await executeAgentRun(prepared, signal, observer);
       const line = encodeAgentRunFrame({ kind: AgentRunFrameKind.Result, ...body })
-        ?? encodeAgentRunFrame({ kind: AgentRunFrameKind.Result, ...agentRunFailureBody("ProviderFailure") })!;
+        ?? encodeAgentRunFrame({ kind: AgentRunFrameKind.Result, ...agentRunFailureBody(AgentRunFailure.ProviderFailure) })!;
       // A disconnected consumer has nobody to receive the terminal frame.
       if (!signal.aborted) await write(line, AbortSignal.timeout(AGENT_RUN_TERMINAL_FRAME_STALL_MS));
     } catch {
@@ -71,11 +81,11 @@ export function streamAgentRun(prepared: PreparedAgentRun, requestSignal: AbortS
         void pump();
       },
       pull() {
-        wake?.();
+        releaseWaiting();
       },
       cancel() {
         consumerGone.abort(consumerDisconnected());
-        wake?.();
+        releaseWaiting();
       },
     },
     { highWaterMark: AGENT_RUN_FRAME_BUFFER_LIMIT, size: () => 1 },

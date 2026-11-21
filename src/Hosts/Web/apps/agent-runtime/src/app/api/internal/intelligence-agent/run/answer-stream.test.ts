@@ -60,10 +60,46 @@ describe("answer field decoder", () => {
     expectSameForEverySplit('{"n":-1.5e3,"ok":true,"z":null,"list":[1,"x",{"answer":"no"}],"answer":"late"}', "late");
   });
 
-  it("stops after the field completes and ignores a duplicate or trailing content", () => {
-    const { text, decoder } = decodeWhole('{"answer":"first","answer":"second"');
-    expect(text).toBe("first");
-    expect(decoder.stopped).toBe(true);
+  it("keeps validating after the field completes: a repeated answer key or trailing content is malformed", () => {
+    const duplicate = decodeChunks(['{"answer":"first",', '"answer":"second"}']);
+    expect(duplicate.text).toBe("first");
+    expect(duplicate.decoder.stopped).toBe(true);
+    expect(duplicate.decoder.wellFormed).toBe(false);
+    expect(decodeWhole('{"answer":"first","answer":"second"}').text).toBe("");
+
+    const nested = decodeChunks(['{"result":{"answer":"first"},', '"result":{"answer":"second"}}'], ["result", "answer"]);
+    expect(nested.decoder.wellFormed).toBe(false);
+
+    const trailing = decodeChunks(['{"answer":"first"}', '{"answer":"second"}']);
+    expect(trailing.text).toBe("first");
+    expect(trailing.decoder.wellFormed).toBe(false);
+
+    const sameNameElsewhere = decodeWhole('{"other":{"answer":"a"},"answer":"first","list":[{"answer":"b"},{"answer":"c"}]}');
+    expect(sameNameElsewhere.text).toBe("first");
+    expect(sameNameElsewhere.decoder.wellFormed).toBe(true);
+  });
+
+  it("is well formed only for one complete object", () => {
+    expect(decodeWhole('{"answer":"x"}').decoder.wellFormed).toBe(true);
+    expect(decodeWhole('{"answer":"x"').decoder.wellFormed).toBe(false);
+    expect(decodeWhole('{"answer":"x","n":1').decoder.wellFormed).toBe(false);
+  });
+
+  it("rejects malformed skipped scalars before any later answer text is emitted", () => {
+    for (const bad of [
+      '{"other":garbage,"answer":"visible"}', '{"other":01,"answer":"visible"}', '{"other":tru,"answer":"visible"}',
+      '{"other":nul,"answer":"visible"}', '{"other":1.,"answer":"visible"}', '{"other":-,"answer":"visible"}',
+      '{"other":1e,"answer":"visible"}', '{"other":+1,"answer":"visible"}', '{"other":truee,"answer":"visible"}',
+      '{"other":"x","list":[0x1],"answer":"visible"}', '{"other":.5,"answer":"visible"}',
+    ]) {
+      for (const chunks of [[bad], [...bad]]) {
+        const { text, decoder } = decodeChunks(chunks);
+        expect(text, bad).toBe("");
+        expect(decoder.stopped, bad).toBe(true);
+        expect(decoder.wellFormed, bad).toBe(false);
+      }
+    }
+    expectSameForEverySplit('{"a":0,"b":-0.5,"c":1E+2,"d":12.50e-3,"e":false,"f":[true,null],"answer":"ok"}', "ok");
   });
 
   it("stops without emitting on a wrong-typed field or malformed JSON", () => {
@@ -95,7 +131,8 @@ describe("answer field decoder", () => {
     const decoder = new AnswerFieldDecoder(path);
     const total = decoder.push(`{"answer":"${"a".repeat(MAX_ANSWER_STREAM_CHARS + 500)}"}`);
     expect(total).toHaveLength(MAX_ANSWER_STREAM_CHARS);
-    expect(decoder.stopped).toBe(true);
+    expect(decoder.stopped).toBe(false);
+    expect(decoder.wellFormed).toBe(true);
   });
 
   it("splits long text into bounded pieces without separating a surrogate pair", () => {

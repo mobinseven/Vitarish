@@ -2,8 +2,9 @@
  * Incremental decoder for the user-visible answer string of a structured (JSON) model output, and the per-run
  * emitter built on it. Eligibility is declared by the caller in the run request; nothing here infers it from
  * model output. Only the designated string field is ever decoded: other fields, reasoning and tool data are
- * skipped and never leave the runtime. Any anomaly stops emission for the rest of the run; the terminal result
- * is produced from the complete model output exactly as in a buffered run.
+ * skipped and never leave the runtime. Any anomaly stops emission for the rest of the run. The decoder keeps
+ * validating the rest of the object after the field completes, so the run can tell whether the text it streamed
+ * belonged to a single well-formed object; the terminal result is produced from the complete model output.
  */
 import { MAX_ANSWER_DELTA_CHARS, MAX_ANSWER_STREAM_CHARS } from "./stream-frames";
 
@@ -35,12 +36,17 @@ interface Container {
   key: string | null;
   /** True until the first member, so that `{}` and `[]` close without a preceding value. */
   empty: boolean;
+  /** Object only: the key that continues the designated path was already seen here (a repeat is malformed). */
+  pathKeySeen: boolean;
 }
 type StringRole = "key" | "target" | "other";
 const simpleEscapes: Record<string, string> = { '"': '"', "\\": "\\", "/": "/", b: "\b", f: "\f", n: "\n", r: "\r", t: "\t" };
 const isHigh = (unit: number) => unit >= 0xd800 && unit <= 0xdbff;
 const isLow = (unit: number) => unit >= 0xdc00 && unit <= 0xdfff;
 const isScalarChar = (char: string) => /[0-9A-Za-z+\-.]/.test(char);
+const MAX_SCALAR_LENGTH = 64;
+/** A complete JSON number or literal; a skipped scalar that is anything else makes the output malformed. */
+const validScalar = /^(?:true|false|null|-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?)$/;
 
 export class AnswerFieldDecoder {
   private readonly stack: Container[] = [];
@@ -50,17 +56,23 @@ export class AnswerFieldDecoder {
   private keyBuffer = "";
   private keyOverflow = false;
   private pendingHigh: number | null = null;
-  private inScalar = false;
+  private scalar: string | null = null;
   private rootClosed = false;
   private emitted = 0;
   private halted = false;
+  private emitting = true;
   private anomaly = false;
 
   constructor(private readonly fieldPath: readonly string[]) {}
 
-  /** True once the field completed, the output was malformed or the size bound was reached. */
+  /** True once the output proved malformed: nothing further is decoded. */
   get stopped(): boolean {
     return this.halted;
+  }
+
+  /** True when the text fed so far is exactly one complete, well-formed object. */
+  get wellFormed(): boolean {
+    return !this.anomaly && this.rootClosed && this.scalar === null && this.inString === null;
   }
 
   /** Feeds the next model text delta; returns the answer text newly decoded from it (possibly empty). */
@@ -83,9 +95,15 @@ export class AnswerFieldDecoder {
       this.consumeStringChar(char);
       return;
     }
-    if (this.inScalar) {
-      if (isScalarChar(char)) return;
-      this.inScalar = false;
+    if (this.scalar !== null) {
+      if (isScalarChar(char)) {
+        this.scalar += char;
+        if (this.scalar.length > MAX_SCALAR_LENGTH) this.fail();
+        return;
+      }
+      const token = this.scalar;
+      this.scalar = null;
+      if (!validScalar.test(token)) return this.fail();
       this.completeValue();
     }
     if (char === " " || char === "\n" || char === "\r" || char === "\t") return;
@@ -93,7 +111,7 @@ export class AnswerFieldDecoder {
     const top = this.stack[this.stack.length - 1];
     if (!top) {
       if (char !== "{") return this.fail();
-      this.stack.push({ isObject: true, phase: "key", key: null, empty: true });
+      this.stack.push({ isObject: true, phase: "key", key: null, empty: true, pathKeySeen: false });
       return;
     }
     switch (char) {
@@ -108,7 +126,7 @@ export class AnswerFieldDecoder {
       case "[":
         if (top.phase !== "value" || this.atTarget()) return this.fail();
         top.empty = false;
-        this.stack.push({ isObject: char === "{", phase: char === "{" ? "key" : "value", key: null, empty: true });
+        this.stack.push({ isObject: char === "{", phase: char === "{" ? "key" : "value", key: null, empty: true, pathKeySeen: false });
         return;
       case "}":
       case "]": {
@@ -131,7 +149,7 @@ export class AnswerFieldDecoder {
         // Numbers, true, false and null: skipped; a scalar at the designated field is the wrong type.
         if (top.phase !== "value" || !isScalarChar(char) || this.atTarget()) return this.fail();
         top.empty = false;
-        this.inScalar = true;
+        this.scalar = char;
     }
   }
 
@@ -143,6 +161,13 @@ export class AnswerFieldDecoder {
   private atTarget(): boolean {
     if (this.stack.length !== this.fieldPath.length) return false;
     return this.stack.every((frame, index) => frame.isObject && frame.key === this.fieldPath[index]);
+  }
+
+  /** Whether the object on top of the stack, whose key just ended, is on the designated path with that key. */
+  private continuesPath(top: Container): boolean {
+    const depth = this.stack.length - 1;
+    return depth < this.fieldPath.length && top.key === this.fieldPath[depth] &&
+      this.stack.every((frame, index) => index === depth || frame.key === this.fieldPath[index]);
   }
 
   private beginString(role: StringRole): void {
@@ -211,8 +236,9 @@ export class AnswerFieldDecoder {
   }
 
   private emit(text: string): void {
+    if (!this.emitting) return;
     if (this.emitted + text.length > MAX_ANSWER_STREAM_CHARS) {
-      this.halted = true;
+      this.emitting = false;
       return;
     }
     this.emitted += text.length;
@@ -227,9 +253,13 @@ export class AnswerFieldDecoder {
     if (role === "key") {
       top.key = this.keyOverflow ? null : this.keyBuffer;
       top.phase = "colon";
+      if (this.continuesPath(top)) {
+        if (top.pathKeySeen) return this.fail();
+        top.pathKeySeen = true;
+      }
     } else {
       top.phase = "comma";
-      if (role === "target") this.halted = true;
+      if (role === "target") this.emitting = false;
     }
   }
 }
@@ -252,6 +282,8 @@ export function splitAnswerText(text: string): string[] {
  */
 export class AnswerStream {
   private decoder: AnswerFieldDecoder | null;
+  private streamedText = false;
+  private wellFormed = false;
 
   constructor(
     private readonly request: AnswerStreamRequest,
@@ -265,12 +297,33 @@ export class AnswerStream {
     const decoder = this.decoder;
     if (!decoder) return;
     const decoded = decoder.push(delta);
-    if (decoder.stopped) this.decoder = null;
-    for (const piece of splitAnswerText(decoded)) await this.emit(this.request.messageId, piece);
+    if (decoder.stopped) this.settle(decoder);
+    for (const piece of splitAnswerText(decoded)) {
+      this.streamedText = true;
+      await this.emit(this.request.messageId, piece);
+    }
   }
 
-  /** Called when the round ends, a tool call is seen, or a tool is about to run: nothing after this is streamed. */
+  /**
+   * True once text was streamed from output that did not prove to be one well-formed object (malformed, repeated
+   * answer key, trailing content): the provisional text cannot be trusted to match the terminal result.
+   */
+  get inconsistent(): boolean {
+    return this.streamedText && !this.wellFormed;
+  }
+
+  /** Called when the provider finished the round: validates the rest of the object, then nothing more is streamed. */
+  completeRound(): void {
+    if (this.decoder) this.settle(this.decoder);
+  }
+
+  /** Called when the round is abandoned, a tool call is seen, or a tool is about to run: nothing after this is streamed. */
   close(): void {
+    this.decoder = null;
+  }
+
+  private settle(decoder: AnswerFieldDecoder): void {
+    this.wellFormed = decoder.wellFormed;
     this.decoder = null;
   }
 }
