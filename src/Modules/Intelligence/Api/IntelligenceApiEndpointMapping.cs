@@ -36,6 +36,8 @@ public static class IntelligenceApiEndpointMapping
         _ = group.MapModulePost(IntelligenceApiRoutes.Rewrite, RewriteAsync, "IntelligenceRewrite", typeof(RewriteResult));
         _ = group.MapModulePost(IntelligenceApiRoutes.RewriteStream, StreamRewriteAsync, "IntelligenceStreamRewrite", profile: ModuleEndpointProfile.Streaming, contentType: ModuleEndpointOpenApiConventions.JsonStream);
         _ = group.MapModulePost(IntelligenceApiRoutes.AgentConversation, RunAgentConversationAsync, "IntelligenceRunAgentConversation", typeof(RunAgentConversationResponse));
+        _ = group.MapModulePost(IntelligenceApiRoutes.AgentConversationStream, StreamAgentConversationAsync, IntelligenceApiOperations.StreamAgentConversation, typeof(IntelligenceStreamChunk<AgentTurnPayload>), profile: ModuleEndpointProfile.Streaming, contentType: ModuleEndpointOpenApiConventions.JsonStream);
+        _ = group.MapModuleGet(IntelligenceApiRoutes.AgentConversationCapabilities, GetAgentConversationCapabilities, IntelligenceApiOperations.GetAgentConversationCapabilities, typeof(AgentConversationCapabilitiesResponse));
         RouteGroupBuilder internalGroup = endpoints.MapInternalServiceModuleGroup(IntelligenceApiRoutes.Base);
         _ = internalGroup.MapModulePost(IntelligenceApiRoutes.InternalAgentToolExecution, ExecuteAgentToolAsync, "IntelligenceExecuteInternalAgentTool", typeof(InternalAgentToolExecutionResponse), profile: ModuleEndpointProfile.AnonymousJson, anonymousJustification: "Internal agent runtime callback protected by a signed, short-lived execution credential.")
             .ExcludeFromOpenApiWithJustification("Internal agent runtime callback; not a public module API.");
@@ -100,16 +102,42 @@ public static class IntelligenceApiEndpointMapping
         }
     }
 
+    internal static IResult? RejectInvalidConversationRequest(RunAgentConversationRequest request) =>
+        request is null || string.IsNullOrWhiteSpace(request.AgentKey) ||
+        string.IsNullOrWhiteSpace(request.SubjectKind) || string.IsNullOrWhiteSpace(request.SubjectId) ||
+        string.IsNullOrWhiteSpace(request.Message)
+            ? Results.BadRequest(new IntelligenceError(IntelligenceErrorCode.ValidationFailure, "Agent, subject, and message are required."))
+            : null;
+
+    private static Task<IResult> StreamAgentConversationAsync(
+        RunAgentConversationRequest request,
+        [FromServices] IAgentConversationEndpointRegistry endpoints,
+        [FromServices] ILoggerFactory loggerFactory,
+        [FromServices] TimeProvider time,
+        HttpContext context,
+        CancellationToken ct) =>
+        AgentConversationStreamEndpoint.StreamAsync(
+            request,
+            endpoints,
+            loggerFactory.CreateLogger("Vitarish.Intelligence.AgentConversation"),
+            time,
+            context,
+            AgentConversationStreamEndpoint.FrameWriteTimeout,
+            ct);
+
+    private static IResult GetAgentConversationCapabilities([FromServices] IAgentConversationEndpointRegistry endpoints) =>
+        Results.Ok(new AgentConversationCapabilitiesResponse(endpoints.Routes
+            .Select(route => new AgentConversationCapability(route.AgentKey, route.SubjectKind, route.StreamingEnabled))
+            .ToArray()));
+
     private static async Task<IResult> RunAgentConversationAsync(
         RunAgentConversationRequest request,
         [FromServices] IAgentConversationEndpointRegistry endpoints,
         [FromServices] ILoggerFactory loggerFactory,
         CancellationToken ct)
     {
-        if (request is null || string.IsNullOrWhiteSpace(request.AgentKey) ||
-            string.IsNullOrWhiteSpace(request.SubjectKind) || string.IsNullOrWhiteSpace(request.SubjectId) ||
-            string.IsNullOrWhiteSpace(request.Message))
-            return Results.BadRequest(new IntelligenceError(IntelligenceErrorCode.ValidationFailure, "Agent, subject, and message are required."));
+        if (RejectInvalidConversationRequest(request) is { } rejected)
+            return rejected;
 
         IAgentConversationEndpoint? endpoint = endpoints.Resolve(request.AgentKey, request.SubjectKind);
         if (endpoint is null)
@@ -146,7 +174,7 @@ public static class IntelligenceApiEndpointMapping
 
     private static async Task StreamRespondAsync(ResponderRequest request, IResponder responder, HttpContext context, CancellationToken ct)
     {
-        context.Response.ContentType = "application/x-ndjson";
+        context.Response.ContentType = ModuleEndpointOpenApiConventions.JsonStream;
         string operationId = request.Context?.OperationId ?? Guid.NewGuid().ToString("N");
         long seq = 0;
         try
@@ -166,7 +194,7 @@ public static class IntelligenceApiEndpointMapping
     }
 
     private static Task<IResult> TranscribeAsync(TranscriptionRequest request, CancellationToken ct) => Task.FromResult<IResult>(Results.BadRequest(IntelligenceResult<TranscriptionResult>.Failed(new IntelligenceError(IntelligenceErrorCode.UnsupportedMediaType, "Direct Intelligence transcription upload is not approved; provide Files-owned references to a backend-approved transcription workflow."))));
-    private static async Task StreamTranscribeAsync(TranscriptionRequest request, HttpContext context, CancellationToken ct) { context.Response.ContentType = "application/x-ndjson"; await Write(context, new IntelligenceStreamChunk<TranscriptionProgress>(StreamChunkKind.Failed, Meta(request.Context?.OperationId ?? Guid.NewGuid().ToString("N"), 0, IntelligenceProgressStage.Failed, request.Context), new TranscriptionProgress(IntelligenceProgressStage.Failed), new IntelligenceError(IntelligenceErrorCode.UnsupportedMediaType, "Transcription streaming upload is deferred by the accepted ADR.")), ct); }
+    private static async Task StreamTranscribeAsync(TranscriptionRequest request, HttpContext context, CancellationToken ct) { context.Response.ContentType = ModuleEndpointOpenApiConventions.JsonStream; await Write(context, new IntelligenceStreamChunk<TranscriptionProgress>(StreamChunkKind.Failed, Meta(request.Context?.OperationId ?? Guid.NewGuid().ToString("N"), 0, IntelligenceProgressStage.Failed, request.Context), new TranscriptionProgress(IntelligenceProgressStage.Failed), new IntelligenceError(IntelligenceErrorCode.UnsupportedMediaType, "Transcription streaming upload is deferred by the accepted ADR.")), ct); }
 
     private static async Task<IResult> RewriteAsync(RewriteRequest request, IResponder responder, CancellationToken ct)
     {
@@ -177,7 +205,7 @@ public static class IntelligenceApiEndpointMapping
 
     private static async Task StreamRewriteAsync(RewriteRequest request, IResponder responder, HttpContext context, CancellationToken ct)
     {
-        context.Response.ContentType = "application/x-ndjson";
+        context.Response.ContentType = ModuleEndpointOpenApiConventions.JsonStream;
         string operationId = request.Context?.OperationId ?? Guid.NewGuid().ToString("N");
         long seq = 0;
         try

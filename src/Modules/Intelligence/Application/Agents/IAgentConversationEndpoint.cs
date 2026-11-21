@@ -8,7 +8,8 @@ public sealed record AgentConversationEndpointRequest(
     string SubjectKind,
     string SubjectId,
     string Message,
-    string? ConversationId);
+    string? ConversationId,
+    IAgentTurnObserver? Observer = null);
 
 public sealed record AgentConversationEndpointResult(
     AgentConversationOutcome Outcome,
@@ -17,7 +18,13 @@ public sealed record AgentConversationEndpointResult(
     JsonElement? Result = null,
     IReadOnlyList<GuidedSurfaceBlock>? Blocks = null);
 
-public sealed record AgentConversationRoute(string AgentKey, string SubjectKind)
+/// <summary>
+/// One agent route and its streaming capability. <paramref name="StreamingEnabled"/> is off unless the
+/// owning app registers it on, and is the one-agent-at-a-time enablement and rollback switch for the
+/// streamed turn transport. An endpoint registering it on must pass the request's observer to the
+/// conversation workflow.
+/// </summary>
+public sealed record AgentConversationRoute(string AgentKey, string SubjectKind, bool StreamingEnabled = false)
 {
     public bool Matches(string agentKey, string subjectKind) =>
         string.Equals(AgentKey, agentKey, StringComparison.Ordinal) &&
@@ -33,10 +40,16 @@ public interface IAgentConversationEndpoint
         CancellationToken cancellationToken);
 }
 
+public sealed record AgentConversationRegistration(AgentConversationRoute Route, IAgentConversationEndpoint Endpoint);
+
 /// <summary>Resolves the one app-owned conversation endpoint for an explicit agent route.</summary>
 public interface IAgentConversationEndpointRegistry
 {
+    IReadOnlyCollection<AgentConversationRoute> Routes { get; }
+
     IAgentConversationEndpoint? Resolve(string agentKey, string subjectKind);
+
+    AgentConversationRegistration? ResolveRegistration(string agentKey, string subjectKind);
 }
 
 public sealed class AgentConversationEndpointRegistry : IAgentConversationEndpointRegistry
@@ -61,8 +74,15 @@ public sealed class AgentConversationEndpointRegistry : IAgentConversationEndpoi
         _endpoints = registered;
     }
 
+    public IReadOnlyCollection<AgentConversationRoute> Routes => _endpoints.Select(pair => pair.Route).ToArray();
+
     public IAgentConversationEndpoint? Resolve(string agentKey, string subjectKind) =>
-        _endpoints.FirstOrDefault(pair => pair.Route.Matches(agentKey, subjectKind)).Endpoint;
+        ResolveRegistration(agentKey, subjectKind)?.Endpoint;
+
+    public AgentConversationRegistration? ResolveRegistration(string agentKey, string subjectKind) =>
+        _endpoints.Where(pair => pair.Route.Matches(agentKey, subjectKind))
+            .Select(pair => new AgentConversationRegistration(pair.Route, pair.Endpoint))
+            .FirstOrDefault();
 }
 
 public sealed record AgentRuntimeToolEndpointRequest(

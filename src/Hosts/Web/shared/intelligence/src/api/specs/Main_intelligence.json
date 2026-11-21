@@ -432,6 +432,128 @@
         }
       }
     },
+    "/api/modules/intelligence/agent-conversations/stream": {
+      "post": {
+        "tags": [
+          "Intelligence"
+        ],
+        "operationId": "IntelligenceStreamAgentConversation",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RunAgentConversationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/x-ndjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntelligenceStreamChunkOfAgentTurnPayload"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/modules/intelligence/agent-conversations/capabilities": {
+      "get": {
+        "tags": [
+          "Intelligence"
+        ],
+        "operationId": "IntelligenceGetAgentConversationCapabilities",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentConversationCapabilitiesResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/modules/intelligence/transcription/live/capabilities": {
       "get": {
         "tags": [
@@ -720,6 +842,88 @@
   },
   "components": {
     "schemas": {
+      "AgentConversationCapabilitiesResponse": {
+        "required": [
+          "agents"
+        ],
+        "type": "object",
+        "properties": {
+          "agents": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AgentConversationCapability"
+            }
+          }
+        }
+      },
+      "AgentConversationCapability": {
+        "required": [
+          "agentKey",
+          "subjectKind",
+          "streamingEnabled"
+        ],
+        "type": "object",
+        "properties": {
+          "agentKey": {
+            "type": "string"
+          },
+          "subjectKind": {
+            "type": "string"
+          },
+          "streamingEnabled": {
+            "type": "boolean"
+          }
+        }
+      },
+      "AgentTurnPayload": {
+        "type": "object",
+        "properties": {
+          "stage": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AgentTurnProgressStage"
+              }
+            ]
+          },
+          "ordinal": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "messageId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "text": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "result": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/RunAgentConversationResponse"
+              }
+            ]
+          }
+        }
+      },
+      "AgentTurnProgressStage": {
+        "type": "integer"
+      },
       "GuidedSurfaceActionGroupResponse": {
         "required": [
           "agentRunId",
@@ -867,6 +1071,45 @@
           }
         }
       },
+      "IntelligenceError": {
+        "required": [
+          "code",
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "$ref": "#/components/schemas/IntelligenceErrorCode"
+          },
+          "message": {
+            "type": "string"
+          },
+          "statusCode": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "validationErrors": {
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "IntelligenceErrorCode": {
+        "type": "integer"
+      },
       "IntelligenceFileReference": {
         "type": "object",
         "properties": {
@@ -917,6 +1160,9 @@
           }
         }
       },
+      "IntelligenceProgressStage": {
+        "type": "integer"
+      },
       "IntelligenceSessionContext": {
         "type": "object",
         "properties": {
@@ -936,6 +1182,80 @@
             "type": [
               "null",
               "string"
+            ]
+          }
+        }
+      },
+      "IntelligenceStreamChunkOfAgentTurnPayload": {
+        "required": [
+          "kind",
+          "metadata"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/StreamChunkKind"
+          },
+          "metadata": {
+            "$ref": "#/components/schemas/IntelligenceStreamMetadata"
+          },
+          "delta": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AgentTurnPayload"
+              }
+            ]
+          },
+          "error": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/IntelligenceError"
+              }
+            ]
+          }
+        }
+      },
+      "IntelligenceStreamMetadata": {
+        "required": [
+          "operationId",
+          "sequence",
+          "timestamp",
+          "stage"
+        ],
+        "type": "object",
+        "properties": {
+          "operationId": {
+            "type": "string"
+          },
+          "sequence": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "stage": {
+            "$ref": "#/components/schemas/IntelligenceProgressStage"
+          },
+          "context": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/IntelligenceSessionContext"
+              }
             ]
           }
         }
@@ -1423,6 +1743,9 @@
             }
           }
         }
+      },
+      "StreamChunkKind": {
+        "type": "integer"
       },
       "TranscriberOptions": {
         "type": "object",

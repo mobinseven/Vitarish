@@ -26,7 +26,10 @@
         dns cloudflare {env.CLOUDFLARE_API_TOKEN}
         resolvers 1.1.1.1
     }
-    encode gzip
+    # Streamed NDJSON responses (a path ending in /stream) are never compressed: the
+    # encoder would hold frames until its buffer fills, hiding progress from the browser.
+    @compressible not path_regexp ^/api/.+/stream$
+    encode @compressible gzip
     header {
         # The ingress owns these response headers. defer applies them after
         # reverse_proxy so they replace an upstream value (Main also sends HSTS
@@ -70,12 +73,18 @@
 
 (test_api) {
     @api path /api/*
-    reverse_proxy @api test-main:8080
+    reverse_proxy @api test-main:8080 {
+        # Flush each streamed NDJSON frame to the browser as Main writes it.
+        flush_interval -1
+    }
 }
 
 (production_api) {
     @api path /api/*
-    reverse_proxy @api production-main:8080
+    reverse_proxy @api production-main:8080 {
+        # Flush each streamed NDJSON frame to the browser as Main writes it.
+        flush_interval -1
+    }
 }
 
 (production_readiness) {

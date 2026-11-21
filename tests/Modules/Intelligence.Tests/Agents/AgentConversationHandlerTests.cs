@@ -311,6 +311,190 @@ public sealed class AgentConversationHandlerTests
         store.Released.Should().BeTrue();
     }
 
+    [Fact]
+    public async Task Streamed_turn_is_accepted_once_after_the_lease_and_reports_stages_in_order()
+    {
+        FakeStore store = new() { History = "[]" };
+        RecordingObserver observer = new();
+        StreamedRunner runner = new(
+            [new(AgentTurnStage.ModelRoundStarted, 1), new(AgentTurnStage.ToolStarted, 1), new(AgentTurnStage.ToolCompleted, 1)],
+            new AgentRunResult(true, "answer", null, new(1, 1), TimeSpan.Zero, 1, 1) { History = "[]" });
+
+        RunAgentConversationResult result = await new RunAgentConversationHandler(store, runner).Handle(
+            Request(store.ConversationId) with
+            {
+                Observer = observer,
+                BeforeCommit = (_, _, _) => Task.FromResult(AgentConversationOutcome.Succeeded)
+            }, default);
+
+        result.Outcome.Should().Be(AgentConversationOutcome.Succeeded);
+        observer.Events.Should().Equal(
+            "Accepted",
+            "ModelRoundStarted:1",
+            "ToolStarted:1",
+            "ToolCompleted:1",
+            "ValidatingResult:0",
+            "SavingConversation:0");
+        runner.StreamedCalls.Should().Be(1);
+        runner.BufferedCalls.Should().Be(0);
+        store.ReplacedHistory.Should().Be("[]");
+    }
+
+    [Fact]
+    public async Task Streamed_turn_accepts_the_turn_with_a_deadline_beyond_the_runtime_timeout()
+    {
+        FakeStore store = new() { History = "[]" };
+        RecordingObserver observer = new();
+        StreamedRunner runner = new([], new AgentRunResult(true, "answer", null, new(1, 1), TimeSpan.Zero, 1, 0) { History = "[]" });
+
+        await new RunAgentConversationHandler(store, runner).Handle(Request(store.ConversationId) with { Observer = observer }, default);
+
+        observer.Deadline.Should().Be(Limits.EffectiveTimeout + RunAgentConversationHandler.TurnDeadlineMargin);
+    }
+
+    [Fact]
+    public async Task Streamed_turn_that_is_not_accepted_never_reports_or_executes()
+    {
+        FakeStore store = new() { AcquireOutcome = AgentConversationOutcome.Busy };
+        RecordingObserver observer = new();
+        StreamedRunner runner = new([], new AgentRunResult(true, "answer", null, new(0, 0), TimeSpan.Zero, 1, 0));
+
+        RunAgentConversationResult result = await new RunAgentConversationHandler(store, runner)
+            .Handle(Request(store.ConversationId) with { Observer = observer }, default);
+
+        result.Outcome.Should().Be(AgentConversationOutcome.Busy);
+        observer.Events.Should().BeEmpty();
+        runner.StreamedCalls.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task Streamed_turn_fails_instead_of_retrying_a_rejected_history_after_answer_text_was_emitted()
+    {
+        FakeStore store = new() { History = HistoryWithToolCall };
+        RecordingObserver observer = new() { AnswerTextEmitted = true };
+        StreamedRunner runner = new(
+            [],
+            new AgentRunResult(false, null, null, new(0, 0), TimeSpan.Zero, 0, 0, new(AgentRunErrorCode.InvalidProviderResponse, "invalid")),
+            new AgentRunResult(true, "answer", null, new(1, 1), TimeSpan.Zero, 1, 0) { History = "[]" });
+
+        RunAgentConversationResult result = await new RunAgentConversationHandler(store, runner)
+            .Handle(Request(store.ConversationId) with { Observer = observer }, default);
+
+        result.Outcome.Should().Be(AgentConversationOutcome.InvalidHistory);
+        runner.StreamedCalls.Should().Be(1, "a new attempt would silently replace the text the person already saw");
+        store.ReplacedHistory.Should().BeNull();
+        store.Released.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Streamed_turn_keeps_the_single_history_retry_before_any_answer_text()
+    {
+        FakeStore store = new() { History = HistoryWithToolCall };
+        RecordingObserver observer = new();
+        StreamedRunner runner = new(
+            [],
+            new AgentRunResult(false, null, null, new(0, 0), TimeSpan.Zero, 0, 0, new(AgentRunErrorCode.InvalidProviderResponse, "invalid")),
+            new AgentRunResult(true, "answer", null, new(1, 1), TimeSpan.Zero, 1, 0) { History = "[]" });
+
+        RunAgentConversationResult result = await new RunAgentConversationHandler(store, runner)
+            .Handle(Request(store.ConversationId) with { Observer = observer }, default);
+
+        result.Outcome.Should().Be(AgentConversationOutcome.Succeeded);
+        runner.StreamedCalls.Should().Be(2);
+        observer.Events.Count(e => e == "Accepted").Should().Be(1, "the retry stays under the same logical turn");
+    }
+
+    [Fact]
+    public async Task Streamed_turn_with_a_failed_validation_never_reports_saving_and_persists_nothing()
+    {
+        FakeStore store = new() { History = "[]" };
+        RecordingObserver observer = new();
+        StreamedRunner runner = new([], new AgentRunResult(true, "answer", null, new(1, 1), TimeSpan.Zero, 1, 0) { History = "[]" });
+
+        RunAgentConversationResult result = await new RunAgentConversationHandler(store, runner).Handle(
+            Request(store.ConversationId) with
+            {
+                Observer = observer,
+                BeforeCommit = (_, _, _) => Task.FromResult(AgentConversationOutcome.InvalidHistory)
+            }, default);
+
+        result.Outcome.Should().Be(AgentConversationOutcome.InvalidHistory);
+        observer.Events.Should().NotContain("SavingConversation:0");
+        store.ReplacedHistory.Should().BeNull();
+        store.Released.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Streamed_turn_releases_the_lease_when_it_is_cancelled()
+    {
+        FakeStore store = new() { History = "[]" };
+        using CancellationTokenSource cancellation = new();
+        StreamedRunner runner = new([], new AgentRunResult(true, "answer", null, new(0, 0), TimeSpan.Zero, 1, 0)) { OnRun = cancellation.Cancel };
+
+        Func<Task> act = () => new RunAgentConversationHandler(store, runner)
+            .Handle(Request(store.ConversationId) with { Observer = new RecordingObserver() }, cancellation.Token);
+
+        await act.Should().ThrowAsync<OperationCanceledException>();
+        store.Released.Should().BeTrue();
+        store.ReplacedHistory.Should().BeNull();
+    }
+
+    private sealed class RecordingObserver : IAgentTurnObserver
+    {
+        public List<string> Events { get; } = [];
+        public TimeSpan? Deadline { get; private set; }
+        public bool AnswerTextEmitted { get; init; }
+
+        public ValueTask AcceptedAsync(TimeSpan turnDeadline, CancellationToken cancellationToken)
+        {
+            Deadline = turnDeadline;
+            Events.Add("Accepted");
+            return ValueTask.CompletedTask;
+        }
+
+        public ValueTask StageAsync(AgentTurnStageEvent stage, CancellationToken cancellationToken)
+        {
+            Events.Add($"{stage.Stage}:{stage.Ordinal}");
+            return ValueTask.CompletedTask;
+        }
+    }
+
+    private sealed class StreamedRunner(IReadOnlyList<AgentTurnStageEvent> stages, params AgentRunResult[] results) : IAgentRunner
+    {
+        public int StreamedCalls { get; private set; }
+        public int BufferedCalls { get; private set; }
+        public Action? OnRun { get; init; }
+
+        public Task<AgentRunResult> RunAsync(
+            AgentDefinition definition,
+            AgentInput input,
+            IReadOnlyCollection<IAgentTool> tools,
+            AgentExecutionContext context,
+            AgentExecutionLimits limits,
+            CancellationToken cancellationToken = default)
+        {
+            BufferedCalls++;
+            return Task.FromResult(results[0]);
+        }
+
+        public async Task<AgentRunResult> RunStreamedAsync(
+            AgentDefinition definition,
+            AgentInput input,
+            IReadOnlyCollection<IAgentTool> tools,
+            AgentExecutionContext context,
+            AgentExecutionLimits limits,
+            IAgentRunProgress progress,
+            CancellationToken cancellationToken = default)
+        {
+            StreamedCalls++;
+            OnRun?.Invoke();
+            cancellationToken.ThrowIfCancellationRequested();
+            foreach (AgentTurnStageEvent stage in stages)
+                await progress.StageAsync(stage, cancellationToken);
+            return results[Math.Min(StreamedCalls - 1, results.Length - 1)];
+        }
+    }
+
     private sealed class CapturingLogger : ILogger<RunAgentConversationHandler>
     {
         public List<string> Messages { get; } = [];

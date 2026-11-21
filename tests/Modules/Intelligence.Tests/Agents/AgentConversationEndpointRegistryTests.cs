@@ -19,6 +19,18 @@ public sealed class AgentConversationEndpointRegistryTests
     }
 
     [Fact]
+    public void Streaming_is_off_by_default_and_the_registered_capability_is_resolvable_per_route()
+    {
+        AgentConversationEndpointRegistry registry = new([new Endpoint("clinic.operations", "practice"), new StreamingEndpoint()]);
+
+        registry.Routes.Should().BeEquivalentTo(
+            [new AgentConversationRoute("clinic.operations", "practice", false), new AgentConversationRoute("sample.agent", "tenant", true)]);
+        registry.ResolveRegistration("clinic.operations", "practice")!.Route.StreamingEnabled.Should().BeFalse();
+        registry.ResolveRegistration("sample.agent", "tenant")!.Route.StreamingEnabled.Should().BeTrue();
+        registry.ResolveRegistration("sample.agent", "practice").Should().BeNull();
+    }
+
+    [Fact]
     public void Rejects_duplicate_route_ownership()
     {
         Action construct = () => _ = new AgentConversationEndpointRegistry([new Endpoint("sample.agent", "tenant"), new Endpoint("sample.agent", "tenant")]);
@@ -41,6 +53,12 @@ public sealed class AgentConversationEndpointRegistryTests
     {
         public IReadOnlyCollection<AgentConversationRoute> Routes { get; } = [new(key, kind)];
         public Task<AgentConversationEndpointResult> RunAsync(AgentConversationEndpointRequest request, CancellationToken cancellationToken) => Task.FromResult(new AgentConversationEndpointResult(AgentConversationOutcome.Succeeded, "run", Guid.Empty, JsonDocument.Parse("{}").RootElement.Clone()));
+    }
+
+    private sealed class StreamingEndpoint : IAgentConversationEndpoint
+    {
+        public IReadOnlyCollection<AgentConversationRoute> Routes { get; } = [new("sample.agent", "tenant", StreamingEnabled: true)];
+        public Task<AgentConversationEndpointResult> RunAsync(AgentConversationEndpointRequest request, CancellationToken cancellationToken) => Task.FromResult(new AgentConversationEndpointResult(AgentConversationOutcome.NotFound));
     }
 
     private sealed class RuntimeEndpoint(string key) : IAgentRuntimeToolEndpoint
