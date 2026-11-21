@@ -156,7 +156,13 @@ builder.Services.Replace(ServiceDescriptor.Singleton<IPreparedActionStore, E2ePr
 builder.Services.Replace(ServiceDescriptor.Singleton<Vitarish.Intelligence.Application.GuidedSurfaces.IPresentableResultStore, E2ePresentableResultStore>());
 builder.Services.Replace(ServiceDescriptor.Singleton<Vitarish.Intelligence.Application.Agents.IAgentConversationStore, E2eAgentConversationStore>());
 // The E2E host has no model provider; scenarios script the model's tool calls and result instead.
+_ = builder.Services.AddSingleton<E2eScriptedTurnState>();
 builder.Services.Replace(ServiceDescriptor.Transient<Vitarish.Intelligence.Application.Agents.IAgentRunner, E2eScriptedAgentRunner>());
+// Production keeps every agent's streaming capability off until rollout; the E2E host turns it on to prove the transport.
+builder.Services.Replace(ServiceDescriptor.Scoped<Vitarish.Intelligence.Application.Agents.IAgentConversationEndpointRegistry>(services =>
+    new E2eStreamingAgentConversationEndpointRegistry(
+        new Vitarish.Intelligence.Application.Agents.AgentConversationEndpointRegistry(
+            services.GetServices<Vitarish.Intelligence.Application.Agents.IAgentConversationEndpoint>()))));
 builder.Services.Replace(ServiceDescriptor.Singleton<ISurgeryAssistantProposalStore, E2eSurgeryAssistantProposalStore>());
 
 ServiceDescriptor? productionSurgeryViewRefresher = builder.Services.SingleOrDefault(descriptor =>

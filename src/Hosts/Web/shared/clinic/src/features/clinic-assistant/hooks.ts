@@ -34,6 +34,7 @@ import type {
   ClinicAssistantMessageResponse,
   RunClinicAssistantResponse,
 } from "../../api/generated/clinic/model";
+import { operationsConversationStorageKey } from "./operationsConversationStorageKey";
 
 /** A delete of a conversation that is already gone answers 404; that counts as deleted. */
 const isHttpNotFound = (error: unknown) =>
@@ -179,9 +180,6 @@ export function useOperationsAssistantConversation(isOpen: boolean) {
     isStaleConversation: isConversationNotFound,
   });
 }
-
-/** Where the browser session remembers its operations conversation; the server still owns who may continue it. */
-export const operationsConversationStorageKey = "vitarish.clinic.operationsAssistant.conversationId";
 
 function readOperationsConversationId(): string | null {
   try {

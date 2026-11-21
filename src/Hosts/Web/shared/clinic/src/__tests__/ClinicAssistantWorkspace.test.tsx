@@ -10,7 +10,7 @@ import {
   clinicResolveClinicAssistantCandidate,
 } from "../api/generated/clinic/clinic";
 import { ClinicAssistantWorkspace } from "../features/clinic-assistant/ClinicAssistantWorkspace";
-import { operationsConversationStorageKey } from "../features/clinic-assistant/hooks";
+import { operationsConversationStorageKey } from "../features/clinic-assistant/operationsConversationStorageKey";
 import { LocalizationProvider, clinicMessageCatalogs } from "../localization";
 
 let userId = "user-1";
