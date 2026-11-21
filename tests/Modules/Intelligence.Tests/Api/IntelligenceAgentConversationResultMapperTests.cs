@@ -16,7 +16,7 @@ public sealed class IntelligenceAgentConversationResultMapperTests
         DefaultHttpContext context = Context();
 
         IResult result = IntelligenceAgentConversationResultMapper.ToHttpResult(
-            new AgentConversationEndpointResult(AgentConversationOutcome.HistoryLimitExceeded));
+            new AgentConversationEndpointResult(AgentConversationOutcome.HistoryLimitExceeded), resumedConversation: true);
         await result.ExecuteAsync(context);
 
         context.Response.StatusCode.Should().Be(StatusCodes.Status409Conflict);
@@ -32,7 +32,7 @@ public sealed class IntelligenceAgentConversationResultMapperTests
         DefaultHttpContext context = Context();
 
         IResult result = IntelligenceAgentConversationResultMapper.ToHttpResult(
-            new AgentConversationEndpointResult(AgentConversationOutcome.InvalidHistory));
+            new AgentConversationEndpointResult(AgentConversationOutcome.InvalidHistory), resumedConversation: true);
         await result.ExecuteAsync(context);
 
         context.Response.StatusCode.Should().Be(StatusCodes.Status409Conflict);
@@ -46,7 +46,7 @@ public sealed class IntelligenceAgentConversationResultMapperTests
         DefaultHttpContext context = Context();
         AgentConversationEndpointResult endpointResult = new(outcome);
 
-        IResult result = IntelligenceAgentConversationResultMapper.ToHttpResult(endpointResult);
+        IResult result = IntelligenceAgentConversationResultMapper.ToHttpResult(endpointResult, resumedConversation: true);
         await result.ExecuteAsync(context);
 
         context.Response.StatusCode.Should().Be(StatusCodes.Status502BadGateway);
@@ -58,13 +58,30 @@ public sealed class IntelligenceAgentConversationResultMapperTests
         IntelligenceAgentConversationResultMapper.IsCancellation(new(AgentConversationOutcome.ProviderFailure)).Should().BeFalse();
     }
 
+    [Theory]
+    [InlineData(true, IntelligenceErrorCode.ConversationNotFound)]
+    [InlineData(false, IntelligenceErrorCode.NotFound)]
+    public async Task Not_found_is_the_conversation_signal_only_when_a_conversation_was_named(bool resumed, IntelligenceErrorCode expected)
+    {
+        DefaultHttpContext context = Context();
+
+        await IntelligenceAgentConversationResultMapper
+            .ToHttpResult(new AgentConversationEndpointResult(AgentConversationOutcome.NotFound), resumed)
+            .ExecuteAsync(context);
+
+        context.Response.StatusCode.Should().Be(StatusCodes.Status404NotFound, "the buffered status stays compatible");
+        context.Response.ContentType.Should().StartWith("application/json");
+        JsonSerializer.Deserialize<IntelligenceError>(await ReadBodyAsync(context), new JsonSerializerOptions(JsonSerializerDefaults.Web))!
+            .Code.Should().Be(expected);
+    }
+
     [Fact]
     public async Task Provider_failure_keeps_dependency_failure_semantics()
     {
         DefaultHttpContext context = Context();
 
         IResult result = IntelligenceAgentConversationResultMapper.ToHttpResult(
-            new AgentConversationEndpointResult(AgentConversationOutcome.ProviderFailure));
+            new AgentConversationEndpointResult(AgentConversationOutcome.ProviderFailure), resumedConversation: true);
         await result.ExecuteAsync(context);
 
         context.Response.StatusCode.Should().Be(StatusCodes.Status502BadGateway);

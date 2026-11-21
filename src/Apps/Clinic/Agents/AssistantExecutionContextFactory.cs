@@ -77,11 +77,7 @@ public sealed class AssistantExecutionContextFactory(TimeProvider timeProvider)
         };
     }
 
-    public static string AgentKey(AssistantContext context) =>
-        string.IsNullOrWhiteSpace(context.AgentKey)
-            ? AssistantSubjects.CanonicalAgentKey(context)
-            : context.AgentKey;
+    public static string AgentKey(AssistantContext context) => AssistantSubjects.AgentKey(context);
 
-    public static string SubjectId(AssistantContext context) =>
-        context.SubjectKind == "practice" ? context.PracticeId : context.PatientId.ToString("D");
+    public static string SubjectId(AssistantContext context) => AssistantSubjects.SubjectId(context);
 }

@@ -331,7 +331,7 @@ public sealed class AppointmentSchedulingAgentCapabilityTests
             Context(), new(Status: ShiftStatus.Active, Take: 10), default);
 
         appointments.Value.Should().ContainSingle().Which.Id.Should().Be(appointment.Id);
-        count.Value.Should().Be(1);
+        count.Value.Should().Be(4, "the count sums one query per active booked status");
         listedShifts.Value.Should().ContainSingle().Which.Id.Should().Be(shift.Id);
     }
 

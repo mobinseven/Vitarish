@@ -124,7 +124,7 @@ public sealed class AssistantConversationEndpointTests
     {
         const string agentKey = AssistantSubjects.OperationsHelpAgentKey;
         // The route is selected by the owner's chosen mode; the stored scope must match that mode's agent key.
-        AssistantContext context = OperationsContext();
+        AssistantContext context = OperationsContext() with { AgentKey = agentKey };
         Mock<IAssistantContextFactory> factory = new(MockBehavior.Strict);
         factory.Setup(item => item.CreateOperationsAsync(It.IsAny<string>(), It.IsAny<CancellationToken>(), agentKey)).ReturnsAsync(context);
         Mock<ISender> sender = new(MockBehavior.Strict);

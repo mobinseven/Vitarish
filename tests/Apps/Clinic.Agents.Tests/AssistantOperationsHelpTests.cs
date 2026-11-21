@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.RegularExpressions;
 using FluentAssertions;
 using MediatR;
 using Moq;
@@ -136,6 +137,65 @@ public sealed class AssistantOperationsHelpTests
         sender.Sent[0].ProfileCompatibilityKey.Should().NotBe(sender.Sent[1].ProfileCompatibilityKey);
         sender.Sent[0].Scope.AgentKey.Should().Be(AssistantSubjects.OperationsHelpAgentKey);
         sender.Sent[1].Scope.AgentKey.Should().Be(AssistantSubjects.OperationsAgentKey);
+        sender.Sent.Select(request => request.Scope.SubjectId).Should().OnlyContain(subject => subject == "practice-1", "a practice conversation is stored under the practice id on every entry, as deletion expects");
+    }
+
+    [Fact]
+    public async Task The_help_entry_sends_the_verified_workflow_guide_with_no_tools()
+    {
+        RecordingSender sender = new(HelpOutput(Answer));
+
+        _ = await Runtime(sender).RunAsync(Help(), new AssistantInput("How do I book a visit?"), CancellationToken.None);
+
+        RunAgentConversation sent = sender.Sent.Single();
+        sent.Tools.Should().BeEmpty();
+        sent.Limits.MaxToolCalls.Should().Be(0);
+        sent.Definition.Instructions.Should().Contain(OperationsHelpGuide.Instructions);
+    }
+
+    [Fact]
+    public void The_guide_covers_each_supported_question_with_its_verified_steps_and_says_when_unsure()
+    {
+        OperationsHelpGuide.SupportedQuestions.Should().HaveCount(6);
+        string guide = OperationsHelpGuide.Instructions;
+        // One section per supported question, in the order of OperationsHelpGuide.SupportedQuestions.
+        string[] sections =
+        [
+            "BOOK A VISIT FOR A PATIENT", "SEE THE SCHEDULE BY DAY, WEEK OR MONTH", "CONFIRM A PENDING RESERVATION",
+            "DELETE A RESERVATION", "CREATE A SHIFT", "EDIT OR DELETE A SHIFT"
+        ];
+        sections.Should().OnlyContain(section => guide.Contains(section, StringComparison.Ordinal));
+        guide.Should().Contain("\"Add Reservation\" / «افزودن رزرو»").And.Contain("\"Book\" / «رزرو کردن»")
+            .And.Contain("\"New Shift\" / «شیفت جدید»").And.Contain("\"Total Seats\" / «ظرفیت کل»")
+            .And.Contain("\"Confirm\" / «تأیید»").And.Contain("\"Pending\" / «در انتظار»");
+        guide.Should().Contain("NOT COVERED").And.Contain("not sure").And.Contain("Never invent");
+    }
+
+    [Fact]
+    public void Every_screen_name_in_the_guide_exists_in_the_clinic_web_localization()
+    {
+        string web = Path.Combine(RepositoryRoot(), "src", "Hosts", "Web");
+        string[] englishFiles = [Path.Combine(web, "shared", "clinic", "src", "localization", "en.ts"), Path.Combine(web, "apps", "private-practice-owner", "src", "localization", "messages", "en.ts")];
+        string[] persianFiles = [Path.Combine(web, "shared", "clinic", "src", "localization", "fa.ts"), Path.Combine(web, "apps", "private-practice-owner", "src", "localization", "messages", "fa.ts")];
+        string english = string.Concat(englishFiles.Select(File.ReadAllText));
+        string persian = string.Concat(persianFiles.Select(File.ReadAllText));
+
+        MatchCollection pairs = Regex.Matches(OperationsHelpGuide.Instructions, "\"([^\"]+)\" / «([^»]+)»");
+
+        pairs.Should().NotBeEmpty();
+        foreach (System.Text.RegularExpressions.Match pair in pairs)
+        {
+            english.Should().Contain("\"" + pair.Groups[1].Value + "\"", "the English name must be a real screen label");
+            persian.Should().Contain("\"" + pair.Groups[2].Value + "\"", "the Persian name must be a real screen label");
+        }
+    }
+
+    private static string RepositoryRoot()
+    {
+        DirectoryInfo? directory = new(AppContext.BaseDirectory);
+        while (directory is not null && !Directory.Exists(Path.Combine(directory.FullName, "src", "Hosts", "Web", "shared", "clinic")))
+            directory = directory.Parent;
+        return directory?.FullName ?? throw new InvalidOperationException("The repository root was not found from the test output directory.");
     }
 
     [Fact]

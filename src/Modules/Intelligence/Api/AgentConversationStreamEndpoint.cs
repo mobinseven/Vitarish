@@ -83,7 +83,7 @@ internal static class AgentConversationStreamEndpoint
                 if (result is null)
                     throw new OperationCanceledException(turn.Token);
                 outcome = result.Outcome.ToString();
-                return IntelligenceAgentConversationResultMapper.ToHttpResult(result);
+                return IntelligenceAgentConversationResultMapper.ToHttpResult(result, IntelligenceAgentConversationResultMapper.IsResume(request));
             }
 
             // On an intact connection the workflow ended after its own result and persistence checks.
@@ -107,7 +107,7 @@ internal static class AgentConversationStreamEndpoint
             else
             {
                 outcome = result.Outcome.ToString();
-                (int status, IntelligenceError error) = IntelligenceAgentConversationResultMapper.ToFailure(result);
+                (int status, IntelligenceError error) = IntelligenceAgentConversationResultMapper.ToFailure(result, IntelligenceAgentConversationResultMapper.IsResume(request));
                 await writer.FailAsync(error with { StatusCode = status });
             }
             return Results.Empty;

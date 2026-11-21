@@ -94,6 +94,6 @@ public sealed class GuidedSurfaceBlockResponseMappingTests
         blocks);
 
     private static RunAgentConversationResponse Response(AgentConversationEndpointResult result) =>
-        IntelligenceAgentConversationResultMapper.ToHttpResult(result)
+        IntelligenceAgentConversationResultMapper.ToHttpResult(result, resumedConversation: false)
             .Should().BeOfType<Ok<RunAgentConversationResponse>>().Subject.Value!;
 }

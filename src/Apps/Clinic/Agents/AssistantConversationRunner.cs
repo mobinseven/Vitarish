@@ -48,12 +48,7 @@ public sealed class AssistantConversationRunner(
         AssistantResult? parsedResult = null;
         RunAgentConversationResult conversation = await sender.Send(new RunAgentConversation(
             existingConversationId,
-            new AgentConversationScope(
-                context.PracticeId,
-                context.AuthenticatedUserId,
-                AgentKey(context),
-                context.SubjectKind,
-                SubjectId(context)),
+            AssistantSubjects.ConversationScope(context),
             manifest.Definition,
             new AgentInput(input.Message),
             manifest.Tools,
@@ -171,11 +166,4 @@ public sealed class AssistantConversationRunner(
         }
         return actions;
     }
-
-    private static string AgentKey(AssistantContext context) =>
-        AssistantExecutionContextFactory.AgentKey(context);
-
-    private static string SubjectId(AssistantContext context) =>
-        AssistantExecutionContextFactory.SubjectId(context);
-
 }

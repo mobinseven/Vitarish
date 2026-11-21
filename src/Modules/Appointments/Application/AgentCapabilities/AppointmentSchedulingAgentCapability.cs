@@ -144,6 +144,15 @@ public sealed class AppointmentSchedulingAgentCapability(
     private static readonly TimeSpan ProposalLifetime = TimeSpan.FromMinutes(10);
     private const int MaximumReadRangeDays = 366;
 
+    /// <summary>
+    /// The statuses of an active booked appointment: a reservation that holds its place (awaiting confirmation,
+    /// confirmed, present or completed). A temporary hold (<c>IsHold</c>, including one past its expiry that is not yet
+    /// swept) and a cancelled, rejected, expired or waitlisted reservation are not booked appointments. The count
+    /// of the chat tool and of the dashboard shortcut share this one definition.
+    /// </summary>
+    private static readonly ReservationStatus[] ActiveBookedStatuses =
+        [ReservationStatus.Pending, ReservationStatus.Confirmed, ReservationStatus.Present, ReservationStatus.Completed];
+
     public async Task<AgentSchedulingResult<IReadOnlyList<ReservationReadDto>>> ListAppointmentsAsync(AgentSchedulingContext context, AgentAppointmentListRequest request, CancellationToken cancellationToken)
     {
         if (!ValidContext(context) || !ValidAppointmentPage(request))
@@ -159,7 +168,14 @@ public sealed class AppointmentSchedulingAgentCapability(
     public async Task<AgentSchedulingResult<int>> CountAppointmentsAsync(AgentSchedulingContext context, AgentAppointmentListRequest request, CancellationToken cancellationToken)
     {
         if (!ValidContext(context) || !ValidDateRange(request.DateFrom, request.DateTo)) return new(AgentSchedulingStatus.ValidationFailure, Message: "A valid context and date range are required.");
-        return Map(await reservations.CountAsync(new() { Status = request.Status, ShiftId = request.ShiftId, DateFrom = request.DateFrom, DateTo = request.DateTo, ReservingPartyId = request.ReservingPartyId }, cancellationToken));
+        int total = 0;
+        foreach (ReservationStatus status in ActiveBookedStatuses.Where(status => request.Status is null || request.Status == status))
+        {
+            EntityResult<int> counted = await reservations.CountAsync(new() { Status = status, IsHold = false, ShiftId = request.ShiftId, DateFrom = request.DateFrom, DateTo = request.DateTo, ReservingPartyId = request.ReservingPartyId }, cancellationToken);
+            if (counted.IsFailure) return Map(counted);
+            total += counted.Value;
+        }
+        return new(AgentSchedulingStatus.Succeeded, total);
     }
 
     public async Task<AgentSchedulingResult<ReservationReadDto>> GetAppointmentAsync(AgentSchedulingContext context, Guid appointmentId, CancellationToken cancellationToken) =>

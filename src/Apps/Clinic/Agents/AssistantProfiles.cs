@@ -124,14 +124,15 @@ internal sealed class ClinicOperationsHelpProfile(
             subject = composition.Context.SubjectKind,
             scope = "operations_workflow_help",
             responseLanguage = "user_input",
-            topics = "how_appointments_and_shifts_work_in_this_app: booking, confirming, presenting, completing, rescheduling, cancelling and shift schedules",
+            topics = "how_to_book_a_visit_see_the_schedule_confirm_or_delete_a_reservation_and_create_edit_or_delete_a_shift",
             practiceRecords = "not_available_in_this_mode; never_state_or_guess_a_specific_patient_appointment_shift_or_count",
             actions = "none; explain_the_steps_the_user_performs_on_the_screen_and_never_claim_to_have_changed_or_prepared_anything",
+            screenSteps = "use_only_the_steps_and_names_of_the_workflow_guide; if_the_question_is_not_covered_or_you_are_unsure_say_so_and_never_invent_a_screen_button_or_feature",
             clinicalConclusions = false,
             unknown = "say_so_and_suggest_using_the_assistant_for_practice_data",
             result = $"write_the_whole_reply_in_the_{AssistantRuntime.OperationsHelpAnswerField}_field_as_plain_text"
         });
-        return "Agent policy (JSON):\n" + policy;
+        return "Agent policy (JSON):\n" + policy + "\n\n" + OperationsHelpGuide.Instructions;
     }
 }
 
