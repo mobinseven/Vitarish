@@ -146,7 +146,9 @@ export function resetAntiforgeryToken(): void {
   antiforgeryHeaderName = "X-XSRF-TOKEN";
 }
 
-export type ApiResponseType = "json" | "blob" | "text";
+/** `stream` resolves with the unread response body, for a long-lived NDJSON response the caller reads incrementally. */
+export type ApiResponseType = "json" | "blob" | "text" | "stream";
+export const NDJSON_MEDIA_TYPE = "application/x-ndjson";
 
 export type ApiRequestInit = RequestInit & {
   responseType?: ApiResponseType;
@@ -230,6 +232,10 @@ async function sendRequest<T>(
   }
 
   if (res.status === 204) return undefined as T;
+  if (responseType === "stream") {
+    if (!res.body) throw new ApiError({ status: 502, title: "The response had no body to stream." });
+    return res.body as T;
+  }
   if (responseType === "blob") return res.blob() as Promise<T>;
   if (responseType === "text") return res.text() as Promise<T>;
   return res.json() as Promise<T>;
@@ -293,7 +299,13 @@ export async function apiFetch<T>(urlOrConfig: string | OrvalConfig, options: Ap
   if (!baseHeaders.has("Accept")) {
     baseHeaders.set(
       "Accept",
-      responseType === "blob" ? "application/octet-stream" : responseType === "text" ? "text/plain" : "application/json",
+      responseType === "blob"
+        ? "application/octet-stream"
+        : responseType === "text"
+          ? "text/plain"
+          : responseType === "stream"
+            ? NDJSON_MEDIA_TYPE
+            : "application/json",
     );
   }
   if (!baseHeaders.has("Content-Type") && body && !(body instanceof FormData)) baseHeaders.set("Content-Type", "application/json");

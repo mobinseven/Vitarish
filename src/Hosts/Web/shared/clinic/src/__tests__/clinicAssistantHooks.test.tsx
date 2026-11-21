@@ -11,7 +11,8 @@ import {
   clinicRejectAssistantAction,
   clinicRejectPatientAssistantAction,
 } from "../api/generated/clinic/clinic";
-import { intelligenceRunAgentConversation } from "@vitarish/intelligence";
+import { ApiError } from "@vitarish/api-client";
+import { IntelligenceErrorCodeValue, intelligenceRunAgentConversation } from "@vitarish/intelligence";
 import {
   useConfirmAssistantAction,
   useConfirmOperationsAssistantAction,
@@ -39,10 +40,15 @@ vi.mock("../api/generated/clinic/clinic", () => ({
   getClinicGetSetupProgressQueryKey: () => ["clinic", "setup-progress"],
 }));
 
-vi.mock("@vitarish/intelligence", async () => ({
-  ...(await vi.importActual<typeof import("@vitarish/intelligence")>("@vitarish/intelligence")),
-  intelligenceRunAgentConversation: vi.fn(),
-}));
+vi.mock("@vitarish/intelligence", async () => {
+  const buffered = vi.fn();
+  return {
+    ...(await vi.importActual<typeof import("@vitarish/intelligence")>("@vitarish/intelligence")),
+    intelligenceRunAgentConversation: buffered,
+    // The capability-selected route is exercised on its own; here it resolves like the buffered one.
+    runAgentConversationTurn: (request: unknown, options?: { signal?: AbortSignal }) => buffered(request, undefined, options?.signal),
+  };
+});
 
 function createWrapper() {
   const client = new QueryClient({
@@ -282,6 +288,25 @@ describe("operations assistant conversation across surfaces", () => {
       conversationId: "shared-conversation",
     });
     expect(clinicDeleteOperationsAssistantConversation).not.toHaveBeenCalled();
+  });
+
+  it("starts a new conversation only when the server says the conversation is not found, never on a generic 404", async () => {
+    const notFound = (code: number | undefined) => new ApiError({ status: 404, code: code as unknown as string });
+    vi.mocked(intelligenceRunAgentConversation)
+      .mockResolvedValueOnce(reply("stored"))
+      .mockRejectedValueOnce(notFound(undefined))
+      .mockRejectedValueOnce(notFound(IntelligenceErrorCodeValue.ConversationNotFound))
+      .mockResolvedValueOnce(reply("fresh"));
+    const { result } = renderHook(() => useOperationsAssistantConversation(true), { wrapper: createWrapper() });
+
+    await act(() => result.current.submit("first"));
+    await act(() => result.current.submit("generic 404"));
+    expect(result.current.isError).toBe(true);
+    expect(vi.mocked(intelligenceRunAgentConversation)).toHaveBeenCalledTimes(2);
+
+    await act(() => result.current.submit("stale"));
+    expect(vi.mocked(intelligenceRunAgentConversation).mock.calls.map(([call]) => call.conversationId)).toEqual([null, "stored", "stored", null]);
+    expect(result.current.isError).toBe(false);
   });
 
   it("forgets the stored conversation once it is deleted", async () => {

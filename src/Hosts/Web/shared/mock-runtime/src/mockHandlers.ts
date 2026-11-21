@@ -26,6 +26,9 @@ function isPersianRequest(request: Request) {
   return (parseLocaleCookie(requestCookies(request)) ?? "fa") === "fa";
 }
 
+/** The Intelligence contract ordinals of StreamChunkKind and IntelligenceProgressStage that the mock stream frames use. */
+const mockStreamWire = { started: 0, delta: 2, completed: 3, responding: 5 } as const;
+
 export function resolveMockScenario(value: string | undefined): MockScenario {
   return scenarios.has(value as MockScenario) ? (value as MockScenario) : "ready";
 }
@@ -696,6 +699,45 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
       await withDelay();
       if (activeScenario === "error") return unavailable();
       return HttpResponse.json({ actionId: "mock-agent-action", status: request.url.endsWith("/confirm") ? "Completed" : "Rejected", completionPayload: request.url.endsWith("/confirm") ? { appointmentId: "mock-reservation" } : {}, failure: null });
+    }),
+    // Streaming is off for every agent, as on the server by default; the stream route below is its equivalent.
+    http.get(/\/api\/modules\/intelligence\/agent-conversations\/capabilities(?:\?|$)/, async () => {
+      await withDelay();
+      if (activeScenario === "error") return unavailable();
+      return HttpResponse.json({
+        agents: [
+          { agentKey: "clinic.assistant.operations", subjectKind: "practice", streamingEnabled: false },
+          { agentKey: "clinic.assistant.patient", subjectKind: "patient", streamingEnabled: false },
+        ],
+      });
+    }),
+    // The streamed twin of the buffered route: the same reply, framed as NDJSON (Started, one Delta, Completed).
+    http.post(/\/api\/modules\/intelligence\/agent-conversations\/stream(?:\?|$)/, async ({ request }) => {
+      const buffered = await fetch(request.url.replace(/\/stream(?=\?|$)/, ""), {
+        method: "POST",
+        headers: request.headers,
+        body: await request.text(),
+      });
+      if (!buffered.ok) return new HttpResponse(buffered.body, { status: buffered.status, headers: buffered.headers });
+      const response = await buffered.json() as { agentRunId: string; result: { messages?: Array<{ kind: string; content: string }> } };
+      const answer = response.result.messages?.find((message) => message.kind === "AssistantMessage")?.content;
+      const frame = (kind: number, sequence: number, delta?: unknown) => JSON.stringify({
+        kind,
+        metadata: { operationId: "mock-stream-operation", sequence, timestamp: new Date().toISOString(), stage: mockStreamWire.responding },
+        delta: delta ?? null,
+        error: null,
+      });
+      const frames = [
+        frame(mockStreamWire.started, 0),
+        ...(answer ? [frame(mockStreamWire.delta, 1, { messageId: "mock-stream-message", text: answer })] : []),
+        frame(mockStreamWire.completed, answer ? 2 : 1, { result: response }),
+      ];
+      return new HttpResponse(`${frames.join("\n")}\n`, { headers: { "content-type": "application/x-ndjson" } });
+    }),
+    http.get(/\/api\/modules\/clinic\/assistant\/operations\/today-appointment-count(?:\?|$)/, async () => {
+      await withDelay();
+      if (activeScenario === "error") return unavailable();
+      return HttpResponse.json({ date: new Date().toISOString().slice(0, 10), count: 4 });
     }),
     http.get(/\/api\/modules\/intelligence\/transcription\/live\/capabilities(?:\?|$)/, async () => {
       await withDelay();
