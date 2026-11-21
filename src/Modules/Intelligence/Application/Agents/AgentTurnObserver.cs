@@ -18,10 +18,23 @@ public enum AgentTurnStage
 /// <summary>One stage report. <paramref name="Ordinal"/> counts model rounds or tool calls and is zero for app stages.</summary>
 public sealed record AgentTurnStageEvent(AgentTurnStage Stage, int Ordinal = 0);
 
-/// <summary>Receives the stages a runtime reports while it executes one turn.</summary>
+/// <summary>
+/// Declares in advance, before the model runs, that the string at <paramref name="FieldPath"/> (object keys
+/// from the root) of the structured result is the user-visible answer and may be streamed as provisional text
+/// under <paramref name="MessageId"/>. The runtime honors it only for a run without tools.
+/// </summary>
+public sealed record AgentAnswerStream(string MessageId, IReadOnlyList<string> FieldPath);
+
+/// <summary>Receives the stages and answer text a runtime reports while it executes one turn.</summary>
 public interface IAgentRunProgress
 {
     ValueTask StageAsync(AgentTurnStageEvent stage, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Provisional answer text of the declared <see cref="AgentAnswerStream"/>; the terminal result stays
+    /// authoritative. Only reported when the run declared an answer stream.
+    /// </summary>
+    ValueTask AnswerDeltaAsync(string messageId, string text, CancellationToken cancellationToken);
 }
 
 /// <summary>

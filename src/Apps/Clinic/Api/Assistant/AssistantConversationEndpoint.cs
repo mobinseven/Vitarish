@@ -1,6 +1,7 @@
 using System.Text.Json;
 using MediatR;
 using Vitarish.Clinic.Application.Assistant;
+using Vitarish.Clinic.Application.Assistant.Operations;
 using Vitarish.Clinic.Contracts.ClinicAssistant;
 using Vitarish.Intelligence.Application.Agents;
 using ContractActionStatus = Vitarish.Clinic.Contracts.ClinicAssistant.ClinicAssistantActionStatus;
@@ -13,20 +14,25 @@ public sealed class AssistantConversationEndpoint(
     ISender sender) : IAgentConversationEndpoint
 {
     private static readonly JsonSerializerOptions WebJson = new(JsonSerializerDefaults.Web);
+    // Streaming stays disabled on every Clinic entry (one rollout decision for the canonical, legacy and help
+    // routes); enabling it is a per-route flag here and nowhere else.
     public IReadOnlyCollection<AgentConversationRoute> Routes { get; } =
     [
-        new("clinic.assistant.patient", "patient"),
-        new("clinic.assistant.operations", "practice"),
-        new("clinic.patient", "patient"),
-        new("clinic.operations", "practice")
+        new(AssistantSubjects.PatientAgentKey, AssistantSubjects.PatientKind),
+        new(AssistantSubjects.OperationsAgentKey, AssistantSubjects.PracticeKind),
+        new(AssistantSubjects.OperationsHelpAgentKey, AssistantSubjects.PracticeKind),
+        new(AssistantSubjects.LegacyPatientAgentKey, AssistantSubjects.PatientKind),
+        new(AssistantSubjects.LegacyOperationsAgentKey, AssistantSubjects.PracticeKind)
     ];
 
     public async Task<AgentConversationEndpointResult> RunAsync(
         AgentConversationEndpointRequest request,
         CancellationToken cancellationToken)
     {
-        bool patient = IsAgent(request.AgentKey, "clinic.assistant.patient", "clinic.patient") && string.Equals(request.SubjectKind, "patient", StringComparison.Ordinal);
-        bool operations = IsAgent(request.AgentKey, "clinic.assistant.operations", "clinic.operations") && string.Equals(request.SubjectKind, "practice", StringComparison.Ordinal);
+        bool patient = IsAgent(request.AgentKey, AssistantSubjects.PatientAgentKeys) && string.Equals(request.SubjectKind, AssistantSubjects.PatientKind, StringComparison.Ordinal);
+        bool help = string.Equals(request.AgentKey, AssistantSubjects.OperationsHelpAgentKey, StringComparison.Ordinal) &&
+            string.Equals(request.SubjectKind, AssistantSubjects.PracticeKind, StringComparison.Ordinal);
+        bool operations = help || IsAgent(request.AgentKey, AssistantSubjects.OperationsAgentKeys) && string.Equals(request.SubjectKind, AssistantSubjects.PracticeKind, StringComparison.Ordinal);
         if (!patient && !operations)
             return new(AgentConversationOutcome.NotFound);
 
@@ -59,8 +65,13 @@ public sealed class AssistantConversationEndpoint(
                 !string.Equals(context.PracticeId, request.SubjectId, StringComparison.Ordinal))
                 return new(AgentConversationOutcome.NotFound);
         }
+        // The help entry is for the same practice staff as the assistant.
+        if (help && !AssistantOperationsScope.IsAuthorizedRole(context.Role))
+            return new(AgentConversationOutcome.NotFound);
         context = context with { AgentKey = request.AgentKey };
-        AssistantResult result = await sender.Send(new RunAssistant(context, new AssistantInput(request.Message)), cancellationToken);
+        AssistantResult result = await sender.Send(
+            new RunAssistant(context, new AssistantInput(request.Message), request.Observer),
+            cancellationToken);
         if (result.Outcome is AssistantRunOutcome.NotFound)
             return new(AgentConversationOutcome.NotFound, result.AgentRunId, ParseConversationId(result.ConversationId));
         if (result.Outcome is AssistantRunOutcome.Busy)
@@ -97,7 +108,6 @@ public sealed class AssistantConversationEndpoint(
 
     private static Guid? ParseConversationId(string value) => Guid.TryParse(value, out Guid id) ? id : null;
 
-    private static bool IsAgent(string supplied, string current, string legacy) =>
-        string.Equals(supplied, current, StringComparison.Ordinal) ||
-        string.Equals(supplied, legacy, StringComparison.Ordinal);
+    private static bool IsAgent(string supplied, IEnumerable<string> keys) =>
+        keys.Any(key => string.Equals(supplied, key, StringComparison.Ordinal));
 }

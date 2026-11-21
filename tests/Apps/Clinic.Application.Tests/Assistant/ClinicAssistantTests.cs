@@ -1,3 +1,4 @@
+using Vitarish.Intelligence.Application.Agents;
 using Vitarish.Intelligence.Application.PreparedActions;
 using Vitarish.Intelligence.Domain.PreparedActions;
 using FluentAssertions;
@@ -80,7 +81,7 @@ public sealed class ClinicAssistantTests
 
     private sealed class RecordingRuntime(AssistantResult result) : IAssistantRuntime
     {
-        public Task<AssistantResult> RunAsync(AssistantContext context, AssistantInput input, CancellationToken cancellationToken = default) =>
+        public Task<AssistantResult> RunAsync(AssistantContext context, AssistantInput input, CancellationToken cancellationToken = default, IAgentTurnObserver? observer = null) =>
             Task.FromResult(result);
     }
 

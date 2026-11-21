@@ -24,11 +24,21 @@ public sealed class AssistantConversationRunner(
     public async Task<AssistantResult> RunAsync(
         AssistantContext context,
         AssistantInput input,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        IAgentTurnObserver? observer = null)
     {
         AssistantManifest manifest = manifestComposer.Compose(context);
         if (string.IsNullOrWhiteSpace(input.Message))
             return AssistantResult.Failure(manifest.ExecutionContext.ExecutionId, context.ConversationId, "A message is required.");
+
+        // Chosen in advance from the entry the request used, never from user text. The entry has no tools, so
+        // its answer field is the only text a streamed turn may show before the validated result.
+        bool help = AssistantSubjects.IsOperationsHelp(context);
+        if (help && (manifest.Tools.Count > 0 || manifest.EnabledActions.Count > 0))
+            return AssistantResult.Failure(manifest.ExecutionContext.ExecutionId, context.ConversationId, "The clinic operations help entry must not expose tools or actions.");
+        AgentAnswerStream? answerStream = help && observer is not null
+            ? new AgentAnswerStream(manifest.ExecutionContext.ExecutionId, [AssistantRuntime.OperationsHelpAnswerField])
+            : null;
 
         Guid? existingConversationId = context.IsNewConversation
             ? null
@@ -65,6 +75,11 @@ public sealed class AssistantConversationRunner(
                         ConversationId = conversationId.ToString("N"),
                         IsNewConversation = false
                     };
+                    if (help)
+                    {
+                        parsedResult = AssistantResultParser.ParseOperationsHelp(output, manifest, persistedContext, run.ToolExecutions);
+                        return AgentConversationOutcome.Succeeded;
+                    }
                     parsedResult = resultParser.Parse(output, manifest, persistedContext, run.ToolExecutions);
                     parsedResult = parsedResult with
                     {
@@ -85,7 +100,9 @@ public sealed class AssistantConversationRunner(
                     return AgentConversationOutcome.InvalidHistory;
                 }
             },
-            ProfileCompatibilityKey: manifest.CompatibilityKey),
+            ProfileCompatibilityKey: manifest.CompatibilityKey,
+            Observer: observer,
+            AnswerStream: answerStream),
             cancellationToken);
 
         AgentRunResult? runResult = conversation.Run;

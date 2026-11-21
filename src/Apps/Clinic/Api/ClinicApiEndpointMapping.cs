@@ -122,6 +122,7 @@ public static class ClinicApiEndpointMapping
         _ = group.MapModulePost(ClinicApiRoutes.LegacyResolvePatientAgentCandidate, ResolveClinicAssistantCandidateAsync, "ClinicResolvePatientAgentCandidate", typeof(ResolveClinicAssistantCandidateResponse));
         _ = group.MapModuleDelete(ClinicApiRoutes.OperationsAssistantConversation, DeleteCanonicalOperationsAssistantConversationAsync, "ClinicDeleteOperationsAssistantConversation");
         _ = group.MapModuleDelete(ClinicApiRoutes.LegacyOperationsAgent + "/{conversationId:guid}", DeleteLegacyOperationsAgentConversationAsync, "ClinicDeleteOperationsAgentConversation");
+        _ = group.MapModuleDelete(ClinicApiRoutes.OperationsHelpConversation, DeleteOperationsHelpConversationAsync, ClinicApiOperations.DeleteOperationsHelpConversation);
         _ = group.MapModuleGet(ClinicApiRoutes.AssistantAction, GetOperationsAssistantActionAsync, "ClinicGetAssistantAction", typeof(ClinicAssistantActionDetailsResponse));
         _ = group.MapModulePost(ClinicApiRoutes.ConfirmAssistantAction, ConfirmOperationsAssistantActionAsync, "ClinicConfirmAssistantAction", typeof(ConfirmClinicAssistantActionResponse));
         _ = group.MapModulePost(ClinicApiRoutes.RejectAssistantAction, RejectOperationsAssistantActionAsync, "ClinicRejectAssistantAction", typeof(RejectClinicAssistantActionResponse));
@@ -883,7 +884,14 @@ public static class ClinicApiEndpointMapping
         [FromServices] IAssistantContextFactory contextFactory,
         ISender sender,
         CancellationToken ct)
-        => await DeleteOperationsAssistantConversationAsync(conversationId, contextFactory, sender, ct, "clinic.operations");
+        => await DeleteOperationsAssistantConversationAsync(conversationId, contextFactory, sender, ct, AssistantSubjects.LegacyOperationsAgentKey);
+
+    private static async Task<IResult> DeleteOperationsHelpConversationAsync(
+        Guid conversationId,
+        [FromServices] IAssistantContextFactory contextFactory,
+        ISender sender,
+        CancellationToken ct)
+        => await DeleteOperationsAssistantConversationAsync(conversationId, contextFactory, sender, ct, AssistantSubjects.OperationsHelpAgentKey);
 
     private static async Task<IResult> DeleteOperationsAssistantConversationAsync(
         Guid conversationId,
@@ -906,7 +914,7 @@ public static class ClinicApiEndpointMapping
                 context.AuthenticatedUserId,
                 agentKey ?? "clinic.assistant.operations",
                 "practice",
-                agentKey is null ? context.PracticeId : "practice")), ct);
+                agentKey is null or AssistantSubjects.OperationsHelpAgentKey ? context.PracticeId : "practice")), ct);
         return outcome switch
         {
             AgentConversationOutcome.Succeeded => Results.NoContent(),

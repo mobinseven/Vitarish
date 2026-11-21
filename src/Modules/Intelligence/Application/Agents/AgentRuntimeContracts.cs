@@ -9,7 +9,8 @@ public sealed record AgentRuntimeRunRequest(
     AgentRuntimeExecutionEnvelope ExecutionEnvelope,
     AgentExecutionLimits Limits,
     string CallbackUrl,
-    string CallbackCredential);
+    string CallbackCredential,
+    AgentAnswerStream? AnswerStream = null);
 
 public sealed record AgentRuntimeRunResponse(
     bool IsSuccess,

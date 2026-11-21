@@ -6,4 +6,5 @@ public static class ClinicApiOperations
     public const string DismissSetupGuide = "ClinicDismissSetupGuide";
     public const string GetTodayAppointmentCount = "ClinicGetTodayAppointmentCount";
     public const string ReviseAssistantAction = "ClinicReviseAssistantAction";
+    public const string DeleteOperationsHelpConversation = "ClinicDeleteOperationsHelpConversation";
 }

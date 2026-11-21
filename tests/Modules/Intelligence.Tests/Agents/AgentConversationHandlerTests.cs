@@ -405,6 +405,25 @@ public sealed class AgentConversationHandlerTests
     }
 
     [Fact]
+    public async Task Streamed_turn_passes_the_declared_answer_stream_to_the_runner_and_buffered_turns_never_do()
+    {
+        FakeStore store = new() { History = "[]" };
+        AgentAnswerStream answer = new("message-1", ["answer"]);
+        StreamedRunner runner = new([], new AgentRunResult(true, "answer", null, new(1, 1), TimeSpan.Zero, 1, 0) { History = "[]" });
+
+        _ = await new RunAgentConversationHandler(store, runner)
+            .Handle(Request(store.ConversationId) with { Observer = new RecordingObserver(), AnswerStream = answer }, default);
+
+        runner.AnswerStreams.Should().ContainSingle().Which.Should().BeSameAs(answer);
+
+        FakeStore bufferedStore = new() { History = "[]" };
+        StreamedRunner bufferedRunner = new([], new AgentRunResult(true, "answer", null, new(1, 1), TimeSpan.Zero, 1, 0) { History = "[]" });
+        _ = await new RunAgentConversationHandler(bufferedStore, bufferedRunner)
+            .Handle(Request(bufferedStore.ConversationId) with { AnswerStream = answer }, default);
+        bufferedRunner.StreamedCalls.Should().Be(0, "without an observer the turn is buffered and declares no answer stream");
+    }
+
+    [Fact]
     public async Task Streamed_turn_with_a_failed_validation_never_reports_saving_and_persists_nothing()
     {
         FakeStore store = new() { History = "[]" };
@@ -457,11 +476,14 @@ public sealed class AgentConversationHandlerTests
             Events.Add($"{stage.Stage}:{stage.Ordinal}");
             return ValueTask.CompletedTask;
         }
+
+        public ValueTask AnswerDeltaAsync(string messageId, string text, CancellationToken cancellationToken) => ValueTask.CompletedTask;
     }
 
     private sealed class StreamedRunner(IReadOnlyList<AgentTurnStageEvent> stages, params AgentRunResult[] results) : IAgentRunner
     {
         public int StreamedCalls { get; private set; }
+        public List<AgentAnswerStream?> AnswerStreams { get; } = [];
         public int BufferedCalls { get; private set; }
         public Action? OnRun { get; init; }
 
@@ -483,10 +505,12 @@ public sealed class AgentConversationHandlerTests
             IReadOnlyCollection<IAgentTool> tools,
             AgentExecutionContext context,
             AgentExecutionLimits limits,
+            AgentAnswerStream? answerStream,
             IAgentRunProgress progress,
             CancellationToken cancellationToken = default)
         {
             StreamedCalls++;
+            AnswerStreams.Add(answerStream);
             OnRun?.Invoke();
             cancellationToken.ThrowIfCancellationRequested();
             foreach (AgentTurnStageEvent stage in stages)

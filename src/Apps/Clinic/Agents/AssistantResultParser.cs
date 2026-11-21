@@ -79,6 +79,40 @@ public sealed class AssistantResultParser(AssistantCapabilityRegistry capability
         };
     }
 
+    /// <summary>
+    /// Parses the operations-help result: exactly one answer field and nothing else, mapped to one assistant
+    /// message. An extra or duplicate field, a missing, empty or non-string answer, and any tool execution are
+    /// rejected, so the entry yields no action, question, next step or candidate.
+    /// </summary>
+    internal static AssistantResult ParseOperationsHelp(
+        JsonElement output,
+        AssistantManifest manifest,
+        AssistantContext context,
+        IReadOnlyList<AgentToolExecution> toolExecutions)
+    {
+        if (toolExecutions.Count > 0)
+            throw new JsonException("The clinic operations help entry ran a tool.");
+        if (output.ValueKind != JsonValueKind.Object)
+            throw new JsonException("The clinic operations help result shape is invalid.");
+
+        string? answer = null;
+        foreach (JsonProperty property in output.EnumerateObject())
+        {
+            if (answer is not null || property.Value.ValueKind != JsonValueKind.String ||
+                !string.Equals(property.Name, AssistantRuntime.OperationsHelpAnswerField, StringComparison.Ordinal))
+                throw new JsonException("The clinic operations help result shape is invalid.");
+            answer = property.Value.GetString();
+        }
+        if (string.IsNullOrWhiteSpace(answer))
+            throw new JsonException("The clinic operations help result shape is invalid.");
+
+        return new(
+            manifest.ExecutionContext.ExecutionId,
+            context.ConversationId,
+            [new AssistantMessage(AssistantMessageKind.AssistantMessage, answer)],
+            []);
+    }
+
     private static AssistantSearchResult? ParseSearchResult(IReadOnlyList<AgentToolExecution> toolExecutions)
     {
         AgentToolExecution? execution = toolExecutions.LastOrDefault(item => !item.IsError && string.Equals(item.ToolName, Vitarish.Clinic.Application.Assistant.Presentation.ClinicPresentableToolNames.SearchPatients, StringComparison.Ordinal));

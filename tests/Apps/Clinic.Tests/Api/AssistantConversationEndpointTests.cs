@@ -1,5 +1,12 @@
 using FluentAssertions;
 using MediatR;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Metadata;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.DependencyInjection;
+using Vitarish.Clinic.Api;
+using Vitarish.Clinic.Contracts.Routes;
 using Moq;
 using Vitarish.Clinic.Api.Assistant;
 using Vitarish.Clinic.Application.Assistant;
@@ -77,6 +84,104 @@ public sealed class AssistantConversationEndpointTests
         endpoint.Routes.Should().Contain(route => route.AgentKey == "clinic.operations" && route.SubjectKind == "practice");
         endpoint.Routes.Should().Contain(route => route.AgentKey == "clinic.assistant.patient" && route.SubjectKind == "patient");
         endpoint.Routes.Should().Contain(route => route.AgentKey == "clinic.assistant.operations" && route.SubjectKind == "practice");
+    }
+
+    [Fact]
+    public void Streaming_stays_disabled_on_every_clinic_entry_including_the_help_entry()
+    {
+        AssistantConversationEndpoint endpoint = new(new Mock<IAssistantContextFactory>().Object, new Mock<ISender>().Object);
+
+        endpoint.Routes.Should().OnlyContain(route => !route.StreamingEnabled);
+        endpoint.Routes.Single(route => route.AgentKey == AssistantSubjects.OperationsHelpAgentKey).SubjectKind
+            .Should().Be(AssistantSubjects.PracticeKind);
+    }
+
+    [Fact]
+    public async Task Deleting_a_help_conversation_is_scoped_to_the_help_agent_key_and_not_the_assistant_key()
+    {
+        const string agentKey = AssistantSubjects.OperationsHelpAgentKey;
+        // The route is selected by the owner's chosen mode; the stored scope must match that mode's agent key.
+        AssistantContext context = OperationsContext();
+        Mock<IAssistantContextFactory> factory = new(MockBehavior.Strict);
+        factory.Setup(item => item.CreateOperationsAsync(It.IsAny<string>(), It.IsAny<CancellationToken>(), agentKey)).ReturnsAsync(context);
+        Mock<ISender> sender = new(MockBehavior.Strict);
+        AgentConversationScope? scope = null;
+        sender.Setup(item => item.Send(It.IsAny<DeleteAgentConversation>(), It.IsAny<CancellationToken>()))
+            .Callback<IRequest<AgentConversationOutcome>, CancellationToken>((request, _) => scope = ((DeleteAgentConversation)request).Scope)
+            .ReturnsAsync(AgentConversationOutcome.Succeeded);
+        Guid conversationId = Guid.CreateVersion7();
+
+        string operation = ClinicApiOperations.DeleteOperationsHelpConversation;
+        WebApplicationBuilder builder = WebApplication.CreateBuilder();
+        builder.Services.AddAuthorization();
+        builder.Services.AddSingleton(factory.Object);
+        builder.Services.AddSingleton(Mock.Of<Vitarish.Audit.Application.ISecurityAuditWriter>());
+        builder.Services.AddSingleton(Mock.Of<Vitarish.Requests.Application.Abstractions.IRequestContext>());
+        builder.Services.AddSingleton(sender.Object);
+        using WebApplication app = builder.Build();
+        _ = app.MapClinicApi();
+        Endpoint endpoint = ((IEndpointRouteBuilder)app).DataSources.SelectMany(source => source.Endpoints)
+            .Single(candidate => candidate.Metadata.GetMetadata<IEndpointNameMetadata>()?.EndpointName == operation);
+        DefaultHttpContext http = new() { RequestServices = app.Services };
+        http.Request.RouteValues["conversationId"] = conversationId.ToString();
+        http.Response.Body = new MemoryStream();
+
+        await endpoint.RequestDelegate!(http);
+        http.Response.StatusCode.Should().Be(StatusCodes.Status204NoContent);
+        scope!.AgentKey.Should().Be(AssistantSubjects.OperationsHelpAgentKey);
+        scope.SubjectKind.Should().Be(AssistantSubjects.PracticeKind);
+        scope.SubjectId.Should().Be(context.PracticeId, "the conversation was stored under the practice subject");
+    }
+
+    [Fact]
+    public async Task The_stream_observer_reaches_the_assistant_run()
+    {
+        AssistantContext context = OperationsContext();
+        Mock<IAssistantContextFactory> factory = new(MockBehavior.Strict);
+        factory.Setup(item => item.CreateOperationsAsync(null, It.IsAny<CancellationToken>(), null)).ReturnsAsync(context);
+        Mock<ISender> sender = new(MockBehavior.Strict);
+        sender.Setup(item => item.Send(It.IsAny<RunAssistant>(), It.IsAny<CancellationToken>())).ReturnsAsync(Success(context));
+        IAgentTurnObserver observer = new Mock<IAgentTurnObserver>().Object;
+
+        _ = await new AssistantConversationEndpoint(factory.Object, sender.Object).RunAsync(
+            new(AssistantSubjects.OperationsAgentKey, AssistantSubjects.PracticeKind, "practice", "list", null, observer), CancellationToken.None);
+
+        sender.Verify(item => item.Send(It.Is<RunAssistant>(request => ReferenceEquals(request.Observer, observer)), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task The_help_entry_runs_with_its_own_agent_key_and_only_for_the_practice_subject()
+    {
+        AssistantContext context = OperationsContext();
+        Mock<IAssistantContextFactory> factory = new(MockBehavior.Strict);
+        factory.Setup(item => item.CreateOperationsAsync(null, It.IsAny<CancellationToken>(), null)).ReturnsAsync(context);
+        Mock<ISender> sender = new(MockBehavior.Strict);
+        sender.Setup(item => item.Send(It.IsAny<RunAssistant>(), It.IsAny<CancellationToken>())).ReturnsAsync(Success(context));
+        AssistantConversationEndpoint endpoint = new(factory.Object, sender.Object);
+
+        AgentConversationEndpointResult help = await endpoint.RunAsync(
+            new(AssistantSubjects.OperationsHelpAgentKey, AssistantSubjects.PracticeKind, "practice", "how do shifts work", null), CancellationToken.None);
+        AgentConversationEndpointResult patient = await endpoint.RunAsync(
+            new(AssistantSubjects.OperationsHelpAgentKey, AssistantSubjects.PatientKind, Guid.NewGuid().ToString(), "how do shifts work", null), CancellationToken.None);
+
+        help.Outcome.Should().Be(AgentConversationOutcome.Succeeded);
+        sender.Verify(item => item.Send(
+            It.Is<RunAssistant>(request => AssistantSubjects.IsOperationsHelp(request.Context)), It.IsAny<CancellationToken>()), Times.Once);
+        patient.Outcome.Should().Be(AgentConversationOutcome.NotFound);
+    }
+
+    [Fact]
+    public async Task The_help_entry_is_not_available_to_roles_outside_the_operations_scope()
+    {
+        AssistantContext context = OperationsContext() with { Role = "Patient" };
+        Mock<IAssistantContextFactory> factory = new(MockBehavior.Strict);
+        factory.Setup(item => item.CreateOperationsAsync(null, It.IsAny<CancellationToken>(), null)).ReturnsAsync(context);
+        Mock<ISender> sender = new(MockBehavior.Strict);
+
+        AgentConversationEndpointResult result = await new AssistantConversationEndpoint(factory.Object, sender.Object).RunAsync(
+            new(AssistantSubjects.OperationsHelpAgentKey, AssistantSubjects.PracticeKind, "practice", "how do shifts work", null), CancellationToken.None);
+
+        result.Outcome.Should().Be(AgentConversationOutcome.NotFound);
     }
 
     private static AssistantContext OperationsContext() => new(

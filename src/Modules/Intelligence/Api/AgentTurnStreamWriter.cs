@@ -31,8 +31,9 @@ internal sealed class AgentTurnStreamWriter(
 
     internal bool ConsumerFailed { get; private set; }
 
-    // Provisional answer text is not produced by this transport yet; the history-recovery rule reads this.
-    public bool AnswerTextEmitted => false;
+    // Set before the write is attempted, as a partially written frame may already have been seen.
+    // The history-recovery rule reads this.
+    public bool AnswerTextEmitted { get; private set; }
 
     public async ValueTask AcceptedAsync(TimeSpan turnDeadline, CancellationToken cancellationToken)
     {
@@ -48,6 +49,12 @@ internal sealed class AgentTurnStreamWriter(
 
     public ValueTask StageAsync(AgentTurnStageEvent stage, CancellationToken cancellationToken) =>
         WriteAsync(StreamChunkKind.Progress, new AgentTurnPayload(ToContract(stage.Stage), stage.Ordinal), null);
+
+    public ValueTask AnswerDeltaAsync(string messageId, string text, CancellationToken cancellationToken)
+    {
+        AnswerTextEmitted = true;
+        return WriteAsync(StreamChunkKind.Delta, new AgentTurnPayload(MessageId: messageId, Text: text), null);
+    }
 
     internal ValueTask CompleteAsync(RunAgentConversationResponse result) =>
         WriteAsync(StreamChunkKind.Completed, new AgentTurnPayload(Result: result), null);
