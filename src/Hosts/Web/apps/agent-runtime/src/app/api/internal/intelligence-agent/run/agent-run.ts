@@ -1,6 +1,7 @@
 import { Agent, OpenAIProvider, Runner, tool, type Model, type ModelProvider, type StreamEvent } from "@openai/agents";
 import { NextRequest } from "next/server";
 import { AGENT_CREDENTIAL_HEADER } from "../credential-header";
+import { AnswerStream, isValidAnswerStreamRequest, type AnswerStreamRequest } from "./answer-stream";
 import { parseHistory } from "./history";
 import { surfaceProblem } from "./surface";
 import { adaptToolParameters } from "./tool-parameters";
@@ -63,6 +64,12 @@ interface AgentRuntimeRequest {
   };
   callbackUrl: string;
   callbackCredential: string;
+  /**
+   * Declares in advance that the answer string at `answerStream.fieldPath` of the structured result may be
+   * streamed as provisional text. Honored only by a streamed run of a tool-free request with a result schema;
+   * absent or ineligible means progress-only.
+   */
+  answerStream?: AnswerStreamRequest | null;
 }
 
 const reasoningLevels = new Set(["none", "minimal", "low", "medium", "high", "xhigh", "max"]);
@@ -153,6 +160,8 @@ export interface AgentRunObserver {
   modelRoundStarted(ordinal: number): Promise<void>;
   toolStarted(ordinal: number): Promise<void>;
   toolCompleted(ordinal: number): Promise<void>;
+  /** Provisional text of the declared answer field; bounded pieces, awaited like every other notification. */
+  answerDelta(messageId: string, text: string): Promise<void>;
 }
 
 function untilAborted(work: Promise<void>, signal: AbortSignal): Promise<void> {
@@ -170,6 +179,7 @@ function guardObserver(observer: AgentRunObserver, signal: AbortSignal): AgentRu
     modelRoundStarted: (ordinal) => untilAborted(observer.modelRoundStarted(ordinal), signal),
     toolStarted: (ordinal) => untilAborted(observer.toolStarted(ordinal), signal),
     toolCompleted: (ordinal) => untilAborted(observer.toolCompleted(ordinal), signal),
+    answerDelta: (messageId, text) => untilAborted(observer.answerDelta(messageId, text), signal),
   };
 }
 
@@ -183,6 +193,7 @@ async function* budgetedStream(
   request: Parameters<Model["getStreamedResponse"]>[0],
   maxTokens: number,
   usedTokens: { value: number },
+  answer?: AnswerStream,
 ): AsyncGenerator<StreamEvent> {
   assertTokenBudgetRemains(maxTokens, usedTokens);
   const remaining = maxTokens - usedTokens.value;
@@ -196,12 +207,16 @@ async function* budgetedStream(
     for await (const event of model.getStreamedResponse(clamped)) {
       if (event.type === "response_done") {
         accounted = true;
+        answer?.close();
         recordTokenUsage(maxTokens, usedTokens, event.response.usage);
+      } else if (event.type === "output_text_delta") {
+        await answer?.text(event.delta);
       }
       yield event;
     }
     if (!accounted) recordTokenUsage(maxTokens, usedTokens, undefined);
   } finally {
+    answer?.close();
     // Cancellation or provider failure before completion leaves the spend unknown: block any later round or tool.
     if (!accounted) usedTokens.value = maxTokens;
   }
@@ -212,15 +227,16 @@ function budgetedModelProvider(
   usedTokens: { value: number },
   executionId: string,
   observer?: AgentRunObserver,
+  answer?: AnswerStream,
 ): ModelProvider {
   const provider = new OpenAIProvider();
   return {
     getModel: (modelName?: string) => {
       const model = provider.getModel(modelName);
       if (model instanceof Promise) {
-        return model.then((resolved) => budgetedModel(resolved, maxTokens, usedTokens, executionId, observer));
+        return model.then((resolved) => budgetedModel(resolved, maxTokens, usedTokens, executionId, observer, answer));
       }
-      return budgetedModel(model, maxTokens, usedTokens, executionId, observer);
+      return budgetedModel(model, maxTokens, usedTokens, executionId, observer, answer);
     },
   };
 }
@@ -231,6 +247,7 @@ function budgetedModel(
   usedTokens: { value: number },
   executionId: string,
   observer?: AgentRunObserver,
+  answer?: AnswerStream,
 ): Model {
   let turn = 0;
   return {
@@ -257,7 +274,7 @@ function budgetedModel(
         assertTokenBudgetRemains(maxTokens, usedTokens);
         turn += 1;
         await observer?.modelRoundStarted(turn);
-        yield* budgetedStream(model, request, maxTokens, usedTokens);
+        yield* budgetedStream(model, request, maxTokens, usedTokens, answer);
       })(),
     getRetryAdvice: model.getRetryAdvice?.bind(model),
   };
@@ -356,7 +373,8 @@ export async function prepareAgentRun(request: NextRequest): Promise<PreparedAge
       !isValidExecutionEnvelope(input.executionEnvelope) ||
       !input.callbackUrl || !input.callbackCredential ||
       !Array.isArray(input.tools) || input.limits?.maxIterations < 1 ||
-      input.limits?.maxToolCalls < 0 || input.limits?.maxTokens < 1) {
+      input.limits?.maxToolCalls < 0 || input.limits?.maxTokens < 1 ||
+      (input.answerStream != null && (!isValidAnswerStreamRequest(input.answerStream) || !input.definition.result))) {
     return Response.json({ error: "The agent runtime request is invalid." }, { status: 400 });
   }
 
@@ -425,6 +443,10 @@ export async function executeAgentRun(
   const timeout = setTimeout(() => timeoutController.abort(), timeoutMs);
   const runSignal = AbortSignal.any([signal, timeoutController.signal]);
   const guardedObserver = observer && guardObserver(observer, runSignal);
+  // Streamable only when declared by the request, in a streamed run, with no tool the model could call instead.
+  const answerStream = guardedObserver && input.answerStream && input.tools.length === 0
+    ? new AnswerStream(input.answerStream, guardedObserver.answerDelta)
+    : undefined;
   const tools = input.tools.map((definition) => {
     const parameters = adaptToolParameters(JSON.parse(definition.parametersJsonSchema));
 
@@ -436,6 +458,7 @@ export async function executeAgentRun(
       timeoutMs: 120_000,
       execute: async (argumentsValue: unknown, _context: unknown, details: unknown) => {
         argumentsValue = parameters.decodeArguments(argumentsValue);
+        answerStream?.close();
         const callId = toolCallId(details);
         assertTokenBudgetRemains(input.limits.maxTokens, usedTokens);
         if (toolCallsUsed >= input.limits.maxToolCalls) {
@@ -557,7 +580,7 @@ export async function executeAgentRun(
       outputType,
     });
     const runner = new Runner({
-      modelProvider: budgetedModelProvider(input.limits.maxTokens, usedTokens, input.executionEnvelope.executionId, guardedObserver),
+      modelProvider: budgetedModelProvider(input.limits.maxTokens, usedTokens, input.executionEnvelope.executionId, guardedObserver, answerStream),
       tracingDisabled: true,
       traceIncludeSensitiveData: false,
     });

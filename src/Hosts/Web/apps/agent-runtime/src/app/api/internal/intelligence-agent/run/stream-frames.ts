@@ -1,12 +1,13 @@
 /**
  * Internal frame contract of the streamed agent run (Main consumes it): newline-delimited JSON, one frame per
- * line, flushed per frame. Frames never carry tool names, arguments, results, reasoning or answer text.
+ * line, flushed per frame. Stage frames never carry tool names, arguments, results, reasoning or answer text; the only text a frame
+ * may carry is a delta of the answer field the run request declared streamable.
  */
 import type { AgentRunResponseBody } from "./agent-run";
 
 export const AGENT_RUN_STREAM_CONTENT_TYPE = "application/x-ndjson";
 
-export const AgentRunFrameKind = { Stage: "stage", Result: "result" } as const;
+export const AgentRunFrameKind = { Stage: "stage", Delta: "delta", Result: "result" } as const;
 
 export const AgentRunStage = {
   ModelRoundStarted: "ModelRoundStarted",
@@ -22,10 +23,23 @@ export interface AgentRunStageFrame {
   ordinal: number;
 }
 
+/** Provisional answer text for the message the run request declared; the terminal result stays authoritative. */
+export interface AgentRunDeltaFrame {
+  kind: typeof AgentRunFrameKind.Delta;
+  messageId: string;
+  text: string;
+}
+
+/** Upper bound of the text of one delta frame, in UTF-16 code units. */
+export const MAX_ANSWER_DELTA_CHARS = 2048;
+
+/** Upper bound of the answer text streamed in one run; beyond it only the terminal result carries the rest. */
+export const MAX_ANSWER_STREAM_CHARS = 100_000;
+
 /** Terminal frame: exactly the buffered run response body, for success and for coded failure alike. */
 export type AgentRunResultFrame = { kind: typeof AgentRunFrameKind.Result } & AgentRunResponseBody;
 
-export type AgentRunFrame = AgentRunStageFrame | AgentRunResultFrame;
+export type AgentRunFrame = AgentRunStageFrame | AgentRunDeltaFrame | AgentRunResultFrame;
 
 /** Upper bound of one encoded frame line. A result over the bound is replaced by the coded runtime failure. */
 export const MAX_AGENT_RUN_FRAME_BYTES = 8 * 1024 * 1024;

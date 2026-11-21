@@ -43,6 +43,7 @@ export function streamAgentRun(prepared: PreparedAgentRun, requestSignal: AbortS
     modelRoundStarted: (ordinal) => stage(AgentRunStage.ModelRoundStarted, ordinal),
     toolStarted: (ordinal) => stage(AgentRunStage.ToolStarted, ordinal),
     toolCompleted: (ordinal) => stage(AgentRunStage.ToolCompleted, ordinal),
+    answerDelta: (messageId, text) => write(encodeAgentRunFrame({ kind: AgentRunFrameKind.Delta, messageId, text })!, signal),
   };
 
   async function pump(): Promise<void> {
