@@ -102,6 +102,22 @@ describe("answer field decoder", () => {
     expectSameForEverySplit('{"a":0,"b":-0.5,"c":1E+2,"d":12.50e-3,"e":false,"f":[true,null],"answer":"ok"}', "ok");
   });
 
+  it("accepts valid numbers of any length and still rejects an invalid long one", () => {
+    const long = `0.${"0".repeat(500)}1`;
+    const huge = `${"9".repeat(300)}e-${"0".repeat(100)}5`;
+    for (const value of [long, huge, `-${long}`, `1${"0".repeat(400)}`]) {
+      const json = `{"answer":"ok","n":${value},"after":[${value}]}`;
+      expect(JSON.parse(json).n).toBeDefined();
+      expectSameForEverySplit(json, "ok");
+      expect(decodeWhole(json).decoder.wellFormed).toBe(true);
+    }
+    for (const bad of [`01${"0".repeat(100)}`, `1.${"0".repeat(100)}.5`, `1${"0".repeat(100)}e`, `1${"0".repeat(100)}x`]) {
+      const decoder = decodeWhole(`{"n":${bad},"answer":"visible"}`).decoder;
+      expect(decoder.stopped, bad).toBe(true);
+      expect(decoder.wellFormed, bad).toBe(false);
+    }
+  });
+
   it("stops without emitting on a wrong-typed field or malformed JSON", () => {
     for (const bad of [
       '{"answer":5}', '{"answer":null}', '{"answer":{"x":"y"}}', '{"answer":["y"]}',

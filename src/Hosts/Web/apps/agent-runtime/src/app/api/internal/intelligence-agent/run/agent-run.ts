@@ -1,7 +1,7 @@
 import { Agent, OpenAIProvider, Runner, tool, type Model, type ModelProvider, type StreamEvent } from "@openai/agents";
 import { NextRequest } from "next/server";
 import { AGENT_CREDENTIAL_HEADER } from "../credential-header";
-import { AnswerStream, isValidAnswerStreamRequest, type AnswerStreamRequest } from "./answer-stream";
+import { AnswerFieldDecoder, AnswerStream, isValidAnswerStreamRequest, type AnswerStreamRequest } from "./answer-stream";
 import { AgentRunFailure, agentRunFailureWire, type AgentRunFailureCode } from "./failure-codes";
 import { parseHistory } from "./history";
 import { surfaceProblem } from "./surface";
@@ -71,9 +71,15 @@ interface AgentRuntimeRequest {
    * absent or ineligible means progress-only.
    */
   answerStream?: AnswerStreamRequest | null;
+  /**
+   * 1-based ordinal of this runtime attempt of the turn, owned by Main (a history retry is a later attempt);
+   * absent means the first. Reported in the per-call log record only: model-round ordinals count within the attempt.
+   */
+  attempt?: number | null;
 }
 
 const reasoningLevels = new Set(["none", "minimal", "low", "medium", "high", "xhigh", "max"]);
+const MAX_ATTEMPT_ORDINAL = 1000;
 const envelopeVersion = 1;
 const credentialVersion = 1;
 
@@ -141,10 +147,23 @@ function assertTokenBudgetRemains(maxTokens: number, usedTokens: { value: number
   if (usedTokens.value >= maxTokens) throw new AgentRuntimeLimitError(AgentRunFailure.TokenLimitExceeded);
 }
 
+/**
+ * The tokens one completed provider call spent. The Responses adapter normalizes a provider response without
+ * usage to zeros before this runtime can see it, so an unreported total is indistinguishable from a reported
+ * zero there; a completed call always consumes at least its prompt, so a zero total is unreported. Input plus
+ * output stands in when only the total is missing. Returns null when nothing credible was reported.
+ */
+function reportedTokenSpend(usage: { inputTokens?: number; outputTokens?: number; totalTokens?: number } | undefined): number | null {
+  const credible = (value: unknown): value is number => typeof value === "number" && Number.isFinite(value) && value > 0;
+  if (credible(usage?.totalTokens)) return usage.totalTokens;
+  const parts = (usage?.inputTokens ?? 0) + (usage?.outputTokens ?? 0);
+  return credible(parts) ? parts : null;
+}
+
 /** Adds reported usage to the cumulative total; usage the provider did not report is treated as budget exhaustion. */
-function recordTokenUsage(maxTokens: number, usedTokens: { value: number }, usage: { totalTokens?: number } | undefined): void {
-  const total = usage?.totalTokens;
-  if (typeof total !== "number" || !Number.isFinite(total) || total < 0) {
+function recordTokenUsage(maxTokens: number, usedTokens: { value: number }, usage: { inputTokens?: number; outputTokens?: number; totalTokens?: number } | undefined): void {
+  const total = reportedTokenSpend(usage);
+  if (total === null) {
     usedTokens.value = maxTokens;
     throw new AgentRuntimeLimitError(AgentRunFailure.TokenLimitExceeded);
   }
@@ -184,11 +203,12 @@ const cachedTokensDetail = "cached_tokens";
 /**
  * Single owner of the per-model-call record for the buffered and streamed paths. Durations and counts only:
  * prompts, tool arguments and replies are clinical data and are never logged. The turn is the model-call ordinal
- * of the run, the same number a streamed run reports as the model round ordinal.
+ * within the runtime attempt, the same number a streamed run reports as the model round ordinal.
  */
-function logModelCall(executionId: string, turn: number, streamed: boolean, startedAt: number, usage: ReportedUsage | undefined): void {
+function logModelCall(executionId: string, attempt: number, turn: number, streamed: boolean, startedAt: number, usage: ReportedUsage | undefined): void {
   console.info("Agent model call completed", {
     executionId,
+    attempt,
     turn,
     streamed,
     durationMs: Math.round(performance.now() - startedAt),
@@ -242,6 +262,7 @@ async function* budgetedStream(
   maxTokens: number,
   usedTokens: { value: number },
   executionId: string,
+  attempt: number,
   turn: number,
   answer?: AnswerStream,
 ): AsyncGenerator<StreamEvent> {
@@ -252,7 +273,7 @@ async function* budgetedStream(
       if (event.type === "response_done") {
         accounted = true;
         answer?.completeRound();
-        logModelCall(executionId, turn, true, startedAt, event.response.usage);
+        logModelCall(executionId, attempt, turn, true, startedAt, event.response.usage);
         recordTokenUsage(maxTokens, usedTokens, event.response.usage);
       } else if (event.type === "output_text_delta") {
         await answer?.text(event.delta);
@@ -267,21 +288,40 @@ async function* budgetedStream(
   }
 }
 
+/** Per-attempt identity and counter of model rounds: the SDK resolves a fresh model for every round, so the count lives here. */
+interface ModelRounds {
+  attempt: number;
+  completed: number;
+}
+
+/** The text of the model's final message exactly as the provider produced it, before the SDK parses it. */
+function rawMessageText(output: ReadonlyArray<unknown>): string {
+  let text = "";
+  for (const item of output) {
+    const message = item as { type?: string; content?: Array<{ type?: string; text?: string }> };
+    if (message?.type !== "message" || !Array.isArray(message.content)) continue;
+    for (const part of message.content) if (part?.type === "output_text" && typeof part.text === "string") text += part.text;
+  }
+  return text;
+}
+
 function budgetedModelProvider(
   maxTokens: number,
   usedTokens: { value: number },
   executionId: string,
+  rounds: ModelRounds,
   observer?: AgentRunObserver,
   answer?: AnswerStream,
+  answerFieldPath?: readonly string[],
 ): ModelProvider {
   const provider = new OpenAIProvider();
   return {
     getModel: (modelName?: string) => {
       const model = provider.getModel(modelName);
       if (model instanceof Promise) {
-        return model.then((resolved) => budgetedModel(resolved, maxTokens, usedTokens, executionId, observer, answer));
+        return model.then((resolved) => budgetedModel(resolved, maxTokens, usedTokens, executionId, rounds, observer, answer, answerFieldPath));
       }
-      return budgetedModel(model, maxTokens, usedTokens, executionId, observer, answer);
+      return budgetedModel(model, maxTokens, usedTokens, executionId, rounds, observer, answer, answerFieldPath);
     },
   };
 }
@@ -291,27 +331,35 @@ function budgetedModel(
   maxTokens: number,
   usedTokens: { value: number },
   executionId: string,
+  rounds: ModelRounds,
   observer?: AgentRunObserver,
   answer?: AnswerStream,
+  answerFieldPath?: readonly string[],
 ): Model {
-  let turn = 0;
   return {
     getResponse: async (request) => {
       assertTokenBudgetRemains(maxTokens, usedTokens);
-      turn += 1;
+      rounds.completed += 1;
       const startedAt = performance.now();
       const response = await model.getResponse(clampToRemainingBudget(request, maxTokens, usedTokens));
-      logModelCall(executionId, turn, false, startedAt, response.usage);
+      logModelCall(executionId, rounds.attempt, rounds.completed, false, startedAt, response.usage);
       recordTokenUsage(maxTokens, usedTokens, response.usage);
+      if (answerFieldPath) {
+        // Streamed runs validate the live decoder; here the original text is checked before the SDK parse erases duplicates.
+        const raw = new AnswerFieldDecoder(answerFieldPath);
+        raw.push(rawMessageText(response.output));
+        if (!raw.wellFormed) throw new Error(AgentRunFailure.ProviderFailure);
+      }
       return response;
     },
     getStreamedResponse: (request) =>
       (async function* () {
         // A round the budget already refuses is never announced.
         assertTokenBudgetRemains(maxTokens, usedTokens);
-        turn += 1;
+        rounds.completed += 1;
+        const turn = rounds.completed;
         await observer?.modelRoundStarted(turn);
-        yield* budgetedStream(model, clampToRemainingBudget(request, maxTokens, usedTokens), maxTokens, usedTokens, executionId, turn, answer);
+        yield* budgetedStream(model, clampToRemainingBudget(request, maxTokens, usedTokens), maxTokens, usedTokens, executionId, rounds.attempt, turn, answer);
       })(),
     getRetryAdvice: model.getRetryAdvice?.bind(model),
   };
@@ -411,7 +459,8 @@ export async function prepareAgentRun(request: NextRequest): Promise<PreparedAge
       !input.callbackUrl || !input.callbackCredential ||
       !Array.isArray(input.tools) || input.limits?.maxIterations < 1 ||
       input.limits?.maxToolCalls < 0 || input.limits?.maxTokens < 1 ||
-      (input.answerStream != null && (!isValidAnswerStreamRequest(input.answerStream) || !input.definition.result))) {
+      (input.answerStream != null && (!isValidAnswerStreamRequest(input.answerStream) || !input.definition.result)) ||
+      (input.attempt != null && (!Number.isInteger(input.attempt) || input.attempt < 1 || input.attempt > MAX_ATTEMPT_ORDINAL))) {
     return Response.json({ error: "The agent runtime request is invalid." }, { status: 400 });
   }
 
@@ -463,6 +512,8 @@ export async function executeAgentRun(
   const executions: ToolExecution[] = [];
   let toolCallsUsed = 0;
   const usedTokens = { value: 0 };
+  let terminalLimit: AgentRuntimeLimitError | undefined;
+  const rounds: ModelRounds = { attempt: input.attempt ?? 1, completed: 0 };
   const timeoutController = new AbortController();
   const timeout = setTimeout(() => timeoutController.abort(), timeoutMs);
   const runSignal = AbortSignal.any([signal, timeoutController.signal]);
@@ -480,6 +531,16 @@ export async function executeAgentRun(
       parameters: parameters.parameters as never,
       strict: true,
       timeoutMs: 120_000,
+      // The SDK turns a thrown tool error into a tool result and continues. An exhausted limit must end the run instead:
+      // it is recorded as terminal and rethrown (the SDK wraps it, so the failure code is read from the record).
+      // Every other tool error stays a recoverable result the model can react to, as with the SDK default.
+      errorFunction: (_context: unknown, error: unknown) => {
+        if (error instanceof AgentRuntimeLimitError) {
+          terminalLimit ??= error;
+          throw error;
+        }
+        return `An error occurred while running the tool. Please try again. Error: ${String(error)}`;
+      },
       execute: async (argumentsValue: unknown, _context: unknown, details: unknown) => {
         argumentsValue = parameters.decodeArguments(argumentsValue);
         answerStream?.close();
@@ -604,7 +665,10 @@ export async function executeAgentRun(
       outputType,
     });
     const runner = new Runner({
-      modelProvider: budgetedModelProvider(input.limits.maxTokens, usedTokens, input.executionEnvelope.executionId, guardedObserver, answerStream),
+      modelProvider: budgetedModelProvider(
+        input.limits.maxTokens, usedTokens, input.executionEnvelope.executionId, rounds, guardedObserver, answerStream,
+        input.answerStream && input.tools.length === 0 ? input.answerStream.fieldPath : undefined,
+      ),
       tracingDisabled: true,
       traceIncludeSensitiveData: false,
     });
@@ -646,8 +710,9 @@ export async function executeAgentRun(
       history,
     };
   } catch (error) {
-    const code = error instanceof AgentRuntimeLimitError
-      ? error.code
+    const limit = error instanceof AgentRuntimeLimitError ? error : terminalLimit;
+    const code = limit
+      ? limit.code
       : error instanceof Error && error.message === AgentRunFailure.InvalidHistory
         ? AgentRunFailure.InvalidHistory
       : timeoutController.signal.aborted

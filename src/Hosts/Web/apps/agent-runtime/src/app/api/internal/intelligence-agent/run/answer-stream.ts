@@ -44,9 +44,54 @@ const simpleEscapes: Record<string, string> = { '"': '"', "\\": "\\", "/": "/", 
 const isHigh = (unit: number) => unit >= 0xd800 && unit <= 0xdbff;
 const isLow = (unit: number) => unit >= 0xdc00 && unit <= 0xdfff;
 const isScalarChar = (char: string) => /[0-9A-Za-z+\-.]/.test(char);
-const MAX_SCALAR_LENGTH = 64;
-/** A complete JSON number or literal; a skipped scalar that is anything else makes the output malformed. */
-const validScalar = /^(?:true|false|null|-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?)$/;
+const literals = ["true", "false", "null"];
+/** Position within a JSON number; the grammar is checked one character at a time, so a number's length is unbounded. */
+type NumberState = "minus" | "zero" | "int" | "dot" | "frac" | "exp" | "expSign" | "expDigits";
+const numberEndStates: ReadonlySet<NumberState> = new Set<NumberState>(["zero", "int", "frac", "expDigits"]);
+const isDigit = (char: string) => char >= "0" && char <= "9";
+const isExponentMark = (char: string) => char === "e" || char === "E";
+
+function nextNumberState(state: NumberState, char: string): NumberState | null {
+  switch (state) {
+    case "minus":
+      return char === "0" ? "zero" : isDigit(char) ? "int" : null;
+    case "zero":
+      return char === "." ? "dot" : isExponentMark(char) ? "exp" : null;
+    case "int":
+      return isDigit(char) ? "int" : char === "." ? "dot" : isExponentMark(char) ? "exp" : null;
+    case "dot":
+      return isDigit(char) ? "frac" : null;
+    case "frac":
+      return isDigit(char) ? "frac" : isExponentMark(char) ? "exp" : null;
+    case "exp":
+      return char === "+" || char === "-" ? "expSign" : isDigit(char) ? "expDigits" : null;
+    case "expSign":
+    case "expDigits":
+      return isDigit(char) ? "expDigits" : null;
+  }
+}
+
+/** A skipped scalar: a number tracked by grammar state without a buffer, or a literal of at most five characters. */
+type Scalar = { kind: "number"; state: NumberState } | { kind: "literal"; text: string };
+
+function beginScalar(char: string): Scalar | null {
+  if (char === "-") return { kind: "number", state: "minus" };
+  if (isDigit(char)) return { kind: "number", state: char === "0" ? "zero" : "int" };
+  return literals.some((literal) => literal.startsWith(char)) ? { kind: "literal", text: char } : null;
+}
+
+function continueScalar(scalar: Scalar, char: string): Scalar | null {
+  if (scalar.kind === "number") {
+    const state = nextNumberState(scalar.state, char);
+    return state && { kind: "number", state };
+  }
+  const text = scalar.text + char;
+  return literals.some((literal) => literal.startsWith(text)) ? { kind: "literal", text } : null;
+}
+
+function isCompleteScalar(scalar: Scalar): boolean {
+  return scalar.kind === "number" ? numberEndStates.has(scalar.state) : literals.includes(scalar.text);
+}
 
 export class AnswerFieldDecoder {
   private readonly stack: Container[] = [];
@@ -56,7 +101,7 @@ export class AnswerFieldDecoder {
   private keyBuffer = "";
   private keyOverflow = false;
   private pendingHigh: number | null = null;
-  private scalar: string | null = null;
+  private scalar: Scalar | null = null;
   private rootClosed = false;
   private emitted = 0;
   private halted = false;
@@ -97,13 +142,13 @@ export class AnswerFieldDecoder {
     }
     if (this.scalar !== null) {
       if (isScalarChar(char)) {
-        this.scalar += char;
-        if (this.scalar.length > MAX_SCALAR_LENGTH) this.fail();
+        this.scalar = continueScalar(this.scalar, char);
+        if (!this.scalar) this.fail();
         return;
       }
-      const token = this.scalar;
+      const complete = isCompleteScalar(this.scalar);
       this.scalar = null;
-      if (!validScalar.test(token)) return this.fail();
+      if (!complete) return this.fail();
       this.completeValue();
     }
     if (char === " " || char === "\n" || char === "\r" || char === "\t") return;
@@ -149,7 +194,8 @@ export class AnswerFieldDecoder {
         // Numbers, true, false and null: skipped; a scalar at the designated field is the wrong type.
         if (top.phase !== "value" || !isScalarChar(char) || this.atTarget()) return this.fail();
         top.empty = false;
-        this.scalar = char;
+        this.scalar = beginScalar(char);
+        if (!this.scalar) this.fail();
     }
   }
 
@@ -282,7 +328,7 @@ export function splitAnswerText(text: string): string[] {
  */
 export class AnswerStream {
   private decoder: AnswerFieldDecoder | null;
-  private streamedText = false;
+  private fed = false;
   private wellFormed = false;
 
   constructor(
@@ -296,20 +342,21 @@ export class AnswerStream {
   async text(delta: string): Promise<void> {
     const decoder = this.decoder;
     if (!decoder) return;
+    if (delta.length > 0) this.fed = true;
     const decoded = decoder.push(delta);
     if (decoder.stopped) this.settle(decoder);
     for (const piece of splitAnswerText(decoded)) {
-      this.streamedText = true;
       await this.emit(this.request.messageId, piece);
     }
   }
 
   /**
-   * True once text was streamed from output that did not prove to be one well-formed object (malformed, repeated
-   * answer key, trailing content): the provisional text cannot be trusted to match the terminal result.
+   * True once model output was received that is not one well-formed object (malformed, repeated answer key,
+   * trailing content). The SDK parses the output before the caller sees it, so a duplicate key would otherwise
+   * vanish: the result is rejected whether or not provisional text escaped, and chunking never changes the outcome.
    */
   get inconsistent(): boolean {
-    return this.streamedText && !this.wellFormed;
+    return this.fed && !this.wellFormed;
   }
 
   /** Called when the provider finished the round: validates the rest of the object, then nothing more is streamed. */

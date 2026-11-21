@@ -208,13 +208,9 @@ describe("agent runtime answer-field streaming", () => {
     expect(terminalOf(received)).toMatchObject({ isSuccess: true });
   });
 
-  it("stops streaming on malformed or wrong-typed fields and still returns the buffered terminal result", async () => {
+  it("streams only the designated field of a well-formed object and returns the buffered terminal result", async () => {
     const buffered = await (await bufferedPost(runRequest("run"))).json();
     const cases: Array<[string, string]> = [
-      [`{"${answerField}":42}`, ""],
-      [`{"other":"x"}}{"${answerField}":"late"}`, ""],
-      [`{"other":garbage,"${answerField}":"visible"}`, ""],
-      [`{"other":01,"${answerField}":"visible"}`, ""],
       [`{"nested":{"${answerField}":"wrong"},"${answerField}":"right"}`, "right"],
     ];
     for (const [output, expectedText] of cases) {
@@ -246,12 +242,32 @@ describe("agent runtime answer-field streaming", () => {
     }
   });
 
-  it("does not fail a run whose malformed output never streamed any text", async () => {
-    scriptRound(`{"${answerField}":"first","${answerField}":"second"}`);
+  it("fails malformed, wrong-typed and duplicate-key output identically whether or not text escaped", async () => {
+    const outputs = [
+      `{"${answerField}":42}`,
+      `{"other":"x"}}{"${answerField}":"late"}`,
+      `{"other":garbage,"${answerField}":"visible"}`,
+      `{"other":01,"${answerField}":"visible"}`,
+      `{"${answerField}":"first","${answerField}":"second"}`,
+    ];
+    for (const output of outputs) {
+      for (const size of [output.length, 2]) {
+        scriptRound(...chunked(output, size));
+
+        const received = await frames(await streamedPost(runRequest("run/stream")));
+
+        expect(terminalOf(received), `${output} / ${size}`).toMatchObject({ isSuccess: false, error: { code: providerFailureCode } });
+      }
+    }
+  });
+
+  it("streams a well-formed object whose skipped number is longer than any fixed token limit", async () => {
+    const longNumber = `0.${"0".repeat(200)}1`;
+    scriptRound(...chunked(`{"${answerField}":"visible","count":${longNumber}}`, 7));
 
     const received = await frames(await streamedPost(runRequest("run/stream")));
 
-    expect(deltas(received)).toHaveLength(0);
+    expect(answerText(received)).toBe("visible");
     expect(terminalOf(received)).toMatchObject({ isSuccess: true });
   });
 
