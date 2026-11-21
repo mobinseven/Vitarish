@@ -103,8 +103,8 @@ public sealed class RunAgentConversationHandler(
                 AgentTurnPhase.HistoryPreparation,
                 () => PrepareTurn(request, lease));
 
-            AgentRunResult run = await spans.MeasureRuntimeAttemptAsync(() => RunAttemptAsync(
-                request, history, executionContext, observer, cancellationToken));
+            AgentRunResult run = await spans.MeasureRuntimeAttemptAsync(attempt => RunAttemptAsync(
+                request, history, executionContext with { Attempt = attempt }, observer, cancellationToken));
 
             // A rejected history is retried once on its carried-over messages, and only when the runtime
             // reports that no tool ran, so no tool (including a direct mutation) executes twice. This is
@@ -116,8 +116,8 @@ public sealed class RunAgentConversationHandler(
             {
                 history = CarryOver(history, "rejected history", executionContext, request.Scope, lease);
                 string? retryHistory = history;
-                run = await spans.MeasureRuntimeAttemptAsync(() => RunAttemptAsync(
-                    request, retryHistory, executionContext, observer, cancellationToken));
+                run = await spans.MeasureRuntimeAttemptAsync(attempt => RunAttemptAsync(
+                    request, retryHistory, executionContext with { Attempt = attempt }, observer, cancellationToken));
             }
             if (logger is not null)
                 AgentConversationTelemetry.ProviderOutcome(

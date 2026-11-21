@@ -212,6 +212,7 @@ public sealed class AgentConversationHandlerTests
 
         result.Outcome.Should().Be(AgentConversationOutcome.Succeeded);
         runner.Inputs.Select(input => input.History).Should().Equal(HistoryWithToolCall, CarriedHistory);
+        runner.Attempts.Should().Equal(1, 2);
     }
 
     [Fact]
@@ -570,6 +571,7 @@ public sealed class AgentConversationHandlerTests
         public AgentRunResult Result => results[0];
         public AgentInput? Input => Inputs.LastOrDefault();
         public List<AgentInput> Inputs { get; } = [];
+        public List<int> Attempts { get; } = [];
 
         public Task<AgentRunResult> RunAsync(
             AgentDefinition definition,
@@ -580,6 +582,7 @@ public sealed class AgentConversationHandlerTests
             CancellationToken cancellationToken = default)
         {
             Inputs.Add(input);
+            Attempts.Add(context.Attempt);
             return Task.FromResult(results[Math.Min(Inputs.Count - 1, results.Length - 1)]);
         }
     }

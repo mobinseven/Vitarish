@@ -74,6 +74,18 @@ public sealed class AgentRuntimeHttpRunnerTests
         handler.Request.Definition.ReasoningLevel.Should().Be(AgentReasoningLevel.Low);
     }
 
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    public async Task RunAsync_SendsTheAttemptOrdinalSoHistoryRetriesAreDistinguishable(int attempt)
+    {
+        RecordingHandler handler = new(new AgentRuntimeRunResponse(true, "ok", null, new(1, 1), 1, 0, [], History: "[]"));
+
+        _ = await CreateRunner(handler).RunAsync(Definition, Input, [], Context with { Attempt = attempt }, Limits);
+
+        handler.Request!.Attempt.Should().Be(attempt);
+    }
+
     [Fact]
     public async Task RunAsync_HidesRuntimeTransportFailure()
     {

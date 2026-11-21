@@ -60,6 +60,20 @@ public sealed class GetTodayAppointmentCountQueryHandlerTests
         result.Date.Should().Be(new DateOnly(expectedYear, expectedMonth, expectedDay));
     }
 
+    [Theory]
+    // The same instant (00:30 on 21 November in Tehran, still 20 November in New York): the context zone,
+    // which the caller supplies only as a fallback because no practice-owned zone exists, decides the day.
+    [InlineData(Tehran, 21)]
+    [InlineData(NewYork, 20)]
+    public async Task The_same_instant_near_local_midnight_belongs_to_the_day_of_the_context_zone(string zone, int expectedDay)
+    {
+        Fixture fixture = new(Utc(2026, 11, 20, 21, 0, 0), count: 1);
+
+        TodayAppointmentCountResult result = await fixture.Handle(zone);
+
+        result.Date.Should().Be(new DateOnly(2026, 11, expectedDay));
+    }
+
     [Fact]
     public async Task The_count_is_asked_only_for_the_callers_practice_and_user()
     {

@@ -50,7 +50,7 @@ internal sealed class AgentTurnSpans(ILogger? logger, string executionId)
     }
 
     /// <summary>Runs one runtime attempt, recording its duration, outcome, call counts and reported tokens.</summary>
-    internal async Task<AgentRunResult> MeasureRuntimeAttemptAsync(Func<Task<AgentRunResult>> work)
+    internal async Task<AgentRunResult> MeasureRuntimeAttemptAsync(Func<int, Task<AgentRunResult>> work)
     {
         int attempt = ++attempts;
         long startedAt = Stopwatch.GetTimestamp();
@@ -58,7 +58,7 @@ internal sealed class AgentTurnSpans(ILogger? logger, string executionId)
         AgentRunResult? run = null;
         try
         {
-            run = await work();
+            run = await work(attempt);
             outcome = OutcomeOf(run);
             return run;
         }
