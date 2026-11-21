@@ -4,10 +4,7 @@ namespace Vitarish.Intelligence.Api;
 
 internal static partial class IntelligenceAgentRuntimeTelemetry
 {
-    internal const string SucceededOutcome = "Succeeded";
     internal const string ToolErrorOutcome = "ToolError";
-    internal const string CancelledOutcome = "Cancelled";
-    internal const string FaultedOutcome = "Faulted";
     internal const string NotFoundOutcome = "NotFound";
     internal const string ForbiddenOutcome = "Forbidden";
     internal const string RejectedOutcome = "Rejected";

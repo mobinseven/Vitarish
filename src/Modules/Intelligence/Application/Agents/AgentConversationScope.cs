@@ -49,7 +49,13 @@ public enum AgentConversationOutcome
     Busy,
     HistoryLimitExceeded,
     ProviderFailure,
-    InvalidHistory
+    InvalidHistory,
+
+    /// <summary>The runtime exceeded its deadline; buffered routes report it like any provider failure.</summary>
+    TimedOut,
+
+    /// <summary>The turn was cancelled toward the runtime; buffered routes report it like any provider failure.</summary>
+    Cancelled
 }
 
 /// <param name="ProfileCompatibilityKey">The configuration key the next history write records; null for callers without one.</param>

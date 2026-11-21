@@ -71,7 +71,24 @@ public sealed class AgentConversationHandlerTests
         RunAgentConversationResult result =
             await new RunAgentConversationHandler(store, runner).Handle(Request(store.ConversationId), default);
 
-        result.Outcome.Should().Be(AgentConversationOutcome.ProviderFailure);
+        result.Outcome.Should().Be(AgentConversationOutcome.Cancelled);
+        result.Run!.Error!.Code.Should().Be(AgentRunErrorCode.Cancelled);
+        store.ReplacedHistory.Should().BeNull();
+        store.Released.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Handle_ReportsTheRuntimeDeadlineAsTimedOutAndReleasesTheLease()
+    {
+        FakeStore store = new() { History = "[{\"role\":\"user\",\"content\":\"prior\"}]" };
+        FakeRunner runner = new(new AgentRunResult(
+            false, null, null, new(0, 0), TimeSpan.Zero, 0, 0,
+            new(AgentRunErrorCode.Timeout, "timed out")));
+
+        RunAgentConversationResult result =
+            await new RunAgentConversationHandler(store, runner).Handle(Request(store.ConversationId), default);
+
+        result.Outcome.Should().Be(AgentConversationOutcome.TimedOut);
         store.ReplacedHistory.Should().BeNull();
         store.Released.Should().BeTrue();
     }

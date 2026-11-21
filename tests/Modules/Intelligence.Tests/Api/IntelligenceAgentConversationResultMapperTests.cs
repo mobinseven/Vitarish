@@ -38,6 +38,26 @@ public sealed class IntelligenceAgentConversationResultMapperTests
         context.Response.StatusCode.Should().Be(StatusCodes.Status409Conflict);
     }
 
+    [Theory]
+    [InlineData(AgentConversationOutcome.TimedOut)]
+    [InlineData(AgentConversationOutcome.Cancelled)]
+    public async Task Deadline_and_cancel_outcomes_keep_the_buffered_dependency_failure_response(AgentConversationOutcome outcome)
+    {
+        DefaultHttpContext context = Context();
+        AgentConversationEndpointResult endpointResult = new(outcome);
+
+        IResult result = IntelligenceAgentConversationResultMapper.ToHttpResult(endpointResult);
+        await result.ExecuteAsync(context);
+
+        context.Response.StatusCode.Should().Be(StatusCodes.Status502BadGateway);
+        IntelligenceError? error = JsonSerializer.Deserialize<IntelligenceError>(
+            await ReadBodyAsync(context),
+            new JsonSerializerOptions(JsonSerializerDefaults.Web));
+        error!.Code.Should().Be(IntelligenceErrorCode.UnexpectedFailure);
+        IntelligenceAgentConversationResultMapper.IsCancellation(endpointResult).Should().BeTrue();
+        IntelligenceAgentConversationResultMapper.IsCancellation(new(AgentConversationOutcome.ProviderFailure)).Should().BeFalse();
+    }
+
     [Fact]
     public async Task Provider_failure_keeps_dependency_failure_semantics()
     {

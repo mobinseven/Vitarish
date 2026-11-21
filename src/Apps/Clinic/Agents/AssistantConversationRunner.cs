@@ -109,7 +109,7 @@ public sealed class AssistantConversationRunner(
         if (logger is not null && runResult is not null && !runResult.IsSuccess)
             AssistantTelemetry.ProviderCompleted(
                 logger,
-                runResult.Error?.Code.ToString() ?? "failed",
+                runResult.Error?.Code.ToString() ?? AgentTurnOutcomes.Failed,
                 manifest.ExecutionContext.ExecutionId);
         if (logger is not null)
             AssistantTelemetry.ConversationCompleted(
@@ -131,6 +131,8 @@ public sealed class AssistantConversationRunner(
                     AgentConversationOutcome.NotFound => AssistantRunOutcome.NotFound,
                     AgentConversationOutcome.Busy => AssistantRunOutcome.Busy,
                     AgentConversationOutcome.InvalidHistory or AgentConversationOutcome.HistoryLimitExceeded => AssistantRunOutcome.InvalidHistory,
+                    AgentConversationOutcome.TimedOut => AssistantRunOutcome.TimedOut,
+                    AgentConversationOutcome.Cancelled => AssistantRunOutcome.Cancelled,
                     _ => AssistantRunOutcome.Failed
                 }
             };

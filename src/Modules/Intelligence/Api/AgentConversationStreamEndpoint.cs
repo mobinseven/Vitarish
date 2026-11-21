@@ -15,6 +15,12 @@ internal static class AgentConversationStreamEndpoint
 {
     internal static readonly TimeSpan FrameWriteTimeout = TimeSpan.FromSeconds(15);
 
+    /// <summary>
+    /// The separate, short allowance for the one terminal frame. It is independent of the turn token so a
+    /// deadline outcome can still be delivered, and short so a stalled consumer cannot hold the request open.
+    /// </summary>
+    internal static readonly TimeSpan TerminalFrameWriteTimeout = TimeSpan.FromSeconds(3);
+
     internal static async Task<IResult> StreamAsync(
         RunAgentConversationRequest request,
         IAgentConversationEndpointRegistry endpoints,
@@ -22,6 +28,7 @@ internal static class AgentConversationStreamEndpoint
         TimeProvider time,
         HttpContext context,
         TimeSpan writeTimeout,
+        TimeSpan terminalWriteTimeout,
         CancellationToken ct)
     {
         if (IntelligenceApiEndpointMapping.RejectInvalidConversationRequest(request) is { } rejected)
@@ -34,9 +41,9 @@ internal static class AgentConversationStreamEndpoint
             return Results.Conflict(new IntelligenceError(IntelligenceErrorCode.StreamingNotEnabled, "Streaming is not enabled for this agent; use the buffered conversation route."));
 
         using CancellationTokenSource turn = CancellationTokenSource.CreateLinkedTokenSource(ct);
-        AgentTurnStreamWriter writer = new(context, Guid.NewGuid().ToString("N"), turn, time, writeTimeout);
+        AgentTurnStreamWriter writer = new(context, Guid.NewGuid().ToString("N"), turn, time, writeTimeout, terminalWriteTimeout);
         long acceptedAt = Stopwatch.GetTimestamp();
-        string outcome = IntelligenceAgentRuntimeTelemetry.FaultedOutcome;
+        string outcome = AgentTurnOutcomes.Faulted;
         AgentConversationEndpointResult? result = null;
         bool cancelled = false;
         try
@@ -61,12 +68,12 @@ internal static class AgentConversationStreamEndpoint
             if (ct.IsCancellationRequested)
             {
                 // The client is gone: nothing can be delivered. The turn was cancelled toward the runtime and its lease released.
-                outcome = IntelligenceAgentRuntimeTelemetry.CancelledOutcome;
+                outcome = AgentTurnOutcomes.Cancelled;
                 throw new OperationCanceledException(ct);
             }
             if (writer.ConsumerFailed)
             {
-                outcome = IntelligenceAgentRuntimeTelemetry.CancelledOutcome;
+                outcome = AgentTurnOutcomes.Cancelled;
                 context.Abort();
                 return Results.Empty;
             }
@@ -82,7 +89,14 @@ internal static class AgentConversationStreamEndpoint
             // On an intact connection the workflow ended after its own result and persistence checks.
             if (cancelled || result is null)
             {
-                outcome = IntelligenceAgentRuntimeTelemetry.CancelledOutcome;
+                outcome = AgentTurnOutcomes.Cancelled;
+                await writer.CancelAsync();
+            }
+            else if (IntelligenceAgentConversationResultMapper.IsCancellation(result))
+            {
+                // The runtime reported the server deadline or a server-initiated cancel: the same terminal
+                // outcome as an exception-driven cancellation, not a provider failure.
+                outcome = result.Outcome.ToString();
                 await writer.CancelAsync();
             }
             else if (IntelligenceAgentConversationResultMapper.TryToResponse(result, out RunAgentConversationResponse? response))
