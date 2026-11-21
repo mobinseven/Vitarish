@@ -15,8 +15,9 @@ import {
 } from "../../scripts/two-host-e2e-artifacts.mjs";
 import { REQUEST_ID_HEADER, TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
 import { authenticationAntiforgeryGet, authenticationSessionGet } from "../../shared/auth/src/api/generated/authentication/authentication";
-import { intelligenceRunAgentConversation } from "../../shared/intelligence/src/api/generated/intelligence/intelligence";
+import { intelligenceStreamAgentConversation } from "../../shared/intelligence/src/api/generated/intelligence/intelligence";
 import { getClinicGetSetupProgressQueryKey } from "../../shared/clinic/src/api/generated/clinic/clinic";
+import { operationsConversationStorageKey } from "../../shared/clinic/src/features/clinic-assistant/operationsConversationStorageKey";
 import { clinicMessageCatalogs } from "../../shared/clinic/src/localization/catalogs";
 import { tenantHandoffPath } from "../../shared/journey/src/onboardingHost";
 import { intelligenceMessageCatalogs } from "../../shared/intelligence/src/localization/catalogs";
@@ -52,7 +53,8 @@ const onboardingHandoffPath = generatedOperationPath(landingIssueOnboardingHando
 const antiforgeryPath = generatedOperationPath(authenticationAntiforgeryGet);
 const createOwnTenantPath = generatedOperationPath(partiesCreateOwnTenant);
 const sessionPath = generatedOperationPath(authenticationSessionGet);
-const agentConversationsPath = generatedOperationPath(intelligenceRunAgentConversation);
+// The E2E host enables streaming for every agent, so the assistant runs its turns on the streamed route.
+const agentConversationsPath = generatedOperationPath(intelligenceStreamAgentConversation);
 const apiOrigin = process.env[twoHostE2eApiOriginEnvironmentKey] ?? "https://localhost:7272";
 const agentSharedSecret = process.env.VITARISH_E2E_AGENT_SHARED_SECRET;
 const setupProgressPath = getClinicGetSetupProgressQueryKey()[0];
@@ -354,9 +356,10 @@ test("a new clinic owner sets up the clinic with the assistant on the setup home
     },
   }),
   ]);
-  const homeConversationId = (await firstRun.json() as { conversationId: string }).conversationId;
-  expect(homeConversationId).toBeTruthy();
   await expect(assistant.getByText(welcomeNote, { exact: true })).toBeVisible({ timeout: 90_000 });
+  // The browser session remembers the conversation the streamed turn created.
+  const homeConversationId = await page.evaluate((key) => window.sessionStorage.getItem(key), operationsConversationStorageKey);
+  expect(homeConversationId).toBeTruthy();
   await expect(assistant.getByText(reviewGroupMessages.title, { exact: true })).toHaveCount(1);
   const firstItem = assistant.getByRole("listitem").filter({ hasText: String(firstSeats) });
   const secondItem = assistant.getByRole("listitem").filter({ hasText: String(secondSeats) });
