@@ -64,6 +64,24 @@ public sealed class ClinicEndpointMetadataTests
         endpoint.Metadata.GetMetadata<IRouteDiagnosticsMetadata>()!.Route.Should().Contain(route);
     }
 
+    [Fact]
+    public void Todays_appointment_count_is_a_protected_read_only_query()
+    {
+        WebApplicationBuilder builder = WebApplication.CreateBuilder();
+        builder.Services.AddAuthorization();
+        builder.Services.AddSingleton(Mock.Of<ISender>());
+        using WebApplication app = builder.Build();
+        _ = app.MapClinicApi();
+
+        Endpoint endpoint = ((IEndpointRouteBuilder)app).DataSources
+            .SelectMany(source => source.Endpoints)
+            .Single(candidate => candidate.Metadata.GetMetadata<IEndpointNameMetadata>()?.EndpointName == ClinicApiOperations.GetTodayAppointmentCount);
+
+        endpoint.Metadata.GetMetadata<IHttpMethodMetadata>()!.HttpMethods.Should().ContainSingle().Which.Should().Be("GET");
+        endpoint.Metadata.GetOrderedMetadata<IAuthorizeData>().Should().NotBeEmpty();
+        endpoint.Metadata.GetMetadata<IRouteDiagnosticsMetadata>()!.Route.Should().Contain(ClinicApiRoutes.OperationsTodayAppointmentCount);
+    }
+
     [Theory]
     [InlineData("ClinicGetSurgeryCatalogs", "GET", SeaAuthorizationPolicies.Read, ClinicApiRoutes.SurgeryCatalogs)]
     [InlineData("ClinicCreateSurgeryCatalog", "POST", ClinicAuthorizationPolicies.PlanSurgeries, ClinicApiRoutes.SurgeryCatalogs)]

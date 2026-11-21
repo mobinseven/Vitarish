@@ -413,6 +413,20 @@ public sealed class AppointmentSchedulingAgentCapabilityTests
             receiptStore ?? new ReceiptStore<AgentSchedulingReceipt>(),
             TimeProvider.System);
 
+    [Fact]
+    public async Task Count_for_another_practice_is_refused_without_querying_reservations()
+    {
+        Mock<IAccessControlledReservationManager> reservations = new(MockBehavior.Strict);
+        AppointmentSchedulingAgentCapability sut = Create(reservations.Object);
+        DateOnly day = new(2026, 11, 21);
+
+        AgentSchedulingResult<int> count = await sut.CountAppointmentsAsync(
+            new("other-practice", "agent-run", "tool-call", "count"), new(DateFrom: day, DateTo: day), default);
+
+        count.Status.Should().Be(AgentSchedulingStatus.ValidationFailure);
+        reservations.VerifyNoOtherCalls();
+    }
+
     private static AgentSchedulingContext Context() => new("practice", "agent-run", "tool-call", "confirm");
 
     private static AgentShiftInput ValidShift(Guid id = default) => new(
