@@ -16,7 +16,8 @@ public sealed record RunAgentConversation(
     Func<Guid, AgentRunResult, CancellationToken, Task<AgentConversationOutcome>>? BeforeCommit = null,
     Func<Guid, AgentRunResult, AgentConversationPresentation?>? Presentation = null,
     string? ProfileCompatibilityKey = null,
-    IAgentTurnObserver? Observer = null)
+    IAgentTurnObserver? Observer = null,
+    AgentAnswerStream? AnswerStream = null)
     : IRequest<RunAgentConversationResult>;
 
 public sealed record RunAgentConversationResult(
@@ -193,6 +194,7 @@ public sealed class RunAgentConversationHandler(
             request.Tools,
             executionContext,
             request.Limits,
+            request.AnswerStream,
             observer,
             cancellationToken);
 

@@ -20,6 +20,7 @@ public interface IAgentRunner
         IReadOnlyCollection<IAgentTool> tools,
         AgentExecutionContext context,
         AgentExecutionLimits limits,
+        AgentAnswerStream? answerStream,
         IAgentRunProgress progress,
         CancellationToken cancellationToken = default) =>
         RunAsync(definition, input, tools, context, limits, cancellationToken);

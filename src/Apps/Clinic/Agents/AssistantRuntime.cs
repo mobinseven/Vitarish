@@ -29,6 +29,30 @@ public sealed class AssistantRuntime(
     /// </summary>
     public static readonly string OperationsResultSchema = CreateOperationsResultSchema();
 
+    /// <summary>The one user-visible field of the operations-help result; it is also the streamed answer field.</summary>
+    public const string OperationsHelpAnswerField = "answer";
+
+    /// <summary>
+    /// The operations-help result: a single answer string and nothing else, so the entry can carry neither
+    /// actions nor questions nor next steps.
+    /// </summary>
+    public static readonly string OperationsHelpResultSchema = CreateOperationsHelpResultSchema();
+
+    private static string CreateOperationsHelpResultSchema()
+    {
+        System.Text.Json.Nodes.JsonObject root = new()
+        {
+            ["type"] = "object",
+            ["additionalProperties"] = false,
+            ["required"] = new System.Text.Json.Nodes.JsonArray(OperationsHelpAnswerField),
+            ["properties"] = new System.Text.Json.Nodes.JsonObject
+            {
+                [OperationsHelpAnswerField] = new System.Text.Json.Nodes.JsonObject { ["type"] = "string" }
+            }
+        };
+        return root.ToJsonString();
+    }
+
     private static string CreateOperationsResultSchema()
     {
         System.Text.Json.Nodes.JsonObject root = System.Text.Json.Nodes.JsonNode.Parse(ResultSchema)!.AsObject();
@@ -44,8 +68,9 @@ public sealed class AssistantRuntime(
     public Task<AssistantResult> RunAsync(
         AssistantContext context,
         AssistantInput input,
-        CancellationToken cancellationToken = default) =>
-        conversationRunner.RunAsync(context, input, cancellationToken);
+        CancellationToken cancellationToken = default,
+        IAgentTurnObserver? observer = null) =>
+        conversationRunner.RunAsync(context, input, cancellationToken, observer);
 
     public async Task<AssistantPreparedAction?> PrepareAsync(
         AssistantContext context,

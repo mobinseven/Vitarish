@@ -48,6 +48,7 @@ public static class ClinicApiRoutes
     public const string LegacyOperationsAgent = "/agent/operations";
     public const string OperationsTodayAppointmentCount = OperationsAssistant + "/today-appointment-count";
     public const string OperationsAssistantConversation = OperationsAssistant + "/{conversationId:guid}";
+    public const string OperationsHelpConversation = "/assistant/operations-help/{conversationId:guid}";
     public const string ResolveClinicAssistantCandidate = "/assistant/patient-candidates/resolve";
     public const string LegacyResolvePatientAgentCandidate = "/agent/patient-candidates/resolve";
     public const string StartVisitPrescriptionDraft = "/visits/prescription-drafts/start";

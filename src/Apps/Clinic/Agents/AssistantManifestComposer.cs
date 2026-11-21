@@ -32,15 +32,19 @@ public sealed class AssistantManifestComposer(
             : executionContextFactory.ValidateAndRebuild(context, suppliedExecutionContext);
         AgentExecutionContext executionContext = suppliedExecutionContext ?? executionContextFactory.Create(context);
 
-        IReadOnlyCollection<IAssistantCapability> available = capabilityRegistry.GetAvailable(trustedContext);
-        IReadOnlyCollection<string> profileKeys = trustedContext.SubjectKind == "practice"
+        // The operations-help entry composes no capability: it is read-only, tool-disabled and cannot propose actions.
+        bool help = AssistantSubjects.IsOperationsHelp(trustedContext);
+        IReadOnlyCollection<IAssistantCapability> available = help ? [] : capabilityRegistry.GetAvailable(trustedContext);
+        IReadOnlyCollection<string> profileKeys = help ? [] : trustedContext.SubjectKind == "practice"
             ? AssistantCapabilityKeys.OperationsProfile
             : AssistantCapabilityKeys.Patient;
         IReadOnlyCollection<IAssistantCapability> profileCapabilities = available
             .Where(capability => profileKeys.Contains(capability.Name, StringComparer.Ordinal))
             .ToArray();
         AssistantCompositionContext composition = new(trustedContext, available, executionContextFactory.CurrentUtc);
-        AgentProfile<AssistantCompositionContext> profile = trustedContext.SubjectKind == "practice"
+        AgentProfile<AssistantCompositionContext> profile = help
+            ? new ClinicOperationsHelpProfile(composition, options)
+            : trustedContext.SubjectKind == "practice"
             ? new ClinicOperationsAssistantProfile(composition, options)
             : new ClinicPatientAssistantProfile(composition, options);
         ComposedAgentManifest<AssistantCompositionContext> manifest = profileComposer.Compose(
@@ -61,11 +65,13 @@ public sealed class AssistantManifestComposer(
                     enabled ? "authorized_and_available" : "not_available_or_unauthorized");
             }
         }
-        IReadOnlyCollection<IAgentTool> tools = toolDispatcher.CreateGuardedTools(
+        // The generic tool catalog is composed regardless of capabilities, so the help entry drops every tool here.
+        IReadOnlyDictionary<string, string> toolCapabilities = help ? new Dictionary<string, string>(StringComparer.Ordinal) : manifest.ToolCapabilities;
+        IReadOnlyCollection<IAgentTool> tools = help ? [] : toolDispatcher.CreateGuardedTools(
             trustedContext,
             executionContext,
             manifest.Tools,
-            manifest.ToolCapabilities);
+            toolCapabilities);
         Dictionary<string, IReadOnlySet<string>> actions = profileCapabilities.ToDictionary(
             capability => capability.Name,
             capability => (IReadOnlySet<string>)capability.ActionPolicies
@@ -76,7 +82,7 @@ public sealed class AssistantManifestComposer(
         logger?.LogInformation(
             "Clinic assistant composition completed for {SubjectKind} with {CapabilityCount} capabilities and {ToolCount} tools; compatibility {CompatibilityKey}.",
             trustedContext.SubjectKind, available.Count, tools.Count, manifest.CompatibilityKey);
-        return new(manifest.Definition, tools, actions, new(), executionContext, manifest.Limits, manifest.ToolCapabilities, manifest.CompatibilityKey);
+        return new(manifest.Definition, tools, actions, new(), executionContext, manifest.Limits, toolCapabilities, manifest.CompatibilityKey);
 
     }
 

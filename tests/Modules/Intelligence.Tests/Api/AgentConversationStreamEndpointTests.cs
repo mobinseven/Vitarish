@@ -51,6 +51,49 @@ public sealed class AgentConversationStreamEndpointTests
     }
 
     [Fact]
+    public async Task Answer_deltas_are_frames_in_sequence_between_progress_and_the_completed_result()
+    {
+        Fixture fixture = new(async (request, ct) =>
+        {
+            await request.Observer!.AcceptedAsync(TimeSpan.FromMinutes(1), ct);
+            request.Observer.AnswerTextEmitted.Should().BeFalse();
+            await request.Observer.AnswerDeltaAsync("run-1", "Hel", ct);
+            request.Observer.AnswerTextEmitted.Should().BeTrue();
+            await request.Observer.AnswerDeltaAsync("run-1", "lo", ct);
+            return Succeeded();
+        });
+
+        _ = await fixture.StreamAsync();
+        List<IntelligenceStreamChunk<AgentTurnPayload>> frames = fixture.Frames();
+
+        frames.Select(frame => frame.Kind).Should().Equal(
+            StreamChunkKind.Started, StreamChunkKind.Delta, StreamChunkKind.Delta, StreamChunkKind.Completed);
+        frames.Select(frame => frame.Metadata.Sequence).Should().Equal(0, 1, 2, 3);
+        frames[1].Delta!.MessageId.Should().Be("run-1");
+        frames[1].Delta!.Text.Should().Be("Hel");
+        frames[2].Delta!.Text.Should().Be("lo");
+        frames[3].Delta!.Result!.AgentRunId.Should().Be(frames[1].Delta!.MessageId, "the authoritative result replaces the preview by message id");
+    }
+
+    [Fact]
+    public async Task A_failure_after_answer_deltas_is_a_failed_frame_with_no_completed_result()
+    {
+        Fixture fixture = new(async (request, ct) =>
+        {
+            await request.Observer!.AcceptedAsync(TimeSpan.FromMinutes(1), ct);
+            await request.Observer.AnswerDeltaAsync("run-1", "partial", ct);
+            return new AgentConversationEndpointResult(AgentConversationOutcome.InvalidHistory);
+        });
+
+        _ = await fixture.StreamAsync();
+        List<IntelligenceStreamChunk<AgentTurnPayload>> frames = fixture.Frames();
+
+        frames.Select(frame => frame.Kind).Should().Equal(StreamChunkKind.Started, StreamChunkKind.Delta, StreamChunkKind.Failed);
+        frames[^1].Delta.Should().BeNull();
+        frames[^1].Error!.Code.Should().Be(IntelligenceErrorCode.InvalidHistory);
+    }
+
+    [Fact]
     public async Task Disabled_streaming_is_a_clear_error_before_headers_and_before_execution()
     {
         Fixture fixture = new((request, _) => RunTurnAsync(request, Succeeded()), streamingEnabled: false);

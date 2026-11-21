@@ -84,11 +84,14 @@ public sealed class AgentRuntimeHttpRunner(
         IReadOnlyCollection<IAgentTool> tools,
         AgentExecutionContext context,
         AgentExecutionLimits limits,
+        AgentAnswerStream? answerStream,
         IAgentRunProgress progress,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(progress);
-        if (!TryCreateRequest(definition, input, tools, context, limits, out AgentRuntimeRunRequest? request, out AgentRunResult? unconfigured))
+        // The runtime streams answer text only for a run without tools, so the declaration is never sent with tools.
+        AgentAnswerStream? declared = tools.Count == 0 ? answerStream : null;
+        if (!TryCreateRequest(definition, input, tools, context, limits, out AgentRuntimeRunRequest? request, out AgentRunResult? unconfigured, declared))
             return unconfigured;
 
         using CancellationTokenSource turn = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -110,13 +113,21 @@ public sealed class AgentRuntimeHttpRunner(
             headersReceived = true;
             await using Stream body = await response.Content.ReadAsStreamAsync(turn.Token).ConfigureAwait(false);
             AgentRuntimeRunResponse? result = null;
+            int answerChars = 0;
             await foreach (ReadOnlyMemory<byte> line in ReadFramesAsync(body, turn.Token).ConfigureAwait(false))
             {
                 if (result is not null)
                     return Failure(AgentRunErrorCode.ProviderFailure, "The agent runtime returned an invalid response.");
-                AgentRuntimeStreamFrame frame = AgentRuntimeStreamFrame.Parse(line.Span);
+                AgentRuntimeStreamFrame frame = AgentRuntimeStreamFrame.Parse(line.Span, declared);
                 if (frame.Stage is { } stage)
                     await progress.StageAsync(stage, turn.Token).ConfigureAwait(false);
+                else if (frame.DeltaText is { } text)
+                {
+                    answerChars += text.Length;
+                    if (answerChars > AgentRuntimeStreamFrame.MaxAnswerChars)
+                        throw new InvalidDataException("The runtime streamed more answer text than allowed.");
+                    await progress.AnswerDeltaAsync(declared!.MessageId, text, turn.Token).ConfigureAwait(false);
+                }
                 else
                     result = JsonSerializer.Deserialize<AgentRuntimeRunResponse>(line.Span, WebJson);
             }
@@ -197,7 +208,8 @@ public sealed class AgentRuntimeHttpRunner(
         AgentExecutionContext context,
         AgentExecutionLimits limits,
         [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out AgentRuntimeRunRequest? request,
-        [System.Diagnostics.CodeAnalysis.NotNullWhen(false)] out AgentRunResult? failure)
+        [System.Diagnostics.CodeAnalysis.NotNullWhen(false)] out AgentRunResult? failure,
+        AgentAnswerStream? answerStream = null)
     {
         if (string.IsNullOrWhiteSpace(options.Value.ToolCallbackUrl) ||
             string.IsNullOrWhiteSpace(options.Value.BaseUrl) ||
@@ -218,7 +230,8 @@ public sealed class AgentRuntimeHttpRunner(
             envelope,
             limits,
             options.Value.ToolCallbackUrl,
-            credentialService.Create(envelope));
+            credentialService.Create(envelope),
+            answerStream);
         failure = null;
 
         logger.LogInformation(

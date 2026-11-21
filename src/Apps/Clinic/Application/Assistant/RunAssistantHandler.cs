@@ -10,6 +10,6 @@ public sealed class RunAssistantHandler(
         RunAssistant request,
         CancellationToken cancellationToken)
     {
-        return await runtime.RunAsync(request.Context, request.Input, cancellationToken);
+        return await runtime.RunAsync(request.Context, request.Input, cancellationToken, request.Observer);
     }
 }

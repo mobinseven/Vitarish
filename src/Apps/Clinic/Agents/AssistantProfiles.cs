@@ -23,9 +23,9 @@ internal abstract class AssistantProfile(
             };
             policy.AddInstruction(
                 "clinic.policy",
-                AssistantPolicyInstructions.Create(profileComposition, dynamicTime: true),
+                PolicyInstructions(profileComposition, dynamicTime: true),
                 0,
-                AssistantPolicyInstructions.Create(profileComposition, dynamicTime: false));
+                PolicyInstructions(profileComposition, dynamicTime: false));
             policy.AddCompatibilityMaterial("practiceId", context.Context.PracticeId);
             policy.AddCompatibilityMaterial("subjectKind", context.Context.SubjectKind);
             policy.AddCompatibilityMaterial("subjectId", SubjectId(context.Context));
@@ -40,8 +40,9 @@ internal abstract class AssistantProfile(
             profile.SetIdentity(AgentKey, DisplayName);
             profile.SetModel(options.Model);
             profile.SetResult(new AgentResultDefinition("clinic_assistant_result", ResultSchema));
-            profile.SetLimits(new AgentExecutionLimits(MaxTokens: 128_000));
-            profile.SetDomainModel(ClinicAssistantDomainModel.Create(), ClinicAssistantDomainModel.InstructionOrder);
+            profile.SetLimits(Limits);
+            if (IncludesDomainModel)
+                profile.SetDomainModel(ClinicAssistantDomainModel.Create(), ClinicAssistantDomainModel.InstructionOrder);
             foreach (string capabilityKey in capabilityKeys) profile.AddCapability(capabilityKey);
         });
     }
@@ -50,6 +51,10 @@ internal abstract class AssistantProfile(
     protected abstract string DisplayName { get; }
     protected abstract string ProfileLayerKey { get; }
     protected virtual string ResultSchema => AssistantRuntime.ResultSchema;
+    protected virtual AgentExecutionLimits Limits => new(MaxTokens: 128_000);
+    protected virtual bool IncludesDomainModel => true;
+    protected virtual string PolicyInstructions(AssistantCompositionContext composition, bool dynamicTime) =>
+        AssistantPolicyInstructions.Create(composition, dynamicTime);
 
     private static string SubjectId(AssistantContext context) =>
         context.SubjectKind == "practice" ? context.PracticeId : context.PatientId.ToString("D");
@@ -93,6 +98,41 @@ internal sealed class ClinicOperationsAssistantProfile(
     protected override string DisplayName => "Clinic operations workspace";
     protected override string ProfileLayerKey => "clinic.assistant.operations";
     protected override string ResultSchema => AssistantRuntime.OperationsResultSchema;
+}
+
+/// <summary>
+/// The read-only operations-help entry: one model round that answers a workflow question from the
+/// app-owned instructions alone. It composes no capability, so it has no practice-record tools, no
+/// mutation capability and no way to propose an action.
+/// </summary>
+internal sealed class ClinicOperationsHelpProfile(
+    AssistantCompositionContext context,
+    AssistantOptions options)
+    : AssistantProfile(context, options, [])
+{
+    protected override string AgentKey => AssistantSubjects.OperationsHelpAgentKey;
+    protected override string DisplayName => "Clinic operations help";
+    protected override string ProfileLayerKey => AssistantSubjects.OperationsHelpAgentKey;
+    protected override string ResultSchema => AssistantRuntime.OperationsHelpResultSchema;
+    protected override AgentExecutionLimits Limits => new(MaxIterations: 1, MaxToolCalls: 0, MaxTokens: 128_000);
+    protected override bool IncludesDomainModel => false;
+
+    protected override string PolicyInstructions(AssistantCompositionContext composition, bool dynamicTime)
+    {
+        string policy = JsonSerializer.Serialize(new
+        {
+            subject = composition.Context.SubjectKind,
+            scope = "operations_workflow_help",
+            responseLanguage = "user_input",
+            topics = "how_appointments_and_shifts_work_in_this_app: booking, confirming, presenting, completing, rescheduling, cancelling and shift schedules",
+            practiceRecords = "not_available_in_this_mode; never_state_or_guess_a_specific_patient_appointment_shift_or_count",
+            actions = "none; explain_the_steps_the_user_performs_on_the_screen_and_never_claim_to_have_changed_or_prepared_anything",
+            clinicalConclusions = false,
+            unknown = "say_so_and_suggest_using_the_assistant_for_practice_data",
+            result = $"write_the_whole_reply_in_the_{AssistantRuntime.OperationsHelpAnswerField}_field_as_plain_text"
+        });
+        return "Agent policy (JSON):\n" + policy;
+    }
 }
 
 internal static class AssistantPolicyInstructions

@@ -8,7 +8,8 @@ public interface IAssistantRuntime
     Task<AssistantResult> RunAsync(
         AssistantContext context,
         AssistantInput input,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default,
+        IAgentTurnObserver? observer = null);
 }
 
 /// <summary>
