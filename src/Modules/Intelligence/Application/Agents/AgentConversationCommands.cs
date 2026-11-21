@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -41,10 +42,40 @@ public sealed class RunAgentConversationHandler(
         RunAgentConversation request,
         CancellationToken cancellationToken)
     {
+        AgentTurnSpans spans = new(logger, request.ExecutionContext.ExecutionId);
+        long startedAt = Stopwatch.GetTimestamp();
+        string outcome = AgentTurnSpans.FaultedOutcome;
+        try
+        {
+            RunAgentConversationResult result = await HandleSpannedAsync(request, spans, cancellationToken);
+            outcome = result.Outcome == AgentConversationOutcome.ProviderFailure && result.Run?.Error is { } error
+                ? error.Code.ToString()
+                : result.Outcome.ToString();
+            return result;
+        }
+        catch (OperationCanceledException)
+        {
+            outcome = AgentTurnSpans.CancelledOutcome;
+            throw;
+        }
+        finally
+        {
+            spans.CompleteWorkflow(outcome, startedAt);
+        }
+    }
+
+    private async Task<RunAgentConversationResult> HandleSpannedAsync(
+        RunAgentConversation request,
+        AgentTurnSpans spans,
+        CancellationToken cancellationToken)
+    {
         TimeSpan runtimeTimeout = request.Limits.EffectiveTimeout;
-        AgentConversationStoreResult acquired = request.ProfileCompatibilityKey is { Length: > 0 } key
-            ? await store.AcquireAsync(request.ConversationId, request.Scope, runtimeTimeout + LeaseSafetyMargin, key, cancellationToken)
-            : await store.AcquireAsync(request.ConversationId, request.Scope, runtimeTimeout + LeaseSafetyMargin, cancellationToken);
+        AgentConversationStoreResult acquired = await spans.MeasureAsync(
+            AgentTurnPhase.LeaseAcquire,
+            () => request.ProfileCompatibilityKey is { Length: > 0 } key
+                ? store.AcquireAsync(request.ConversationId, request.Scope, runtimeTimeout + LeaseSafetyMargin, key, cancellationToken)
+                : store.AcquireAsync(request.ConversationId, request.Scope, runtimeTimeout + LeaseSafetyMargin, cancellationToken),
+            result => result.Outcome.ToString());
         if (logger is not null)
         {
             AgentConversationTelemetry.LeaseOutcome(
@@ -60,34 +91,17 @@ public sealed class RunAgentConversationHandler(
         AgentConversationLease lease = acquired.Lease;
         try
         {
-            AgentExecutionContext executionContext = PrepareExecutionContext(
-                request.ExecutionContext,
-                request.Scope,
-                lease.ConversationId,
-                (timeProvider ?? TimeProvider.System).GetUtcNow());
+            (AgentExecutionContext executionContext, string? history, bool carriedOver) = spans.Measure(
+                AgentTurnPhase.HistoryPreparation,
+                () => PrepareTurn(request, lease));
 
-            // A conversation always continues. A history produced under another configuration, or one
-            // too large to grow, is carried over as its user and assistant messages only.
-            string? history = lease.History;
-            bool carriedOver = false;
-            string? carryReason = lease.ProfileChanged
-                ? "profile change"
-                : history is not null && Encoding.UTF8.GetByteCount(history) > AgentConversationHistory.CompactionThresholdBytes
-                    ? "history size"
-                    : null;
-            if (carryReason is not null && history is not null)
-            {
-                history = CarryOver(history, carryReason, executionContext, request.Scope, lease);
-                carriedOver = true;
-            }
-
-            AgentRunResult run = await runner.RunAsync(
+            AgentRunResult run = await spans.MeasureRuntimeAttemptAsync(() => runner.RunAsync(
                 request.Definition,
                 request.Input with { History = history },
                 request.Tools,
                 executionContext,
                 request.Limits,
-                cancellationToken);
+                cancellationToken));
 
             // A rejected history is retried once on its carried-over messages, and only when the runtime
             // reports that no tool ran, so no tool (including a direct mutation) executes twice. This is
@@ -96,13 +110,14 @@ public sealed class RunAgentConversationHandler(
                 run.ToolCalls == 0 && run.ToolExecutions.Count == 0 && !carriedOver && history is not null)
             {
                 history = CarryOver(history, "rejected history", executionContext, request.Scope, lease);
-                run = await runner.RunAsync(
+                string? retryHistory = history;
+                run = await spans.MeasureRuntimeAttemptAsync(() => runner.RunAsync(
                     request.Definition,
-                    request.Input with { History = history },
+                    request.Input with { History = retryHistory },
                     request.Tools,
                     executionContext,
                     request.Limits,
-                    cancellationToken);
+                    cancellationToken));
             }
             if (logger is not null)
                 AgentConversationTelemetry.ProviderOutcome(
@@ -122,24 +137,61 @@ public sealed class RunAgentConversationHandler(
 
             if (request.BeforeCommit is not null)
             {
-                AgentConversationOutcome validation = await request.BeforeCommit(lease.ConversationId, run, cancellationToken);
+                AgentConversationOutcome validation = await spans.MeasureAsync(
+                    AgentTurnPhase.OutputValidation,
+                    () => request.BeforeCommit(lease.ConversationId, run, cancellationToken),
+                    outcome => outcome.ToString());
                 if (validation != AgentConversationOutcome.Succeeded)
                     return new(validation, lease.ConversationId, run);
             }
 
-            AgentConversationOutcome replaced = await store.ReplaceHistoryAsync(
-                lease,
-                request.Scope,
-                run.History,
-                HistoryFormat,
-                request.Presentation?.Invoke(lease.ConversationId, run),
-                cancellationToken);
+            string persistedHistory = run.History;
+            AgentConversationOutcome replaced = await spans.MeasureAsync(
+                AgentTurnPhase.Persistence,
+                () => store.ReplaceHistoryAsync(
+                    lease,
+                    request.Scope,
+                    persistedHistory,
+                    HistoryFormat,
+                    request.Presentation?.Invoke(lease.ConversationId, run),
+                    cancellationToken),
+                outcome => outcome.ToString());
             return new(replaced, lease.ConversationId, run);
         }
         finally
         {
-            await store.ReleaseAsync(lease, CancellationToken.None);
+            await spans.MeasureAsync(
+                AgentTurnPhase.LeaseRelease,
+                async () =>
+                {
+                    await store.ReleaseAsync(lease, CancellationToken.None);
+                    return true;
+                },
+                _ => AgentTurnSpans.SucceededOutcome);
         }
+    }
+
+    private (AgentExecutionContext ExecutionContext, string? History, bool CarriedOver) PrepareTurn(
+        RunAgentConversation request,
+        AgentConversationLease lease)
+    {
+        AgentExecutionContext executionContext = PrepareExecutionContext(
+            request.ExecutionContext,
+            request.Scope,
+            lease.ConversationId,
+            (timeProvider ?? TimeProvider.System).GetUtcNow());
+
+        // A conversation always continues. A history produced under another configuration, or one
+        // too large to grow, is carried over as its user and assistant messages only.
+        string? history = lease.History;
+        string? carryReason = lease.ProfileChanged
+            ? "profile change"
+            : history is not null && Encoding.UTF8.GetByteCount(history) > AgentConversationHistory.CompactionThresholdBytes
+                ? "history size"
+                : null;
+        if (carryReason is null || history is null)
+            return (executionContext, history, false);
+        return (executionContext, CarryOver(history, carryReason, executionContext, request.Scope, lease), true);
     }
 
     private string? CarryOver(

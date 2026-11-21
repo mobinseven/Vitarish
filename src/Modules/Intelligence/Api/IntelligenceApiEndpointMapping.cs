@@ -73,6 +73,7 @@ public static class IntelligenceApiEndpointMapping
         IAgentRuntimeToolEndpoint? endpoint = endpoints.Value.Resolve(envelope.AgentKey);
         if (endpoint is null) return Results.NotFound();
         long handlingStartedAt = Stopwatch.GetTimestamp();
+        string handlingOutcome = IntelligenceAgentRuntimeTelemetry.FaultedOutcome;
         try
         {
             AgentExecutionContext context = envelope.ToExecutionContext();
@@ -81,22 +82,28 @@ public static class IntelligenceApiEndpointMapping
             AgentToolResult result = await endpoint.ExecuteAsync(
                 new(new AgentToolCall(envelope.ToolCallId, envelope.ToolName, request.ArgumentsJson), context, envelope), ct);
             result = await presentation.PublishAsync(envelope, result, ct);
-            IntelligenceAgentRuntimeTelemetry.ToolExecutionHandled(logger, envelope.ToolName, (long)Stopwatch.GetElapsedTime(handlingStartedAt).TotalMilliseconds, envelope.ExecutionId, envelope.AgentKey);
+            handlingOutcome = result.IsError ? IntelligenceAgentRuntimeTelemetry.ToolErrorOutcome : IntelligenceAgentRuntimeTelemetry.SucceededOutcome;
             return Results.Ok(new InternalAgentToolExecutionResponse(result.CallId, result.Output, result.IsError));
         }
-        catch (KeyNotFoundException) { return Results.NotFound(); }
-        catch (UnauthorizedAccessException) { return Results.Forbid(); }
-        catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
+        catch (KeyNotFoundException) { handlingOutcome = IntelligenceAgentRuntimeTelemetry.NotFoundOutcome; return Results.NotFound(); }
+        catch (UnauthorizedAccessException) { handlingOutcome = IntelligenceAgentRuntimeTelemetry.ForbiddenOutcome; return Results.Forbid(); }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested) { handlingOutcome = IntelligenceAgentRuntimeTelemetry.CancelledOutcome; throw; }
         catch (Exception exception) when (exception is JsonException or FormatException or ArgumentException or InvalidOperationException)
         {
+            handlingOutcome = IntelligenceAgentRuntimeTelemetry.RejectedOutcome;
             IntelligenceAgentRuntimeTelemetry.ToolExecutionFailed(logger, envelope.ToolName, exception.GetType().Name, envelope.ExecutionId, envelope.AgentKey);
             return Results.BadRequest();
+        }
+        finally
+        {
+            IntelligenceAgentRuntimeTelemetry.ToolExecutionHandled(logger, envelope.ToolName, envelope.ToolCallId, handlingOutcome, (long)Stopwatch.GetElapsedTime(handlingStartedAt).TotalMilliseconds, envelope.ExecutionId, envelope.AgentKey);
         }
     }
 
     private static async Task<IResult> RunAgentConversationAsync(
         RunAgentConversationRequest request,
         [FromServices] IAgentConversationEndpointRegistry endpoints,
+        [FromServices] ILoggerFactory loggerFactory,
         CancellationToken ct)
     {
         if (request is null || string.IsNullOrWhiteSpace(request.AgentKey) ||
@@ -108,9 +115,27 @@ public static class IntelligenceApiEndpointMapping
         if (endpoint is null)
             return Results.NotFound(new IntelligenceError(IntelligenceErrorCode.NotFound, "The agent conversation route was not found."));
 
-        AgentConversationEndpointResult result = await endpoint.RunAsync(
-            new(request.AgentKey, request.SubjectKind, request.SubjectId, request.Message, request.ConversationId), ct);
-        return IntelligenceAgentConversationResultMapper.ToHttpResult(result);
+        long acceptedAt = Stopwatch.GetTimestamp();
+        string outcome = IntelligenceAgentRuntimeTelemetry.FaultedOutcome;
+        try
+        {
+            AgentConversationEndpointResult result = await endpoint.RunAsync(
+                new(request.AgentKey, request.SubjectKind, request.SubjectId, request.Message, request.ConversationId), ct);
+            outcome = result.Outcome.ToString();
+            return IntelligenceAgentConversationResultMapper.ToHttpResult(result);
+        }
+        catch (OperationCanceledException)
+        {
+            outcome = IntelligenceAgentRuntimeTelemetry.CancelledOutcome;
+            throw;
+        }
+        finally
+        {
+            IntelligenceAgentRuntimeTelemetry.ConversationRequestCompleted(
+                loggerFactory.CreateLogger("Vitarish.Intelligence.AgentConversation"),
+                outcome,
+                (long)Stopwatch.GetElapsedTime(acceptedAt).TotalMilliseconds);
+        }
     }
 
     private static async Task<IResult> RespondAsync(ResponderRequest request, IResponder responder, CancellationToken ct)
