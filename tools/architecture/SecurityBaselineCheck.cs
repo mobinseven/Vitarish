@@ -337,7 +337,7 @@ internal static class SecurityBaselineCheck
             string apiImport = environment.ToLowerInvariant() + "_api";
             int applicationHosts = environment == "TEST" ? 8 : 7;
             if (Regex.Matches(caddy, @"(?m)^\s+import " + Regex.Escape(apiImport) + @"\s*$").Count != applicationHosts ||
-                !Regex.IsMatch(caddy, @"(?ms)^\(" + Regex.Escape(apiImport) + @"\)\s*\{\s*@api path /api/\*\s*reverse_proxy @api " + environment.ToLowerInvariant() + @"-main:8080\s*\}"))
+                !Regex.IsMatch(caddy, @"(?ms)^\(" + Regex.Escape(apiImport) + @"\)\s*\{\s*@api path /api/\*\s*reverse_proxy @api " + environment.ToLowerInvariant() + @"-main:8080\s*\{\s*(?:#[^\r\n]*\s*)*flush_interval -1\s*\}\s*\}"))
                 violations.Add(DeploymentViolation(caddyPath, "ApiRouteCoverageMissing", $"Route same-origin API requests from all application hosts to {environment.ToLowerInvariant()} Main."));
         }
 

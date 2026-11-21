@@ -15,7 +15,8 @@ public sealed record RunAgentConversation(
     AgentExecutionLimits Limits,
     Func<Guid, AgentRunResult, CancellationToken, Task<AgentConversationOutcome>>? BeforeCommit = null,
     Func<Guid, AgentRunResult, AgentConversationPresentation?>? Presentation = null,
-    string? ProfileCompatibilityKey = null)
+    string? ProfileCompatibilityKey = null,
+    IAgentTurnObserver? Observer = null)
     : IRequest<RunAgentConversationResult>;
 
 public sealed record RunAgentConversationResult(
@@ -37,6 +38,9 @@ public sealed class RunAgentConversationHandler(
 {
     public const string HistoryFormat = "openai-agents-js-history/v1";
     public static readonly TimeSpan LeaseSafetyMargin = TimeSpan.FromSeconds(30);
+
+    /// <summary>The server-side turn bound beyond the runtime timeout, covering validation and persistence.</summary>
+    public static readonly TimeSpan TurnDeadlineMargin = TimeSpan.FromSeconds(10);
 
     public async Task<RunAgentConversationResult> Handle(
         RunAgentConversation request,
@@ -89,35 +93,30 @@ public sealed class RunAgentConversationHandler(
             return new(acquired.Outcome);
 
         AgentConversationLease lease = acquired.Lease;
+        IAgentTurnObserver? observer = request.Observer;
         try
         {
+            if (observer is not null)
+                await observer.AcceptedAsync(runtimeTimeout + TurnDeadlineMargin, cancellationToken);
             (AgentExecutionContext executionContext, string? history, bool carriedOver) = spans.Measure(
                 AgentTurnPhase.HistoryPreparation,
                 () => PrepareTurn(request, lease));
 
-            AgentRunResult run = await spans.MeasureRuntimeAttemptAsync(() => runner.RunAsync(
-                request.Definition,
-                request.Input with { History = history },
-                request.Tools,
-                executionContext,
-                request.Limits,
-                cancellationToken));
+            AgentRunResult run = await spans.MeasureRuntimeAttemptAsync(() => RunAttemptAsync(
+                request, history, executionContext, observer, cancellationToken));
 
             // A rejected history is retried once on its carried-over messages, and only when the runtime
             // reports that no tool ran, so no tool (including a direct mutation) executes twice. This is
-            // the only retry; it does not stack with any transport retry.
+            // the only retry; it does not stack with any transport retry. A streamed turn that already
+            // showed provisional answer text fails instead, so no new attempt replaces what was seen.
             if (!run.IsSuccess && run.Error?.Code == AgentRunErrorCode.InvalidProviderResponse &&
-                run.ToolCalls == 0 && run.ToolExecutions.Count == 0 && !carriedOver && history is not null)
+                run.ToolCalls == 0 && run.ToolExecutions.Count == 0 && !carriedOver && history is not null &&
+                observer is not { AnswerTextEmitted: true })
             {
                 history = CarryOver(history, "rejected history", executionContext, request.Scope, lease);
                 string? retryHistory = history;
-                run = await spans.MeasureRuntimeAttemptAsync(() => runner.RunAsync(
-                    request.Definition,
-                    request.Input with { History = retryHistory },
-                    request.Tools,
-                    executionContext,
-                    request.Limits,
-                    cancellationToken));
+                run = await spans.MeasureRuntimeAttemptAsync(() => RunAttemptAsync(
+                    request, retryHistory, executionContext, observer, cancellationToken));
             }
             if (logger is not null)
                 AgentConversationTelemetry.ProviderOutcome(
@@ -137,6 +136,8 @@ public sealed class RunAgentConversationHandler(
 
             if (request.BeforeCommit is not null)
             {
+                if (observer is not null)
+                    await observer.StageAsync(new(AgentTurnStage.ValidatingResult), cancellationToken);
                 AgentConversationOutcome validation = await spans.MeasureAsync(
                     AgentTurnPhase.OutputValidation,
                     () => request.BeforeCommit(lease.ConversationId, run, cancellationToken),
@@ -146,6 +147,8 @@ public sealed class RunAgentConversationHandler(
             }
 
             string persistedHistory = run.History;
+            if (observer is not null)
+                await observer.StageAsync(new(AgentTurnStage.SavingConversation), cancellationToken);
             AgentConversationOutcome replaced = await spans.MeasureAsync(
                 AgentTurnPhase.Persistence,
                 () => store.ReplaceHistoryAsync(
@@ -170,6 +173,28 @@ public sealed class RunAgentConversationHandler(
                 _ => AgentTurnSpans.SucceededOutcome);
         }
     }
+
+    private Task<AgentRunResult> RunAttemptAsync(
+        RunAgentConversation request,
+        string? history,
+        AgentExecutionContext executionContext,
+        IAgentTurnObserver? observer,
+        CancellationToken cancellationToken) => observer is null
+        ? runner.RunAsync(
+            request.Definition,
+            request.Input with { History = history },
+            request.Tools,
+            executionContext,
+            request.Limits,
+            cancellationToken)
+        : runner.RunStreamedAsync(
+            request.Definition,
+            request.Input with { History = history },
+            request.Tools,
+            executionContext,
+            request.Limits,
+            observer,
+            cancellationToken);
 
     private (AgentExecutionContext ExecutionContext, string? History, bool CarriedOver) PrepareTurn(
         RunAgentConversation request,

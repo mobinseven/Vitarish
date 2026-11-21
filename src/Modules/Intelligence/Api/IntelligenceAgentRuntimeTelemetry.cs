@@ -27,4 +27,8 @@ internal static partial class IntelligenceAgentRuntimeTelemetry
     [LoggerMessage(EventId = 73905, Level = LogLevel.Information,
         Message = "Agent conversation request ended with {Outcome} in {DurationMs} ms, covering authorization, manifest composition and the conversation workflow.")]
     internal static partial void ConversationRequestCompleted(ILogger logger, string outcome, long durationMs);
+
+    [LoggerMessage(EventId = 73906, Level = LogLevel.Error,
+        Message = "A streamed agent conversation failed after acceptance with {ExceptionType}.")]
+    internal static partial void StreamedTurnFailed(ILogger logger, string exceptionType);
 }
