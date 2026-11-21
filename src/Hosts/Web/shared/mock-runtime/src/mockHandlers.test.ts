@@ -306,6 +306,28 @@ describe("mock preview handlers", () => {
     await expect(agent.json()).resolves.toMatchObject({ agentRunId: "mock-agent-run", conversationId: "mock-agent-conversation" });
   });
 
+  it("keeps streaming off by default and frames the same agent reply as NDJSON on the stream route", async () => {
+    const base = "https://mock.example.test/api/modules/intelligence/agent-conversations";
+    const capabilities = await fetch(`${base}/capabilities`).then((response) => response.json()) as { agents: Array<{ streamingEnabled: boolean }> };
+    expect(capabilities.agents.every(({ streamingEnabled }) => !streamingEnabled)).toBe(true);
+
+    const streamed = await fetch(`${base}/stream`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ agentKey: "clinic.assistant.operations", subjectKind: "practice", subjectId: "practice", message: "Cancel it" }),
+    });
+    const frames = (await streamed.text()).trim().split("\n").map((line) => JSON.parse(line) as { kind: number; metadata: { sequence: number } });
+
+    expect(streamed.headers.get("content-type")).toContain("application/x-ndjson");
+    expect(frames.map(({ metadata }) => metadata.sequence)).toEqual([0, 1, 2]);
+    expect(frames.map(({ kind }) => kind)).toEqual([0, 2, 3]);
+  });
+
+  it("answers the today appointment count without any agent", async () => {
+    const count = await fetch("https://mock.example.test/api/modules/clinic/assistant/operations/today-appointment-count").then((response) => response.json());
+    expect(count).toMatchObject({ count: 4 });
+  });
+
   it("keeps SEA event order and derives procedure progress from its events and items", async () => {
     const sea = "https://mock.example.test/api/modules/sea";
     const post = (path: string, body?: unknown) => fetch(`${sea}/${path}`, { method: "POST", body: JSON.stringify(body ?? {}) }).then((response) => response.json());

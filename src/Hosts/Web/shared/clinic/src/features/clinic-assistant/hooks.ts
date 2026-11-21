@@ -5,12 +5,15 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   emptyGuidedSurface,
   intelligenceRunAgentConversation,
+  isConversationNotFound,
+  runAgentConversationTurn,
   toGuidedSurface,
   useConversationController,
   type ConversationController,
   type GuidedSurface,
   type GuidedSurfaceActionGroup,
   type GuidedSurfaceSurfaceResponse,
+  type ProvisionalAnswer,
 } from "@vitarish/intelligence";
 import {
   clinicConfirmAssistantAction,
@@ -31,6 +34,10 @@ import type {
   ClinicAssistantMessageResponse,
   RunClinicAssistantResponse,
 } from "../../api/generated/clinic/model";
+
+/** A delete of a conversation that is already gone answers 404; that counts as deleted. */
+const isHttpNotFound = (error: unknown) =>
+  typeof error === "object" && error !== null && "status" in error && error.status === 404;
 
 export type AssistantAction = ClinicAssistantActionDetailsResponse;
 /** A Clinic assistant reply with its guided-surface blocks. */
@@ -125,11 +132,8 @@ export function useAssistantConversation(patientId: string, isOpen: boolean) {
     isOpen,
     run: runTurn,
     deleteConversation,
-    isNotFound: (error) =>
-      typeof error === "object" &&
-      error !== null &&
-      "status" in error &&
-      error.status === 404,
+    isNotFound: isHttpNotFound,
+    isStaleConversation: isConversationNotFound,
   });
 }
 
@@ -139,8 +143,10 @@ export function useOperationsAssistantConversation(isOpen: boolean) {
       message: string,
       conversationId: string | null,
       signal: AbortSignal,
+      onProvisionalAnswer: (answer: ProvisionalAnswer) => void,
     ) => {
-      const response = await intelligenceRunAgentConversation(
+      // The agent profile's streaming capability picks the route; both return the same authoritative reply.
+      const response = await runAgentConversationTurn(
         {
           agentKey: "clinic.assistant.operations",
           subjectKind: "practice",
@@ -148,8 +154,7 @@ export function useOperationsAssistantConversation(isOpen: boolean) {
           message,
           conversationId,
         },
-        undefined,
-        signal,
+        { signal, onProvisionalAnswer },
       );
       const result: ClinicAssistantReply = {
         ...(response.result as unknown as RunClinicAssistantResponse),
@@ -170,11 +175,8 @@ export function useOperationsAssistantConversation(isOpen: boolean) {
     resetOnClose: false,
     initialConversationId,
     onConversationIdChange: writeOperationsConversationId,
-    isNotFound: (error) =>
-      typeof error === "object" &&
-      error !== null &&
-      "status" in error &&
-      error.status === 404,
+    isNotFound: isHttpNotFound,
+    isStaleConversation: isConversationNotFound,
   });
 }
 
@@ -314,6 +316,10 @@ export function useClinicAssistantConversationSurface(
     })));
     setActionIds((current) => current.map((id) => (id === originalId ? replacementId : id)));
   }, []);
+  /** Shows messages the page produced itself, such as a shortcut's result; the conversation and its agent are not involved. */
+  const appendLocalMessages = useCallback((added: ClinicAssistantChatMessage[]) => {
+    setMessages((current) => [...current, ...added]);
+  }, []);
   /** Stops waiting for the running turn; the conversation continues. */
   const cancel = useCallback(() => {
     if (!conversation.isPending) return;
@@ -357,6 +363,7 @@ export function useClinicAssistantConversationSurface(
     submit,
     retry,
     replaceAction,
+    appendLocalMessages,
     deleteCurrent,
     cancel,
     clearView,

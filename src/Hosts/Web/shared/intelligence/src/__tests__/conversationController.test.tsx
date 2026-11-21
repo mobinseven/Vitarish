@@ -1,5 +1,6 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { UnknownTurnOutcomeError } from "../api/intelligence/agentConversationTurn";
 import { useConversationController } from "../hooks/useConversationController";
 
 describe("useConversationController", () => {
@@ -387,5 +388,120 @@ describe("useConversationController continued conversations", () => {
     await act(() => result.current.submit("second"));
 
     expect(run.mock.calls.at(-1)?.slice(0, 2)).toEqual(["second", null]);
+  });
+
+  describe("stale conversation and unknown outcome", () => {
+    const ok = (conversationId: string, result = "reply") => ({ conversationId, result });
+    const staleSignal = { code: "ConversationNotFound" };
+    const controller = (run: ReturnType<typeof vi.fn>, extra: Record<string, unknown> = {}) =>
+      renderHook(() =>
+        useConversationController({
+          ownerKey: "practice",
+          isOpen: true,
+          run,
+          deleteConversation: vi.fn(),
+          ...extra,
+        }),
+      );
+
+    it("starts a new conversation only on the stale-conversation signal", async () => {
+      const run = vi.fn()
+        .mockResolvedValueOnce(ok("first"))
+        .mockRejectedValueOnce(staleSignal)
+        .mockResolvedValueOnce(ok("fresh"));
+      const { result } = controller(run, { isStaleConversation: (error: unknown) => error === staleSignal });
+
+      await act(() => result.current.submit("one"));
+      await act(() => result.current.submit("two"));
+
+      expect(run.mock.calls.map((call) => call[1])).toEqual([null, "first", null]);
+      expect(result.current.isError).toBe(false);
+    });
+
+    it("never replays after a generic 404 or other failure, and offers retry", async () => {
+      const generic = { status: 404 };
+      const run = vi.fn()
+        .mockResolvedValueOnce(ok("first"))
+        .mockRejectedValueOnce(generic)
+        .mockResolvedValueOnce(ok("first", "retried"));
+      const { result } = controller(run, { isNotFound: () => true, isStaleConversation: (error: unknown) => error === staleSignal });
+
+      await act(() => result.current.submit("one"));
+      await act(() => result.current.submit("two"));
+
+      expect(run).toHaveBeenCalledTimes(2);
+      expect(result.current.isError).toBe(true);
+      expect(result.current.isOutcomeUnknown).toBe(false);
+      await act(() => result.current.retry());
+      expect(run.mock.calls.at(-1)?.slice(0, 2)).toEqual(["two", "first"]);
+    });
+
+    it("reports an unknown outcome without an error, and suppresses retry", async () => {
+      const run = vi.fn()
+        .mockResolvedValueOnce(ok("first"))
+        .mockRejectedValueOnce(new UnknownTurnOutcomeError());
+      const { result } = controller(run);
+
+      await act(() => result.current.submit("one"));
+      await act(() => result.current.submit("two"));
+
+      expect(result.current.isOutcomeUnknown).toBe(true);
+      expect(result.current.isError).toBe(false);
+      expect(result.current.isPending).toBe(false);
+      await act(() => result.current.retry());
+      expect(run).toHaveBeenCalledTimes(2);
+
+      // A new message is a new request, not a replay, and clears the state.
+      run.mockResolvedValueOnce(ok("first", "new"));
+      await act(() => result.current.submit("three"));
+      expect(run).toHaveBeenCalledTimes(3);
+      expect(result.current.isOutcomeUnknown).toBe(false);
+    });
+
+    it("treats a stopped streamed turn as an unknown outcome", async () => {
+      const run = vi.fn((_message: string, _id: string | null, signal: AbortSignal) =>
+        new Promise<never>((_resolve, reject) => {
+          signal.addEventListener("abort", () => reject(new UnknownTurnOutcomeError()));
+        }));
+      const { result } = controller(run);
+
+      let pending: Promise<unknown> = Promise.resolve();
+      act(() => { pending = result.current.submit("one"); });
+      await waitFor(() => expect(result.current.isPending).toBe(true));
+      act(() => result.current.cancel());
+      await act(() => pending);
+
+      expect(result.current.isOutcomeUnknown).toBe(true);
+      await act(() => result.current.retry());
+      expect(run).toHaveBeenCalledTimes(1);
+    });
+
+    it("shows provisional text only for the running turn and drops it at the terminal response", async () => {
+      let finish: (value: { conversationId: string; result: string }) => void = () => undefined;
+      let report: (answer: { messageId: string; text: string }) => void = () => undefined;
+      const run = vi.fn((_m: string, _id: string | null, _s: AbortSignal, onProvisionalAnswer: typeof report) => {
+        report = onProvisionalAnswer;
+        return new Promise<{ conversationId: string; result: string }>((resolve) => { finish = resolve; });
+      });
+      const { result } = controller(run);
+
+      let pending: Promise<unknown> = Promise.resolve();
+      act(() => { pending = result.current.submit("one"); });
+      await waitFor(() => expect(result.current.isPending).toBe(true));
+      expect(result.current.provisional).toBeNull();
+
+      act(() => { report({ messageId: "m1", text: "Hel" }); report({ messageId: "m1", text: "Hello" }); });
+      await waitFor(() => expect(result.current.provisional).toMatchObject({ messageId: "m1", text: "Hello" }));
+      const turnId = result.current.provisional?.turnId;
+
+      await act(async () => { finish({ conversationId: "c1", result: "Final" }); await pending; });
+      expect(result.current.provisional).toBeNull();
+
+      // Late text from the finished turn is ignored.
+      act(() => report({ messageId: "m1", text: "late" }));
+      await new Promise((resolve) => setTimeout(resolve, 120));
+      expect(result.current.provisional).toBeNull();
+      expect(turnId).toBeGreaterThan(0);
+    });
   });
 });

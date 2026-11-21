@@ -1,11 +1,12 @@
 import type { ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { intelligenceRunAgentConversation } from "@vitarish/intelligence";
+import { intelligenceRunAgentConversation, UnknownTurnOutcomeError } from "@vitarish/intelligence";
 import {
   clinicDeleteOperationsAssistantConversation,
   clinicDeletePatientAssistantConversation,
+  clinicGetTodayAppointmentCount,
   clinicResolveClinicAssistantCandidate,
 } from "../api/generated/clinic/clinic";
 import { ClinicAssistantWorkspace } from "../features/clinic-assistant/ClinicAssistantWorkspace";
@@ -20,14 +21,21 @@ vi.mock("@vitarish/auth", async (importOriginal) => ({
 vi.mock("../api/generated/clinic/clinic", async (importOriginal) => ({
   ...(await importOriginal<typeof import("../api/generated/clinic/clinic")>()),
   clinicResolveClinicAssistantCandidate: vi.fn(),
+  clinicGetTodayAppointmentCount: vi.fn(),
   clinicDeleteOperationsAssistantConversation: vi.fn(),
   clinicDeletePatientAssistantConversation: vi.fn(),
   useClinicGetSetupProgress: () => ({ data: undefined }),
 }));
-vi.mock("@vitarish/intelligence", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@vitarish/intelligence")>()),
-  intelligenceRunAgentConversation: vi.fn(),
-}));
+vi.mock("@vitarish/intelligence", async (importOriginal) => {
+  const buffered = vi.fn();
+  return {
+    ...(await importOriginal<typeof import("@vitarish/intelligence")>()),
+    intelligenceRunAgentConversation: buffered,
+    // The capability-selected route is exercised on its own; here it resolves like the buffered one.
+    runAgentConversationTurn: (request: unknown, options?: { signal?: AbortSignal; onProvisionalAnswer?: unknown }) =>
+      buffered(request, undefined, options?.signal, options?.onProvisionalAnswer),
+  };
+});
 
 const text = clinicMessageCatalogs.en.clinic.assistantWorkspace;
 const run = vi.mocked(intelligenceRunAgentConversation);
@@ -161,5 +169,81 @@ describe("ClinicAssistantWorkspace", () => {
 
     expect(screen.getByText(text.continuing.title)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: text.newConversation })).toBeEnabled();
+  });
+
+  describe("today's appointment count shortcut", () => {
+    const countButton = () => screen.getByRole("button", { name: text.todayCount.label });
+
+    it("shows the count in the thread from the schedule alone, with no conversation or agent request", async () => {
+      userId = "count";
+      const fetchSpy = vi.spyOn(globalThis, "fetch");
+      vi.mocked(clinicGetTodayAppointmentCount).mockResolvedValueOnce({ date: "2026-11-21", count: 4 });
+      renderWorkspace();
+
+      fireEvent.click(countButton());
+
+      expect(await screen.findByText(text.todayCount.other.replace("{count}", "4"))).toBeInTheDocument();
+      expect(clinicGetTodayAppointmentCount).toHaveBeenCalledTimes(1);
+      expect(run).not.toHaveBeenCalled();
+      expect(clinicDeleteOperationsAssistantConversation).not.toHaveBeenCalled();
+      expect(clinicDeletePatientAssistantConversation).not.toHaveBeenCalled();
+      // Dictation availability is unrelated; no request may reach an agent conversation route.
+      expect(fetchSpy.mock.calls.filter(([url]) => String(url).includes("agent-conversations"))).toEqual([]);
+      fetchSpy.mockRestore();
+    });
+
+    it("uses the singular wording for one appointment and says when the count fails", async () => {
+      userId = "count-one";
+      vi.mocked(clinicGetTodayAppointmentCount)
+        .mockResolvedValueOnce({ date: "2026-11-21", count: "1" })
+        .mockRejectedValueOnce(new Error("down"));
+      renderWorkspace();
+
+      fireEvent.click(countButton());
+      expect(await screen.findByText(text.todayCount.one.replace("{count}", "1"))).toBeInTheDocument();
+
+      fireEvent.click(countButton());
+      expect(await screen.findByText(text.todayCount.error)).toBeInTheDocument();
+      expect(run).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("streamed turns", () => {
+    it("shows provisional text as plain text, then only the completed reply", async () => {
+      userId = "streamed";
+      let report: (answer: { messageId: string; text: string }) => void = () => undefined;
+      let finish: (value: ReturnType<typeof reply>) => void = () => undefined;
+      run.mockImplementationOnce(((_request: unknown, _unused: unknown, _signal: unknown, onProvisional: typeof report) => {
+        report = onProvisional;
+        return new Promise((resolve) => { finish = resolve; });
+      }) as never);
+      renderWorkspace();
+
+      fireEvent.click(screen.getByRole("button", { name: new RegExp(text.suggestions.items.todaySchedule.title) }));
+      await waitFor(() => expect(run).toHaveBeenCalled());
+      act(() => report({ messageId: "m1", text: "<b>Three</b> appointments" }));
+
+      const provisional = await screen.findByText("<b>Three</b> appointments");
+      expect(provisional.tagName).toBe("P");
+      expect(provisional).toHaveAttribute("aria-live", "off");
+      expect(provisional.querySelector("b")).toBeNull();
+
+      await act(async () => { finish(reply("ops-1", "You have three appointments today.")); });
+
+      expect(await screen.findByText("You have three appointments today.")).toBeInTheDocument();
+      expect(screen.queryByText("<b>Three</b> appointments")).toBeNull();
+    });
+
+    it("tells the person to check the conversation after an unknown outcome and offers no retry", async () => {
+      userId = "unknown";
+      run.mockRejectedValueOnce(new UnknownTurnOutcomeError());
+      renderWorkspace();
+
+      fireEvent.click(screen.getByRole("button", { name: new RegExp(text.suggestions.items.todaySchedule.title) }));
+
+      expect(await screen.findByText(clinicMessageCatalogs.en.clinic.operationsAssistant.outcomeUnknown)).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: clinicMessageCatalogs.en.clinic.operationsAssistant.retry })).toBeNull();
+      expect(run).toHaveBeenCalledTimes(1);
+    });
   });
 });

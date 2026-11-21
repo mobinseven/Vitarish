@@ -5,13 +5,14 @@ import { Alert, Button, Chip, Separator, Tooltip } from "@heroui/react";
 import { useAuthSession } from "@vitarish/auth";
 import { AgentChatWorkspace, ConfirmDialog, FaIcon, PageHeader } from "@vitarish/ui";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { clinicResolveClinicAssistantCandidate } from "../../api/generated/clinic/clinic";
+import { clinicGetTodayAppointmentCount, clinicResolveClinicAssistantCandidate } from "../../api/generated/clinic/clinic";
 import { useLocalizedText } from "../../localization";
 import type { NavigationIntent } from "../../navigation";
 import { isSetupGoal, setupGoalIntents } from "../clinic-setup/setupGoals";
 import { AssistantActionList } from "./AssistantActions";
 import { AssistantCandidateList } from "./AssistantCandidateList";
 import { AssistantComposer, AssistantErrorState, AssistantMessage, AssistantMessageList } from "./AssistantPanel";
+import { AssistantOutcomeUnknownState, AssistantProvisionalReply } from "./AssistantStates";
 import { OperationsGuidedReply } from "./OperationsGuidedReply";
 import { AssistantPresentedSurfaces, presentsPatientCandidates } from "./AssistantPresentedSurfaces";
 import {
@@ -127,6 +128,31 @@ function Workspace({ userId, onNavigate, onOpenPatient }: ClinicAssistantWorkspa
     }
     await active.submit(message);
   }, [active, focus]);
+
+  // The count comes straight from the practice schedule: no conversation, agent or provider is involved.
+  const [isCounting, setCounting] = useState(false);
+  const [countError, setCountError] = useState(false);
+  const showTodayCount = async () => {
+    setCounting(true);
+    setCountError(false);
+    try {
+      const { count } = await clinicGetTodayAppointmentCount();
+      const total = Number(count);
+      const formatted = new Intl.NumberFormat(locale).format(total);
+      operations.appendLocalMessages([
+        { kind: "UserMessage", content: t("clinic.assistantWorkspace.todayCount.label") },
+        {
+          kind: "InformationalToolResult",
+          content: t(total === 1 ? "clinic.assistantWorkspace.todayCount.one" : "clinic.assistantWorkspace.todayCount.other", { count: formatted }),
+        },
+      ]);
+      setContinuesEarlier(false);
+    } catch {
+      setCountError(true);
+    } finally {
+      setCounting(false);
+    }
+  };
 
   const selectCandidate = async (candidateToken: string) => {
     if (!operations.candidateRunId || !operations.candidateMessage) return;
@@ -278,6 +304,13 @@ function Workspace({ userId, onNavigate, onOpenPatient }: ClinicAssistantWorkspa
                 </Button>
                 <Tooltip.Content>{t("clinic.assistantWorkspace.stop")}</Tooltip.Content>
               </Tooltip>
+            ) : !focus ? (
+              <Tooltip>
+                <Button isIconOnly size="sm" variant="tertiary" aria-label={t("clinic.assistantWorkspace.todayCount.label")} isDisabled={isCounting} onPress={() => void showTodayCount()}>
+                  <FaIcon icon="calendar-day" aria-hidden="true" />
+                </Button>
+                <Tooltip.Content>{t("clinic.assistantWorkspace.todayCount.label")}</Tooltip.Content>
+              </Tooltip>
             ) : null}
           />
         }
@@ -315,6 +348,9 @@ function Workspace({ userId, onNavigate, onOpenPatient }: ClinicAssistantWorkspa
               <ChatMessage.Body><ChatLoader.Dots label={t("clinic.assistantWorkspace.running")} /></ChatMessage.Body>
             </ChatMessage.Assistant>
           ) : null}
+          {!focus && operationsConversation.provisional ? <AssistantProvisionalReply answer={operationsConversation.provisional} /> : null}
+          {!focus && operationsConversation.isOutcomeUnknown ? <AssistantOutcomeUnknownState /> : null}
+          {countError ? <p role="alert" className="text-sm text-danger">{t("clinic.assistantWorkspace.todayCount.error")}</p> : null}
           {activeConversation.isError ? <AssistantErrorState scope={focus ? "patient" : "operations"} onRetry={active.lastMessage ? () => void active.retry() : undefined} /> : null}
           {focus ? (
             <>

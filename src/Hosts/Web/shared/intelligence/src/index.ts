@@ -58,6 +58,18 @@ export type {
 export { useConversationController } from "./hooks/useConversationController";
 export type {
   ConversationController,
+  ActiveTurnProvisionalAnswer,
   ConversationRunResult,
   UseConversationControllerOptions,
 } from "./hooks/useConversationController";
+export {
+  AgentTurnCanceledError,
+  AgentTurnFailedError,
+  isConversationNotFound,
+  resetAgentConversationCapabilities,
+  runAgentConversationTurn,
+  UnknownTurnOutcomeError,
+} from "./api/intelligence/agentConversationTurn";
+export type { AgentConversationTurnOptions, ProvisionalAnswer } from "./api/intelligence/agentConversationTurn";
+export { AgentTurnStreamError, IntelligenceErrorCodeValue, readAgentTurnFrames, StreamChunkKindValue } from "./api/intelligence/agentTurnFrames";
+export type { AgentTurnFrame, AgentTurnStreamViolation } from "./api/intelligence/agentTurnFrames";

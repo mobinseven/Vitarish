@@ -7,6 +7,7 @@ import { useState, type ReactNode } from "react";
 import { useLocalizedText } from "../../localization";
 import { OperationsGuidedReply } from "./OperationsGuidedReply";
 import { AssistantComposer, AssistantErrorState, AssistantMessageList } from "./AssistantPanel";
+import { AssistantOutcomeUnknownState, AssistantProvisionalReply } from "./AssistantStates";
 import { operationsComposerSessionKey, useClinicAssistantConversationSurface, useOperationsAssistantConversation } from "./hooks";
 
 export interface OperationsAssistantAsideProps {
@@ -42,6 +43,8 @@ export function OperationsAssistantAside({ isOpen, welcome, onNextAction }: Oper
       <div className="flex min-h-0 flex-1 flex-col">
         <AssistantMessageList scope="operations" messages={surface.messages} onRetry={surface.lastMessage ? () => void surface.retry() : undefined}>
           {conversation.isPending ? <ChatMessage.Assistant><ChatMessage.Avatar show alt={t("clinic.operationsAssistant.title")} fallback="AI" /><ChatMessage.Body><ChatLoader.Dots label={t("clinic.operationsAssistant.running")} /></ChatMessage.Body></ChatMessage.Assistant> : null}
+          {conversation.provisional ? <AssistantProvisionalReply answer={conversation.provisional} /> : null}
+          {conversation.isOutcomeUnknown ? <AssistantOutcomeUnknownState /> : null}
           {conversation.isError ? <AssistantErrorState scope="operations" onRetry={surface.lastMessage ? () => void surface.retry() : undefined} /> : null}
           {welcome && surface.messages.length === 0 && !conversation.isPending ? welcome((message) => void surface.submit(message)) : null}
           <OperationsGuidedReply

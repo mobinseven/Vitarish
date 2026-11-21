@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ACCEPT_LANGUAGE_HEADER, ApiError, apiFetch, apiFetchBlob, resetAntiforgeryToken } from "../apiFetch";
+import { ACCEPT_LANGUAGE_HEADER, ApiError, apiFetch, apiFetchBlob, NDJSON_MEDIA_TYPE, resetAntiforgeryToken } from "../apiFetch";
 
 const tenantHostHeader = "X-Vitarish-Tenant-Host";
 
@@ -73,6 +73,35 @@ describe("apiFetch antiforgery", () => {
     expect(fetchMock.mock.calls[1][0]).toBe("https://localhost:7272/api/modules/example");
     expect(fetchMock.mock.calls[0][1].headers.get(tenantHostHeader)).toBe("tenant-a.example.test");
     expect(fetchMock.mock.calls[1][1].headers.get(tenantHostHeader)).toBe("tenant-a.example.test");
+  });
+
+  it("returns the unread body of a streamed response with tenant routing, credentials and antiforgery", async () => {
+    const abort = new AbortController();
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(jsonResponse({ requestToken: "token" }))
+      .mockResolvedValueOnce(new Response("{}\n", { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const body = await apiFetch<ReadableStream<Uint8Array>>(
+      { url: "/api/modules/example/stream", method: "POST", data: {}, signal: abort.signal },
+      { responseType: "stream" },
+    );
+
+    expect(body).toBeInstanceOf(ReadableStream);
+    const [, init] = fetchMock.mock.calls[1];
+    expect(init.headers.get("Accept")).toBe(NDJSON_MEDIA_TYPE);
+    expect(init.headers.get(tenantHostHeader)).toBe("tenant-a.example.test");
+    expect(init.headers.get("X-XSRF-TOKEN")).toBe("token");
+    expect(init.credentials).toBe("include");
+  });
+
+  it("still maps a rejected streamed request to ApiError before any body is returned", async () => {
+    vi.stubGlobal("fetch", vi.fn()
+      .mockResolvedValueOnce(jsonResponse({ requestToken: "token" }))
+      .mockResolvedValueOnce(jsonResponse({ code: 17, message: "gone" }, { status: 404 })));
+
+    await expect(apiFetch("/api/modules/example/stream", { method: "POST", responseType: "stream" }))
+      .rejects.toMatchObject({ status: 404, code: 17 });
   });
 
   it("rejects the original unsafe request when bootstrap fails", async () => {
