@@ -10,16 +10,12 @@ namespace Vitarish.Intelligence.Application.Agents;
 /// </summary>
 internal sealed class AgentTurnSpans(ILogger? logger, string executionId)
 {
-    internal const string SucceededOutcome = "Succeeded";
-    internal const string CancelledOutcome = "Cancelled";
-    internal const string FaultedOutcome = "Faulted";
-
     private int attempts;
 
     internal async Task<T> MeasureAsync<T>(AgentTurnPhase phase, Func<Task<T>> work, Func<T, string> outcomeOf)
     {
         long startedAt = Stopwatch.GetTimestamp();
-        string outcome = FaultedOutcome;
+        string outcome = AgentTurnOutcomes.Faulted;
         try
         {
             T result = await work();
@@ -28,7 +24,7 @@ internal sealed class AgentTurnSpans(ILogger? logger, string executionId)
         }
         catch (OperationCanceledException)
         {
-            outcome = CancelledOutcome;
+            outcome = AgentTurnOutcomes.Cancelled;
             throw;
         }
         finally
@@ -40,11 +36,11 @@ internal sealed class AgentTurnSpans(ILogger? logger, string executionId)
     internal T Measure<T>(AgentTurnPhase phase, Func<T> work)
     {
         long startedAt = Stopwatch.GetTimestamp();
-        string outcome = FaultedOutcome;
+        string outcome = AgentTurnOutcomes.Faulted;
         try
         {
             T result = work();
-            outcome = SucceededOutcome;
+            outcome = AgentTurnOutcomes.Succeeded;
             return result;
         }
         finally
@@ -58,7 +54,7 @@ internal sealed class AgentTurnSpans(ILogger? logger, string executionId)
     {
         int attempt = ++attempts;
         long startedAt = Stopwatch.GetTimestamp();
-        string outcome = FaultedOutcome;
+        string outcome = AgentTurnOutcomes.Faulted;
         AgentRunResult? run = null;
         try
         {
@@ -68,7 +64,7 @@ internal sealed class AgentTurnSpans(ILogger? logger, string executionId)
         }
         catch (OperationCanceledException)
         {
-            outcome = CancelledOutcome;
+            outcome = AgentTurnOutcomes.Cancelled;
             throw;
         }
         finally
@@ -94,7 +90,7 @@ internal sealed class AgentTurnSpans(ILogger? logger, string executionId)
     }
 
     internal static string OutcomeOf(AgentRunResult run) =>
-        run.IsSuccess ? SucceededOutcome : run.Error?.Code.ToString() ?? "Failed";
+        run.IsSuccess ? AgentTurnOutcomes.Succeeded : run.Error?.Code.ToString() ?? AgentTurnOutcomes.Failed;
 
     private void Record(AgentTurnPhase phase, string outcome, long startedAt)
     {

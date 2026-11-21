@@ -33,6 +33,13 @@ internal static class IntelligenceAgentConversationResultMapper
         return false;
     }
 
+    /// <summary>
+    /// True when the turn ended by the server deadline or a server-initiated cancel. A streamed turn on an
+    /// intact connection reports these as a Canceled frame; buffered responses keep the generic failure.
+    /// </summary>
+    internal static bool IsCancellation(AgentConversationEndpointResult result) =>
+        result.Outcome is AgentConversationOutcome.TimedOut or AgentConversationOutcome.Cancelled;
+
     /// <summary>The redacted status and error shared by the buffered response and the streamed Failed frame.</summary>
     internal static (int StatusCode, IntelligenceError Error) ToFailure(AgentConversationEndpointResult result) => result.Outcome switch
     {

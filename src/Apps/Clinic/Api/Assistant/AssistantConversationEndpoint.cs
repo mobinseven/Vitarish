@@ -78,6 +78,10 @@ public sealed class AssistantConversationEndpoint(
             return new(AgentConversationOutcome.Busy, result.AgentRunId, ParseConversationId(result.ConversationId));
         if (result.Outcome is AssistantRunOutcome.InvalidHistory)
             return new(AgentConversationOutcome.InvalidHistory, result.AgentRunId, ParseConversationId(result.ConversationId));
+        if (result.Outcome is AssistantRunOutcome.TimedOut)
+            return new(AgentConversationOutcome.TimedOut, result.AgentRunId, ParseConversationId(result.ConversationId));
+        if (result.Outcome is AssistantRunOutcome.Cancelled)
+            return new(AgentConversationOutcome.Cancelled, result.AgentRunId, ParseConversationId(result.ConversationId));
         if (result.Outcome is not AssistantRunOutcome.Succeeded || !Guid.TryParse(result.ConversationId, out Guid conversationId))
             return new(AgentConversationOutcome.ProviderFailure, result.AgentRunId, ParseConversationId(result.ConversationId));
 

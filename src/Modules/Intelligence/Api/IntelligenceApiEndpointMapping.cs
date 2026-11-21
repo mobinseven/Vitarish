@@ -75,7 +75,7 @@ public static class IntelligenceApiEndpointMapping
         IAgentRuntimeToolEndpoint? endpoint = endpoints.Value.Resolve(envelope.AgentKey);
         if (endpoint is null) return Results.NotFound();
         long handlingStartedAt = Stopwatch.GetTimestamp();
-        string handlingOutcome = IntelligenceAgentRuntimeTelemetry.FaultedOutcome;
+        string handlingOutcome = AgentTurnOutcomes.Faulted;
         try
         {
             AgentExecutionContext context = envelope.ToExecutionContext();
@@ -84,12 +84,12 @@ public static class IntelligenceApiEndpointMapping
             AgentToolResult result = await endpoint.ExecuteAsync(
                 new(new AgentToolCall(envelope.ToolCallId, envelope.ToolName, request.ArgumentsJson), context, envelope), ct);
             result = await presentation.PublishAsync(envelope, result, ct);
-            handlingOutcome = result.IsError ? IntelligenceAgentRuntimeTelemetry.ToolErrorOutcome : IntelligenceAgentRuntimeTelemetry.SucceededOutcome;
+            handlingOutcome = result.IsError ? IntelligenceAgentRuntimeTelemetry.ToolErrorOutcome : AgentTurnOutcomes.Succeeded;
             return Results.Ok(new InternalAgentToolExecutionResponse(result.CallId, result.Output, result.IsError));
         }
         catch (KeyNotFoundException) { handlingOutcome = IntelligenceAgentRuntimeTelemetry.NotFoundOutcome; return Results.NotFound(); }
         catch (UnauthorizedAccessException) { handlingOutcome = IntelligenceAgentRuntimeTelemetry.ForbiddenOutcome; return Results.Forbid(); }
-        catch (OperationCanceledException) when (ct.IsCancellationRequested) { handlingOutcome = IntelligenceAgentRuntimeTelemetry.CancelledOutcome; throw; }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested) { handlingOutcome = AgentTurnOutcomes.Cancelled; throw; }
         catch (Exception exception) when (exception is JsonException or FormatException or ArgumentException or InvalidOperationException)
         {
             handlingOutcome = IntelligenceAgentRuntimeTelemetry.RejectedOutcome;
@@ -123,6 +123,7 @@ public static class IntelligenceApiEndpointMapping
             time,
             context,
             AgentConversationStreamEndpoint.FrameWriteTimeout,
+            AgentConversationStreamEndpoint.TerminalFrameWriteTimeout,
             ct);
 
     private static IResult GetAgentConversationCapabilities([FromServices] IAgentConversationEndpointRegistry endpoints) =>
@@ -144,7 +145,7 @@ public static class IntelligenceApiEndpointMapping
             return Results.NotFound(new IntelligenceError(IntelligenceErrorCode.NotFound, "The agent conversation route was not found."));
 
         long acceptedAt = Stopwatch.GetTimestamp();
-        string outcome = IntelligenceAgentRuntimeTelemetry.FaultedOutcome;
+        string outcome = AgentTurnOutcomes.Faulted;
         try
         {
             AgentConversationEndpointResult result = await endpoint.RunAsync(
@@ -154,7 +155,7 @@ public static class IntelligenceApiEndpointMapping
         }
         catch (OperationCanceledException)
         {
-            outcome = IntelligenceAgentRuntimeTelemetry.CancelledOutcome;
+            outcome = AgentTurnOutcomes.Cancelled;
             throw;
         }
         finally

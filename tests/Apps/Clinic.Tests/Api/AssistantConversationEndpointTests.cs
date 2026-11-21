@@ -73,6 +73,29 @@ public sealed class AssistantConversationEndpointTests
         result.Outcome.Should().Be(AgentConversationOutcome.InvalidHistory);
     }
 
+    [Theory]
+    [InlineData(AssistantRunOutcome.TimedOut, AgentConversationOutcome.TimedOut)]
+    [InlineData(AssistantRunOutcome.Cancelled, AgentConversationOutcome.Cancelled)]
+    [InlineData(AssistantRunOutcome.Failed, AgentConversationOutcome.ProviderFailure)]
+    public async Task Deadline_and_cancel_outcomes_are_carried_to_the_conversation_result(
+        AssistantRunOutcome assistantOutcome,
+        AgentConversationOutcome expected)
+    {
+        AssistantContext context = OperationsContext();
+        Mock<IAssistantContextFactory> factory = new(MockBehavior.Strict);
+        factory.Setup(item => item.CreateOperationsAsync(null, It.IsAny<CancellationToken>(), null))
+            .ReturnsAsync(context);
+        Mock<ISender> sender = new(MockBehavior.Strict);
+        sender.Setup(item => item.Send(It.IsAny<RunAssistant>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Success(context) with { Outcome = assistantOutcome });
+
+        AgentConversationEndpointResult result = await new AssistantConversationEndpoint(factory.Object, sender.Object)
+            .RunAsync(new(
+                "clinic.assistant.operations", "practice", "practice", "continue", null), CancellationToken.None);
+
+        result.Outcome.Should().Be(expected);
+    }
+
     [Fact]
     public void Legacy_and_canonical_agent_routes_are_registered_together()
     {

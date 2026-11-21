@@ -73,18 +73,18 @@
 
 (test_api) {
     @api path /api/*
-    reverse_proxy @api test-main:8080 {
-        # Flush each streamed NDJSON frame to the browser as Main writes it.
-        flush_interval -1
-    }
+    # No flush_interval: Caddy flushes responses of unknown length (the chunked NDJSON stream)
+    # immediately, and flush_interval -1 would keep the upstream request running after the client
+    # disconnects (Caddy reverse_proxy docs, streaming).
+    reverse_proxy @api test-main:8080
 }
 
 (production_api) {
     @api path /api/*
-    reverse_proxy @api production-main:8080 {
-        # Flush each streamed NDJSON frame to the browser as Main writes it.
-        flush_interval -1
-    }
+    # No flush_interval: Caddy flushes responses of unknown length (the chunked NDJSON stream)
+    # immediately, and flush_interval -1 would keep the upstream request running after the client
+    # disconnects (Caddy reverse_proxy docs, streaming).
+    reverse_proxy @api production-main:8080
 }
 
 (production_readiness) {

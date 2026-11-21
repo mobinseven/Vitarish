@@ -27,6 +27,7 @@ public sealed class AgentConversationStreamEndpointTests
     private const string SubjectKind = "tenant";
     private static readonly JsonSerializerOptions Web = new(JsonSerializerDefaults.Web);
     private static readonly TimeSpan WriteTimeout = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan TerminalWriteTimeout = TimeSpan.FromSeconds(2);
     private static readonly RunAgentConversationRequest Request = new(AgentKey, SubjectKind, "subject-1", "hello");
 
     [Fact]
@@ -114,9 +115,9 @@ public sealed class AgentConversationStreamEndpointTests
         Fixture fixture = new((request, _) => RunTurnAsync(request, Succeeded()));
 
         IResult invalid = await AgentConversationStreamEndpoint.StreamAsync(
-            Request with { Message = " " }, fixture.Registry, NullLogger.Instance, TimeProvider.System, fixture.Context, WriteTimeout, default);
+            Request with { Message = " " }, fixture.Registry, NullLogger.Instance, TimeProvider.System, fixture.Context, WriteTimeout, TerminalWriteTimeout, default);
         IResult unknown = await AgentConversationStreamEndpoint.StreamAsync(
-            Request with { AgentKey = "missing" }, fixture.Registry, NullLogger.Instance, TimeProvider.System, fixture.Context, WriteTimeout, default);
+            Request with { AgentKey = "missing" }, fixture.Registry, NullLogger.Instance, TimeProvider.System, fixture.Context, WriteTimeout, TerminalWriteTimeout, default);
 
         await invalid.ExecuteAsync(fixture.Context);
         fixture.Context.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
@@ -191,6 +192,79 @@ public sealed class AgentConversationStreamEndpointTests
         _ = await fixture.StreamAsync();
 
         fixture.Frames().Select(frame => frame.Kind).Should().Equal(StreamChunkKind.Started, StreamChunkKind.Canceled);
+    }
+
+    [Theory]
+    [InlineData(AgentConversationOutcome.TimedOut)]
+    [InlineData(AgentConversationOutcome.Cancelled)]
+    public async Task Runtime_deadline_or_cancel_result_on_an_intact_connection_is_a_canceled_frame(AgentConversationOutcome outcome)
+    {
+        Fixture fixture = new(async (request, ct) =>
+        {
+            await request.Observer!.AcceptedAsync(TimeSpan.FromMinutes(1), ct);
+            return new AgentConversationEndpointResult(outcome);
+        });
+
+        _ = await fixture.StreamAsync();
+        List<IntelligenceStreamChunk<AgentTurnPayload>> frames = fixture.Frames();
+
+        frames.Select(frame => frame.Kind).Should().Equal(StreamChunkKind.Started, StreamChunkKind.Canceled);
+        frames[^1].Error.Should().BeNull();
+        frames[^1].Delta.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task Provider_failure_on_an_intact_connection_stays_a_failed_frame()
+    {
+        Fixture fixture = new(async (request, ct) =>
+        {
+            await request.Observer!.AcceptedAsync(TimeSpan.FromMinutes(1), ct);
+            return new AgentConversationEndpointResult(AgentConversationOutcome.ProviderFailure);
+        });
+
+        _ = await fixture.StreamAsync();
+
+        fixture.Frames().Select(frame => frame.Kind).Should().Equal(StreamChunkKind.Started, StreamChunkKind.Failed);
+        fixture.Frames()[^1].Error!.StatusCode.Should().Be(StatusCodes.Status502BadGateway);
+    }
+
+    [Fact]
+    public async Task A_progress_write_stuck_behind_a_slow_reader_stops_with_the_turn_and_the_terminal_frame_is_still_delivered()
+    {
+        // The Started frame is read; the first progress frame then waits for a reader that never drains.
+        BlockingBody body = new() { BlockFromWrite = 2, ReleaseAfterInterruption = true };
+        Fixture fixture = new(async (request, ct) =>
+        {
+            await request.Observer!.AcceptedAsync(TimeSpan.FromMilliseconds(200), ct);
+            await request.Observer.StageAsync(new(AgentTurnStage.ModelRoundStarted, 1), ct);
+            return new AgentConversationEndpointResult(AgentConversationOutcome.TimedOut);
+        }, body: body);
+        System.Diagnostics.Stopwatch elapsed = System.Diagnostics.Stopwatch.StartNew();
+
+        _ = await fixture.StreamAsync(writeTimeout: TimeSpan.FromSeconds(30));
+
+        elapsed.Elapsed.Should().BeLessThan(TimeSpan.FromSeconds(10), "the progress write must not wait for the 30 s write timeout once the turn ended");
+        body.Writes.Should().Be(3, "Started, the interrupted progress frame, then the terminal frame");
+        JsonSerializer.Deserialize<IntelligenceStreamChunk<AgentTurnPayload>>(body.Written.Last().Trim(), Web)!.Kind
+            .Should().Be(StreamChunkKind.Canceled, "the deadline outcome is delivered on the terminal allowance");
+    }
+
+    [Fact]
+    public async Task A_terminal_frame_behind_a_stalled_reader_is_bounded_by_its_own_short_allowance()
+    {
+        BlockingBody body = new() { BlockFromWrite = 2 };
+        Fixture fixture = new(async (request, ct) =>
+        {
+            await request.Observer!.AcceptedAsync(TimeSpan.FromMinutes(1), ct);
+            return new AgentConversationEndpointResult(AgentConversationOutcome.Succeeded, "run-1", Guid.NewGuid(), JsonDocument.Parse("{}").RootElement.Clone());
+        }, body: body);
+        System.Diagnostics.Stopwatch elapsed = System.Diagnostics.Stopwatch.StartNew();
+
+        IResult result = await fixture.StreamAsync(writeTimeout: TimeSpan.FromSeconds(30), terminalWriteTimeout: TimeSpan.FromMilliseconds(100));
+
+        result.Should().BeSameAs(Results.Empty);
+        elapsed.Elapsed.Should().BeLessThan(TimeSpan.FromSeconds(10));
+        body.Writes.Should().Be(2);
     }
 
     [Fact]
@@ -336,9 +410,9 @@ public sealed class AgentConversationStreamEndpointTests
         public IAgentConversationEndpointRegistry Registry { get; }
         public DefaultHttpContext Context { get; }
 
-        public Task<IResult> StreamAsync(CancellationToken ct = default, TimeSpan? writeTimeout = null) =>
+        public Task<IResult> StreamAsync(CancellationToken ct = default, TimeSpan? writeTimeout = null, TimeSpan? terminalWriteTimeout = null) =>
             AgentConversationStreamEndpoint.StreamAsync(
-                Request, Registry, NullLogger.Instance, TimeProvider.System, Context, writeTimeout ?? WriteTimeout, ct);
+                Request, Registry, NullLogger.Instance, TimeProvider.System, Context, writeTimeout ?? WriteTimeout, terminalWriteTimeout ?? TerminalWriteTimeout, ct);
 
         public string Body() => Encoding.UTF8.GetString(memory.ToArray());
 
@@ -364,8 +438,16 @@ public sealed class AgentConversationStreamEndpointTests
 
     private sealed class BlockingBody : Stream
     {
+        private bool interrupted;
         public int Writes { get; private set; }
+        public List<string> Written { get; } = [];
         public bool ThrowIo { get; init; }
+
+        /// <summary>The 1-based write from which writes never complete on their own; the default 0 blocks every write.</summary>
+        public int BlockFromWrite { get; init; }
+
+        /// <summary>After a blocked write was interrupted, later writes complete.</summary>
+        public bool ReleaseAfterInterruption { get; init; }
         public override bool CanRead => false;
         public override bool CanSeek => false;
         public override bool CanWrite => true;
@@ -383,7 +465,19 @@ public sealed class AgentConversationStreamEndpointTests
             Writes++;
             if (ThrowIo)
                 throw new IOException("The client disconnected.");
-            await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
+            if (BlockFromWrite == 0 || (Writes >= BlockFromWrite && !(ReleaseAfterInterruption && interrupted)))
+            {
+                try
+                {
+                    await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    interrupted = true;
+                    throw;
+                }
+            }
+            Written.Add(Encoding.UTF8.GetString(buffer.Span));
         }
     }
 }

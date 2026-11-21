@@ -13,14 +13,16 @@ namespace Vitarish.Intelligence.Api;
 /// <see cref="AcceptedAsync"/>, so a turn rejected before acceptance still gets a standard HTTP error.
 /// The writer owns the public sequence, emits exactly one terminal frame, and treats a write that fails
 /// or exceeds the write timeout as a disconnected or too slow consumer: it cancels the turn and
-/// writes nothing more.
+/// writes nothing more. Progress writes also stop with the turn token. The terminal frame is bounded
+/// only by the client abort and its own short allowance, so a server-deadline outcome is still delivered.
 /// </summary>
 internal sealed class AgentTurnStreamWriter(
     HttpContext context,
     string operationId,
     CancellationTokenSource turn,
     TimeProvider time,
-    TimeSpan writeTimeout) : IAgentTurnObserver
+    TimeSpan writeTimeout,
+    TimeSpan terminalWriteTimeout) : IAgentTurnObserver
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
     private const byte LineFeed = (byte)'\n';
@@ -48,12 +50,12 @@ internal sealed class AgentTurnStreamWriter(
     }
 
     public ValueTask StageAsync(AgentTurnStageEvent stage, CancellationToken cancellationToken) =>
-        WriteAsync(StreamChunkKind.Progress, new AgentTurnPayload(ToContract(stage.Stage), stage.Ordinal), null);
+        WriteAsync(StreamChunkKind.Progress, new AgentTurnPayload(ToContract(stage.Stage), stage.Ordinal), null, cancellationToken);
 
     public ValueTask AnswerDeltaAsync(string messageId, string text, CancellationToken cancellationToken)
     {
         AnswerTextEmitted = true;
-        return WriteAsync(StreamChunkKind.Delta, new AgentTurnPayload(MessageId: messageId, Text: text), null);
+        return WriteAsync(StreamChunkKind.Delta, new AgentTurnPayload(MessageId: messageId, Text: text), null, cancellationToken);
     }
 
     internal ValueTask CompleteAsync(RunAgentConversationResponse result) =>
@@ -63,11 +65,19 @@ internal sealed class AgentTurnStreamWriter(
 
     internal ValueTask CancelAsync() => WriteAsync(StreamChunkKind.Canceled, null, null);
 
-    private async ValueTask WriteAsync(StreamChunkKind kind, AgentTurnPayload? payload, IntelligenceError? error)
+    private async ValueTask WriteAsync(
+        StreamChunkKind kind,
+        AgentTurnPayload? payload,
+        IntelligenceError? error,
+        CancellationToken progressToken = default)
     {
         if (!Started || ConsumerFailed || terminalWritten)
             return;
-        terminalWritten = kind is StreamChunkKind.Completed or StreamChunkKind.Failed or StreamChunkKind.Canceled;
+        bool terminal = kind is StreamChunkKind.Completed or StreamChunkKind.Failed or StreamChunkKind.Canceled;
+        // A turn that is already ending has nothing more to report as progress; its terminal frame follows.
+        if (!terminal && (turn.IsCancellationRequested || progressToken.IsCancellationRequested))
+            return;
+        terminalWritten = terminal;
         IntelligenceStreamChunk<AgentTurnPayload> chunk = new(
             kind,
             new IntelligenceStreamMetadata(operationId, sequence++, time.GetUtcNow(), StageOf(kind)),
@@ -79,12 +89,21 @@ internal sealed class AgentTurnStreamWriter(
         line[^1] = LineFeed;
         try
         {
-            // Bounded by the client abort and the write timeout, not by the turn: the terminal
-            // frame of a turn cancelled by the server deadline must still be deliverable.
-            using CancellationTokenSource write = CancellationTokenSource.CreateLinkedTokenSource(context.RequestAborted);
-            write.CancelAfter(writeTimeout);
+            // A progress write also stops with the turn. The terminal frame is bounded only by the client
+            // abort and its own short allowance: the frame of a turn cancelled by the server deadline must
+            // still be deliverable.
+            using CancellationTokenSource write = terminal
+                ? CancellationTokenSource.CreateLinkedTokenSource(context.RequestAborted)
+                : CancellationTokenSource.CreateLinkedTokenSource(context.RequestAborted, turn.Token, progressToken);
+            write.CancelAfter(terminal ? terminalWriteTimeout : writeTimeout);
             await context.Response.Body.WriteAsync(line, write.Token);
             await context.Response.Body.FlushAsync(write.Token);
+        }
+        catch (OperationCanceledException) when (!terminal && !context.RequestAborted.IsCancellationRequested &&
+            (turn.IsCancellationRequested || progressToken.IsCancellationRequested))
+        {
+            // The turn ended while this progress frame waited for a slow reader. The consumer is not known
+            // to be gone, so the terminal frame still gets its own allowance.
         }
         catch (Exception exception) when (exception is IOException or ObjectDisposedException or InvalidOperationException or OperationCanceledException)
         {

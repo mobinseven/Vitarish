@@ -33,5 +33,7 @@ public enum AssistantRunOutcome
     NotFound,
     Busy,
     InvalidHistory,
-    Failed
+    Failed,
+    TimedOut,
+    Cancelled
 }

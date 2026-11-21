@@ -49,7 +49,7 @@ public sealed class RunAgentConversationHandler(
     {
         AgentTurnSpans spans = new(logger, request.ExecutionContext.ExecutionId);
         long startedAt = Stopwatch.GetTimestamp();
-        string outcome = AgentTurnSpans.FaultedOutcome;
+        string outcome = AgentTurnOutcomes.Faulted;
         try
         {
             RunAgentConversationResult result = await HandleSpannedAsync(request, spans, cancellationToken);
@@ -60,7 +60,7 @@ public sealed class RunAgentConversationHandler(
         }
         catch (OperationCanceledException)
         {
-            outcome = AgentTurnSpans.CancelledOutcome;
+            outcome = AgentTurnOutcomes.Cancelled;
             throw;
         }
         finally
@@ -122,14 +122,18 @@ public sealed class RunAgentConversationHandler(
             if (logger is not null)
                 AgentConversationTelemetry.ProviderOutcome(
                     logger,
-                    run.IsSuccess ? "succeeded" : run.Error?.Code.ToString() ?? "failed",
+                    run.IsSuccess ? AgentTurnOutcomes.Succeeded : run.Error?.Code.ToString() ?? AgentTurnOutcomes.Failed,
                     executionContext.ExecutionId);
 
             if (!run.IsSuccess)
                 return new(
-                    run.Error?.Code == AgentRunErrorCode.InvalidProviderResponse
-                        ? AgentConversationOutcome.InvalidHistory
-                        : AgentConversationOutcome.ProviderFailure,
+                    run.Error?.Code switch
+                    {
+                        AgentRunErrorCode.InvalidProviderResponse => AgentConversationOutcome.InvalidHistory,
+                        AgentRunErrorCode.Timeout => AgentConversationOutcome.TimedOut,
+                        AgentRunErrorCode.Cancelled => AgentConversationOutcome.Cancelled,
+                        _ => AgentConversationOutcome.ProviderFailure
+                    },
                     lease.ConversationId,
                     run);
             if (string.IsNullOrWhiteSpace(run.History))
@@ -171,7 +175,7 @@ public sealed class RunAgentConversationHandler(
                     await store.ReleaseAsync(lease, CancellationToken.None);
                     return true;
                 },
-                _ => AgentTurnSpans.SucceededOutcome);
+                _ => AgentTurnOutcomes.Succeeded);
         }
     }
 
