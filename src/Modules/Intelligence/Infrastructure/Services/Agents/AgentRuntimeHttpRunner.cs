@@ -231,7 +231,8 @@ public sealed class AgentRuntimeHttpRunner(
             limits,
             options.Value.ToolCallbackUrl,
             credentialService.Create(envelope),
-            answerStream);
+            answerStream,
+            context.Attempt);
         failure = null;
 
         logger.LogInformation(
