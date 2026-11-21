@@ -116,6 +116,7 @@ public static class ClinicApiEndpointMapping
         _ = group.MapModulePost(ClinicApiRoutes.RejectPatientAssistantAction, RejectPatientAssistantActionAsync, "ClinicRejectPatientAssistantAction", typeof(RejectClinicAssistantActionResponse));
         _ = group.MapModulePost(ClinicApiRoutes.RejectLegacyPatientAgentAction, RejectPatientAssistantActionAsync, "ClinicRejectPatientAgentAction", typeof(RejectClinicAssistantActionResponse));
         _ = group.MapModulePost(ClinicApiRoutes.OperationsAssistant, RunCanonicalOperationsAssistantAsync, "ClinicRunOperationsAssistant", typeof(RunClinicAssistantResponse));
+        _ = group.MapModuleGet(ClinicApiRoutes.OperationsTodayAppointmentCount, GetTodayAppointmentCountAsync, ClinicApiOperations.GetTodayAppointmentCount, typeof(TodayAppointmentCountResponse));
         _ = group.MapModulePost(ClinicApiRoutes.LegacyOperationsAgent, RunLegacyOperationsAgentAsync, "ClinicRunOperationsAgent", typeof(RunClinicAssistantResponse));
         _ = group.MapModulePost(ClinicApiRoutes.ResolveClinicAssistantCandidate, ResolveClinicAssistantCandidateAsync, "ClinicResolveClinicAssistantCandidate", typeof(ResolveClinicAssistantCandidateResponse));
         _ = group.MapModulePost(ClinicApiRoutes.LegacyResolvePatientAgentCandidate, ResolveClinicAssistantCandidateAsync, "ClinicResolvePatientAgentCandidate", typeof(ResolveClinicAssistantCandidateResponse));
@@ -708,6 +709,20 @@ public static class ClinicApiEndpointMapping
         if (result.Outcome == AssistantRunOutcome.InvalidHistory) return Results.Conflict(new ClinicError(ClinicErrorCode.InvalidHistory, "The conversation history is invalid."));
         if (result.Outcome != AssistantRunOutcome.Succeeded) return Results.Json(new ClinicError(ClinicErrorCode.UnexpectedFailure, "The operations agent failed."), statusCode: StatusCodes.Status502BadGateway);
         return Results.Ok(ToRunResponse(result));
+    }
+
+    private static async Task<IResult> GetTodayAppointmentCountAsync([FromServices] IAssistantContextFactory contextFactory, ISender sender, CancellationToken ct)
+    {
+        AssistantContext context;
+        try { context = await contextFactory.CreateOperationsAsync(null, ct); }
+        catch (UnauthorizedAccessException) { return ForbiddenAssistantAction(); }
+        TodayAppointmentCountResult result = await sender.Send(new GetTodayAppointmentCountQuery(context), ct);
+        return result.Outcome switch
+        {
+            TodayAppointmentCountOutcome.Succeeded => Results.Ok(new TodayAppointmentCountResponse(result.Date, result.Count)),
+            TodayAppointmentCountOutcome.Forbidden => ForbiddenAssistantAction(),
+            _ => Results.Json(new ClinicError(ClinicErrorCode.UnexpectedFailure, "The appointment count is unavailable."), statusCode: StatusCodes.Status503ServiceUnavailable)
+        };
     }
 
     private static async Task<IResult> ResolveClinicAssistantCandidateAsync(
