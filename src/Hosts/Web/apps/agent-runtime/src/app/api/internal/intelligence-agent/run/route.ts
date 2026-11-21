@@ -1,4 +1,4 @@
-import { Agent, OpenAIProvider, Runner, tool, type Model, type ModelProvider } from "@openai/agents";
+import { Agent, OpenAIProvider, Runner, tool, type Model, type ModelProvider, type StreamEvent } from "@openai/agents";
 import { NextRequest } from "next/server";
 import { AGENT_CREDENTIAL_HEADER } from "../credential-header";
 import { parseHistory } from "./history";
@@ -128,6 +128,56 @@ class AgentRuntimeLimitError extends Error {
   }
 }
 
+/** Single owner of cumulative token accounting for the buffered and streamed model paths. */
+function assertTokenBudgetRemains(maxTokens: number, usedTokens: { value: number }): void {
+  if (usedTokens.value >= maxTokens) throw new AgentRuntimeLimitError("TokenLimitExceeded");
+}
+
+/** Adds reported usage to the cumulative total; usage the provider did not report is treated as budget exhaustion. */
+function recordTokenUsage(maxTokens: number, usedTokens: { value: number }, usage: { totalTokens?: number } | undefined): void {
+  const total = usage?.totalTokens;
+  if (typeof total !== "number" || !Number.isFinite(total) || total < 0) {
+    usedTokens.value = maxTokens;
+    throw new AgentRuntimeLimitError("TokenLimitExceeded");
+  }
+  usedTokens.value += total;
+  if (usedTokens.value > maxTokens) throw new AgentRuntimeLimitError("TokenLimitExceeded");
+}
+
+/**
+ * Streamed counterpart of the buffered budget check: each provider request is clamped to the remaining budget,
+ * usage is accounted on provider completion, and a stream that ends or is cancelled without reported usage
+ * exhausts the budget so later rounds and tools are blocked.
+ */
+async function* budgetedStream(
+  model: Model,
+  request: Parameters<Model["getStreamedResponse"]>[0],
+  maxTokens: number,
+  usedTokens: { value: number },
+): AsyncGenerator<StreamEvent> {
+  assertTokenBudgetRemains(maxTokens, usedTokens);
+  const remaining = maxTokens - usedTokens.value;
+  const requested = request.modelSettings?.maxTokens;
+  const clamped = {
+    ...request,
+    modelSettings: { ...request.modelSettings, maxTokens: typeof requested === "number" ? Math.min(requested, remaining) : remaining },
+  };
+  let accounted = false;
+  try {
+    for await (const event of model.getStreamedResponse(clamped)) {
+      if (event.type === "response_done") {
+        accounted = true;
+        recordTokenUsage(maxTokens, usedTokens, event.response.usage);
+      }
+      yield event;
+    }
+    if (!accounted) recordTokenUsage(maxTokens, usedTokens, undefined);
+  } finally {
+    // Cancellation or provider failure before completion leaves the spend unknown: block any later round or tool.
+    if (!accounted) usedTokens.value = maxTokens;
+  }
+}
+
 function budgetedModelProvider(maxTokens: number, usedTokens: { value: number }, executionId: string): ModelProvider {
   const provider = new OpenAIProvider();
   return {
@@ -145,7 +195,7 @@ function budgetedModel(model: Model, maxTokens: number, usedTokens: { value: num
   let turn = 0;
   return {
     getResponse: async (request) => {
-      if (usedTokens.value >= maxTokens) throw new AgentRuntimeLimitError("TokenLimitExceeded");
+      assertTokenBudgetRemains(maxTokens, usedTokens);
       turn += 1;
       const startedAt = performance.now();
       const response = await model.getResponse(request);
@@ -158,11 +208,10 @@ function budgetedModel(model: Model, maxTokens: number, usedTokens: { value: num
         outputTokens: response.usage.outputTokens,
         reasoningTokens: (response.usage.outputTokensDetails ?? []).reduce((total, details) => total + (details.reasoning_tokens ?? 0), 0),
       });
-      usedTokens.value += response.usage.totalTokens;
-      if (usedTokens.value > maxTokens) throw new AgentRuntimeLimitError("TokenLimitExceeded");
+      recordTokenUsage(maxTokens, usedTokens, response.usage);
       return response;
     },
-    getStreamedResponse: (request) => model.getStreamedResponse(request),
+    getStreamedResponse: (request) => budgetedStream(model, request, maxTokens, usedTokens),
     getRetryAdvice: model.getRetryAdvice?.bind(model),
   };
 }
@@ -288,6 +337,7 @@ export async function POST(request: NextRequest) {
       execute: async (argumentsValue: unknown, _context: unknown, details: unknown) => {
         argumentsValue = parameters.decodeArguments(argumentsValue);
         const callId = toolCallId(details);
+        assertTokenBudgetRemains(input.limits.maxTokens, usedTokens);
         if (toolCallsUsed >= input.limits.maxToolCalls) {
           throw new AgentRuntimeLimitError("ToolCallLimitExceeded");
         }
