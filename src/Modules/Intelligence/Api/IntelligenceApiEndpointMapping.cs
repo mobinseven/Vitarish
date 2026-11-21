@@ -1,7 +1,9 @@
 using System.Diagnostics;
+using System.Net.Mime;
 using System.Text.Json;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Metadata;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Mvc;
 using Vitarish.Intelligence.Application.Abstractions;
@@ -35,8 +37,10 @@ public static class IntelligenceApiEndpointMapping
         _ = personal.MapUserMemory();
         _ = group.MapModulePost(IntelligenceApiRoutes.Rewrite, RewriteAsync, "IntelligenceRewrite", typeof(RewriteResult));
         _ = group.MapModulePost(IntelligenceApiRoutes.RewriteStream, StreamRewriteAsync, "IntelligenceStreamRewrite", profile: ModuleEndpointProfile.Streaming, contentType: ModuleEndpointOpenApiConventions.JsonStream);
-        _ = group.MapModulePost(IntelligenceApiRoutes.AgentConversation, RunAgentConversationAsync, "IntelligenceRunAgentConversation", typeof(RunAgentConversationResponse));
-        _ = group.MapModulePost(IntelligenceApiRoutes.AgentConversationStream, StreamAgentConversationAsync, IntelligenceApiOperations.StreamAgentConversation, typeof(IntelligenceStreamChunk<AgentTurnPayload>), profile: ModuleEndpointProfile.Streaming, contentType: ModuleEndpointOpenApiConventions.JsonStream);
+        _ = group.MapModulePost(IntelligenceApiRoutes.AgentConversation, RunAgentConversationAsync, "IntelligenceRunAgentConversation", typeof(RunAgentConversationResponse))
+            .ProducesAgentConversationErrors();
+        _ = group.MapModulePost(IntelligenceApiRoutes.AgentConversationStream, StreamAgentConversationAsync, IntelligenceApiOperations.StreamAgentConversation, typeof(IntelligenceStreamChunk<AgentTurnPayload>), profile: ModuleEndpointProfile.Streaming, contentType: ModuleEndpointOpenApiConventions.JsonStream)
+            .ProducesAgentConversationErrors();
         _ = group.MapModuleGet(IntelligenceApiRoutes.AgentConversationCapabilities, GetAgentConversationCapabilities, IntelligenceApiOperations.GetAgentConversationCapabilities, typeof(AgentConversationCapabilitiesResponse));
         RouteGroupBuilder internalGroup = endpoints.MapInternalServiceModuleGroup(IntelligenceApiRoutes.Base);
         _ = internalGroup.MapModulePost(IntelligenceApiRoutes.InternalAgentToolExecution, ExecuteAgentToolAsync, "IntelligenceExecuteInternalAgentTool", typeof(InternalAgentToolExecutionResponse), profile: ModuleEndpointProfile.AnonymousJson, anonymousJustification: "Internal agent runtime callback protected by a signed, short-lived execution credential.")
@@ -102,6 +106,30 @@ public static class IntelligenceApiEndpointMapping
         }
     }
 
+    /// <summary>
+    /// Publishes the real pre-acceptance error body of the conversation routes. They answer with an
+    /// <see cref="IntelligenceError"/> JSON body, not Problem Details, and the module convention's Problem Details
+    /// entries for the same statuses are replaced so the generated contract matches the wire.
+    /// </summary>
+    private static RouteHandlerBuilder ProducesAgentConversationErrors(this RouteHandlerBuilder builder) =>
+        builder
+            .WithMetadataRemoved(StatusCodes.Status400BadRequest, StatusCodes.Status404NotFound, StatusCodes.Status409Conflict)
+            .Produces<IntelligenceError>(StatusCodes.Status400BadRequest, MediaTypeNames.Application.Json)
+            .Produces<IntelligenceError>(StatusCodes.Status404NotFound, MediaTypeNames.Application.Json)
+            .Produces<IntelligenceError>(StatusCodes.Status409Conflict, MediaTypeNames.Application.Json)
+            .Produces<IntelligenceError>(StatusCodes.Status502BadGateway, MediaTypeNames.Application.Json);
+
+    private static RouteHandlerBuilder WithMetadataRemoved(this RouteHandlerBuilder builder, params int[] statusCodes)
+    {
+        builder.Add(endpoint =>
+        {
+            for (int index = endpoint.Metadata.Count - 1; index >= 0; index--)
+                if (endpoint.Metadata[index] is IProducesResponseTypeMetadata produced && statusCodes.Contains(produced.StatusCode))
+                    endpoint.Metadata.RemoveAt(index);
+        });
+        return builder;
+    }
+
     internal static IResult? RejectInvalidConversationRequest(RunAgentConversationRequest request) =>
         request is null || string.IsNullOrWhiteSpace(request.AgentKey) ||
         string.IsNullOrWhiteSpace(request.SubjectKind) || string.IsNullOrWhiteSpace(request.SubjectId) ||
@@ -151,7 +179,7 @@ public static class IntelligenceApiEndpointMapping
             AgentConversationEndpointResult result = await endpoint.RunAsync(
                 new(request.AgentKey, request.SubjectKind, request.SubjectId, request.Message, request.ConversationId), ct);
             outcome = result.Outcome.ToString();
-            return IntelligenceAgentConversationResultMapper.ToHttpResult(result);
+            return IntelligenceAgentConversationResultMapper.ToHttpResult(result, IntelligenceAgentConversationResultMapper.IsResume(request));
         }
         catch (OperationCanceledException)
         {

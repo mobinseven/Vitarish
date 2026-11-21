@@ -907,14 +907,9 @@ public static class ClinicApiEndpointMapping
         try { context = await contextFactory.CreateOperationsAsync(conversationId.ToString("N"), ct, agentKey); }
         catch (UnauthorizedAccessException) { return ForbiddenAssistantAction(); }
 
-        AgentConversationOutcome outcome = await sender.Send(new DeleteAgentConversation(
-            conversationId,
-            new AgentConversationScope(
-                context.PracticeId,
-                context.AuthenticatedUserId,
-                agentKey ?? "clinic.assistant.operations",
-                "practice",
-                agentKey is null or AssistantSubjects.OperationsHelpAgentKey ? context.PracticeId : "practice")), ct);
+        AgentConversationOutcome outcome = await sender.Send(new DeleteAgentConversation(conversationId, AssistantSubjects.ConversationScope(context)), ct);
+        if (outcome == AgentConversationOutcome.NotFound && AssistantSubjects.HistoricalConversationScope(context) is { } historical)
+            outcome = await sender.Send(new DeleteAgentConversation(conversationId, historical), ct);
         return outcome switch
         {
             AgentConversationOutcome.Succeeded => Results.NoContent(),
@@ -953,14 +948,7 @@ public static class ClinicApiEndpointMapping
         AssistantContext context;
         try { context = await contextFactory.CreateAsync(patientId, conversationId.ToString("N"), ct, agentKey); }
         catch (KeyNotFoundException) { return NotFoundClinicAssistant(); }
-        AgentConversationOutcome outcome = await sender.Send(new DeleteAgentConversation(
-            conversationId,
-            new AgentConversationScope(
-                context.PracticeId,
-                context.AuthenticatedUserId,
-                agentKey ?? "clinic.assistant.patient",
-                "patient",
-                context.PatientId.ToString("D"))), ct);
+        AgentConversationOutcome outcome = await sender.Send(new DeleteAgentConversation(conversationId, AssistantSubjects.ConversationScope(context)), ct);
         return outcome switch
         {
             AgentConversationOutcome.Succeeded => Results.NoContent(),

@@ -126,7 +126,7 @@ public sealed class ListOperationsShiftsTool(IAppointmentSchedulingAgentCapabili
 
 public sealed class CountOperationsAppointmentsTool(IAppointmentSchedulingAgentCapability scheduling) : OperationsTool(scheduling)
 {
-    public override AgentToolDefinition Definition { get; } = new(Vitarish.Clinic.Application.Assistant.Presentation.ClinicPresentableToolNames.CountOperationsAppointments, "Count appointments in the authenticated practice.", "{\"type\":\"object\",\"properties\":{\"dateFrom\":{\"type\":\"string\",\"format\":\"date\"},\"dateTo\":{\"type\":\"string\",\"format\":\"date\"}},\"additionalProperties\":false}");
+    public override AgentToolDefinition Definition { get; } = new(Vitarish.Clinic.Application.Assistant.Presentation.ClinicPresentableToolNames.CountOperationsAppointments, "Count active booked appointments in the authenticated practice; temporary holds and cancelled, rejected, expired or waitlisted reservations are not counted.", "{\"type\":\"object\",\"properties\":{\"dateFrom\":{\"type\":\"string\",\"format\":\"date\"},\"dateTo\":{\"type\":\"string\",\"format\":\"date\"}},\"additionalProperties\":false}");
     public override async Task<AgentToolResult> ExecuteAsync(AgentToolCall call, AgentExecutionContext context, CancellationToken cancellationToken = default)
     { using JsonDocument doc = JsonDocument.Parse(call.ArgumentsJson); JsonElement a = doc.RootElement; return Result(call, await Scheduling.CountAppointmentsAsync(Scope(call,context), new(DateFrom: OptionalDate(a,"dateFrom"), DateTo: OptionalDate(a,"dateTo")), cancellationToken)); }
 }

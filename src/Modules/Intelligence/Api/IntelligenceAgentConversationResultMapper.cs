@@ -8,11 +8,14 @@ namespace Vitarish.Intelligence.Api;
 
 internal static class IntelligenceAgentConversationResultMapper
 {
-    internal static IResult ToHttpResult(AgentConversationEndpointResult result)
+    /// <summary>True when the request continues an existing conversation rather than starting one.</summary>
+    internal static bool IsResume(RunAgentConversationRequest request) => !string.IsNullOrWhiteSpace(request.ConversationId);
+
+    internal static IResult ToHttpResult(AgentConversationEndpointResult result, bool resumedConversation)
     {
         if (TryToResponse(result, out RunAgentConversationResponse? response))
             return Results.Ok(response);
-        (int status, IntelligenceError error) = ToFailure(result);
+        (int status, IntelligenceError error) = ToFailure(result, resumedConversation);
         return Results.Json(error, statusCode: status);
     }
 
@@ -40,9 +43,16 @@ internal static class IntelligenceAgentConversationResultMapper
     internal static bool IsCancellation(AgentConversationEndpointResult result) =>
         result.Outcome is AgentConversationOutcome.TimedOut or AgentConversationOutcome.Cancelled;
 
-    /// <summary>The redacted status and error shared by the buffered response and the streamed Failed frame.</summary>
-    internal static (int StatusCode, IntelligenceError Error) ToFailure(AgentConversationEndpointResult result) => result.Outcome switch
+    /// <summary>
+    /// The redacted status and error shared by the buffered response and the streamed Failed frame. A not-found
+    /// outcome of a request that named a conversation is <see cref="IntelligenceErrorCode.ConversationNotFound"/>:
+    /// the one signal that the conversation is missing, expired or not visible to this caller. A missing and a
+    /// concealed conversation are indistinguishable by design, and an unknown route keeps
+    /// <see cref="IntelligenceErrorCode.NotFound"/>. The status stays 404 either way.
+    /// </summary>
+    internal static (int StatusCode, IntelligenceError Error) ToFailure(AgentConversationEndpointResult result, bool resumedConversation) => result.Outcome switch
     {
+        AgentConversationOutcome.NotFound when resumedConversation => (StatusCodes.Status404NotFound, new IntelligenceError(IntelligenceErrorCode.ConversationNotFound, "The agent conversation was not found.")),
         AgentConversationOutcome.NotFound => (StatusCodes.Status404NotFound, new IntelligenceError(IntelligenceErrorCode.NotFound, "The agent conversation was not found.")),
         AgentConversationOutcome.Busy => (StatusCodes.Status409Conflict, new IntelligenceError(IntelligenceErrorCode.Conflict, "The conversation is active.")),
         AgentConversationOutcome.InvalidHistory => (StatusCodes.Status409Conflict, new IntelligenceError(IntelligenceErrorCode.InvalidHistory, "The conversation history is invalid.")),

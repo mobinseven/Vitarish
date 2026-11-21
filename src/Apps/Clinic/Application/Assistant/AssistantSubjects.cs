@@ -1,3 +1,5 @@
+using Vitarish.Intelligence.Application.Agents;
+
 namespace Vitarish.Clinic.Application.Assistant;
 
 /// <summary>The Clinic assistant's subject kinds and the agent that serves each one.</summary>
@@ -33,4 +35,25 @@ public static class AssistantSubjects
 
     public static string SubjectId(AssistantContext context) =>
         context.SubjectKind == PracticeKind ? context.PracticeId : context.PatientId.ToString("D");
+
+    /// <summary>The agent the context's conversation is stored under: the entry the request used, else the canonical agent.</summary>
+    public static string AgentKey(AssistantContext context) =>
+        string.IsNullOrWhiteSpace(context.AgentKey) ? CanonicalAgentKey(context) : context.AgentKey;
+
+    /// <summary>
+    /// The one owner, tenant, agent and subject scope of a stored conversation. Creating, resuming and deleting a
+    /// conversation all use it, so a conversation is deletable under exactly the scope it was created with.
+    /// </summary>
+    public static AgentConversationScope ConversationScope(AssistantContext context) =>
+        new(context.PracticeId, context.AuthenticatedUserId, AgentKey(context), context.SubjectKind, SubjectId(context));
+
+    /// <summary>
+    /// The scope earlier releases stored practice conversations of the legacy operations entry under (the subject
+    /// kind as its subject id). Null for every other entry. Only deletion consults it, under the same tenant, owner,
+    /// agent and subject-kind checks, so historical rows stay deletable and nothing new is written in that shape.
+    /// </summary>
+    public static AgentConversationScope? HistoricalConversationScope(AssistantContext context) =>
+        context.SubjectKind == PracticeKind && string.Equals(AgentKey(context), LegacyOperationsAgentKey, StringComparison.Ordinal)
+            ? ConversationScope(context) with { SubjectId = PracticeKind }
+            : null;
 }

@@ -343,6 +343,78 @@ public sealed class AgentConversationStreamEndpointTests
     }
 
     [Fact]
+    public async Task A_missing_or_concealed_conversation_is_one_distinct_pre_execution_signal_with_a_json_error_body()
+    {
+        Fixture fixture = new((_, _) => Task.FromResult(new AgentConversationEndpointResult(AgentConversationOutcome.NotFound)));
+        RunAgentConversationRequest resume = Request with { ConversationId = Guid.NewGuid().ToString("N") };
+
+        IResult result = await AgentConversationStreamEndpoint.StreamAsync(
+            resume, fixture.Registry, NullLogger.Instance, TimeProvider.System, fixture.Context, WriteTimeout, TerminalWriteTimeout, default);
+        await result.ExecuteAsync(fixture.Context);
+
+        fixture.Context.Response.StatusCode.Should().Be(StatusCodes.Status404NotFound);
+        fixture.Context.Response.ContentType.Should().StartWith("application/json").And.NotContain("problem");
+        IntelligenceError error = JsonSerializer.Deserialize<IntelligenceError>(fixture.Body(), Web)!;
+        error.Code.Should().Be(IntelligenceErrorCode.ConversationNotFound);
+        fixture.Body().Should().Contain("\"code\":" + (int)IntelligenceErrorCode.ConversationNotFound, "the wire carries the numeric code Web reads");
+    }
+
+    [Fact]
+    public async Task An_unknown_route_and_a_not_found_new_conversation_keep_the_generic_not_found_code()
+    {
+        Fixture fixture = new((_, _) => Task.FromResult(new AgentConversationEndpointResult(AgentConversationOutcome.NotFound)));
+        string resumeId = Guid.NewGuid().ToString("N");
+
+        IResult unknownRoute = await AgentConversationStreamEndpoint.StreamAsync(
+            Request with { AgentKey = "missing", ConversationId = resumeId }, fixture.Registry, NullLogger.Instance, TimeProvider.System, fixture.Context, WriteTimeout, TerminalWriteTimeout, default);
+        await unknownRoute.ExecuteAsync(fixture.Context);
+        IntelligenceError unknown = JsonSerializer.Deserialize<IntelligenceError>(fixture.Body(), Web)!;
+        fixture.Context.Response.Body.SetLength(0);
+        IResult newConversation = await AgentConversationStreamEndpoint.StreamAsync(
+            Request, fixture.Registry, NullLogger.Instance, TimeProvider.System, fixture.Context, WriteTimeout, TerminalWriteTimeout, default);
+        await newConversation.ExecuteAsync(fixture.Context);
+        IntelligenceError created = JsonSerializer.Deserialize<IntelligenceError>(fixture.Body(), Web)!;
+
+        unknown.Code.Should().Be(IntelligenceErrorCode.NotFound);
+        created.Code.Should().Be(IntelligenceErrorCode.NotFound);
+    }
+
+    [Fact]
+    public void The_conversation_not_found_code_is_an_append_only_wire_value()
+    {
+        ((int)IntelligenceErrorCode.ConversationNotFound).Should().Be(17);
+        ((int)IntelligenceErrorCode.StreamingNotEnabled).Should().Be(16);
+    }
+
+    [Fact]
+    public void The_conversation_routes_publish_the_intelligence_error_body_for_their_error_statuses()
+    {
+        WebApplicationBuilder builder = WebApplication.CreateBuilder();
+        builder.Services.AddAuthorization();
+        builder.Services.AddSingleton(Mock.Of<IResponder>());
+        builder.Services.AddSingleton(Mock.Of<ISender>());
+        builder.Services.AddSingleton(Mock.Of<IRequestContext>());
+        builder.Services.AddSingleton(new LiveTranscriptionSettings());
+        builder.Services.AddSingleton(new RealtimeTranscriptionOriginPolicy([]));
+        builder.Services.AddSingleton(new LiveTranscriptionSessionFactory(Mock.Of<ITranscriptionProvider>(), new LiveTranscriptionSettings(), TimeProvider.System));
+        builder.Services.AddSingleton(new LiveTranscriptionCapabilitiesQuery(Mock.Of<ITranscriptionProvider>(), new LiveTranscriptionSettings()));
+        using WebApplication app = builder.Build();
+        _ = app.MapIntelligenceApi();
+        List<Endpoint> endpoints = ((IEndpointRouteBuilder)app).DataSources.SelectMany(source => source.Endpoints).ToList();
+
+        foreach (string name in new[] { "IntelligenceRunAgentConversation", IntelligenceApiOperations.StreamAgentConversation })
+        {
+            Endpoint endpoint = endpoints.Single(e => e.Metadata.GetMetadata<IEndpointNameMetadata>()?.EndpointName == name);
+            foreach (int status in new[] { StatusCodes.Status400BadRequest, StatusCodes.Status404NotFound, StatusCodes.Status409Conflict, StatusCodes.Status502BadGateway })
+            {
+                IProducesResponseTypeMetadata produced = endpoint.Metadata.GetOrderedMetadata<IProducesResponseTypeMetadata>().Single(item => item.StatusCode == status);
+                produced.Type.Should().Be(typeof(IntelligenceError), name + " " + status);
+                produced.ContentTypes.Should().Equal("application/json");
+            }
+        }
+    }
+
+    [Fact]
     public void Stream_and_buffered_routes_share_the_same_authorization_tenant_and_antiforgery_protection()
     {
         WebApplicationBuilder builder = WebApplication.CreateBuilder();
