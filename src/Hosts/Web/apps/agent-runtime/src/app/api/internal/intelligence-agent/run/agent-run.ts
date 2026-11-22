@@ -185,16 +185,19 @@ function clampToRemainingBudget<TRequest extends { modelSettings?: { maxTokens?:
   };
 }
 
+/** Provider usage details carry numeric counters beside nested objects (for example cache write breakdowns), which are not counters. */
+type UsageDetails = Record<string, unknown> | Array<Record<string, unknown>>;
+
 type ReportedUsage = {
   inputTokens?: number;
   outputTokens?: number;
-  inputTokensDetails?: Record<string, number> | Array<Record<string, number>>;
-  outputTokensDetails?: Record<string, number> | Array<Record<string, number>>;
+  inputTokensDetails?: UsageDetails;
+  outputTokensDetails?: UsageDetails;
 };
 
 /** Sums one named counter of a provider usage detail, reported either as one record or as a record per request. */
 function usageDetail(details: ReportedUsage["inputTokensDetails"], name: string): number {
-  return (Array.isArray(details) ? details : details ? [details] : []).reduce((total, entry) => total + (entry[name] ?? 0), 0);
+  return (Array.isArray(details) ? details : details ? [details] : []).reduce((total, entry) => total + (typeof entry[name] === "number" ? entry[name] : 0), 0);
 }
 
 const reasoningTokensDetail = "reasoning_tokens";
