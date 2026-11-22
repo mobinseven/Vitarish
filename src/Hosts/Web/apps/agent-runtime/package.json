@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@a2ui/agent": "^0.1.0",
-    "@openai/agents": "0.14.1",
+    "@openai/agents": "0.22.0",
     "next": "^15.3.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
