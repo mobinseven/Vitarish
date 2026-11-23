@@ -427,6 +427,13 @@ export const enMessages = {
       failedDescription: "This sign-in link is invalid or has expired. Sign in to continue to your clinic.",
       signIn: "Sign in",
     },
+    practiceTimeZone: {
+      title: "Practice time zone",
+      label: "IANA time zone",
+      loadFailed: "The practice time zone could not be loaded.",
+      saveFailed: "The time zone could not be saved. Check the IANA time zone name and try again.",
+      saved: "Practice time zone saved.",
+    },
     logoPrompt: {
       title: "Add your clinic's logo",
       description: "Your logo appears on your clinic's pages. Use a JPEG, PNG, or WebP image up to 5 MB.",

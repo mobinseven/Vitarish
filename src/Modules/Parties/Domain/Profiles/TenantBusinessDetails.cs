@@ -62,6 +62,14 @@ public sealed record TenantBusinessDetails
 
     public bool HasPhotos => PhotoFileIds.Count > 0;
 
+    public string? TimeZoneId { get; private init; }
+    public bool PublicListingAbsent { get; private init; }
+
+    internal static TenantBusinessDetails WithTimeZone(TenantBusinessDetails? details, string timeZoneId) =>
+        details is null
+            ? Restore(null, [], null, [], [], [], timeZoneId, publicListingAbsent: true)
+            : details with { TimeZoneId = timeZoneId };
+
     /// <summary>Normalizes and validates the details.</summary>
     /// <param name="error">Why the details are invalid; null when they are valid.</param>
     public static TenantBusinessDetails? TryCreate(
@@ -110,12 +118,20 @@ public sealed record TenantBusinessDetails
         string? website,
         IReadOnlyList<string> socialLinks,
         IReadOnlyList<TenantWorkingDay> workingHours,
-        IReadOnlyList<Guid> photoFileIds) =>
-        new(address, phones, website, socialLinks, workingHours, photoFileIds);
+        IReadOnlyList<Guid> photoFileIds,
+        string? timeZoneId = null,
+        bool publicListingAbsent = false) =>
+        new(address, phones, website, socialLinks, workingHours, photoFileIds)
+        {
+            TimeZoneId = timeZoneId,
+            PublicListingAbsent = publicListingAbsent
+        };
 
     /// <summary>True when both describe the same business details.</summary>
     public bool IsEquivalentTo(TenantBusinessDetails? other) =>
         other is not null
+        && TimeZoneId == other.TimeZoneId
+        && PublicListingAbsent == other.PublicListingAbsent
         && Address == other.Address
         && Phones.SequenceEqual(other.Phones)
         && Website == other.Website

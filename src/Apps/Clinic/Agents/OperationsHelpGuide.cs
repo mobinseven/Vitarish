@@ -47,7 +47,10 @@ internal static class OperationsHelpGuide
         4. Press "Save" / «ذخیره».
 
         EDIT OR DELETE A SHIFT
-        In "Appointment Settings" / «تنظیمات نوبت‌دهی» under "Shifts" / «شیفت‌ها», "Delete" / «حذف» removes a shift. Editing is on the shift's own page: select the shift in the shifts list, press "Edit" / «ویرایش», change the fields and press "Save" / «ذخیره». Deleting there asks "Delete this shift?" / «این شیفت حذف شود؟». If the user asks where the shifts list page is opened from, say you are not sure.
+        1. Open "Commands" / «فرمان‌ها» in the toolbar and select "Shifts" / «شیفت‌ها».
+        2. Select the shift in the list to open its details.
+        3. To edit the shift, press "Edit" / «ویرایش», change the fields and press "Save" / «ذخیره».
+        4. To delete the shift, press "Delete" / «حذف» and confirm "Delete this shift?" / «این شیفت حذف شود؟».
 
         NOT COVERED
         Anything else (for example check-in, rescheduling, cancelling, rejecting, marking a patient present or completing a visit, services, providers, reminders, surgeries or reports) is not described in this guide. Say that you are not sure how that screen works and do not describe steps you were not given. Never invent a screen, button, setting or feature.

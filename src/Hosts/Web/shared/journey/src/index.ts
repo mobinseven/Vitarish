@@ -31,3 +31,4 @@ export type { PlatformHostClinics } from "./features/handoff/usePlatformHostClin
 
 // Clinic home
 export { TenantLogoPrompt } from "./features/tenantLogo/TenantLogoPrompt";
+export { PracticeTimeZoneSettings } from "./features/tenantProfile/PracticeTimeZoneSettings";

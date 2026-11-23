@@ -130,6 +130,8 @@ public static class PartiesApiEndpointMapping
             .RequireAuthorization(IdentityDefinitions.TenantOwner);
         _ = group.MapModulePut(PartiesApiRoutes.TenantProfile, UpdateTenantProfileAsync, PartiesApiOperations.UpdateTenantProfile, successStatusCode: StatusCodes.Status204NoContent)
             .RequireAuthorization(IdentityDefinitions.TenantOwner);
+        _ = group.MapModulePut(PartiesApiRoutes.TenantProfileTimeZone, SetTenantTimeZoneAsync, PartiesApiOperations.SetTenantTimeZone, successStatusCode: StatusCodes.Status204NoContent)
+            .RequireAuthorization(IdentityDefinitions.TenantOwner);
         _ = group.MapModulePut(PartiesApiRoutes.TenantProfileLogo, SetTenantLogoAsync, PartiesApiOperations.SetTenantLogo, successStatusCode: StatusCodes.Status204NoContent)
             .RequireAuthorization(IdentityDefinitions.TenantOwner);
         _ = group.MapModulePut(PartiesApiRoutes.TenantProfileLogoPromptDismissal, DismissTenantLogoPromptAsync, PartiesApiOperations.DismissTenantLogoPrompt, successStatusCode: StatusCodes.Status204NoContent)
@@ -295,6 +297,21 @@ public static class PartiesApiEndpointMapping
         return ToResult(await sender.Send(new UpdateTenantBusinessProfileCommand(request.Description, request.Category, details), cancellationToken));
     }
 
+    private static async Task<IResult> SetTenantTimeZoneAsync(
+        C.SetTenantTimeZoneRequest request, [FromServices] ISender sender, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(request.TimeZoneId))
+            return Results.Problem(detail: "A time zone is required.", statusCode: StatusCodes.Status400BadRequest);
+
+        TenantBusinessProfileUpdateResult result = await sender.Send(new SetTenantTimeZoneCommand(request.TimeZoneId), cancellationToken);
+        return result.Status switch
+        {
+            TenantBusinessProfileUpdateStatus.Invalid => Results.Problem(detail: result.Error, statusCode: StatusCodes.Status400BadRequest),
+            TenantBusinessProfileUpdateStatus.NotFound => Results.Problem(statusCode: StatusCodes.Status404NotFound),
+            _ => ToResult(result)
+        };
+    }
+
     private static async Task<IResult> SetTenantLogoAsync(C.SetTenantLogoRequest request, [FromServices] ISender sender, CancellationToken cancellationToken) =>
         ToResult(await sender.Send(new SetTenantLogoCommand(request.FileId), cancellationToken));
 
@@ -306,6 +323,8 @@ public static class PartiesApiEndpointMapping
         TenantBusinessProfileUpdateStatus.Updated => Results.NoContent(),
         TenantBusinessProfileUpdateStatus.NotFound => NotFound("The tenant was not found."),
         TenantBusinessProfileUpdateStatus.Invalid => BadRequest(result.Error ?? "The request is invalid."),
+        TenantBusinessProfileUpdateStatus.Forbidden => Results.Forbid(),
+        TenantBusinessProfileUpdateStatus.Conflict => Results.Problem(detail: result.Error, statusCode: StatusCodes.Status409Conflict),
         _ => throw new InvalidOperationException($"Unhandled tenant profile status {result.Status}.")
     };
 

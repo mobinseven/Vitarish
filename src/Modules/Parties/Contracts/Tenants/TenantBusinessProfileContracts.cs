@@ -38,13 +38,16 @@ public sealed record TenantBusinessProfileResponse(
     string? LogoUrl,
     string? Category,
     TenantBusinessDetailsDto? BusinessDetails,
-    bool LogoPromptDismissed);
+    bool LogoPromptDismissed,
+    string? TimeZoneId = null);
 
 /// <summary>Replaces the current tenant's description, category, and business details.</summary>
 public sealed record UpdateTenantBusinessProfileRequest(
     string? Description,
     string? Category,
     TenantBusinessDetailsDto? BusinessDetails);
+
+public sealed record SetTenantTimeZoneRequest(string TimeZoneId);
 
 /// <summary>Makes one of the current tenant's uploaded images its logo.</summary>
 public sealed record SetTenantLogoRequest(Guid FileId);

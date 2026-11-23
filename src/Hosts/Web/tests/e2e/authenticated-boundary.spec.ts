@@ -21,6 +21,8 @@ import { ApiError, ANTIFORGERY_VALIDATION_FAILED_CODE, REQUEST_ID_HEADER, TENANT
 import { localizePlatformAuditCategory, localizePlatformAuditEvent, localizePlatformAuditOperation } from "../../shared/security/src/localization";
 import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
 import { catalogs } from "../../apps/private-practice-owner/src/localization/messages";
+import { clinicMessageCatalogs } from "../../shared/clinic/src/localization/catalogs";
+import { partiesGetTenantProfile, partiesSetTenantTimeZone } from "../../shared/journey/src/api/generated/parties/parties";
 import { twoHostE2eApiOriginEnvironmentKey, twoHostE2ePlatformAdminClientIp, twoHostE2eProofScreenshotEnvironmentKey, twoHostE2eTenantBClinicOrigin, twoHostE2eTenantBOwnerUsername, twoHostE2eTenantBOwnerUsernameEnvironmentKey } from "../../scripts/two-host-e2e-artifacts.mjs";
 import { agentEnvelopeCanonical, base64UrlHmac } from "./agentCallback";
 import { generatedOperationPath } from "./generatedOperationPath";
@@ -859,7 +861,9 @@ test("enforces tenant-user and tenant-owner authorization through the API", asyn
 
 // authorization-matrix:tenant-business-profile
 test("only the tenant owner reads and replaces the tenant business profile", async ({ browser }) => {
-  const profilePath = "/api/modules/parties/tenant-profile";
+  const profilePath = generatedOperationPath(partiesGetTenantProfile);
+  const timeZonePath = generatedOperationPath(partiesSetTenantTimeZone);
+  const testTimeZone = { timeZoneId: "America/New_York" };
   const profile = {
     description: "E2E business profile",
     category: "dermatology",
@@ -877,6 +881,7 @@ test("only the tenant owner reads and replaces the tenant business profile", asy
   await login(tenantUserPage, tenantUserUsername, "", e2ePassword, "198.51.100.26");
   expect((await fetchJson(tenantUserPage, profilePath)).status).toBe(403);
   expect((await putJson(tenantUserPage, profilePath, profile)).status).toBe(403);
+  expect((await putJson(tenantUserPage, timeZonePath, testTimeZone)).status).toBe(403);
   expect((await putJson(tenantUserPage, `${profilePath}/logo`, { fileId: crypto.randomUUID() })).status).toBe(403);
   await tenantUserPage.close();
 
@@ -884,6 +889,23 @@ test("only the tenant owner reads and replaces the tenant business profile", asy
   await login(ownerPage, e2eUsername, "", e2ePassword, "198.51.100.27");
   const original = await fetchJson(ownerPage, profilePath);
   expect(original.status).toBe(200);
+  const { timeZoneId } = original.body as { timeZoneId: string };
+  expect((await putJson(ownerPage, timeZonePath, { timeZoneId: "Not/A_Time_Zone" })).status).toBe(400);
+  try {
+    await ownerPage.goto(new URL(ClinicRoutes.Clinic.Settings.Index, ownerPage.url()).href);
+    const language = await ownerPage.locator("html").getAttribute("lang");
+    const messages = language?.startsWith("fa") ? catalogs.fa : catalogs.en;
+    const field = ownerPage.getByRole("textbox", { name: messages.journey.practiceTimeZone.label });
+    await expect(field).toHaveValue(timeZoneId);
+    await field.fill(testTimeZone.timeZoneId);
+    await ownerPage.getByRole("button", { name: messages.common.actions.save, exact: true }).click();
+    await expect(ownerPage.getByText(messages.journey.practiceTimeZone.saved)).toBeVisible();
+    expect((await fetchJson(ownerPage, profilePath)).body).toMatchObject(testTimeZone);
+    const screenshot = process.env[twoHostE2eProofScreenshotEnvironmentKey]?.replace(/\.png$/i, "-time-zone-settings.png");
+    if (screenshot) await ownerPage.screenshot({ path: screenshot });
+  } finally {
+    expect((await putJson(ownerPage, timeZonePath, { timeZoneId })).status).toBe(204);
+  }
   expect((await putJson(ownerPage, profilePath, { ...profile, category: "astrology" })).status).toBe(400);
   expect((await putJson(ownerPage, profilePath, {
     ...profile,
@@ -903,6 +925,24 @@ test("only the tenant owner reads and replaces the tenant business profile", asy
   const { description, category, businessDetails } = original.body as Record<string, unknown>;
   expect((await putJson(ownerPage, profilePath, { description, category, businessDetails })).status).toBe(204);
   await ownerPage.close();
+});
+
+test("the Darman owner opens shift editing from Commands", async ({ page }) => {
+  await login(page, e2eUsername, "", e2ePassword, "198.51.100.71");
+  await page.goto(new URL(ClinicRoutes.Clinic.Index, page.url()).href);
+  const language = (await page.locator("html").getAttribute("lang"))?.startsWith("fa") ? "fa" : "en";
+  const ownerMessages = catalogs[language];
+  const { shifts } = clinicMessageCatalogs[language].clinic.appointments;
+
+  await page.getByRole("button", { name: ownerMessages.commandPalette.open }).click();
+  await page.getByRole("dialog").getByText(shifts.title, { exact: true }).click();
+  await expect(page).toHaveURL(new URL(ClinicRoutes.Clinic.Settings.Shifts.Index, page.url()).href);
+  await page.getByRole("grid", { name: shifts.title }).getByRole("row").first().click();
+  await page.getByRole("button", { name: ownerMessages.common.actions.edit, exact: true }).click();
+  await expect(page.getByRole("heading", { level: 1, name: shifts.editTitle })).toBeVisible();
+  await expect(page.getByRole("button", { name: ownerMessages.common.actions.save, exact: true })).toBeVisible();
+  const screenshot = process.env[twoHostE2eProofScreenshotEnvironmentKey]?.replace(/\.png$/i, "-shift-edit.png");
+  if (screenshot) await page.screenshot({ path: screenshot });
 });
 
 test("UsersSearchUsers requires the platform administrator policy", async ({ browser }) => {
@@ -934,6 +974,7 @@ function resolveSourceOwnedOperationId(matrixValue: string): string {
   const routeContractDirectories = [
     join(process.cwd(), "../../../src/Modules/Users/Contracts/Routes"),
     join(process.cwd(), "../../../src/Modules/Authentication/Contracts/Routes"),
+    join(process.cwd(), "../../../src/Modules/Parties/Contracts/Routes"),
   ];
   const sourceValues: string[] = [];
 

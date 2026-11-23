@@ -1,21 +1,23 @@
 using System.Globalization;
 using System.Security.Claims;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Vitarish.Clinic.Application.Assistant;
 using Vitarish.Clinic.Application.Assistant.Operations;
 using Vitarish.Modules.Base.Core.Identity;
+using Vitarish.Parties.Application.Profiles;
 
 namespace Vitarish.Clinic.Infrastructure.Assistant;
 
 /// <summary>Builds the clinic-assistant scope from the authenticated HTTP request.</summary>
 public sealed class HttpAssistantContextFactory(
     IHttpContextAccessor httpContextAccessor,
-    IAssistantRoutePatientResolver routePatientResolver) : IAssistantContextFactory
+    IAssistantRoutePatientResolver routePatientResolver,
+    ISender sender) : IAssistantContextFactory
 {
     private const string AccessClaimType = "access";
     private const string TenantClaimType = "tenant";
     private const string DefaultLocale = "fa-IR";
-    private const string DefaultTimeZone = "Asia/Tehran";
     private const string DefaultPersianCalendar = "persian";
     private const string DefaultCalendar = "gregory";
     private static readonly IReadOnlySet<string> SupportedCalendars =
@@ -52,6 +54,7 @@ public sealed class HttpAssistantContextFactory(
 
         string locale = ResolveLocale(http.Request.Headers.AcceptLanguage);
         bool isNewConversation = string.IsNullOrWhiteSpace(conversationId);
+        string timeZoneId = await GetPracticeTimeZoneAsync(cancellationToken);
         return new AssistantContext(
             practiceId,
             routePatientId,
@@ -59,14 +62,14 @@ public sealed class HttpAssistantContextFactory(
             permissions,
             user.FindFirstValue(ClaimTypes.Role) ?? string.Empty,
             locale,
-            ResolveTimeZone(http.Request.Headers["X-Time-Zone"].FirstOrDefault()),
+            timeZoneId,
             isNewConversation ? Guid.CreateVersion7().ToString("N") : conversationId!.Trim(),
             Calendar: ResolveCalendar(http.Request.Headers["X-Calendar"].FirstOrDefault(), locale),
             IsNewConversation: isNewConversation,
             AgentKey: agentKey);
     }
 
-    public Task<AssistantContext> CreateOperationsAsync(
+    public async Task<AssistantContext> CreateOperationsAsync(
         string? conversationId,
         CancellationToken cancellationToken = default,
         string? agentKey = null)
@@ -92,13 +95,14 @@ public sealed class HttpAssistantContextFactory(
         }
         string locale = ResolveLocale(http.Request.Headers.AcceptLanguage);
         bool isNewConversation = string.IsNullOrWhiteSpace(conversationId);
-        return Task.FromResult(new AssistantContext(
+        string timeZoneId = await GetPracticeTimeZoneAsync(cancellationToken);
+        return new AssistantContext(
             practiceId, Guid.Empty, authenticatedUserId, permissions,
             role,
-            locale, ResolveTimeZone(http.Request.Headers["X-Time-Zone"].FirstOrDefault()),
+            locale, timeZoneId,
             isNewConversation ? Guid.CreateVersion7().ToString("N") : conversationId!.Trim(),
             Calendar: ResolveCalendar(http.Request.Headers["X-Calendar"].FirstOrDefault(), locale),
-            IsNewConversation: isNewConversation, SubjectKind: "practice", AgentKey: agentKey));
+            IsNewConversation: isNewConversation, SubjectKind: AssistantSubjects.PracticeKind, AgentKey: agentKey);
     }
 
     private static string ResolveOperationsRole(ClaimsPrincipal user, string practiceId)
@@ -134,17 +138,10 @@ public sealed class HttpAssistantContextFactory(
         }
     }
 
-    private static string ResolveTimeZone(string? candidate)
+    private async Task<string> GetPracticeTimeZoneAsync(CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(candidate)) return DefaultTimeZone;
-        try
-        {
-            return TimeZoneInfo.FindSystemTimeZoneById(candidate.Trim()).Id;
-        }
-        catch (Exception exception) when (exception is TimeZoneNotFoundException or InvalidTimeZoneException)
-        {
-            return DefaultTimeZone;
-        }
+        TenantBusinessProfileView? profile = await sender.Send(new GetTenantBusinessProfileQuery(), cancellationToken);
+        return profile?.TimeZoneId ?? TenantBusinessProfileView.DefaultTimeZoneId;
     }
 
     private static string ResolveCalendar(string? candidate, string locale)

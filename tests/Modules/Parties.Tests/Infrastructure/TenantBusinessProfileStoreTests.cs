@@ -164,6 +164,38 @@ public sealed class TenantBusinessProfileStoreTests
         ((TenantBusinessDetails)converter.ConvertFromProvider(json)!).IsEquivalentTo(Details(photo)).Should().BeTrue();
     }
 
+    [Fact]
+    public async Task Time_zone_survives_replacing_or_clearing_the_public_listing()
+    {
+        const string selectedZone = "America/New_York";
+        string database = Guid.NewGuid().ToString("N");
+        Guid tenantId = await SeedTenantAsync(database);
+        await using PartiesDbContext db = CreateContext(database);
+        TenantBusinessProfileStore store = new(db);
+
+        (await store.GetAsync(tenantId))!.TimeZoneId.Should().Be(TenantBusinessProfileView.DefaultTimeZoneId);
+        (await store.SetTimeZoneAsync(tenantId, selectedZone, FixedNow, CancellationToken.None)).Should().BeTrue();
+        (await store.GetAsync(tenantId))!.Details.Should().BeNull();
+
+        TenantBusinessDetails listing = Details(Guid.NewGuid());
+        (await store.SaveAsync(tenantId, null, null, listing, FixedNow)).Should().BeTrue();
+        TenantBusinessProfileView present = (await store.GetAsync(tenantId))!;
+        present.Details!.Address.Should().Be(listing.Address);
+        present.TimeZoneId.Should().Be(selectedZone);
+
+        (await store.SaveAsync(tenantId, null, null, null, FixedNow)).Should().BeTrue();
+        TenantBusinessProfileView cleared = (await store.GetAsync(tenantId))!;
+        cleared.Details.Should().BeNull();
+        cleared.TimeZoneId.Should().Be(selectedZone);
+        TenantBusinessDetails stored = (await db.TenantBusinessProfiles.SingleAsync()).Details!;
+        var converter = db.Model.FindEntityType(typeof(TenantBusinessProfile))!
+            .FindProperty(nameof(TenantBusinessProfile.Details))!.GetValueConverter()!;
+        string json = (string)converter.ConvertToProvider(stored)!;
+        using var document = System.Text.Json.JsonDocument.Parse(json);
+        document.RootElement.GetProperty("timeZoneId").GetString().Should().Be(selectedZone);
+        ((TenantBusinessDetails)converter.ConvertFromProvider(json)!).IsEquivalentTo(stored).Should().BeTrue();
+    }
+
     private static TenantBusinessDetails Details(Guid photo) =>
         TenantBusinessDetails.TryCreate(
             new TenantBusinessAddress("Tehran", "Tehran", "Valiasr St.", "1234567890", 35.7, 51.4),
