@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 using FluentAssertions;
+using MediatR;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -22,6 +23,7 @@ using Vitarish.Clinic.Contracts.Responses;
 using Vitarish.Clinic.Contracts.Routes;
 using Vitarish.Clinic.Infrastructure.Assistant;
 using Vitarish.Modules.Base.Core.Endpoints;
+using Vitarish.Parties.Application.Profiles;
 using Xunit;
 
 namespace Clinic.Tests.Api;
@@ -36,6 +38,7 @@ public sealed class TodayAppointmentCountHttpTests
     private const string TestRoleHeader = "X-Test-Role";
     private const string TimeZoneHeader = "X-Time-Zone";
     private const string TenantClaimType = "tenant";
+    private const string BrowserTimeZone = "America/Los_Angeles";
     private const string CountUrl = ClinicApiRoutes.Base + ClinicApiRoutes.OperationsTodayAppointmentCount;
 
     private static string OwnerOf(string practice) => $"{practice}:{AssistantOperationsScope.TenantOwnerRole}";
@@ -96,10 +99,22 @@ public sealed class TodayAppointmentCountHttpTests
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         (await response.Content.ReadFromJsonAsync<TodayAppointmentCountResponse>())
-            .Should().Be(new TodayAppointmentCountResponse(new DateOnly(2026, 11, 21), 4));
+            .Should().Be(new TodayAppointmentCountResponse(new DateOnly(2026, 11, 22), 4));
         app.Scope!.PracticeId.Should().Be(PracticeOne);
-        app.Request!.DateFrom.Should().Be(new DateOnly(2026, 11, 21));
-        app.Request.DateTo.Should().Be(new DateOnly(2026, 11, 21));
+        app.Request!.DateFrom.Should().Be(new DateOnly(2026, 11, 22));
+        app.Request.DateTo.Should().Be(new DateOnly(2026, 11, 22));
+    }
+
+    [Fact]
+    public async Task A_saved_practice_time_zone_takes_precedence_over_the_browser_zone()
+    {
+        await using TestApp app = await TestApp.StartAsync(practiceTimeZoneId: "America/New_York");
+
+        HttpResponseMessage response = await app.GetAsync(PracticeOne, OwnerOf(PracticeOne), "Asia/Tokyo");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        (await response.Content.ReadFromJsonAsync<TodayAppointmentCountResponse>())!.Date
+            .Should().Be(new DateOnly(2026, 11, 21));
     }
 
     [Fact]
@@ -139,7 +154,10 @@ public sealed class TodayAppointmentCountHttpTests
         public AgentSchedulingContext? Scope { get; private set; }
         public AgentAppointmentListRequest? Request { get; private set; }
 
-        public static async Task<TestApp> StartAsync(AgentSchedulingStatus countStatus = AgentSchedulingStatus.Succeeded, int count = 0)
+        public static async Task<TestApp> StartAsync(
+            AgentSchedulingStatus countStatus = AgentSchedulingStatus.Succeeded,
+            int count = 0,
+            string? practiceTimeZoneId = null)
         {
             Mock<IAppointmentSchedulingAgentCapability> scheduling = new(MockBehavior.Strict);
             TestApp? holder = null;
@@ -164,7 +182,12 @@ public sealed class TodayAppointmentCountHttpTests
                 options.AddPolicy(IdentityDefinitions.TenantAccess, policy => policy.RequireClaim(TenantClaimType)));
             _ = builder.Services.AddMediatR(configuration =>
                 configuration.RegisterServicesFromAssemblyContaining<GetTodayAppointmentCountQuery>());
-            _ = builder.Services.AddSingleton<TimeProvider>(new FakeTimeProvider(new DateTimeOffset(2026, 11, 21, 10, 0, 0, TimeSpan.Zero)));
+            Mock<IRequestHandler<GetTenantBusinessProfileQuery, TenantBusinessProfileView?>> profileReader = new();
+            profileReader.Setup(handler => handler.Handle(It.IsAny<GetTenantBusinessProfileQuery>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(practiceTimeZoneId is null ? null : new TenantBusinessProfileView(
+                    PracticeOne, null, null, null, null, false, TimeZoneId: practiceTimeZoneId));
+            _ = builder.Services.AddSingleton(profileReader.Object);
+            _ = builder.Services.AddSingleton<TimeProvider>(new FakeTimeProvider(new DateTimeOffset(2026, 11, 21, 20, 45, 0, TimeSpan.Zero)));
             _ = builder.Services.AddSingleton(scheduling.Object);
             _ = builder.Services.AddSingleton(Mock.Of<IAssistantRoutePatientResolver>());
             _ = builder.Services.AddScoped<IAssistantContextFactory, HttpAssistantContextFactory>();
@@ -179,13 +202,13 @@ public sealed class TodayAppointmentCountHttpTests
             return holder;
         }
 
-        public Task<HttpResponseMessage> GetAsync(string tenant, string role)
+        public Task<HttpResponseMessage> GetAsync(string tenant, string role, string browserTimeZone = BrowserTimeZone)
         {
             HttpRequestMessage request = new(HttpMethod.Get, CountUrl);
             request.Headers.Add(TestUserHeader, "user-1");
             request.Headers.Add(TestTenantHeader, tenant);
             request.Headers.Add(TestRoleHeader, role);
-            request.Headers.Add(TimeZoneHeader, "Asia/Tehran");
+            request.Headers.Add(TimeZoneHeader, browserTimeZone);
             return Client.SendAsync(request);
         }
 

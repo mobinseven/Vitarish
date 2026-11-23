@@ -9,6 +9,7 @@ public static class PartiesApiOperations
     public const string GetOnboardingSetupDraft = "PartiesGetOnboardingSetupDraft";
     public const string GetTenantProfile = "PartiesGetTenantProfile";
     public const string UpdateTenantProfile = "PartiesUpdateTenantProfile";
+    public const string SetTenantTimeZone = "PartiesSetTenantTimeZone";
     public const string SetTenantLogo = "PartiesSetTenantLogo";
     public const string DismissTenantLogoPrompt = "PartiesDismissTenantLogoPrompt";
     public const string GetSignInClinics = "PartiesGetSignInClinics";

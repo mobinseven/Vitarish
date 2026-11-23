@@ -83,8 +83,15 @@ describe("PresentedSurface", () => {
     expect(screen.getByText("12")).toBeVisible();
   });
 
-  it("renders nothing for a surface in another catalog", () => {
-    const { container } = render(<PresentedSurface surface={{ ...surface([{ id: "root", component: "Heading", text: "x" }], {}), catalogId: "other" }} />);
-    expect(container).toBeEmptyDOMElement();
+  it("renders nothing for a surface in another catalog", async () => {
+    const catalogId = "other";
+    const diagnostic = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    try {
+      const { container } = render(<PresentedSurface surface={{ ...surface([{ id: "root", component: "Heading", text: "x" }], {}), catalogId }} />);
+      await waitFor(() => expect(diagnostic).toHaveBeenCalledWith(expect.stringContaining("uses an unknown catalog."), catalogId));
+      expect(container).toBeEmptyDOMElement();
+    } finally {
+      diagnostic.mockRestore();
+    }
   });
 });

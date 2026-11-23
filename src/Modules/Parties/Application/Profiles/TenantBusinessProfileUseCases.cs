@@ -13,7 +13,11 @@ public sealed record TenantBusinessProfileView(
     string? Category,
     TenantBusinessDetails? Details,
     bool LogoPromptDismissed,
-    bool SetupGuideDismissed = false);
+    bool SetupGuideDismissed = false,
+    string TimeZoneId = TenantBusinessProfile.DefaultTimeZoneId)
+{
+    public const string DefaultTimeZoneId = TenantBusinessProfile.DefaultTimeZoneId;
+}
 
 public interface ITenantBusinessProfileStore
 {
@@ -21,6 +25,8 @@ public interface ITenantBusinessProfileStore
 
     /// <summary>Replaces the description, category, and details. False when the tenant does not exist.</summary>
     Task<bool> SaveAsync(Guid tenantId, string? description, string? category, TenantBusinessDetails? details, DateTime nowUtc, CancellationToken cancellationToken = default);
+
+    Task<bool> SetTimeZoneAsync(Guid tenantId, string timeZoneId, DateTime nowUtc, CancellationToken cancellationToken);
 
     /// <summary>False when the tenant does not exist.</summary>
     Task<bool> SetLogoUrlAsync(Guid tenantId, string logoUrl, CancellationToken cancellationToken = default);
@@ -62,10 +68,15 @@ public enum TenantBusinessProfileUpdateStatus
 {
     Updated = 1,
     NotFound = 2,
-    Invalid = 3
+    Invalid = 3,
+    Forbidden = 4,
+    Conflict = 5
 }
 
 public sealed record TenantBusinessProfileUpdateResult(TenantBusinessProfileUpdateStatus Status, string? Error = null);
+
+public sealed class TenantBusinessProfileWriteConflictException(Exception cause)
+    : Exception("The tenant business profile was changed by another request.", cause);
 
 /// <summary>Reads the current tenant's business profile.</summary>
 public sealed record GetTenantBusinessProfileQuery : IRequest<TenantBusinessProfileView?>;
@@ -73,6 +84,8 @@ public sealed record GetTenantBusinessProfileQuery : IRequest<TenantBusinessProf
 /// <summary>Replaces the current tenant's description, category, and business details.</summary>
 public sealed record UpdateTenantBusinessProfileCommand(string? Description, string? Category, TenantBusinessDetails? Details)
     : IRequest<TenantBusinessProfileUpdateResult>;
+
+public sealed record SetTenantTimeZoneCommand(string TimeZoneId) : IRequest<TenantBusinessProfileUpdateResult>;
 
 /// <summary>Makes one of the current tenant's uploaded images its logo.</summary>
 public sealed record SetTenantLogoCommand(Guid FileId) : IRequest<TenantBusinessProfileUpdateResult>;
@@ -138,8 +151,43 @@ public sealed class UpdateTenantBusinessProfileCommandHandler(
         if (request.Details?.HasPhotos == true && !await images.AreOwnImagesAsync([.. request.Details.PhotoFileIds], cancellationToken))
             return new(TenantBusinessProfileUpdateStatus.Invalid, "Each photo must be an image uploaded to this tenant.");
 
-        bool saved = await profiles.SaveAsync(tenantId, description, category, request.Details, timeProvider.GetUtcNow().UtcDateTime, cancellationToken);
-        return new(saved ? TenantBusinessProfileUpdateStatus.Updated : TenantBusinessProfileUpdateStatus.NotFound);
+        try
+        {
+            bool saved = await profiles.SaveAsync(tenantId, description, category, request.Details, timeProvider.GetUtcNow().UtcDateTime, cancellationToken);
+            return new(saved ? TenantBusinessProfileUpdateStatus.Updated : TenantBusinessProfileUpdateStatus.NotFound);
+        }
+        catch (TenantBusinessProfileWriteConflictException exception)
+        {
+            return new(TenantBusinessProfileUpdateStatus.Conflict, exception.Message);
+        }
+    }
+}
+
+public sealed class SetTenantTimeZoneCommandHandler(
+    ITenantBusinessProfileStore profiles,
+    IRequestContext requestContext,
+    TimeProvider timeProvider) : IRequestHandler<SetTenantTimeZoneCommand, TenantBusinessProfileUpdateResult>
+{
+    public async Task<TenantBusinessProfileUpdateResult> Handle(SetTenantTimeZoneCommand request, CancellationToken cancellationToken)
+    {
+        if (!Guid.TryParse(requestContext.TenantId, out Guid tenantId))
+            return new(TenantBusinessProfileUpdateStatus.NotFound);
+        if (!requestContext.IsTenantOwner())
+            return new(TenantBusinessProfileUpdateStatus.Forbidden);
+
+        string timeZoneId = request.TimeZoneId.Trim();
+        if (!TenantBusinessProfile.IsValidTimeZoneId(timeZoneId))
+            return new(TenantBusinessProfileUpdateStatus.Invalid, "A supported IANA time zone is required.");
+
+        try
+        {
+            bool saved = await profiles.SetTimeZoneAsync(tenantId, timeZoneId, timeProvider.GetUtcNow().UtcDateTime, cancellationToken);
+            return new(saved ? TenantBusinessProfileUpdateStatus.Updated : TenantBusinessProfileUpdateStatus.NotFound);
+        }
+        catch (TenantBusinessProfileWriteConflictException exception)
+        {
+            return new(TenantBusinessProfileUpdateStatus.Conflict, exception.Message);
+        }
     }
 }
 

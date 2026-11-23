@@ -64,6 +64,7 @@ public class PartiesDbContext(DbContextOptions<PartiesDbContext> options, Mediat
             _ = entity.Property(profile => profile.Category).HasMaxLength(TenantBusinessProfile.CategoryMaximumLength);
             _ = entity.Property(profile => profile.Details)
                 .HasColumnType("jsonb")
+                .IsConcurrencyToken()
                 .HasConversion(
                     details => details == null ? null : TenantBusinessDetailsDocument.Serialize(details),
                     json => json == null ? null : TenantBusinessDetailsDocument.Deserialize(json),

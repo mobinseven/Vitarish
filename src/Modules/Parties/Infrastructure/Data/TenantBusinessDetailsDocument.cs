@@ -15,7 +15,9 @@ internal sealed record TenantBusinessDetailsDocument(
     string? Website,
     string[] SocialLinks,
     TenantWorkingDayDocument[] WorkingHours,
-    Guid[] PhotoFileIds)
+    Guid[] PhotoFileIds,
+    string? TimeZoneId = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool PublicListingAbsent = false)
 {
     public static string Serialize(TenantBusinessDetails details) => JsonSerializer.Serialize(
         new TenantBusinessDetailsDocument(
@@ -28,7 +30,9 @@ internal sealed record TenantBusinessDetailsDocument(
             [.. details.WorkingHours.Select(day => new TenantWorkingDayDocument(
                 day.Day,
                 [.. day.Intervals.Select(interval => new TenantOpeningIntervalDocument(interval.Opens, interval.Closes))]))],
-            [.. details.PhotoFileIds]),
+            [.. details.PhotoFileIds],
+            details.TimeZoneId,
+            details.PublicListingAbsent),
         TenantBusinessDetailsJsonContext.Default.TenantBusinessDetailsDocument);
 
     public static TenantBusinessDetails Deserialize(string json)
@@ -45,7 +49,9 @@ internal sealed record TenantBusinessDetailsDocument(
             [.. (document.WorkingHours ?? []).Select(day => new TenantWorkingDay(
                 day.Day,
                 [.. (day.Intervals ?? []).Select(interval => new TenantOpeningInterval(interval.Opens, interval.Closes))]))],
-            document.PhotoFileIds ?? []);
+            document.PhotoFileIds ?? [],
+            document.TimeZoneId,
+            document.PublicListingAbsent);
     }
 }
 
