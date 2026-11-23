@@ -1,10 +1,12 @@
 using System.Security.Claims;
 using FluentAssertions;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Vitarish.Clinic.Application.Assistant;
 using Vitarish.Clinic.Application.Assistant.Operations;
 using Vitarish.Clinic.Infrastructure.Assistant;
 using Vitarish.Clinic.Infrastructure.Assistant.Operations;
+using Vitarish.Parties.Application.Profiles;
 using Vitarish.Users.Application.Abstractions;
 using Moq;
 using Xunit;
@@ -14,7 +16,7 @@ namespace Vitarish.Clinic.Application.Tests.Assistant;
 public sealed class HttpAssistantContextFactoryTests
 {
     [Fact]
-    public async Task CreateAsync_uses_authenticated_scope_and_ignores_client_patient_scope()
+    public async Task CreateAsync_uses_authenticated_scope_and_the_saved_practice_time_zone()
     {
         DefaultHttpContext http = new();
         http.User = new ClaimsPrincipal(new ClaimsIdentity(
@@ -29,8 +31,9 @@ public sealed class HttpAssistantContextFactoryTests
         http.Request.Headers["X-Time-Zone"] = "America/Toronto";
         http.Request.Headers["X-Calendar"] = "persian";
         HttpContextAccessor accessor = new() { HttpContext = http };
+        const string practiceTimeZoneId = "America/New_York";
 
-        AssistantContext context = await Factory(accessor)
+        AssistantContext context = await Factory(accessor, practiceTimeZoneId: practiceTimeZoneId)
             .CreateAsync(Guid.Parse("d2719f9f-c9c8-4e9d-a7ca-a4d205b93e80"), "  conversation-1  ");
 
         context.PracticeId.Should().Be("practice-1");
@@ -39,7 +42,7 @@ public sealed class HttpAssistantContextFactoryTests
         context.Permissions.Should().BeEquivalentTo(["ClinicalEvents.Read", "ClinicalEvents.Create"]);
         context.Role.Should().Be("Clinician");
         context.Locale.Should().Be("en-US");
-        context.TimeZone.Should().Be("America/Toronto");
+        context.TimeZone.Should().Be(practiceTimeZoneId);
         context.Calendar.Should().Be("persian");
         context.ConversationId.Should().Be("conversation-1");
     }
@@ -59,7 +62,7 @@ public sealed class HttpAssistantContextFactoryTests
             .CreateAsync(Guid.NewGuid(), null);
 
         context.Locale.Should().Be("fa-IR");
-        context.TimeZone.Should().Be("Asia/Tehran");
+        context.TimeZone.Should().Be(TenantBusinessProfileView.DefaultTimeZoneId);
         context.Calendar.Should().Be("persian");
         context.ConversationId.Should().NotBeNullOrWhiteSpace();
     }
@@ -118,11 +121,22 @@ public sealed class HttpAssistantContextFactoryTests
         await create.Should().ThrowAsync<KeyNotFoundException>();
     }
 
-    private static HttpAssistantContextFactory Factory(IHttpContextAccessor accessor, bool patientAvailable = true)
+    private static HttpAssistantContextFactory Factory(
+        IHttpContextAccessor accessor,
+        bool patientAvailable = true,
+        string? practiceTimeZoneId = null)
     {
         Mock<IAssistantRoutePatientResolver> resolver = new(MockBehavior.Strict);
         resolver.Setup(item => item.IsAvailableAsync(It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(patientAvailable);
-        return new(accessor, resolver.Object);
+
+        TenantBusinessProfileView? profile = practiceTimeZoneId is null
+            ? null
+            : new("Test practice", null, null, null, null, false, TimeZoneId: practiceTimeZoneId);
+        Mock<ISender> sender = new(MockBehavior.Strict);
+        sender.Setup(item => item.Send(It.IsAny<GetTenantBusinessProfileQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(profile);
+
+        return new(accessor, resolver.Object, sender.Object);
     }
 }
