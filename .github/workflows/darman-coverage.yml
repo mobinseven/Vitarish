@@ -1,0 +1,140 @@
+name: Darman coverage
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "37 4 * * 2"
+  pull_request:
+    paths:
+      - ".github/workflows/darman-coverage.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: darman-coverage-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  clinic-backend:
+    name: Clinic .NET coverage
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+      - name: Measure Clinic assemblies
+        shell: pwsh
+        run: |
+          $settings = Join-Path $env:RUNNER_TEMP 'clinic-coverage.xml'
+          @'
+          <Configuration>
+            <CodeCoverage>
+              <ModulePaths>
+                <Include><ModulePath>.*(Clinic[.]Application|Clinic[.]Infrastructure|Clinic[.]Agents)[.]dll$</ModulePath></Include>
+              </ModulePaths>
+              <Attributes><Exclude><Attribute>^System[.]CodeDom[.]Compiler[.]GeneratedCodeAttribute$</Attribute></Exclude></Attributes>
+              <IncludeTestAssembly>false</IncludeTestAssembly>
+            </CodeCoverage>
+          </Configuration>
+          '@ | Set-Content -LiteralPath $settings -Encoding utf8
+          $testRunner = Join-Path $env:RUNNER_TEMP 'clinic-coverage-tests.ps1'
+          @'
+          $suites = @('Clinic.Application.Tests', 'Clinic.Agents.Tests', 'Clinic.Tests')
+          foreach ($suite in $suites) {
+              dotnet test "tests/Apps/$suite/$suite.csproj" -p:OpenApiGenerateDocumentsOnBuild=false
+              if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+          '@ | Set-Content -LiteralPath $testRunner -Encoding utf8
+
+          $tools = Join-Path $env:RUNNER_TEMP 'coverage-tools'
+          dotnet tool install dotnet-coverage --tool-path $tools --version 18.12.0
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+          $reportPath = Join-Path $env:RUNNER_TEMP 'clinic.cobertura.xml'
+          & (Join-Path $tools 'dotnet-coverage.exe') collect -s $settings -f cobertura -o $reportPath pwsh -NoProfile -File $testRunner
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $coverage = ([xml](Get-Content -LiteralPath $reportPath -Raw)).coverage
+          if ([int]$coverage.'lines-valid' -eq 0 -or [int]$coverage.'branches-valid' -eq 0) {
+              throw 'The report contains no line or branch coverage denominator.'
+          }
+
+          @(
+              '### Clinic .NET coverage'
+              "Revision: $env:GITHUB_SHA"
+              "Lines: $($coverage.'lines-covered') / $($coverage.'lines-valid')"
+              "Branches: $($coverage.'branches-covered') / $($coverage.'branches-valid')"
+          ) | Add-Content -LiteralPath $env:GITHUB_STEP_SUMMARY -Encoding utf8
+      - uses: actions/upload-artifact@v4
+        with:
+          name: clinic-dotnet-coverage
+          path: ${{ runner.temp }}/clinic.cobertura.xml
+          if-no-files-found: error
+
+  clinic-web:
+    name: Darman Web coverage
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: src/Hosts/Web
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: src/Hosts/Web/package-lock.json
+      - name: Install Web dependencies
+        env:
+          HEROUI_AUTH_TOKEN: ${{ secrets.HEROUI_AUTH_TOKEN }}
+        run: npm ci
+      - name: Generate API clients
+        run: npm run generate:api
+      - name: Install the coverage provider for the locked Vitest version
+        run: |
+          vitest_version=$(node -p "require('./node_modules/vitest/package.json').version")
+          provider_prefix="$RUNNER_TEMP/vitest-coverage"
+          npm install --prefix "$provider_prefix" --ignore-scripts --no-audit --no-fund "@vitest/coverage-v8@$vitest_version"
+          ln -s "$provider_prefix/node_modules/@vitest/coverage-v8" node_modules/@vitest/coverage-v8
+      - name: Measure shared Clinic and clinic-owner sources
+        run: |
+          npm test --workspace @vitarish/clinic --workspace @vitarish/private-practice-owner -- \
+            --coverage --coverage.reporter=json-summary --coverage.reporter=text-summary \
+            '--coverage.include=src/**/*.{ts,tsx}' \
+            '--coverage.exclude=src/**/generated/**' \
+            '--coverage.exclude=src/**/*.test.*' \
+            '--coverage.exclude=src/**/*.spec.*'
+          node --input-type=module <<'NODE' >> "$GITHUB_STEP_SUMMARY"
+          import { readFileSync } from 'node:fs';
+          console.log('### Darman Web coverage');
+          console.log('Revision: ' + process.env.GITHUB_SHA);
+          for (const [label, workspace] of [
+            ['Shared Clinic', 'shared/clinic'],
+            ['Darman clinic-owner', 'apps/private-practice-owner'],
+          ]) {
+            const report = JSON.parse(readFileSync(workspace + '/coverage/coverage-summary.json', 'utf8'));
+            const { lines, branches } = report.total;
+            if (lines.total === 0 || branches.total === 0) {
+              throw new Error(label + ' produced an empty coverage denominator.');
+            }
+            console.log('- ' + label + ' lines: ' + lines.covered + ' / ' + lines.total +
+              ', branches: ' + branches.covered + ' / ' + branches.total);
+          }
+          NODE
+      - uses: actions/upload-artifact@v4
+        with:
+          name: darman-web-coverage
+          path: |
+            src/Hosts/Web/shared/clinic/coverage/coverage-summary.json
+            src/Hosts/Web/apps/private-practice-owner/coverage/coverage-summary.json
+          if-no-files-found: error
