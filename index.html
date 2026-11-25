@@ -70,6 +70,71 @@
           <li><strong>زیرساخت</strong><small>داده و خدمات بیرونی</small></li>
         </ol>
       </figure>
+      <figure class="card diagram platform-topology" id="platform-topology">
+        <figcaption>
+          <h3>معماری فنی پلتفرم</h3>
+          <p>ورودی مشترک وب و API، میزبان‌های برنامه و سرویس‌های پشتیبان.</p>
+        </figcaption>
+        <div class="topology-map">
+          <div class="topology-entry">
+            <strong class="topology-endpoint">مرورگر</strong>
+            <p class="topology-protocol"><bdi>HTTPS</bdi></p>
+            <div class="topology-node topology-ingress">
+              <strong><bdi>Caddy</bdi></strong>
+              <span>ورودی عمومی و مسیریابی درخواست</span>
+            </div>
+          </div>
+
+          <div class="topology-routes">
+            <div class="topology-route">
+              <p class="topology-label">مسیر درخواست صفحه</p>
+              <div class="topology-node">
+                <h4>میزبان‌های وب <bdi>React / Next.js</bdi></h4>
+                <ul class="topology-tiles" role="list">
+                  <li>ورود مرکزی<small>هویت و نشست مرورگر</small></li>
+                  <li>درمان<small>فضای کاری مطب</small></li>
+                  <li>خانه و مدیریت پلتفرم<small>فضاهای کاری و مدیریت</small></li>
+                </ul>
+              </div>
+            </div>
+            <div class="topology-route">
+              <p class="topology-label">مسیر <bdi>API</bdi> هم‌مبدأ با کلاینت تولیدشده از <bdi>OpenAPI</bdi></p>
+              <div class="topology-node">
+                <h4>میزبان <bdi>Main</bdi> <bdi>ASP.NET Core</bdi></h4>
+                <ol class="topology-tiles topology-layers" role="list">
+                  <li><bdi>API / Contracts</bdi><small>اعتبارسنجی ورودی و نگاشت</small></li>
+                  <li><bdi>Application</bdi><small>مورد کاربرد و کنترل دسترسی</small></li>
+                  <li><bdi>Domain</bdi><small>قواعد و تغییر وضعیت</small></li>
+                </ol>
+                <p class="topology-note">اجرای کارهای پس‌زمینه با <bdi>Hangfire</bdi></p>
+              </div>
+            </div>
+          </div>
+
+          <p class="topology-label topology-feed">آداپتورهای زیرساخت در <bdi>Main</bdi></p>
+
+          <div class="topology-private">
+            <h4>سرویس‌های شبکهٔ خصوصی</h4>
+            <div class="topology-dependencies">
+              <ul class="topology-tiles topology-stores" role="list">
+                <li><bdi>PostgreSQL</bdi><small>دادهٔ ماندگار</small></li>
+                <li><bdi>Redis</bdi><small>کش و کلیدهای محافظت داده</small></li>
+                <li><bdi>AIStor</bdi><small>ذخیرهٔ اشیا</small></li>
+                <li><bdi>Elasticsearch</bdi><small>نمایهٔ جست‌وجو</small></li>
+              </ul>
+              <div class="topology-agent">
+                <strong><bdi>Agent Runtime</bdi></strong>
+                <small>اجرای عامل با <bdi>OpenAI Agents SDK</bdi></small>
+                <small>فراخوانی ابزارهای ماژول در <bdi>Main</bdi></small>
+              </div>
+            </div>
+          </div>
+          <div class="topology-external">
+            <span class="topology-label">درخواست مدل از سرویس عامل</span>
+            <strong class="topology-endpoint"><bdi>OpenAI</bdi> <small>ارائه‌دهندهٔ بیرونی مدل</small></strong>
+          </div>
+        </div>
+      </figure>
       <figure class="card diagram">
         <figcaption><h3>مسیر درخواست در لایه‌ها</h3></figcaption>
         <ol class="flow" role="list">
@@ -116,6 +181,9 @@
         <li><a href="https://github.com/mobinseven/Vitarish/issues">فهرست مسئله‌ها و نیازها</a></li>
         <li><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/apps/private-practice-general/README.md">سفرها و تصمیم‌های برنامهٔ مطب</a></li>
         <li><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/runbooks/openapi-to-react-client.md">راهنمای تولید کلاینت</a></li>
+        <li><a href="https://github.com/mobinseven/Vitarish/blob/main/src/Hosts/deployment/Caddyfile">مسیریابی ورودی Caddy</a></li>
+        <li><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/hosts/server-deployment-bundles.md">معماری استقرار</a></li>
+        <li><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/architecture/decisions/0011-server-side-agents-sdk-runtime.md">تصمیم معماری اجرای عامل</a></li>
       </ul>
     </footer>
   </section>

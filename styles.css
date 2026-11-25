@@ -262,6 +262,184 @@ p { margin: .5rem 0; }
   text-wrap: balance;
 }
 
+.platform-topology {
+  --topology-gap: clamp(1rem, 2vw, 1.5rem);
+  --topology-panel: color-mix(in srgb, var(--board), var(--board-detail) 7%);
+  --topology-border: color-mix(in srgb, var(--board), var(--board-detail) 42%);
+  display: block;
+  scroll-margin-block-start: 1rem;
+  color: var(--board-text);
+  background: radial-gradient(ellipse at 50% 8%, var(--topology-panel), var(--board) 70%);
+  border-color: var(--topology-border);
+  padding: clamp(1.3rem, 5vw, 4rem);
+}
+.platform-topology h3, .platform-topology h4 { color: inherit; }
+.platform-topology figcaption p { margin-block: .75rem 0; color: var(--board-detail); }
+.topology-map {
+  max-inline-size: 64rem;
+  margin: clamp(1.75rem, 4vw, 3rem) auto 0;
+}
+.topology-entry, .topology-external { display: grid; justify-items: center; }
+.topology-endpoint {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: baseline;
+  gap: .2rem .55rem;
+  padding: .4rem 1.2rem;
+  border: 1px solid var(--topology-border);
+  border-radius: 2rem;
+  background: var(--topology-panel);
+}
+.topology-endpoint small { color: var(--board-detail); font-weight: 500; }
+.topology-protocol, .topology-label {
+  display: block;
+  margin: 0;
+  color: var(--board-detail);
+  font-size: .88rem;
+  line-height: 1.55;
+}
+.topology-protocol, .topology-external .topology-label { padding-block: .45rem; }
+.topology-node, .topology-private {
+  background: var(--topology-panel);
+  border: 1px solid var(--topology-border);
+  border-radius: 1rem;
+  padding: clamp(.8rem, 2vw, 1.4rem);
+}
+.topology-ingress {
+  display: grid;
+  gap: .2rem;
+  min-inline-size: min(100%, 16rem);
+  border-color: var(--board-detail);
+}
+.topology-ingress strong { font-size: 1.2rem; }
+.topology-ingress span { color: var(--board-detail); font-size: .92rem; }
+.topology-routes {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--topology-gap);
+  padding-block-start: 1.65rem;
+}
+.topology-routes::before {
+  position: absolute;
+  content: "";
+  inset-inline-start: 50%;
+  inset-block-start: 0;
+  block-size: .75rem;
+  border-inline-start: 1px solid var(--topology-border);
+}
+.topology-routes::after {
+  position: absolute;
+  content: "";
+  inset-inline: calc((100% - var(--topology-gap)) / 4);
+  inset-block-start: .75rem;
+  block-size: .9rem;
+  border: solid var(--topology-border);
+  border-width: 1px 1px 0;
+}
+.topology-route { display: grid; grid-template-rows: subgrid; grid-row: span 2; row-gap: .5rem; }
+.topology-node h4, .topology-private h4 { margin: 0 0 .9rem; font-size: 1.1rem; }
+.topology-node h4 bdi:last-child { display: block; color: var(--board-detail); font-size: .86rem; font-weight: 500; }
+.topology-tiles {
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  gap: .45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.topology-tiles li, .topology-agent {
+  display: grid;
+  align-content: center;
+  gap: .2rem;
+  padding: .65rem .4rem;
+  background: var(--board);
+  border: 1px solid var(--topology-border);
+  border-radius: .65rem;
+  font-size: .87rem;
+  font-weight: 750;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.topology-tiles small, .topology-agent small {
+  color: var(--board-detail);
+  font-size: .81rem;
+  font-weight: 500;
+}
+.topology-layers { gap: .9rem; }
+.topology-layers li { position: relative; }
+.topology-layers li + li::before {
+  position: absolute;
+  content: "";
+  inline-size: .35rem;
+  block-size: .35rem;
+  inset-inline-start: -.69rem;
+  inset-block-start: calc(50% - .175rem);
+  border: solid var(--board-detail);
+  border-width: 0 1px 1px 0;
+  transform: rotate(135deg);
+}
+.topology-note { margin: .65rem 0 0; color: var(--board-detail); font-size: .85rem; }
+.topology-feed {
+  position: relative;
+  inline-size: min(100%, 16rem);
+  margin-inline-start: calc(75% + var(--topology-gap) / 4);
+  padding-block: .95rem .35rem;
+  transform: translateX(50%);
+}
+.topology-feed::before {
+  position: absolute;
+  content: "";
+  inset-inline-start: 50%;
+  inset-block-start: 0;
+  block-size: .8rem;
+  border-inline-start: 1px solid var(--topology-border);
+}
+.topology-private { border-style: dashed; }
+.topology-dependencies {
+  display: grid;
+  grid-template-columns: minmax(0, 2.3fr) minmax(0, 1fr);
+  gap: .7rem;
+}
+.topology-agent { border-color: var(--board-detail); }
+.topology-external {
+  grid-template-columns: minmax(0, 2.3fr) minmax(0, 1fr);
+  column-gap: .7rem;
+  padding-inline: clamp(.8rem, 2vw, 1.4rem);
+}
+.topology-external > * { grid-column: 2; }
+.topology-external .topology-label { padding-block-start: 1rem; position: relative; }
+.topology-external .topology-label::before {
+  position: absolute;
+  content: "";
+  inset-inline-start: 50%;
+  inset-block-start: 0;
+  block-size: .85rem;
+  border-inline-start: 1px solid var(--topology-border);
+}
+@media (max-width: 56rem) {
+  .topology-routes { grid-template-columns: minmax(0, 1fr); }
+  .topology-route { grid-template-rows: auto auto; grid-row: auto; }
+  .topology-routes::before { block-size: 1.2rem; }
+  .topology-routes::after { display: none; }
+  .topology-feed { margin-inline: auto; transform: none; }
+}
+@media (max-width: 38rem) {
+  .topology-dependencies, .topology-external { grid-template-columns: minmax(0, 1fr); }
+  .topology-external > * { grid-column: 1; }
+  .topology-stores { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-flow: row; }
+}
+@media (max-width: 30rem) {
+  .topology-tiles:not(.topology-stores) { grid-auto-flow: row; }
+  .topology-layers li + li::before {
+    inset-inline-start: calc(50% - .175rem);
+    inset-block-start: -.7rem;
+    transform: rotate(45deg);
+  }
+}
+
 .filters { display: flex; flex-wrap: wrap; align-items: end; gap: .75rem 1rem; margin-block: 1.25rem; }
 .filters label { display: grid; gap: .25rem; min-inline-size: min(100%, 12rem); font-weight: 700; }
 .filters input { width: 100%; border: 1px solid var(--line); color: var(--ink); background: var(--paper); }
