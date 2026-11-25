@@ -15,7 +15,7 @@
 <header class="top">
   <nav class="shell nav" aria-label="ناوبری اصلی">
     <a class="brand" href="./"><span class="mark" aria-hidden="true"></span>ویتاریش</a>
-    <div><a href="#architecture">معماری</a><a href="#development">توسعه</a><a href="#decisions">ADRها</a><a href="#evidence">شواهد</a></div>
+    <div><a href="#evidence">دانش فنی</a><a href="#architecture">معماری</a><a href="#development">توسعه</a><a href="#accepted-adrs">ADRها</a></div>
     <a class="button button--outline" href="https://mobinseven.github.io/Darman/">سایت درمان</a>
   </nav>
 </header>
@@ -25,7 +25,7 @@
       <p class="eyebrow"><span></span>معماری و مهندسی پلتفرم</p>
       <h1>ویتاریش</h1>
       <p class="lead">پلتفرم برنامه‌های تخصصی و فضاهای کاری.</p>
-      <div class="actions"><a class="button button--primary" href="#architecture">دیدن نقشهٔ معماری</a><a class="button button--outline" href="#decisions">جدول تصمیم‌ها</a></div>
+      <div class="actions"><a class="button button--primary" href="#architecture">دیدن نقشهٔ معماری</a><a class="button button--outline" href="#accepted-adrs">جدول تصمیم‌ها</a></div>
     </div>
     <div class="blueprint" aria-label="ویتاریش خدمات مشترک را به برنامه‌ها ارائه می‌کند">
       <p class="blueprint-label">نمای پلتفرم</p>
@@ -35,142 +35,109 @@
       <div class="blueprint-base"><span>هویت و دسترسی</span><span>فضای کاری</span><span>ماژول‌های دامنه</span></div>
     </div>
   </section>
-  <section class="band" id="architecture">
-    <div class="section-head"><div><p class="eyebrow">معماری</p><h2>سامانه و مرزهای آن</h2></div><div class="source-links"><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/architecture.md">معماری فنی</a><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/platform/functional-architecture.md">معماری کارکردی</a><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/runbooks/openapi-to-react-client.md">راهنمای تولید کلاینت</a></div></div>
-    <div class="diagrams"><figure class="card diagram">
-  <figcaption><h3>نقشهٔ سامانه</h3></figcaption>
-  <ol class="flow" role="list">
-    <li><strong>مرورگر</strong></li>
-    <li><strong>میزبان وب</strong></li>
-    <li><strong>میزبان API</strong><small>ماژول‌های ‎.NET</small></li>
-    <li><strong>زیرساخت</strong><small>داده و خدمات بیرونی</small></li>
-  </ol>
-</figure>
-<figure class="card diagram">
-  <figcaption><h3>پلتفرم تا فضای کاری</h3></figcaption>
-  <ol class="flow" role="list">
-    <li><strong>ویتاریش</strong><small>خدمات مشترک</small></li>
-    <li><strong>درمان</strong><small>برنامهٔ مطب</small></li>
-    <li><strong>فضای کاری</strong><small>یک مطب</small></li>
-  </ol>
-</figure>
-<figure class="card diagram">
-  <figcaption><h3>مسیر درخواست در لایه‌ها</h3></figcaption>
-  <ol class="flow" role="list">
-    <li><strong>رابط و Client</strong><small>ارائه</small></li>
-    <li><strong>API و Contracts</strong><small>نگاشت ورودی</small></li>
-    <li><strong>Application</strong><small>اجرای مورد کاربرد</small></li>
-    <li><strong>Domain</strong><small>قواعد دامنه</small></li>
-  </ol>
-  <p class="diagram-note">زیرساخت پورت‌های Application را پیاده می‌کند.</p>
-</figure>
-<figure class="card diagram branching">
-  <figcaption><h3>فرمان و پرس‌وجو</h3></figcaption>
-  <p class="branch-source">درخواست</p>
-  <ol class="flow" role="list">
-    <li><strong>پرس‌وجو</strong><small>خواندن داده</small></li>
-    <li><strong>فرمان</strong><small>تغییر وضعیت</small></li>
-  </ol>
-</figure>
-<figure class="card diagram">
-  <figcaption><h3>ورود مرکزی</h3></figcaption>
-  <ol class="flow" role="list">
-    <li><strong>برنامهٔ مبدأ</strong></li>
-    <li><strong>میزبان هویت</strong></li>
-    <li><strong>نشست مقصد</strong></li>
-    <li><strong>فضای کاری</strong><small>عضویت و مجوز</small></li>
-  </ol>
-  <p class="diagram-note">نمای معماری بر پایهٔ ADRهای ۰۰۲۰ و ۰۰۲۱.</p>
-</figure>
-<figure class="card diagram">
-  <figcaption><h3>از قرارداد تا رابط</h3></figcaption>
-  <ol class="flow" role="list">
-    <li><strong>قرارداد API</strong></li>
-    <li><strong>OpenAPI</strong></li>
-    <li><strong>کلاینت TypeScript</strong></li>
-    <li><strong>رابط React</strong></li>
-  </ol>
-</figure>
-<figure class="card diagram">
-  <figcaption><h3>دستیار و تأیید کاربر</h3></figcaption>
-  <ol class="flow" role="list">
-    <li><strong>درخواست</strong></li>
-    <li><strong>اجرای سمت سرور</strong></li>
-    <li><strong>ابزار مجاز ماژول</strong></li>
-    <li><strong>بازبینی و تأیید</strong><small>برای تغییرهای مشمول</small></li>
-  </ol>
-</figure></div>
+  <section class="band topic" id="evidence">
+    <h2>تسلط بر دانش فنی</h2>
+    <p class="topic-lead">این مرور بر پایهٔ صفحات ۴۰ و ۴۱ سند «معیارهای ارزیابی حوزه فناوری اطلاعات و ارتباطات رایانه‌ای» تنظیم شده است.</p>
+    <nav aria-label="فهرست بخش‌های دانش فنی">
+      <ul class="topic-index">
+        <li><a href="#architecture">نیازمندی‌ها و معماری</a></li>
+        <li><a href="#decisions">مدیریت دانش</a></li>
+        <li><a href="#development">ابزارها و تاریخچه</a></li>
+        <li><a href="#delivery">ساخت و انتشار</a></li>
+        <li><a href="#quality">کیفیت و پوشش آزمون</a></li>
+        <li><a href="#support">پشتیبانی</a></li>
+        <li><a href="#domain">دامنه و کاربران هدف</a></li>
+        <li><a href="#team">مشارکت و تخصص تیم</a></li>
+      </ul>
+    </nav>
   </section>
-  <section class="band" id="development">
-    <div class="section-head"><div><p class="eyebrow">روش توسعه</p><h2>از نیاز تا انتشار</h2></div><div class="source-links"><a href="https://github.com/mobinseven/Vitarish/issues">مسئله‌ها و Backlog</a><a href="https://github.com/mobinseven/Vitarish/commits/main/">تاریخچهٔ کد</a><a href="https://github.com/mobinseven/Vitarish/actions">اجراهای CI/CD</a></div></div>
-    <div class="diagrams"><figure class="card diagram">
-  <figcaption><h3>از نیاز تا آزمون</h3></figcaption>
-  <ol class="flow" role="list">
-    <li><strong>نیاز یا مسئله</strong></li>
-    <li><strong>سفر کاربر و درخت تصمیم</strong></li>
-    <li><strong>پیاده‌سازی</strong></li>
-    <li><strong>طرح آزمون</strong></li>
-  </ol>
-</figure>
-<figure class="card diagram">
-  <figcaption><h3>ثبت و انتقال دانش</h3></figcaption>
-  <ol class="flow" role="list">
-    <li><strong>بررسی تغییر</strong></li>
-    <li><strong>ثبت ADR</strong></li>
-    <li><strong>راهنمای اجرا</strong></li>
-    <li><strong>بازبینی مستند</strong></li>
-  </ol>
-</figure>
-<figure class="card diagram">
-  <figcaption><h3>ردیابی تغییر در GitHub</h3></figcaption>
-  <ol class="flow" role="list">
-    <li><strong>Issue</strong></li>
-    <li><strong>Pull Request</strong></li>
-    <li><strong>Commit</strong></li>
-    <li><strong>اجرای CI</strong></li>
-  </ol>
-</figure>
-<figure class="card diagram">
-  <figcaption><h3>یکپارچه‌سازی پیوسته</h3></figcaption>
-  <ol class="flow" role="list">
-    <li><strong>تشخیص دامنهٔ تغییر</strong></li>
-    <li><strong>ساخت و آزمون</strong></li>
-    <li><strong>بررسی مرزها</strong></li>
-    <li><strong>نتیجهٔ CI</strong></li>
-  </ol>
-</figure>
-<figure class="card diagram parallel">
-  <figcaption><h3>سطوح کنترل کیفیت</h3></figcaption>
-  <ol class="flow" role="list">
-    <li><strong>واحد</strong><small>قواعد دامنه</small></li>
-    <li><strong>یکپارچه</strong><small>اتصال مؤلفه‌ها</small></li>
-    <li><strong>مرورگر / E2E</strong><small>رفتار کاربر</small></li>
-    <li><strong>امنیت</strong><small>مرزها و آزمون بازگشت</small></li>
-  </ol>
-</figure>
-<figure class="card diagram">
-  <figcaption><h3>انتشار و استقرار</h3></figcaption>
-  <ol class="flow" role="list">
-    <li><strong>Commit در main</strong><small>SHA</small></li>
-    <li><strong>ساخت تصویر</strong><small>GHCR</small></li>
-    <li><strong>استقرار</strong><small>digest تصویر</small></li>
-    <li><strong>بررسی پس از استقرار</strong><small>شاهد مرورگر</small></li>
-  </ol>
-</figure>
-<figure class="card diagram">
-  <figcaption><h3>رسیدگی به اشکال</h3></figcaption>
-  <ol class="flow" role="list">
-    <li><strong>ثبت نشانه</strong></li>
-    <li><strong>تعیین اولویت</strong></li>
-    <li><strong>بازتولید امن</strong></li>
-    <li><strong>اصلاح و آزمون بازگشت</strong></li>
-  </ol>
-  <p class="diagram-note">گزارش عمومی باید بدون دادهٔ بیمار و اطلاعات ورود باشد.</p>
-</figure></div>
+  <section class="band topic" id="architecture">
+    <h2>نیازمندی‌ها و معماری</h2>
+    <p class="topic-lead">نیازها در فهرست کارها ثبت می‌شوند. سفرهای کاربر، درخت‌های تصمیم و طرح‌های آزمون، رفتار مورد انتظار را مشخص می‌کنند. نمودارها اجزای سامانه و مرزهای آن‌ها را نشان می‌دهند.</p>
+    <div class="diagrams">
+      <figure class="card diagram">
+        <figcaption><h3>از نیاز تا آزمون</h3></figcaption>
+        <ol class="flow" role="list">
+          <li><strong>نیاز یا مسئله</strong></li>
+          <li><strong>سفر کاربر و درخت تصمیم</strong></li>
+          <li><strong>پیاده‌سازی</strong></li>
+          <li><strong>طرح آزمون</strong></li>
+        </ol>
+      </figure>
+      <figure class="card diagram">
+        <figcaption><h3>نقشهٔ سامانه</h3></figcaption>
+        <ol class="flow" role="list">
+          <li><strong>مرورگر</strong></li>
+          <li><strong>میزبان وب</strong></li>
+          <li><strong>میزبان API</strong><small>ماژول‌های ‎.NET</small></li>
+          <li><strong>زیرساخت</strong><small>داده و خدمات بیرونی</small></li>
+        </ol>
+      </figure>
+      <figure class="card diagram">
+        <figcaption><h3>مسیر درخواست در لایه‌ها</h3></figcaption>
+        <ol class="flow" role="list">
+          <li><strong>رابط و Client</strong><small>ارائه</small></li>
+          <li><strong>API و Contracts</strong><small>نگاشت ورودی</small></li>
+          <li><strong>Application</strong><small>اجرای مورد کاربرد</small></li>
+          <li><strong>Domain</strong><small>قواعد دامنه</small></li>
+        </ol>
+        <p class="diagram-note">زیرساخت پورت‌های Application را پیاده می‌کند.</p>
+      </figure>
+      <figure class="card diagram branching">
+        <figcaption><h3>فرمان و پرس‌وجو</h3></figcaption>
+        <p class="branch-source">درخواست</p>
+        <ol class="flow" role="list">
+          <li><strong>پرس‌وجو</strong><small>خواندن داده</small></li>
+          <li><strong>فرمان</strong><small>تغییر وضعیت</small></li>
+        </ol>
+      </figure>
+      <figure class="card diagram">
+        <figcaption><h3>ورود مرکزی</h3></figcaption>
+        <ol class="flow" role="list">
+          <li><strong>برنامهٔ مبدأ</strong></li>
+          <li><strong>میزبان هویت</strong></li>
+          <li><strong>نشست مقصد</strong></li>
+          <li><strong>فضای کاری</strong><small>عضویت و مجوز</small></li>
+        </ol>
+        <p class="diagram-note">نمای معماری بر پایهٔ ADRهای ۰۰۲۰ و ۰۰۲۱.</p>
+      </figure>
+      <figure class="card diagram">
+        <figcaption><h3>از قرارداد تا رابط</h3></figcaption>
+        <ol class="flow" role="list">
+          <li><strong>قرارداد API</strong></li>
+          <li><strong>OpenAPI</strong></li>
+          <li><strong>کلاینت TypeScript</strong></li>
+          <li><strong>رابط React</strong></li>
+        </ol>
+      </figure>
+    </div>
+    <footer class="topic-sources">
+      <h3>منابع</h3>
+      <ul class="source-links">
+        <li><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/architecture.md">معماری فنی</a></li>
+        <li><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/platform/functional-architecture.md">معماری کارکردی</a></li>
+        <li><a href="https://github.com/mobinseven/Vitarish/issues">فهرست مسئله‌ها و نیازها</a></li>
+        <li><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/apps/private-practice-general/README.md">سفرها و تصمیم‌های برنامهٔ مطب</a></li>
+        <li><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/runbooks/openapi-to-react-client.md">راهنمای تولید کلاینت</a></li>
+      </ul>
+    </footer>
   </section>
-  <section class="band" id="decisions">
-    <div class="section-head"><div><p class="eyebrow">ثبت تصمیم معماری</p><h2>جدول خلاصهٔ ADRها</h2></div><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/architecture/decisions/_index.md">نمایهٔ مرجع تصمیم‌ها</a></div>
-    <p>تصمیم‌های پذیرفته‌شدهٔ معماری. خط تیره نشانهٔ تاریخ ثبت‌نشده است.</p>
+  <section class="band topic" id="decisions">
+    <h2>مدیریت دانش و تصمیم‌های معماری</h2>
+    <p class="topic-lead">تصمیم‌های معماری، راهنماهای اجرا و مستندات ماژول‌ها در کنار کد نگهداری می‌شوند. تغییر تصمیم در ADR و تغییر روش اجرا در راهنمای همان بخش ثبت می‌شود.</p>
+    <div class="diagrams">
+      <figure class="card diagram">
+        <figcaption><h3>ثبت و انتقال دانش</h3></figcaption>
+        <ol class="flow" role="list">
+          <li><strong>بررسی تغییر</strong></li>
+          <li><strong>ثبت ADR</strong></li>
+          <li><strong>راهنمای اجرا</strong></li>
+          <li><strong>بازبینی مستند</strong></li>
+        </ol>
+      </figure>
+    </div>
+    <h3 class="adr-heading" id="accepted-adrs">جدول خلاصهٔ ADRها</h3>
+    <p>خط تیره نشانهٔ تاریخ ثبت‌نشده است.</p>
     <form class="filters" hidden>
       <label>جست‌وجوی تصمیم <input class="input" type="search" placeholder="شناسه، عنوان یا موضوع" aria-controls="adr-table"></label>
       <output aria-live="polite"></output>
@@ -290,27 +257,156 @@
 </tr>
       </tbody></table>
     </div>
+    <footer class="topic-sources">
+      <h3>منابع</h3>
+      <ul class="source-links">
+        <li><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/README.md">فهرست مستندات ویتاریش</a></li>
+        <li><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/architecture/decisions/_index.md">نمایهٔ مرجع ADRها</a></li>
+        <li><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/runbooks/clinic-onboarding.md">راهنمای راه‌اندازی مطب</a></li>
+      </ul>
+    </footer>
   </section>
-  <section class="band" id="evidence">
-    <div class="section-head"><div><p class="eyebrow">شواهد عمومی</p><h2>تسلط بر دانش فنی</h2></div></div>
-    <p>محورهای زیر از صفحات ۴۰ و ۴۱ سند «معیارهای ارزیابی حوزه فناوری اطلاعات و ارتباطات رایانه‌ای» گرفته شده‌اند. برای هر محور، پیوند به شاهد عمومی یا وضعیت انتشار آن آمده است.</p>
-    <div class="table-wrap" tabindex="0" role="region" aria-label="جدول شواهد عمومی">
-      <table><thead><tr><th scope="col">محور ارزیابی</th><th scope="col">شرح شاهد</th><th scope="col">منبع</th></tr></thead><tbody>
-<tr><th scope="row">طراحی و نیازمندی</th><td>نقشهٔ سامانه، معماری و سفرهای کاربر</td><td><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/architecture.md">معماری فنی</a></td></tr>
-<tr><th scope="row">مدیریت دانش</th><td>تصمیم‌ها، قراردادها و راهنماهای اجرا</td><td><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/architecture/decisions/_index.md">نمایهٔ ADR</a></td></tr>
-<tr><th scope="row">ابزار و زیرساخت توسعه</th><td>ساخت متمرکز و انتخاب دامنهٔ تغییر</td><td><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/development/focused-builds.md">ساخت و آزمون محلی</a></td></tr>
-<tr><th scope="row">ردیابی تاریخچه</th><td>مسئله، بررسی تغییر و تاریخچهٔ کد</td><td><a href="https://github.com/mobinseven/Vitarish/pulls">درخواست‌های ادغام</a></td></tr>
-<tr><th scope="row">CI/CD</th><td>تعریف ساخت، آزمون، انتشار و استقرار</td><td><a href="https://github.com/mobinseven/Vitarish/blob/main/.github/workflows/production.yml">گردش‌کار تولید</a></td></tr>
-<tr><th scope="row">نسخه و انتشار</th><td>رابطهٔ commit، تصویر و digest</td><td><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/hosts/server-deployment-bundles.md">بسته‌های استقرار</a></td></tr>
-<tr><th scope="row">کنترل کیفیت</th><td>پوشش سناریو در طرح‌های آزمون</td><td><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/apps/private-practice-general/tests/0001-patient-procedure-workspace-test-plan.md">نمونهٔ طرح آزمون</a></td></tr>
-<tr><th scope="row">پشتیبانی</th><td>مسیر گزارش خطا و اطلاعات لازم برای پیگیری</td><td><a href="https://mobinseven.github.io/Darman/guide/#access-and-support">راهنمای پشتیبانی درمان</a></td></tr>
-<tr><th scope="row">پوشش آزمون خودکار</th><td>نمونهٔ ردیابی سناریوهای سفر کاربر. درصد پوشش سراسری منتشر نشده است.</td><td><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/apps/private-practice-general/journeys/clinical-sea-journey-coverage.md">نگاشت سفرها و آزمون‌ها</a></td></tr>
-<tr><th scope="row">DevOps و مشاهده‌پذیری</th><td>بررسی اجراهای واقعی گردش‌کار، از ساخت تا شاهد استقرار</td><td><a href="https://github.com/mobinseven/Vitarish/actions">اجراهای GitHub Actions</a></td></tr>
-<tr><th scope="row">شناخت دامنه و کاربران</th><td>مدل فضای کاری و فرایندهای مطب</td><td><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/apps/private-practice-general/README.md">مستندات برنامه</a></td></tr>
-<tr><th scope="row">نقش‌ها و سهم افراد</th><td>اطلاعات تخصیص نیروی انسانی در این سایت منتشر نشده است.</td><td>—</td></tr>
-<tr><th scope="row">تخصص و سابقهٔ تیم</th><td>پروندهٔ سوابق افراد در این سایت منتشر نشده است.</td><td>—</td></tr>
-      </tbody></table>
+  <section class="band topic" id="development">
+    <h2>ابزارهای توسعه و تاریخچهٔ کد</h2>
+    <p class="topic-lead">ساخت محلی به کمک ابزارهای ‎.NET و Web انجام می‌شود. Git و GitHub مسیر تغییر را از مسئله و درخواست ادغام تا commit و اجرای CI قابل پیگیری می‌کنند.</p>
+    <div class="diagrams">
+      <figure class="card diagram">
+        <figcaption><h3>ردیابی تغییر در GitHub</h3></figcaption>
+        <ol class="flow" role="list">
+          <li><strong>Issue</strong></li>
+          <li><strong>Pull Request</strong></li>
+          <li><strong>Commit</strong></li>
+          <li><strong>اجرای CI</strong></li>
+        </ol>
+      </figure>
     </div>
+    <footer class="topic-sources">
+      <h3>منابع</h3>
+      <ul class="source-links">
+        <li><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/development/focused-builds.md">راهنمای ساخت و آزمون محلی</a></li>
+        <li><a href="https://github.com/mobinseven/Vitarish/pulls">درخواست‌های ادغام</a></li>
+        <li><a href="https://github.com/mobinseven/Vitarish/commits/main/">تاریخچهٔ commitها</a></li>
+      </ul>
+    </footer>
+  </section>
+  <section class="band topic" id="delivery">
+    <h2>ساخت خودکار، نسخه‌بندی و DevOps</h2>
+    <p class="topic-lead">GitHub Actions آزمون‌ها و ساخت‌های مرتبط با تغییر را اجرا می‌کند. تصویرهای کانتینر در GHCR با شناسهٔ commit منتشر و با digest همان اجرا مستقر می‌شوند. گزارش گردش‌کار نتیجهٔ مرحله‌های اجراشده، از ساخت تا بررسی پس از استقرار، را نشان می‌دهد.</p>
+    <div class="diagrams">
+      <figure class="card diagram">
+        <figcaption><h3>یکپارچه‌سازی پیوسته</h3></figcaption>
+        <ol class="flow" role="list">
+          <li><strong>تشخیص دامنهٔ تغییر</strong></li>
+          <li><strong>ساخت و آزمون</strong></li>
+          <li><strong>بررسی مرزها</strong></li>
+          <li><strong>نتیجهٔ CI</strong></li>
+        </ol>
+      </figure>
+      <figure class="card diagram">
+        <figcaption><h3>انتشار و استقرار</h3></figcaption>
+        <ol class="flow" role="list">
+          <li><strong>Commit در main</strong><small>SHA</small></li>
+          <li><strong>ساخت تصویر</strong><small>GHCR</small></li>
+          <li><strong>استقرار</strong><small>digest تصویر</small></li>
+          <li><strong>بررسی پس از استقرار</strong><small>شاهد مرورگر</small></li>
+        </ol>
+      </figure>
+    </div>
+    <footer class="topic-sources">
+      <h3>منابع</h3>
+      <ul class="source-links">
+        <li><a href="https://github.com/mobinseven/Vitarish/blob/main/.github/workflows/production.yml">تعریف گردش‌کار تولید</a></li>
+        <li><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/hosts/server-deployment-bundles.md">بسته‌ها و راهنمای استقرار</a></li>
+        <li><a href="https://github.com/mobinseven/Vitarish/actions">اجراهای GitHub Actions</a></li>
+      </ul>
+    </footer>
+  </section>
+  <section class="band topic" id="quality">
+    <h2>کنترل کیفیت و پوشش آزمون</h2>
+    <p class="topic-lead">آزمون‌های واحد، یکپارچه و مرورگر در کنار بررسی مرزهای معماری و امنیت قرار می‌گیرند. طرح‌های آزمون، سناریوهای مورد انتظار را مشخص می‌کنند و آزمون‌های خودکار نمونه‌ای از بررسی عملی آن‌ها هستند. درصد پوشش کل کد در این صفحه منتشر نشده است.</p>
+    <div class="diagrams">
+      <figure class="card diagram parallel">
+        <figcaption><h3>سطوح کنترل کیفیت</h3></figcaption>
+        <ol class="flow" role="list">
+          <li><strong>واحد</strong><small>قواعد دامنه</small></li>
+          <li><strong>یکپارچه</strong><small>اتصال مؤلفه‌ها</small></li>
+          <li><strong>مرورگر / E2E</strong><small>رفتار کاربر</small></li>
+          <li><strong>امنیت</strong><small>مرزها و آزمون بازگشت</small></li>
+        </ol>
+      </figure>
+    </div>
+    <footer class="topic-sources">
+      <h3>منابع</h3>
+      <ul class="source-links">
+        <li><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/apps/private-practice-general/tests/0001-patient-procedure-workspace-test-plan.md">نمونهٔ طرح آزمون فضای کار بالینی</a></li>
+        <li><a href="https://github.com/mobinseven/Vitarish/blob/main/src/Hosts/Web/tests/e2e/clinic-onboarding-walkthrough.spec.ts">نمونهٔ آزمون خودکار راه‌اندازی مطب</a></li>
+        <li><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/architecture/decisions/0013-separate-e2e-host-with-shared-hosting-composition.md">تصمیم معماری میزبان E2E</a></li>
+      </ul>
+    </footer>
+  </section>
+  <section class="band topic" id="support">
+    <h2>پشتیبانی و رسیدگی به اشکال</h2>
+    <p class="topic-lead">راهنمای درمان مسیر گزارش مشکل را برای تیم مطب توضیح می‌دهد. برای بررسی اولیه، گزارش شامل زمان، بخش برنامه، کار انجام‌شده و اثر مشکل است.</p>
+    <div class="diagrams">
+      <figure class="card diagram">
+        <figcaption><h3>رسیدگی به اشکال</h3></figcaption>
+        <ol class="flow" role="list">
+          <li><strong>ثبت نشانه</strong></li>
+          <li><strong>تعیین اولویت</strong></li>
+          <li><strong>بازتولید امن</strong></li>
+          <li><strong>اصلاح و آزمون بازگشت</strong></li>
+        </ol>
+        <p class="diagram-note">گزارش عمومی باید بدون دادهٔ بیمار و اطلاعات ورود باشد.</p>
+      </figure>
+    </div>
+    <footer class="topic-sources">
+      <h3>منابع</h3>
+      <ul class="source-links">
+        <li><a href="https://mobinseven.github.io/Darman/guide/#access-and-support">راهنمای پشتیبانی درمان</a></li>
+        <li><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/runbooks/sign-in-host.md">راهنمای فنی ورود</a></li>
+      </ul>
+    </footer>
+  </section>
+  <section class="band topic" id="domain">
+    <h2>دامنهٔ محصول و کاربران هدف</h2>
+    <p class="topic-lead">درمان برای مدیران، کارکنان پذیرش و تیم بالینی مطب طراحی شده است. سفرهای کاربر نیازهایی مانند راه‌اندازی مطب، نوبت‌دهی، پذیرش و پیگیری پرونده را ثبت می‌کنند. تحلیل مقایسه‌ای بازار در این صفحه منتشر نشده است.</p>
+    <div class="diagrams">
+      <figure class="card diagram">
+        <figcaption><h3>پلتفرم تا فضای کاری</h3></figcaption>
+        <ol class="flow" role="list">
+          <li><strong>ویتاریش</strong><small>خدمات مشترک</small></li>
+          <li><strong>درمان</strong><small>برنامهٔ مطب</small></li>
+          <li><strong>فضای کاری</strong><small>یک مطب</small></li>
+        </ol>
+      </figure>
+      <figure class="card diagram">
+        <figcaption><h3>دستیار و تأیید کاربر</h3></figcaption>
+        <ol class="flow" role="list">
+          <li><strong>درخواست</strong></li>
+          <li><strong>اجرای سمت سرور</strong></li>
+          <li><strong>ابزار مجاز ماژول</strong></li>
+          <li><strong>بازبینی و تأیید</strong><small>برای تغییرهای مشمول</small></li>
+        </ol>
+      </figure>
+    </div>
+    <footer class="topic-sources">
+      <h3>منابع</h3>
+      <ul class="source-links">
+        <li><a href="https://mobinseven.github.io/Darman/">معرفی درمان</a></li>
+        <li><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/apps/private-practice-general/README.md">سفرهای کاربر درمان</a></li>
+      </ul>
+    </footer>
+  </section>
+  <section class="band topic" id="team">
+    <h2>مشارکت و تخصص تیم</h2>
+    <div class="topic-detail"><h3>نقش‌ها و سهم افراد</h3><p>تاریخچهٔ عمومی مخزن مشارکت در کد را نشان می‌دهد. تعداد افراد و سهم هر نقش به تفکیک محصول در این صفحه منتشر نشده است.</p></div>
+    <div class="topic-detail"><h3>تخصص، تحصیلات و سوابق</h3><p>اطلاعات تحصیلی، سوابق شغلی و ارزیابی تخصص اعضای تیم در این صفحه منتشر نشده است.</p></div>
+    <footer class="topic-sources">
+      <h3>منابع</h3>
+      <ul class="source-links">
+        <li><a href="https://github.com/mobinseven/Vitarish/graphs/contributors">مشارکت‌کنندگان مخزن</a></li>
+      </ul>
+    </footer>
   </section>
   <aside class="card legacy" aria-labelledby="guide-title">
     <h2 id="guide-title">راهنمای تیم مطب درمان</h2>
