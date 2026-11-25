@@ -3,82 +3,361 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="راهنمای ورود و راه‌اندازی مطب، پذیرش و نوبت‌ها، دستیار و رفع مشکلات ورود در درمان">
-  <title>راهنمای درمان برای تیم مطب</title>
+  <meta name="description" content="معماری ویتاریش، تصمیم‌های معماری، روش توسعه، آزمون و انتشار با نمودار و پیوند به شواهد عمومی">
+  <title>ویتاریش | معماری و مهندسی پلتفرم</title>
+  <link rel="canonical" href="https://mobinseven.github.io/Vitarish/">
+  <link rel="stylesheet" href="heroui.css">
   <link rel="stylesheet" href="styles.css">
+  <script src="adr-search.js" defer></script>
 </head>
 <body>
-  <header>
-    <a class="brand" href="https://vitarish.com/">ویتاریش</a>
-    <h1>راهنمای درمان</h1>
-    <p>برای مدیر مطب و اعضای تیم مطب</p>
-  </header>
-  <main>
-    <nav aria-label="فهرست راهنما">
-      <ul>
-        <li><a href="#getting-started">شروع کار با درمان</a></li>
-        <li><a href="#check-in-and-appointments">پذیرش مراجع و مدیریت نوبت در درمان</a></li>
-        <li><a href="#assistant">کار با دستیار درمان</a></li>
-        <li><a href="#access-and-support">رفع مشکل ورود و درخواست پشتیبانی درمان</a></li>
-      </ul>
-    </nav>
-    <section id="getting-started">
-      <h2>شروع کار با درمان</h2>
-      <p>این راهنما برای مدیر مطب و اعضای تیم است که می‌خواهند وارد فضای کاری مطب شوند و اولین تنظیمات را انجام دهند.</p>
-      <h3>ورود به مطب</h3>
-      <ol>
-      <li>نشانی مطب را از مدیر مطب بگیرید و در مرورگر باز کنید.</li>
-      <li>اگر صفحهٔ ورود باز شد، با حساب خودتان وارد شوید. بعد از ورود، نام مطب را بررسی کنید.</li>
-      <li>اگر از صفحهٔ اصلی ویتاریش وارد شده‌اید و فهرست فضاهای کاری را می‌بینید، مطب موردنظر را انتخاب کنید. اگر مطب در فهرست نیست، از مدیر مطب بخواهید دسترسی حسابتان را بررسی کند.</li>
-    </ol>
-      <h3>راه‌اندازی اولیه برای مدیر مطب</h3>
-      <p>اگر گزینهٔ ایجاد مطب برای حسابتان فعال است، آن را انتخاب کنید و مراحل ثبت مشخصات و انتخاب نشانی را طی کنید. اگر نشانی انتخابی قبلاً ثبت شده، نشانی دیگری انتخاب کنید. بعد از ایجاد مطب، از گزینهٔ رفتن به مطب استفاده کنید.</p>
-      <p>در صفحهٔ اصلی مطب، اگر راهنمای راه‌اندازی نمایش داده شد، از فهرست کارها شروع کنید.</p>
-      <ul>
-      <li>خدمات و ارائه‌دهندگان خدمت را تعریف کنید.</li>
-      <li>شیفت‌ها و ساعت‌های قابل رزرو را تنظیم کنید.</li>
-      <li>دسترسی اعضای تیم را جداگانه بررسی کنید و برای هر نفر از حساب خودش استفاده کنید.</li>
-      <li>اطلاعات مطب را بررسی و در صورت نیاز تکمیل کنید.</li>
-    </ul>
-      <p>قبل از شروع کار روزانه، مطمئن شوید خدمت و شیفت موردنیاز در فضای کاری درست ثبت شده‌اند.</p>
-    </section>
-    <section id="check-in-and-appointments">
-      <h2>پذیرش مراجع و مدیریت نوبت در درمان</h2>
-      <p>این راهنما برای کارکنان پذیرش و مدیریت نوبت است. گزینه‌های قابل استفاده به دسترسی حساب شما بستگی دارد.</p>
-      <h3>پذیرش مراجع</h3>
-      <ol>
-      <li>وارد فضای کاری مطب شوید و بخش پذیرش را باز کنید.</li>
-      <li>ابتدا مراجع را جست‌وجو کنید. اگر پرونده پیدا شد، قبل از انتخاب مطمئن شوید متعلق به همان فرد است. وقتی پرونده‌ای پیدا نشد و مجوز ثبت دارید، اطلاعات لازم برای ثبت مراجع جدید را وارد کنید.</li>
-      <li>اگر فرایند پذیرش نیاز به انتخاب نوبت داشت، خدمت، ارائه‌دهنده و زمان را بررسی کنید. سپس اطلاعات خلاصه را مرور کنید و پذیرش را ثبت کنید.</li>
-      <li>نتیجه را در همان صفحه یا در بخش نوبت‌ها بررسی کنید. اگر پیام خطا دیدید، پیش از تکرار ثبت ابتدا بررسی کنید که پذیرش یا نوبت ایجاد شده است یا خیر.</li>
-    </ol>
-      <h3>پیگیری نوبت‌ها</h3>
-      <p>در بخش نوبت‌ها، نوبت موردنظر را پیدا کنید و جزئیات آن را باز کنید. وضعیت و زمان نوبت را با اطلاعات مراجع تطبیق دهید. در صورت داشتن دسترسی، اقدام لازم را روی همان نوبت انجام دهید و نتیجه را بررسی کنید.</p>
-      <p>اگر داده‌ای در فهرست پیدا نمی‌شود، ابتدا مطب و تاریخ انتخاب‌شده را بررسی کنید. اگر گزینه‌ای را نمی‌بینید، از مدیر مطب بخواهید سطح دسترسی حسابتان را بررسی کند.</p>
-    </section>
-    <section id="assistant">
-      <h2>کار با دستیار درمان</h2>
-      <p>دستیار می‌تواند به پیدا کردن اطلاعات یا آماده‌کردن یک تغییر کمک کند. پاسخ و گزینه‌های دستیار به فضای کاری و دسترسی شما بستگی دارد.</p>
-      <ol>
-      <li>از فضای کاری مطب، دستیار را باز کنید و درخواست را روشن بنویسید. برای نمونه بپرسید «امروز چند نوبت ثبت شده؟»</li>
-      <li>اگر برای یک تغییر پیشنهاد دریافت کردید، جزئیات را مرور کنید. مطب، پرونده و زمان را بررسی کنید.</li>
-      <li>وقتی پیشنهاد درست است، از گزینهٔ تأیید روی همان پیشنهاد استفاده کنید. اگر پیشنهادی نیاز به اصلاح دارد، آن را تأیید نکنید و درخواست را دقیق‌تر بیان کنید.</li>
-      <li>بعد از تأیید، نتیجه را در بخش مربوط بررسی کنید. اگر صفحه بسته شد یا جواب نامشخص بود، اول بررسی کنید که تغییر ثبت شده یا نه و بعد دربارهٔ تکرار درخواست تصمیم بگیرید.</li>
-    </ol>
-      <p>هر جا به پرونده یا اطلاعات درمانی نیاز است، در همان فضای کاری مطب بمانید و از دسترسی حساب خود استفاده کنید.</p>
-    </section>
-    <section id="access-and-support">
-      <h2>رفع مشکل ورود و درخواست پشتیبانی درمان</h2>
-      <h3>اگر وارد مطب نمی‌شوید</h3>
-      <ul>
-      <li>نشانی مطب و حسابی را که با آن وارد شده‌اید بررسی کنید. اگر مطب برای حسابتان نمایش داده نمی‌شود، از مدیر مطب بخواهید دسترسی شما را بررسی کند.</li>
-      <li>اگر کد دریافت نمی‌شود، اطلاعات تماس را در صفحهٔ ورود بررسی کنید و از همان صفحه مسیر دریافت دوباره یا بازیابی را دنبال کنید. کد ورود و رمز عبور را با کسی به اشتراک نگذارید.</li>
-      <li>اگر پیوند ورود یا انتقال منقضی شده، دوباره از نشانی معمول مطب شروع کنید.</li>
-    </ul>
-      <h3>اگر بخشی از درمان درست کار نمی‌کند</h3>
-      <p>برای پیگیری از راه ارتباطی اعلام‌شده از طرف مدیر مطب استفاده کنید. زمان تقریبی، بخش برنامه، کاری را که انجام دادید، متن خطا و تأثیر مشکل را بنویسید. اگر مشکل روی خدمت‌رسانی جاری مطب اثر گذاشته، همین موضوع را در ابتدای پیام مشخص کنید.</p>
-      <p>رمز عبور، کد ورود، اطلاعات شناسایی بیمار و تصویر حاوی اطلاعات درمانی را در پیام عادی یا تیکت عمومی ارسال نکنید. در صورت نیاز به توضیح، از نمونهٔ آزمایشی یا تصویر پاک‌سازی‌شده استفاده کنید.</p>
-    </section>
-  </main>
+<a class="skip" href="#main">رفتن به محتوا</a>
+<header class="top">
+  <nav class="shell nav" aria-label="ناوبری اصلی">
+    <a class="brand" href="./"><span class="mark" aria-hidden="true"></span>ویتاریش</a>
+    <div><a href="#architecture">معماری</a><a href="#development">توسعه</a><a href="#decisions">ADRها</a><a href="#evidence">شواهد</a></div>
+    <a class="button button--outline" href="https://mobinseven.github.io/Darman/">سایت درمان</a>
+  </nav>
+</header>
+<main id="main" class="shell">
+  <section class="hero">
+    <div>
+      <p class="eyebrow"><span></span>معماری و مهندسی پلتفرم</p>
+      <h1>ویتاریش</h1>
+      <p class="lead">پلتفرم نرم‌افزاری برای ساخت برنامه‌های تخصصی و ادارهٔ فضاهای کاری. با معماری، تصمیم‌های فنی و مسیر توسعه تا انتشار آشنا شوید.</p>
+      <div class="actions"><a class="button button--primary" href="#architecture">دیدن نقشهٔ معماری</a><a class="button button--outline" href="#decisions">جدول تصمیم‌ها</a></div>
+    </div>
+    <div class="blueprint" aria-label="ویتاریش خدمات مشترک را به برنامه‌ها ارائه می‌کند">
+      <p class="blueprint-label">نمای پلتفرم</p>
+      <div class="blueprint-branch"><span>درمان<br><small>فضای کاری مطب</small></span><span>مدیریت پلتفرم<br><small>فضای مدیریتی</small></span></div>
+      <div class="blueprint-spine"></div>
+      <div class="blueprint-core">ویتاریش <small>خدمات مشترک برنامه‌ها</small></div>
+      <div class="blueprint-base"><span>هویت و دسترسی</span><span>فضای کاری</span><span>ماژول‌های دامنه</span></div>
+    </div>
+  </section>
+  <section class="band" id="architecture">
+    <div class="section-head"><div><p class="eyebrow">معماری</p><h2>سامانه و مرزهای آن</h2></div><div class="source-links"><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/architecture.md">معماری فنی</a><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/platform/functional-architecture.md">معماری کارکردی</a><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/runbooks/openapi-to-react-client.md">راهنمای تولید کلاینت</a></div></div>
+    <div class="diagrams"><figure class="card diagram ">
+  <figcaption><h3>نقشهٔ سامانه</h3><p>از تجربهٔ کاربر تا خدمات مشترک و داده.</p></figcaption>
+  <ol class="flow">
+    <li><strong>کاربر</strong><small>مرورگر و فضای کاری</small></li>
+    <li><strong>میزبان وب</strong><small>ورود، خانهٔ پلتفرم و برنامه‌ها</small></li>
+    <li><strong>میزبان API</strong><small>ترکیب ماژول‌های .NET</small></li>
+    <li><strong>زیرساخت</strong><small>پایگاه داده و اتصال به خدمات بیرونی</small></li>
+  </ol>
+  <p class="diagram-note">فلش‌ها جهت درخواست را نشان می‌دهند. میزبان وب و میزبان API مرزهای اجرایی جدا دارند.</p>
+</figure>
+<figure class="card diagram ">
+  <figcaption><h3>پلتفرم، برنامه و فضای کاری</h3><p>ویتاریش خدمات مشترک را فراهم می‌کند. درمان تجربهٔ ویژهٔ مطب را روی آن می‌سازد.</p></figcaption>
+  <ol class="flow">
+    <li><strong>ویتاریش</strong><small>هویت و قابلیت‌های مشترک</small></li>
+    <li><strong>درمان</strong><small>برنامهٔ مدیریت مطب</small></li>
+    <li><strong>فضای کاری</strong><small>یک مطب در درمان</small></li>
+  </ol>
+  <p class="diagram-note">عضویت کاربر و دسترسی در همان فضای کاری بررسی می‌شود.</p>
+</figure>
+<figure class="card diagram ">
+  <figcaption><h3>لایه‌ها و مالکیت رفتار</h3><p>مسیر درخواست از رابط تا منطق دامنه.</p></figcaption>
+  <ol class="flow">
+    <li><strong>رابط و Client</strong><small>ارائه و فراخوانی API</small></li>
+    <li><strong>API و Contracts</strong><small>اعتبارسنجی شکل ورودی و نگاشت</small></li>
+    <li><strong>Application</strong><small>اجرای مورد کاربرد و کنترل دسترسی</small></li>
+    <li><strong>Domain</strong><small>قواعد و تغییر وضعیت</small></li>
+  </ol>
+  <p class="diagram-note">زیرساخت در لبه قرار دارد و پورت‌های Application را پیاده می‌کند. دامنه به پایگاه داده، UI یا SDK بیرونی وابسته نیست.</p>
+</figure>
+<figure class="card diagram parallel">
+  <figcaption><h3>فرمان و پرس‌وجو</h3><p>هر درخواست به مرز متناسب با اثر آن می‌رود.</p></figcaption>
+  <ol class="flow">
+    <li><strong>پرس‌وجو</strong><small>خواندن داده و ساخت نمای خروجی</small></li>
+    <li><strong>فرمان</strong><small>بررسی پیش‌شرط و تغییر وضعیت</small></li>
+    <li><strong>پاسخ</strong><small>دادهٔ خواندنی یا نتیجهٔ لازمِ عملیات</small></li>
+  </ol>
+  <p class="diagram-note">این نمودار دو شاخهٔ مستقل را نشان می‌دهد. پرس‌وجو وضعیت قابل مشاهده را تغییر نمی‌دهد.</p>
+</figure>
+<figure class="card diagram ">
+  <figcaption><h3>ورود مرکزی و نشست مرورگر</h3><p>ورود در میزبان هویت و دسترسی در میزبان مقصد انجام می‌شود.</p></figcaption>
+  <ol class="flow">
+    <li><strong>آغاز از برنامه</strong><small>درخواست دسترسی به مقصد</small></li>
+    <li><strong>ورود مرکزی</strong><small>احراز هویت کاربر</small></li>
+    <li><strong>نشست مقصد</strong><small>نشست محلی مرتبط با خانوادهٔ مرورگر</small></li>
+    <li><strong>فضای کاری</strong><small>ارزیابی عضویت و مجوز</small></li>
+  </ol>
+  <p class="diagram-note">این نما بر اساس ADRهای ۰۰۲۰ و ۰۰۲۱ است. معماری کارکردی، موارد پیشنهادی را در سند مرجع مشخص می‌کند.</p>
+</figure>
+<figure class="card diagram ">
+  <figcaption><h3>قرارداد تا رابط کاربر</h3><p>ساخت کلاینت از قرارداد عمومی ماژول.</p></figcaption>
+  <ol class="flow">
+    <li><strong>قرارداد API</strong><small>شکل درخواست و پاسخ</small></li>
+    <li><strong>OpenAPI</strong><small>عملیات و مدل‌های منتشرشده</small></li>
+    <li><strong>تولید کلاینت</strong><small>انواع و عملیات TypeScript</small></li>
+    <li><strong>رابط React</strong><small>مصرف عملیات و نمایش نتیجه</small></li>
+  </ol>
+  <p class="diagram-note">تغییر از قرارداد و نقاط پایانی آغاز می‌شود و خروجی کلاینت دوباره تولید می‌شود.</p>
+</figure>
+<figure class="card diagram ">
+  <figcaption><h3>دستیار و عملیات کنترل‌شده</h3><p>ماژول‌ها قابلیت‌های دامنه‌ای خود را در اختیار دستیار می‌گذارند.</p></figcaption>
+  <ol class="flow">
+    <li><strong>درخواست کاربر</strong><small>در فضای کاری فعال</small></li>
+    <li><strong>اجرای سمت سرور</strong><small>ترکیب قابلیت‌های مجاز</small></li>
+    <li><strong>ابزار ماژول</strong><small>خواندن یا آماده‌سازی عملیات</small></li>
+    <li><strong>بازبینی و نتیجه</strong><small>تأیید کاربر برای تغییرهای مشمول</small></li>
+  </ol>
+  <p class="diagram-note">تصمیم‌های ۰۰۱۱، ۰۰۱۲، ۰۰۱۷، ۰۰۲۲ و ۰۰۲۳ جزئیات اجرای دستیار، مرزها و شیوهٔ ارائه را توضیح می‌دهند.</p>
+</figure></div>
+  </section>
+  <section class="band" id="development">
+    <div class="section-head"><div><p class="eyebrow">روش توسعه</p><h2>از نیاز تا انتشار</h2></div><div class="source-links"><a href="https://github.com/mobinseven/Vitarish/issues">مسئله‌ها و Backlog</a><a href="https://github.com/mobinseven/Vitarish/commits/main/">تاریخچهٔ کد</a><a href="https://github.com/mobinseven/Vitarish/actions">اجراهای CI/CD</a></div></div>
+    <div class="diagrams"><figure class="card diagram ">
+  <figcaption><h3>ردیابی نیاز تا آزمون</h3><p>سند هر سفر کاربر محل بررسی مسیر عادی و حالت‌های خطاست.</p></figcaption>
+  <ol class="flow">
+    <li><strong>نیاز یا مسئله</strong><small>ثبت در Backlog یا Issue</small></li>
+    <li><strong>درخت تصمیم و سفر</strong><small>شرط‌ها، مسیرها و پیامدها</small></li>
+    <li><strong>پیاده‌سازی</strong><small>تغییر در لایهٔ مسئول</small></li>
+    <li><strong>طرح آزمون</strong><small>بررسی نتیجهٔ قابل مشاهده</small></li>
+  </ol>
+  <p class="diagram-note">نمونهٔ عمومی این زنجیره، سفرها و طرح‌های آزمون فضای کاری مطب است.</p>
+</figure>
+<figure class="card diagram ">
+  <figcaption><h3>ثبت و انتقال دانش</h3><p>تصمیم و روش‌های تکرارپذیر در کنار کد نگهداری می‌شوند.</p></figcaption>
+  <ol class="flow">
+    <li><strong>بررسی تغییر</strong><small>زمینه، گزینه‌ها و پیامدها</small></li>
+    <li><strong>ثبت تصمیم</strong><small>ADR دارای وضعیت و منبع</small></li>
+    <li><strong>راهنمای اجرا</strong><small>مستند ماژول، آزمون یا Runbook</small></li>
+    <li><strong>بازبینی بعدی</strong><small>اصلاح سند همراه با تغییر مالک</small></li>
+  </ol>
+  <p class="diagram-note">نمایهٔ ADR مرجع وضعیت تصمیم‌های عمومی است. تصمیم‌های خاص برنامه یا ماژول در همان دامنه نگهداری می‌شوند.</p>
+</figure>
+<figure class="card diagram ">
+  <figcaption><h3>تاریخچهٔ قابل ردیابی</h3><p>در GitHub می‌توان مسیر تغییر را تا نسخهٔ کد دید.</p></figcaption>
+  <ol class="flow">
+    <li><strong>Issue</strong><small>مسئله و نتیجهٔ مورد انتظار</small></li>
+    <li><strong>Pull Request</strong><small>شرح و بازبینی تغییر</small></li>
+    <li><strong>Commit</strong><small>تفاوت فایل‌ها و شناسهٔ تغییر</small></li>
+    <li><strong>اجرای CI</strong><small>نتیجهٔ بررسی همان تغییر</small></li>
+  </ol>
+  <p class="diagram-note">پیوندها امکان بررسی شواهد را می‌دهند. وجود گردش‌کار به‌تنهایی نتیجهٔ یک اجرای خاص را ثابت نمی‌کند.</p>
+</figure>
+<figure class="card diagram ">
+  <figcaption><h3>یکپارچه‌سازی و کنترل کیفیت</h3><p>گردش‌کار متناسب با فایل‌های تغییرکرده، مصرف‌کنندگان را انتخاب می‌کند.</p></figcaption>
+  <ol class="flow">
+    <li><strong>تشخیص دامنهٔ تغییر</strong><small>انتخاب مؤلفه‌های متأثر</small></li>
+    <li><strong>ساخت و آزمون</strong><small>آزمون .NET و بررسی Web حسب تغییر</small></li>
+    <li><strong>بررسی مرزها</strong><small>تحلیل معماری، امنیت و قراردادها</small></li>
+    <li><strong>نتیجهٔ CI</strong><small>ثبت خروجی بررسی‌های اجراشده</small></li>
+  </ol>
+  <p class="diagram-note">آزمون واحد، یکپارچه و مرورگر هدف‌های متفاوت دارند. میزبان E2E ترکیب مشترک را با محیط آزمون اجرا می‌کند.</p>
+</figure>
+<figure class="card diagram parallel">
+  <figcaption><h3>کیفیت در چند سطح</h3><p>رفتار در نزدیک‌ترین مرز به مالک آن بررسی می‌شود.</p></figcaption>
+  <ol class="flow">
+    <li><strong>واحد</strong><small>قواعد دامنه و موارد کاربرد</small></li>
+    <li><strong>یکپارچه</strong><small>قرارداد و اتصال مؤلفه‌ها</small></li>
+    <li><strong>مرورگر / E2E</strong><small>رفتار از دید کاربر</small></li>
+    <li><strong>بازبینی امنیتی</strong><small>بررسی مرزها و آزمون بازگشت</small></li>
+  </ol>
+  <p class="diagram-note">این نما انواع شاهد را نشان می‌دهد. درصد پوشش سراسری در این سایت منتشر نشده است.</p>
+</figure>
+<figure class="card diagram ">
+  <figcaption><h3>ساخت، انتشار و بررسی استقرار</h3><p>گردش‌کار تولید انتشار را به شناسهٔ تغییر و تصویر مرتبط می‌کند.</p></figcaption>
+  <ol class="flow">
+    <li><strong>Commit در main</strong><small>شناسهٔ نسخهٔ منبع</small></li>
+    <li><strong>ساخت تصویر</strong><small>انتشار تصاویر منتخب در GHCR</small></li>
+    <li><strong>استقرار</strong><small>حل و انتقال digest همان اجرا</small></li>
+    <li><strong>شاهد پس از استقرار</strong><small>بررسی‌های تعریف‌شده و خروجی مرورگر</small></li>
+  </ol>
+  <p class="diagram-note">گردش‌کار تولید شناسهٔ SHA و digest را ثبت می‌کند. وضعیت هر انتشار از اجرای همان گردش‌کار قابل بررسی است.</p>
+</figure>
+<figure class="card diagram ">
+  <figcaption><h3>رسیدگی به اشکال و بازگشت به توسعه</h3><p>فرایند پیگیری از نشانهٔ قابل بازتولید شروع می‌شود.</p></figcaption>
+  <ol class="flow">
+    <li><strong>ثبت نشانه</strong><small>زمان، مسیر و اثر مشکل</small></li>
+    <li><strong>بررسی اولیه</strong><small>تعیین دامنه و اولویت</small></li>
+    <li><strong>بازتولید امن</strong><small>نمونهٔ آزمایشی و بررسی شواهد</small></li>
+    <li><strong>اصلاح و پیگیری</strong><small>آزمون بازگشت و به‌روزرسانی راهنما</small></li>
+  </ol>
+  <p class="diagram-note">راهنمای تیم مطب مسیر گزارش را توضیح می‌دهد. گزارش عمومی باید بدون دادهٔ بیمار و اطلاعات ورود باشد.</p>
+</figure></div>
+  </section>
+  <section class="band" id="decisions">
+    <div class="section-head"><div><p class="eyebrow">ثبت تصمیم معماری</p><h2>جدول خلاصهٔ ADRها</h2></div><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/architecture/decisions/_index.md">نمایهٔ مرجع تصمیم‌ها</a></div>
+    <p>وضعیت‌ها از نمایهٔ تصمیم‌های عمومی گرفته شده‌اند. تاریخ‌های ثبت‌نشده با خط تیره مشخص شده‌اند.</p>
+    <form class="filters" hidden>
+      <label>جست‌وجوی تصمیم <input class="input" type="search" placeholder="شناسه، عنوان یا موضوع" aria-controls="adr-table"></label>
+      <label>وضعیت <select class="input" aria-controls="adr-table"><option value="">همهٔ وضعیت‌ها</option><option value="accepted">پذیرفته‌شده</option><option value="proposed">پیشنهادی</option></select></label>
+      <output aria-live="polite"></output>
+    </form>
+    <div class="table-wrap" tabindex="0" role="region" aria-label="جدول تصمیم‌های معماری">
+      <table id="adr-table"><thead><tr><th scope="col">شناسه</th><th scope="col">عنوان و خلاصه</th><th scope="col">وضعیت</th><th scope="col">تاریخ</th></tr></thead>
+      <tbody>
+<tr data-status="accepted">
+  <th scope="row"><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/architecture/decisions/0001-record-architecture-decisions.md" dir="ltr">ADR 0001</a></th>
+  <td><span class="adr-name" lang="en" dir="ltr">Record Architecture Decisions</span><span>تصمیم‌های اثرگذار با زمینه و پیامد در قالب ADR ثبت می‌شوند.</span></td>
+  <td><span class="chip chip--soft chip--success">پذیرفته‌شده</span></td>
+  <td dir="ltr">—</td>
+</tr>
+<tr data-status="accepted">
+  <th scope="row"><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/architecture/decisions/0002-persist-instants-as-utc-datetime.md" dir="ltr">ADR 0002</a></th>
+  <td><span class="adr-name" lang="en" dir="ltr">Persist instants as UTC DateTime</span><span>لحظه‌های زمانی در ذخیره‌سازی با UTC و DateTime یکدست می‌شوند.</span></td>
+  <td><span class="chip chip--soft chip--success">پذیرفته‌شده</span></td>
+  <td dir="ltr">—</td>
+</tr>
+<tr data-status="accepted">
+  <th scope="row"><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/architecture/decisions/0003-isolate-module-interface-libraries-with-api-client-contracts.md" dir="ltr">ADR 0003</a></th>
+  <td><span class="adr-name" lang="en" dir="ltr">Isolate module Interface libraries with API, Client, and Contracts projects</span><span>رابط ماژول از API، ‏Client و Contracts جدا می‌شود. بخش UI تحت تأثیر ADR ۰۰۰۹ قرار دارد.</span></td>
+  <td><span class="chip chip--soft chip--success">پذیرفته‌شده</span></td>
+  <td dir="ltr">2026-06-24</td>
+</tr>
+<tr data-status="accepted">
+  <th scope="row"><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/architecture/decisions/0004-protect-internal-module-api-endpoints-by-default.md" dir="ltr">ADR 0004</a></th>
+  <td><span class="adr-name" lang="en" dir="ltr">Protect internal module API endpoints by default</span><span>نقاط پایانی داخلی ماژول به‌صورت پیش‌فرض محافظت می‌شوند.</span></td>
+  <td><span class="chip chip--soft chip--success">پذیرفته‌شده</span></td>
+  <td dir="ltr">2026-06-25</td>
+</tr>
+<tr data-status="accepted">
+  <th scope="row"><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/architecture/decisions/0005-standardize-openapi-endpoint-conventions.md" dir="ltr">ADR 0005</a></th>
+  <td><span class="adr-name" lang="en" dir="ltr">Standardize OpenAPI Endpoint Conventions</span><span>الگوی نقاط پایانی و انتشار قرارداد OpenAPI یکسان می‌شود.</span></td>
+  <td><span class="chip chip--soft chip--success">پذیرفته‌شده</span></td>
+  <td dir="ltr">2026-06-27</td>
+</tr>
+<tr data-status="accepted">
+  <th scope="row"><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/architecture/decisions/0006-standardize-platform-journey-routing.md" dir="ltr">ADR 0006</a></th>
+  <td><span class="adr-name" lang="en" dir="ltr">Standardize Platform Journey Routing</span><span>مسیرهای سفر کاربر پلتفرم و انتقال بین مراحل رفتار یکسان پیدا می‌کنند.</span></td>
+  <td><span class="chip chip--soft chip--success">پذیرفته‌شده</span></td>
+  <td dir="ltr">2026-06-29</td>
+</tr>
+<tr data-status="accepted">
+  <th scope="row"><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/architecture/decisions/0007-standardize-react-localization.md" dir="ltr">ADR 0007</a></th>
+  <td><span class="adr-name" lang="en" dir="ltr">Standardize React Localization</span><span>بومی‌سازی رابط‌های React از رویه و منابع مشترک پیروی می‌کند.</span></td>
+  <td><span class="chip chip--soft chip--success">پذیرفته‌شده</span></td>
+  <td dir="ltr">2026-07-01</td>
+</tr>
+<tr data-status="accepted">
+  <th scope="row"><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/architecture/decisions/0008-standardize-app-experience-boundaries.md" dir="ltr">ADR 0008</a></th>
+  <td><span class="adr-name" lang="en" dir="ltr">Standardize App Experience Boundaries</span><span>مالکیت تجربه و مرز رابط هر برنامه مشخص می‌شود.</span></td>
+  <td><span class="chip chip--soft chip--success">پذیرفته‌شده</span></td>
+  <td dir="ltr">2026-07-09</td>
+</tr>
+<tr data-status="accepted">
+  <th scope="row"><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/architecture/decisions/0009-decommission-blazor-interfaces.md" dir="ltr">ADR 0009</a></th>
+  <td><span class="adr-name" lang="en" dir="ltr">Decommission Blazor/Razor Component UI and Interface Projects</span><span>رابط‌های Blazor و Razor Components کنار گذاشته می‌شوند.</span></td>
+  <td><span class="chip chip--soft chip--success">پذیرفته‌شده</span></td>
+  <td dir="ltr">2026-07-10</td>
+</tr>
+<tr data-status="accepted">
+  <th scope="row"><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/architecture/decisions/0010-prefer-statically-analyzable-native-aot-compatible-design.md" dir="ltr">ADR 0010</a></th>
+  <td><span class="adr-name" lang="en" dir="ltr">Prefer Statically Analyzable and Native AOT-Compatible Design for the .NET Backend</span><span>تحلیل ایستا و سازگاری با Native AOT ترجیح طراحی است.</span></td>
+  <td><span class="chip chip--soft chip--success">پذیرفته‌شده</span></td>
+  <td dir="ltr">2026-07-11</td>
+</tr>
+<tr data-status="accepted">
+  <th scope="row"><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/architecture/decisions/0011-server-side-agents-sdk-runtime.md" dir="ltr">ADR 0011</a></th>
+  <td><span class="adr-name" lang="en" dir="ltr">Run Clinic agents through a server-side OpenAI Agents SDK runtime</span><span>اجرای عامل‌های درمان با Agents SDK در سمت سرور انجام می‌شود.</span></td>
+  <td><span class="chip chip--soft chip--success">پذیرفته‌شده</span></td>
+  <td dir="ltr">2026-07-29</td>
+</tr>
+<tr data-status="accepted">
+  <th scope="row"><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/architecture/decisions/0012-module-owned-agents-with-guarded-composition.md" dir="ltr">ADR 0012</a></th>
+  <td><span class="adr-name" lang="en" dir="ltr">Module-owned agents with guarded composition</span><span>عامل متعلق به ماژول است و ترکیب قابلیت‌ها تحت کنترل انجام می‌شود.</span></td>
+  <td><span class="chip chip--soft chip--success">پذیرفته‌شده</span></td>
+  <td dir="ltr">2026-08-12</td>
+</tr>
+<tr data-status="accepted">
+  <th scope="row"><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/architecture/decisions/0013-separate-e2e-host-with-shared-hosting-composition.md" dir="ltr">ADR 0013</a></th>
+  <td><span class="adr-name" lang="en" dir="ltr">Separate E2E host with shared hosting composition</span><span>میزبان E2E مستقل است و از ترکیب مشترک میزبان استفاده می‌کند.</span></td>
+  <td><span class="chip chip--soft chip--success">پذیرفته‌شده</span></td>
+  <td dir="ltr">2026-08-15</td>
+</tr>
+<tr data-status="proposed">
+  <th scope="row"><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/architecture/decisions/0014-app-color-palette.md" dir="ltr">ADR 0014</a></th>
+  <td><span class="adr-name" lang="en" dir="ltr">App color palette</span><span>پالت بصری مستقل برنامه‌ها پیشنهاد شده است.</span></td>
+  <td><span class="chip chip--soft chip--warning">پیشنهادی</span></td>
+  <td dir="ltr">2026-10-10</td>
+</tr>
+<tr data-status="accepted">
+  <th scope="row"><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/architecture/decisions/0015-surgery-planning-contract-change-without-versioning.md" dir="ltr">ADR 0015</a></th>
+  <td><span class="adr-name" lang="en" dir="ltr">Surgery planning contract change without versioning</span><span>تغییر مشخص قرارداد برنامه‌ریزی جراحی بدون نسخهٔ جدید ثبت شده است.</span></td>
+  <td><span class="chip chip--soft chip--success">پذیرفته‌شده</span></td>
+  <td dir="ltr">2026-10-15</td>
+</tr>
+<tr data-status="accepted">
+  <th scope="row"><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/architecture/decisions/0016-self-service-clinic-onboarding.md" dir="ltr">ADR 0016</a></th>
+  <td><span class="adr-name" lang="en" dir="ltr">Self-service clinic onboarding and the one-time handoff link</span><span>مطب از مسیر خودخدمتی و با پیوند انتقال یک‌بارمصرف راه‌اندازی می‌شود.</span></td>
+  <td><span class="chip chip--soft chip--success">پذیرفته‌شده</span></td>
+  <td dir="ltr">2026-10-21</td>
+</tr>
+<tr data-status="accepted">
+  <th scope="row"><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/architecture/decisions/0017-conversational-front-door-and-shared-agent-interaction.md" dir="ltr">ADR 0017</a></th>
+  <td><span class="adr-name" lang="en" dir="ltr">Conversational front door and the shared agent interaction layer</span><span>ورودی گفت‌وگویی و لایهٔ مشترک تعامل با عامل تعریف می‌شوند.</span></td>
+  <td><span class="chip chip--soft chip--success">پذیرفته‌شده</span></td>
+  <td dir="ltr">2026-10-22</td>
+</tr>
+<tr data-status="accepted">
+  <th scope="row"><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/architecture/decisions/0018-shared-sign-in-host.md" dir="ltr">ADR 0018</a></th>
+  <td><span class="adr-name" lang="en" dir="ltr">Shared sign-in host</span><span>میزبان مشترک برای نقطهٔ شروع ورود کاربران تعریف می‌شود.</span></td>
+  <td><span class="chip chip--soft chip--success">پذیرفته‌شده</span></td>
+  <td dir="ltr">2026-10-23</td>
+</tr>
+<tr data-status="accepted">
+  <th scope="row"><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/architecture/decisions/0019-tenant-structured-content-and-public-delivery.md" dir="ltr">ADR 0019</a></th>
+  <td><span class="adr-name" lang="en" dir="ltr">Tenant-structured content and public delivery</span><span>محتوای ساختاریافته در دامنهٔ مستأجر و مسیر عمومیِ انتشار آن تعریف می‌شود.</span></td>
+  <td><span class="chip chip--soft chip--success">پذیرفته‌شده</span></td>
+  <td dir="ltr">2026-11-05</td>
+</tr>
+<tr data-status="accepted">
+  <th scope="row"><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/architecture/decisions/0020-platform-home-and-app-aware-workspaces.md" dir="ltr">ADR 0020</a></th>
+  <td><span class="adr-name" lang="en" dir="ltr">Platform home and app-aware workspaces</span><span>خانهٔ پلتفرم و فضاهای کاری در چارچوب برنامهٔ مالک تعریف می‌شوند.</span></td>
+  <td><span class="chip chip--soft chip--success">پذیرفته‌شده</span></td>
+  <td dir="ltr">2026-11-06</td>
+</tr>
+<tr data-status="accepted">
+  <th scope="row"><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/architecture/decisions/0021-central-browser-authentication.md" dir="ltr">ADR 0021</a></th>
+  <td><span class="adr-name" lang="en" dir="ltr">Central browser authentication</span><span>احراز هویت مرورگر و خانوادهٔ نشست در میزبان اختصاصی متمرکز می‌شود.</span></td>
+  <td><span class="chip chip--soft chip--success">پذیرفته‌شده</span></td>
+  <td dir="ltr">2026-11-07</td>
+</tr>
+<tr data-status="accepted">
+  <th scope="row"><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/architecture/decisions/0022-guided-surfaces.md" dir="ltr">ADR 0022</a></th>
+  <td><span class="adr-name" lang="en" dir="ltr">Guided surfaces</span><span>سطوح هدایت‌شده برای ارائهٔ اطلاعات و عمل در رابط عامل تعریف می‌شوند.</span></td>
+  <td><span class="chip chip--soft chip--success">پذیرفته‌شده</span></td>
+  <td dir="ltr">2026-11-12</td>
+</tr>
+<tr data-status="accepted">
+  <th scope="row"><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/architecture/decisions/0023-agent-domain-models.md" dir="ltr">ADR 0023</a></th>
+  <td><span class="adr-name" lang="en" dir="ltr">Agent domain models</span><span>مدل‌های دامنهٔ عامل و مرزهای مالکیت آن‌ها مشخص می‌شوند.</span></td>
+  <td><span class="chip chip--soft chip--success">پذیرفته‌شده</span></td>
+  <td dir="ltr">2026-11-15</td>
+</tr>
+      </tbody></table>
+    </div>
+  </section>
+  <section class="band" id="evidence">
+    <div class="section-head"><div><p class="eyebrow">شواهد عمومی</p><h2>تسلط بر دانش فنی</h2></div></div>
+    <p>محورهای زیر از صفحات ۴۰ و ۴۱ سند «معیارهای ارزیابی حوزه فناوری اطلاعات و ارتباطات رایانه‌ای» گرفته شده‌اند. برای هر محور، پیوند به شاهد عمومی یا وضعیت انتشار آن آمده است.</p>
+    <div class="table-wrap" tabindex="0" role="region" aria-label="جدول شواهد عمومی">
+      <table><thead><tr><th scope="col">محور ارزیابی</th><th scope="col">شرح شاهد</th><th scope="col">منبع</th></tr></thead><tbody>
+<tr><th scope="row">طراحی و نیازمندی</th><td>نقشهٔ سامانه، معماری و سفرهای کاربر</td><td><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/architecture.md">معماری فنی</a></td></tr>
+<tr><th scope="row">مدیریت دانش</th><td>تصمیم‌ها، قراردادها و راهنماهای اجرا</td><td><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/architecture/decisions/_index.md">نمایهٔ ADR</a></td></tr>
+<tr><th scope="row">ابزار و زیرساخت توسعه</th><td>ساخت متمرکز و انتخاب دامنهٔ تغییر</td><td><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/development/focused-builds.md">ساخت و آزمون محلی</a></td></tr>
+<tr><th scope="row">ردیابی تاریخچه</th><td>مسئله، بررسی تغییر و تاریخچهٔ کد</td><td><a href="https://github.com/mobinseven/Vitarish/pulls">درخواست‌های ادغام</a></td></tr>
+<tr><th scope="row">CI/CD</th><td>تعریف ساخت، آزمون، انتشار و استقرار</td><td><a href="https://github.com/mobinseven/Vitarish/blob/main/.github/workflows/production.yml">گردش‌کار تولید</a></td></tr>
+<tr><th scope="row">نسخه و انتشار</th><td>رابطهٔ commit، تصویر و digest</td><td><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/hosts/server-deployment-bundles.md">بسته‌های استقرار</a></td></tr>
+<tr><th scope="row">کنترل کیفیت</th><td>پوشش سناریو در طرح‌های آزمون</td><td><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/apps/private-practice-general/tests/0001-patient-procedure-workspace-test-plan.md">نمونهٔ طرح آزمون</a></td></tr>
+<tr><th scope="row">پشتیبانی</th><td>مسیر گزارش خطا و اطلاعات لازم برای پیگیری</td><td><a href="https://mobinseven.github.io/Darman/guide/#access-and-support">راهنمای پشتیبانی درمان</a></td></tr>
+<tr><th scope="row">پوشش آزمون خودکار</th><td>نمونهٔ ردیابی سناریوهای سفر کاربر. درصد پوشش سراسری منتشر نشده است.</td><td><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/apps/private-practice-general/journeys/clinical-sea-journey-coverage.md">نگاشت سفرها و آزمون‌ها</a></td></tr>
+<tr><th scope="row">DevOps و مشاهده‌پذیری</th><td>بررسی اجراهای واقعی گردش‌کار، از ساخت تا شاهد استقرار</td><td><a href="https://github.com/mobinseven/Vitarish/actions">اجراهای GitHub Actions</a></td></tr>
+<tr><th scope="row">شناخت دامنه و کاربران</th><td>مدل فضای کاری و فرایندهای مطب</td><td><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/apps/private-practice-general/README.md">مستندات برنامه</a></td></tr>
+<tr><th scope="row">نقش‌ها و سهم افراد</th><td>اطلاعات تخصیص نیروی انسانی در این سایت منتشر نشده است.</td><td>—</td></tr>
+<tr><th scope="row">تخصص و سابقهٔ تیم</th><td>پروندهٔ سوابق افراد در این سایت منتشر نشده است.</td><td>—</td></tr>
+      </tbody></table>
+    </div>
+  </section>
+  <aside class="card legacy" aria-labelledby="guide-title">
+    <h2 id="guide-title">راهنمای تیم مطب درمان</h2>
+    <p>راهنمای پیشین این نشانی به سایت درمان منتقل شده است.</p>
+    <ul><li id="getting-started"><a href="https://mobinseven.github.io/Darman/guide/#getting-started">شروع کار</a></li><li id="check-in-and-appointments"><a href="https://mobinseven.github.io/Darman/guide/#check-in-and-appointments">پذیرش و نوبت‌ها</a></li><li id="assistant"><a href="https://mobinseven.github.io/Darman/guide/#assistant">دستیار</a></li><li id="access-and-support"><a href="https://mobinseven.github.io/Darman/guide/#access-and-support">پشتیبانی</a></li></ul>
+  </aside>
+</main>
+<footer class="shell footer"><span>ویتاریش · مستندات عمومی مهندسی</span><a href="https://github.com/mobinseven/Vitarish">مخزن Vitarish در GitHub</a></footer>
 </body>
 </html>
