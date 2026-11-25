@@ -1,6 +1,5 @@
 const filters = document.querySelector(".filters");
 const query = filters.querySelector("input");
-const status = filters.querySelector("select");
 const count = filters.querySelector("output");
 const rows = [...document.querySelectorAll("#adr-table tbody tr")];
 const number = new Intl.NumberFormat("fa-IR");
@@ -21,8 +20,7 @@ function filterRows() {
 
   for (const row of rows) {
     const text = normalize(row.textContent);
-    const matchesStatus = !status.value || row.dataset.status === status.value;
-    row.hidden = !(matchesStatus && words.every((word) => text.includes(word)));
+    row.hidden = !words.every((word) => text.includes(word));
     matches += Number(!row.hidden);
   }
 

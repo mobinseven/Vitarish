@@ -48,7 +48,7 @@
 body { margin: 0; font-size: 1rem; line-height: 1.85; }
 .shell { width: min(100% - 2.5rem, 76rem); margin-inline: auto; }
 a { color: var(--link); text-underline-offset: .24em; }
-a:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--link); outline-offset: 3px; }
+a:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--link); outline-offset: 3px; }
 [hidden] { display: none !important; }
 .skip { position: absolute; inset-block-start: .5rem; inset-inline-start: 1.25rem; z-index: 2; padding: .5rem 1rem; background: var(--paper); }
 .skip:not(:focus) { clip-path: inset(50%); }
@@ -220,7 +220,7 @@ p { margin: .5rem 0; }
 
 .filters { display: flex; flex-wrap: wrap; align-items: end; gap: .75rem 1rem; margin-block: 1.25rem; }
 .filters label { display: grid; gap: .25rem; min-inline-size: min(100%, 12rem); font-weight: 700; }
-.filters .input { width: 100%; border: 1px solid var(--line); color: var(--ink); background: var(--paper); }
+.filters input { width: 100%; border: 1px solid var(--line); color: var(--ink); background: var(--paper); }
 .filters output { min-height: 2rem; color: var(--muted); }
 .table-wrap { border: 1px solid var(--line); border-radius: var(--panel-radius); overflow: auto; background: var(--paper); margin-block-start: 1rem; }
 table { width: 100%; min-width: 38rem; border-collapse: collapse; text-align: start; }
@@ -229,9 +229,6 @@ thead { background: var(--node); }
 tbody tr:last-child > * { border-block-end: none; }
 tbody th a, td[dir=ltr] { white-space: nowrap; }
 .adr-name { display: block; text-align: right; font-weight: 700; }
-.chip { display: inline-flex; white-space: nowrap; }
-.chip--success { color: light-dark(#135c45, #abdfc8); background: light-dark(#e0f5eb, #234338); }
-.chip--warning { color: light-dark(#654410, #ffde9a); background: light-dark(#ffefcd, #503b1c); }
 .legacy { margin-block: 1rem 2.5rem; }
 .legacy h2 { font-size: 1.22rem; }
 .legacy ul { display: flex; gap: .25rem 1.3rem; flex-wrap: wrap; list-style: none; padding: 0; margin: .5rem 0 0; }
