@@ -45,7 +45,6 @@
         <li><a href="#quality">کیفیت و پوشش آزمون</a></li>
         <li><a href="#support">پشتیبانی</a></li>
         <li><a href="#domain">دامنه و کاربران هدف</a></li>
-        <li><a href="#team">مشارکت و تخصص تیم</a></li>
       </ul>
     </nav>
   </div>
@@ -360,7 +359,13 @@
     <footer class="topic-sources">
       <h3>منابع</h3>
       <ul class="source-links">
-        <li><a href="https://mobinseven.github.io/Darman/guide/#access-and-support">راهنمای پشتیبانی درمان</a></li>
+        <li id="access-and-support">
+          <!-- Older guide fragments land on the link to the Darman guide. -->
+          <span id="getting-started" aria-hidden="true"></span>
+          <span id="check-in-and-appointments" aria-hidden="true"></span>
+          <span id="assistant" aria-hidden="true"></span>
+          <a href="https://mobinseven.github.io/Darman/guide/#access-and-support">راهنمای پشتیبانی درمان</a>
+        </li>
         <li><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/runbooks/sign-in-host.md">راهنمای فنی ورود</a></li>
       </ul>
     </footer>
@@ -395,22 +400,6 @@
       </ul>
     </footer>
   </section>
-  <section class="band topic" id="team">
-    <h2>مشارکت و تخصص تیم</h2>
-    <div class="topic-detail"><h3>نقش‌ها و سهم افراد</h3><p>تاریخچهٔ عمومی مخزن مشارکت در کد را نشان می‌دهد. تعداد افراد و سهم هر نقش به تفکیک محصول در این صفحه منتشر نشده است.</p></div>
-    <div class="topic-detail"><h3>تخصص، تحصیلات و سوابق</h3><p>جزئیات تخصص، تحصیلات و سوابق شغلی اعضای تیم در این صفحه منتشر نشده است.</p></div>
-    <footer class="topic-sources">
-      <h3>منابع</h3>
-      <ul class="source-links">
-        <li><a href="https://github.com/mobinseven/Vitarish/graphs/contributors">مشارکت‌کنندگان مخزن</a></li>
-      </ul>
-    </footer>
-  </section>
-  <aside class="card legacy" aria-labelledby="guide-title">
-    <h2 id="guide-title">راهنمای تیم مطب درمان</h2>
-    <p>راهنمای پیشین این نشانی به سایت درمان منتقل شده است.</p>
-    <ul><li id="getting-started"><a href="https://mobinseven.github.io/Darman/guide/#getting-started">شروع کار</a></li><li id="check-in-and-appointments"><a href="https://mobinseven.github.io/Darman/guide/#check-in-and-appointments">پذیرش و نوبت‌ها</a></li><li id="assistant"><a href="https://mobinseven.github.io/Darman/guide/#assistant">دستیار</a></li><li id="access-and-support"><a href="https://mobinseven.github.io/Darman/guide/#access-and-support">پشتیبانی</a></li></ul>
-  </aside>
 </main>
 <footer class="shell footer"><span>ویتاریش · مستندات عمومی مهندسی</span><a href="https://github.com/mobinseven/Vitarish">مخزن Vitarish در GitHub</a></footer>
 </body>

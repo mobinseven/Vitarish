@@ -103,12 +103,11 @@ p { margin: .5rem 0; }
 
 .band { padding-block: 2.25rem 3rem; border-block-start: 1px solid var(--line); scroll-margin-block-start: 1rem; }
 .topic h2 { text-wrap: balance; }
-.topic-lead, .topic-detail p {
+.topic-lead {
   max-inline-size: 70ch;
   color: var(--muted);
 }
 .topic-lead { margin-block: .8rem 1.6rem; }
-.topic-detail { margin-block: 1.5rem; }
 .topic-index, .topic-sources ul {
   display: flex;
   flex-wrap: wrap;
@@ -274,11 +273,6 @@ thead { background: var(--node); }
 tbody tr:last-child > * { border-block-end: none; }
 tbody th a, td[dir=ltr] { white-space: nowrap; }
 .adr-name { display: block; text-align: right; font-weight: 700; }
-.legacy { margin-block: 1rem 2.5rem; }
-.legacy h2 { font-size: 1.22rem; }
-.legacy ul { display: flex; gap: .25rem 1.3rem; flex-wrap: wrap; list-style: none; padding: 0; margin: .5rem 0 0; }
-.legacy li { scroll-margin-block-start: 3rem; }
-.legacy li:target a { outline: 2px solid var(--link); outline-offset: 4px; }
 .footer { justify-content: space-between; color: var(--muted); padding-block: 1.45rem; border-block-start: 1px solid var(--line); }
 .guide .shell { max-width: 54rem; }
 .guide header { padding-block: 2.25rem 1.25rem; }
