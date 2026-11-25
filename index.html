@@ -79,12 +79,15 @@
           <div class="topology-entry">
             <strong class="topology-endpoint">مرورگر</strong>
             <p class="topology-protocol"><bdi>HTTPS</bdi></p>
-            <strong class="topology-endpoint topology-ingress">پراکسی معکوس</strong>
+            <div class="topology-node topology-ingress">
+              <strong>پراکسی معکوس</strong>
+              <span>ورودی عمومی و مسیریابی درخواست</span>
+            </div>
           </div>
 
           <div class="topology-routes">
             <div class="topology-route">
-              <p class="topology-label topology-flow">تحویل صفحه به مرورگر</p>
+              <p class="topology-label">مسیر درخواست صفحه</p>
               <div class="topology-node">
                 <h4>میزبان‌های وب <bdi>React / Next.js</bdi></h4>
                 <ul class="topology-tiles" role="list">
@@ -95,7 +98,7 @@
               </div>
             </div>
             <div class="topology-route">
-              <p class="topology-label topology-flow">درخواست <bdi>API</bdi> هم‌مبدأ از مرورگر، از مسیر پراکسی معکوس</p>
+              <p class="topology-label">مسیر <bdi>API</bdi> هم‌مبدأ با کلاینت تولیدشده از <bdi>OpenAPI</bdi></p>
               <div class="topology-node">
                 <h4>میزبان اصلی <bdi>ASP.NET Core</bdi></h4>
                 <ol class="topology-tiles topology-layers" role="list">
