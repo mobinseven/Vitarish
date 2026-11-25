@@ -65,7 +65,10 @@ a:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focus-vis
 .button--outline:hover { background: var(--node); }
 .button--primary { background: var(--accent); color: var(--accent-foreground); }
 .button--primary:hover { background: var(--accent); filter: brightness(.93); }
-.hero { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.5rem, 5vw, 5rem); align-items: center; padding-block: clamp(2.25rem, 8vw, 6.25rem); }
+.hero { display: grid; gap: clamp(2rem, 5vw, 3.75rem); padding-block: clamp(2.25rem, 7vw, 5rem); }
+.hero > :first-child { text-align: center; }
+.hero .eyebrow, .hero .actions { justify-content: center; }
+.hero .lead { margin-inline: auto; }
 .eyebrow { display: flex; align-items: center; gap: .6rem; color: var(--link); font-size: .94rem; font-weight: 800; margin: 0 0 .35rem; }
 .eyebrow span { width: 1.4rem; border-block-start: 2px solid currentColor; }
 h1, h2, h3 { margin: 0; color: var(--ink); line-height: 1.35; }
@@ -76,22 +79,23 @@ p { margin: .5rem 0; }
 .lead { color: var(--muted); font-size: clamp(1.06rem, 2vw, 1.3rem); max-width: 34ch; margin: .9rem 0 1.6rem; }
 
 .blueprint {
-  display: grid; align-content: center; min-height: 22rem;
+  display: grid; align-content: center; min-block-size: clamp(23rem, 38vw, 32rem);
   color: var(--board-text); background-color: var(--board);
   background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
   background-size: 1.5rem 1.5rem; border-radius: var(--panel-radius);
   padding: clamp(1rem, 4vw, 2.25rem);
   text-align: center;
 }
-.blueprint-label { color: var(--board-detail); font-size: .9rem; font-weight: 800; text-align: start; margin: 0 0 1.2rem; }
+.blueprint > * { width: min(100%, 40rem); margin-inline: auto; }
+.blueprint-label { color: var(--board-detail); font-size: .9rem; font-weight: 800; text-align: start; margin-block: 0 1.2rem; }
 .blueprint-branch, .blueprint-base { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: .55rem; }
 .blueprint-branch span, .blueprint-base span, .blueprint-core {
   display: grid; align-content: center; min-height: 3.7rem; padding: .45rem .25rem; border: 1px solid var(--board-detail);
   border-radius: .65rem; background: var(--board); font-weight: 800;
 }
 .blueprint-branch small, .blueprint-core small { font-size: .83rem; color: var(--board-detail); font-weight: 500; }
-.blueprint-spine { width: 51%; height: 1.2rem; margin-inline: auto; border: solid var(--board-detail); border-width: 0 1px 1px; }
-.blueprint-core { position: relative; margin: 1.05rem auto; min-width: 55%; font-size: 1.45rem; }
+.blueprint-spine { width: min(51%, 20.55rem); height: 1.2rem; margin-inline: auto; border: solid var(--board-detail); border-width: 0 1px 1px; }
+.blueprint-core { position: relative; margin-block: 1.05rem; width: min(65%, 21rem); font-size: 1.45rem; }
 .blueprint-core::before, .blueprint-core::after { position: absolute; inset-inline-start: 50%; content: ""; height: 1.08rem; border-inline-start: 1px solid var(--board-detail); }
 .blueprint-core::before { bottom: 100%; }
 .blueprint-core::after { top: 100%; }
@@ -100,23 +104,119 @@ p { margin: .5rem 0; }
 .band { padding-block: 2.25rem 3rem; border-block-start: 1px solid var(--line); scroll-margin-block-start: 1rem; }
 .section-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: .8rem 1.5rem; margin-block-end: 1.35rem; }
 .source-links { font-size: .93rem; }
-.diagrams, .resource-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.diagrams {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(2rem, 6vw, 5rem);
+}
 .card { display: block; margin: 0; padding: clamp(1rem, 2.5vw, 1.55rem); border: 1px solid var(--line); border-radius: var(--panel-radius); background: var(--paper); color: var(--ink); }
-.diagram:first-child { grid-column: 1 / -1; }
-.diagram { display: flex; flex-direction: column; justify-content: space-between; }
-.diagram p, .resource-grid p { color: var(--muted); }
-.flow { display: flex; gap: 1rem; margin: 1.15rem 0 .75rem; padding: 0; list-style: none; }
-.flow li { position: relative; flex: 1; padding: .55rem .4rem; border: 1px solid var(--line); border-radius: .65rem; background: var(--node); text-align: center; line-height: 1.6; overflow-wrap: anywhere; }
-.flow li:first-child { border-color: var(--link); }
-.flow small { display: block; color: var(--muted); font-size: .86rem; }
-.flow li + li::before { position: absolute; content: ""; inset-inline-end: calc(100% + .32rem); top: calc(50% - .17rem); width: .36rem; height: .36rem; border: solid var(--link); border-width: 0 1.5px 1.5px 0; transform: rotate(135deg); }
-.parallel .flow { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; }
-.parallel .flow li:first-child { border-color: var(--line); }
-.parallel .flow li::before { display: none; }
-.parallel .flow li:last-child:nth-child(3) { grid-column: 1 / -1; }
-.diagram-note { font-size: .92rem; }
-.resource-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-.resource-grid .button { margin-block-start: .5rem; }
+.diagram {
+  --flow-gap: clamp(1.5rem, 3vw, 2.75rem);
+  --slide-gap: clamp(2rem, 6vw, 4.25rem);
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: var(--slide-gap);
+  min-block-size: clamp(27rem, 49vw, 38rem);
+  padding: clamp(2.5rem, 7vw, 5.5rem) clamp(1.25rem, 6vw, 5rem);
+  text-align: center;
+  border-radius: clamp(1.1rem, 3vw, 2rem);
+  background: radial-gradient(ellipse at 50% 59%, var(--node), var(--paper) 74%);
+}
+.diagram h3 {
+  font-size: clamp(1.65rem, 4vw, 3.35rem);
+  font-weight: 880;
+  text-wrap: balance;
+}
+.flow {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: var(--flow-gap);
+  inline-size: min(100%, 60rem);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.flow li, .branch-source {
+  display: grid;
+  align-content: center;
+  gap: .3rem;
+  min-block-size: clamp(5rem, 10vw, 7.5rem);
+  padding: .8rem .65rem;
+  border: 1px solid var(--line);
+  border-radius: .95rem;
+  background: var(--paper);
+  line-height: 1.45;
+}
+.flow li { position: relative; }
+.flow strong { font-size: clamp(1.02rem, 1.65vw, 1.3rem); font-weight: 780; overflow-wrap: anywhere; }
+.flow small { color: var(--muted); font-size: .92rem; }
+.flow li + li::before, .flow li + li::after {
+  position: absolute;
+  content: "";
+  pointer-events: none;
+}
+.flow li + li::before {
+  inline-size: calc(var(--flow-gap) - .7rem);
+  inset-inline-start: calc(-1 * var(--flow-gap) + .35rem);
+  inset-block-start: 50%;
+  border-block-start: 1px solid var(--link);
+}
+.flow li + li::after {
+  inline-size: .4rem;
+  block-size: .4rem;
+  inset-inline-start: -.75rem;
+  inset-block-start: calc(50% - .17rem);
+  border: solid var(--link);
+  border-width: 0 1px 1px 0;
+  transform: rotate(135deg);
+}
+.diagram:not(.parallel, .branching) .flow li:last-child,
+.branch-source { border-color: var(--link); background: var(--node); }
+.parallel .flow, .branching .flow {
+  grid-auto-flow: row;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  inline-size: min(100%, 38rem);
+}
+.parallel .flow li::before, .parallel .flow li::after, .branching .flow li::before, .branching .flow li::after { display: none; }
+.branch-source {
+  position: relative;
+  margin: 0;
+  padding-inline: 2.5rem;
+  min-block-size: 3.7rem;
+  font-weight: 800;
+  color: var(--link);
+}
+.branching { --branch-gap: 1.75rem; }
+.branch-source::after {
+  position: absolute;
+  content: "";
+  inset-block-start: 100%;
+  inset-inline-start: 50%;
+  block-size: calc(var(--branch-gap) / 2);
+  border-inline-start: 1px solid var(--link);
+}
+.branching .flow {
+  position: relative;
+  margin-block-start: calc(var(--branch-gap) - var(--slide-gap));
+}
+.branching .flow::before {
+  position: absolute;
+  content: "";
+  inset-inline: calc((100% - var(--flow-gap)) / 4);
+  inset-block-end: 100%;
+  block-size: calc(var(--branch-gap) / 2);
+  border: solid var(--link);
+  border-width: 1px 1px 0;
+}
+.diagram-note {
+  max-inline-size: 46ch;
+  margin: 0;
+  color: var(--muted);
+  font-size: .96rem;
+  text-wrap: balance;
+}
 
 .filters { display: flex; flex-wrap: wrap; align-items: end; gap: .75rem 1rem; margin-block: 1.25rem; }
 .filters label { display: grid; gap: .25rem; min-inline-size: min(100%, 12rem); font-weight: 700; }
@@ -150,17 +250,36 @@ tbody th a, td[dir=ltr] { white-space: nowrap; }
 .guide ul { list-style: disc; }
 .guide li + li { margin-block-start: .35rem; }
 
-@media (max-width: 64rem) {
-  .diagrams { grid-template-columns: 1fr; }
-  .diagram:first-child { grid-column: auto; }
-}
 @media (max-width: 48rem) {
-  .hero, .resource-grid { grid-template-columns: 1fr; }
-  .blueprint { min-height: 16rem; }
+  .hero { grid-template-columns: minmax(0, 1fr); }
+  .blueprint { min-block-size: 17rem; }
   .nav div { order: 1; flex-basis: 100%; }
+}
+@media (max-width: 42rem) {
+  .diagram {
+    --flow-gap: 1.65rem;
+    min-block-size: auto;
+    padding-block: 3rem;
+  }
+  .diagram:not(.parallel, .branching) .flow {
+    grid-auto-flow: row;
+    inline-size: min(100%, 23rem);
+  }
+  .flow li { min-block-size: 4.15rem; }
+  .flow li + li::before {
+    inline-size: 0;
+    block-size: calc(var(--flow-gap) - .7rem);
+    inset-inline-start: 50%;
+    inset-block-start: calc(-1 * var(--flow-gap) + .35rem);
+    border: 0;
+    border-inline-start: 1px solid var(--link);
+  }
+  .flow li + li::after {
+    inset-inline-start: calc(50% - .17rem);
+    inset-block-start: -.78rem;
+    transform: rotate(45deg);
+  }
 }
 @media (max-width: 32rem) {
   .shell { width: calc(100% - 1.5rem); }
-  .flow { flex-direction: column; }
-  .flow li + li::before { top: auto; bottom: calc(100% + .32rem); inset-inline-end: calc(50% - .17rem); transform: rotate(45deg); }
 }

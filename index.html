@@ -24,7 +24,7 @@
     <div>
       <p class="eyebrow"><span></span>معماری و مهندسی پلتفرم</p>
       <h1>ویتاریش</h1>
-      <p class="lead">پلتفرم نرم‌افزاری برای ساخت برنامه‌های تخصصی و ادارهٔ فضاهای کاری. با معماری، تصمیم‌های فنی و مسیر توسعه تا انتشار آشنا شوید.</p>
+      <p class="lead">پلتفرم برنامه‌های تخصصی و فضاهای کاری.</p>
       <div class="actions"><a class="button button--primary" href="#architecture">دیدن نقشهٔ معماری</a><a class="button button--outline" href="#decisions">جدول تصمیم‌ها</a></div>
     </div>
     <div class="blueprint" aria-label="ویتاریش خدمات مشترک را به برنامه‌ها ارائه می‌کند">
@@ -37,146 +37,135 @@
   </section>
   <section class="band" id="architecture">
     <div class="section-head"><div><p class="eyebrow">معماری</p><h2>سامانه و مرزهای آن</h2></div><div class="source-links"><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/architecture.md">معماری فنی</a><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/platform/functional-architecture.md">معماری کارکردی</a><a href="https://github.com/mobinseven/Vitarish/blob/main/docs/runbooks/openapi-to-react-client.md">راهنمای تولید کلاینت</a></div></div>
-    <div class="diagrams"><figure class="card diagram ">
-  <figcaption><h3>نقشهٔ سامانه</h3><p>از تجربهٔ کاربر تا خدمات مشترک و داده.</p></figcaption>
-  <ol class="flow">
-    <li><strong>کاربر</strong><small>مرورگر و فضای کاری</small></li>
-    <li><strong>میزبان وب</strong><small>ورود، خانهٔ پلتفرم و برنامه‌ها</small></li>
-    <li><strong>میزبان API</strong><small>ترکیب ماژول‌های .NET</small></li>
-    <li><strong>زیرساخت</strong><small>پایگاه داده و اتصال به خدمات بیرونی</small></li>
+    <div class="diagrams"><figure class="card diagram">
+  <figcaption><h3>نقشهٔ سامانه</h3></figcaption>
+  <ol class="flow" role="list">
+    <li><strong>مرورگر</strong></li>
+    <li><strong>میزبان وب</strong></li>
+    <li><strong>میزبان API</strong><small>ماژول‌های ‎.NET</small></li>
+    <li><strong>زیرساخت</strong><small>داده و خدمات بیرونی</small></li>
   </ol>
-  <p class="diagram-note">فلش‌ها جهت درخواست را نشان می‌دهند. میزبان وب و میزبان API مرزهای اجرایی جدا دارند.</p>
 </figure>
-<figure class="card diagram ">
-  <figcaption><h3>پلتفرم، برنامه و فضای کاری</h3><p>ویتاریش خدمات مشترک را فراهم می‌کند. درمان تجربهٔ ویژهٔ مطب را روی آن می‌سازد.</p></figcaption>
-  <ol class="flow">
-    <li><strong>ویتاریش</strong><small>هویت و قابلیت‌های مشترک</small></li>
-    <li><strong>درمان</strong><small>برنامهٔ مدیریت مطب</small></li>
-    <li><strong>فضای کاری</strong><small>یک مطب در درمان</small></li>
+<figure class="card diagram">
+  <figcaption><h3>پلتفرم تا فضای کاری</h3></figcaption>
+  <ol class="flow" role="list">
+    <li><strong>ویتاریش</strong><small>خدمات مشترک</small></li>
+    <li><strong>درمان</strong><small>برنامهٔ مطب</small></li>
+    <li><strong>فضای کاری</strong><small>یک مطب</small></li>
   </ol>
-  <p class="diagram-note">عضویت کاربر و دسترسی در همان فضای کاری بررسی می‌شود.</p>
 </figure>
-<figure class="card diagram ">
-  <figcaption><h3>لایه‌ها و مالکیت رفتار</h3><p>مسیر درخواست از رابط تا منطق دامنه.</p></figcaption>
-  <ol class="flow">
-    <li><strong>رابط و Client</strong><small>ارائه و فراخوانی API</small></li>
-    <li><strong>API و Contracts</strong><small>اعتبارسنجی شکل ورودی و نگاشت</small></li>
-    <li><strong>Application</strong><small>اجرای مورد کاربرد و کنترل دسترسی</small></li>
-    <li><strong>Domain</strong><small>قواعد و تغییر وضعیت</small></li>
+<figure class="card diagram">
+  <figcaption><h3>مسیر درخواست در لایه‌ها</h3></figcaption>
+  <ol class="flow" role="list">
+    <li><strong>رابط و Client</strong><small>ارائه</small></li>
+    <li><strong>API و Contracts</strong><small>نگاشت ورودی</small></li>
+    <li><strong>Application</strong><small>اجرای مورد کاربرد</small></li>
+    <li><strong>Domain</strong><small>قواعد دامنه</small></li>
   </ol>
-  <p class="diagram-note">زیرساخت در لبه قرار دارد و پورت‌های Application را پیاده می‌کند. دامنه به پایگاه داده، UI یا SDK بیرونی وابسته نیست.</p>
+  <p class="diagram-note">زیرساخت پورت‌های Application را پیاده می‌کند.</p>
 </figure>
-<figure class="card diagram parallel">
-  <figcaption><h3>فرمان و پرس‌وجو</h3><p>هر درخواست به مرز متناسب با اثر آن می‌رود.</p></figcaption>
-  <ol class="flow">
-    <li><strong>پرس‌وجو</strong><small>خواندن داده و ساخت نمای خروجی</small></li>
-    <li><strong>فرمان</strong><small>بررسی پیش‌شرط و تغییر وضعیت</small></li>
-    <li><strong>پاسخ</strong><small>دادهٔ خواندنی یا نتیجهٔ لازمِ عملیات</small></li>
+<figure class="card diagram branching">
+  <figcaption><h3>فرمان و پرس‌وجو</h3></figcaption>
+  <p class="branch-source">درخواست</p>
+  <ol class="flow" role="list">
+    <li><strong>پرس‌وجو</strong><small>خواندن داده</small></li>
+    <li><strong>فرمان</strong><small>تغییر وضعیت</small></li>
   </ol>
-  <p class="diagram-note">این نمودار دو شاخهٔ مستقل را نشان می‌دهد. پرس‌وجو وضعیت قابل مشاهده را تغییر نمی‌دهد.</p>
 </figure>
-<figure class="card diagram ">
-  <figcaption><h3>ورود مرکزی و نشست مرورگر</h3><p>ورود در میزبان هویت و دسترسی در میزبان مقصد انجام می‌شود.</p></figcaption>
-  <ol class="flow">
-    <li><strong>آغاز از برنامه</strong><small>درخواست دسترسی به مقصد</small></li>
-    <li><strong>ورود مرکزی</strong><small>احراز هویت کاربر</small></li>
-    <li><strong>نشست مقصد</strong><small>نشست محلی مرتبط با خانوادهٔ مرورگر</small></li>
-    <li><strong>فضای کاری</strong><small>ارزیابی عضویت و مجوز</small></li>
+<figure class="card diagram">
+  <figcaption><h3>ورود مرکزی</h3></figcaption>
+  <ol class="flow" role="list">
+    <li><strong>برنامهٔ مبدأ</strong></li>
+    <li><strong>میزبان هویت</strong></li>
+    <li><strong>نشست مقصد</strong></li>
+    <li><strong>فضای کاری</strong><small>عضویت و مجوز</small></li>
   </ol>
-  <p class="diagram-note">این نما بر اساس ADRهای ۰۰۲۰ و ۰۰۲۱ است. معماری کارکردی، موارد پیشنهادی را در سند مرجع مشخص می‌کند.</p>
+  <p class="diagram-note">نمای معماری بر پایهٔ ADRهای ۰۰۲۰ و ۰۰۲۱.</p>
 </figure>
-<figure class="card diagram ">
-  <figcaption><h3>قرارداد تا رابط کاربر</h3><p>ساخت کلاینت از قرارداد عمومی ماژول.</p></figcaption>
-  <ol class="flow">
-    <li><strong>قرارداد API</strong><small>شکل درخواست و پاسخ</small></li>
-    <li><strong>OpenAPI</strong><small>عملیات و مدل‌های منتشرشده</small></li>
-    <li><strong>تولید کلاینت</strong><small>انواع و عملیات TypeScript</small></li>
-    <li><strong>رابط React</strong><small>مصرف عملیات و نمایش نتیجه</small></li>
+<figure class="card diagram">
+  <figcaption><h3>از قرارداد تا رابط</h3></figcaption>
+  <ol class="flow" role="list">
+    <li><strong>قرارداد API</strong></li>
+    <li><strong>OpenAPI</strong></li>
+    <li><strong>کلاینت TypeScript</strong></li>
+    <li><strong>رابط React</strong></li>
   </ol>
-  <p class="diagram-note">تغییر از قرارداد و نقاط پایانی آغاز می‌شود و خروجی کلاینت دوباره تولید می‌شود.</p>
 </figure>
-<figure class="card diagram ">
-  <figcaption><h3>دستیار و عملیات کنترل‌شده</h3><p>ماژول‌ها قابلیت‌های دامنه‌ای خود را در اختیار دستیار می‌گذارند.</p></figcaption>
-  <ol class="flow">
-    <li><strong>درخواست کاربر</strong><small>در فضای کاری فعال</small></li>
-    <li><strong>اجرای سمت سرور</strong><small>ترکیب قابلیت‌های مجاز</small></li>
-    <li><strong>ابزار ماژول</strong><small>خواندن یا آماده‌سازی عملیات</small></li>
-    <li><strong>بازبینی و نتیجه</strong><small>تأیید کاربر برای تغییرهای مشمول</small></li>
+<figure class="card diagram">
+  <figcaption><h3>دستیار و تأیید کاربر</h3></figcaption>
+  <ol class="flow" role="list">
+    <li><strong>درخواست</strong></li>
+    <li><strong>اجرای سمت سرور</strong></li>
+    <li><strong>ابزار مجاز ماژول</strong></li>
+    <li><strong>بازبینی و تأیید</strong><small>برای تغییرهای مشمول</small></li>
   </ol>
-  <p class="diagram-note">تصمیم‌های ۰۰۱۱، ۰۰۱۲، ۰۰۱۷، ۰۰۲۲ و ۰۰۲۳ جزئیات اجرای دستیار، مرزها و شیوهٔ ارائه را توضیح می‌دهند.</p>
 </figure></div>
   </section>
   <section class="band" id="development">
     <div class="section-head"><div><p class="eyebrow">روش توسعه</p><h2>از نیاز تا انتشار</h2></div><div class="source-links"><a href="https://github.com/mobinseven/Vitarish/issues">مسئله‌ها و Backlog</a><a href="https://github.com/mobinseven/Vitarish/commits/main/">تاریخچهٔ کد</a><a href="https://github.com/mobinseven/Vitarish/actions">اجراهای CI/CD</a></div></div>
-    <div class="diagrams"><figure class="card diagram ">
-  <figcaption><h3>ردیابی نیاز تا آزمون</h3><p>سند هر سفر کاربر محل بررسی مسیر عادی و حالت‌های خطاست.</p></figcaption>
-  <ol class="flow">
-    <li><strong>نیاز یا مسئله</strong><small>ثبت در Backlog یا Issue</small></li>
-    <li><strong>درخت تصمیم و سفر</strong><small>شرط‌ها، مسیرها و پیامدها</small></li>
-    <li><strong>پیاده‌سازی</strong><small>تغییر در لایهٔ مسئول</small></li>
-    <li><strong>طرح آزمون</strong><small>بررسی نتیجهٔ قابل مشاهده</small></li>
+    <div class="diagrams"><figure class="card diagram">
+  <figcaption><h3>از نیاز تا آزمون</h3></figcaption>
+  <ol class="flow" role="list">
+    <li><strong>نیاز یا مسئله</strong></li>
+    <li><strong>سفر کاربر و درخت تصمیم</strong></li>
+    <li><strong>پیاده‌سازی</strong></li>
+    <li><strong>طرح آزمون</strong></li>
   </ol>
-  <p class="diagram-note">نمونهٔ عمومی این زنجیره، سفرها و طرح‌های آزمون فضای کاری مطب است.</p>
 </figure>
-<figure class="card diagram ">
-  <figcaption><h3>ثبت و انتقال دانش</h3><p>تصمیم و روش‌های تکرارپذیر در کنار کد نگهداری می‌شوند.</p></figcaption>
-  <ol class="flow">
-    <li><strong>بررسی تغییر</strong><small>زمینه، گزینه‌ها و پیامدها</small></li>
-    <li><strong>ثبت تصمیم</strong><small>ADR دارای وضعیت و منبع</small></li>
-    <li><strong>راهنمای اجرا</strong><small>مستند ماژول، آزمون یا Runbook</small></li>
-    <li><strong>بازبینی بعدی</strong><small>اصلاح سند همراه با تغییر مالک</small></li>
+<figure class="card diagram">
+  <figcaption><h3>ثبت و انتقال دانش</h3></figcaption>
+  <ol class="flow" role="list">
+    <li><strong>بررسی تغییر</strong></li>
+    <li><strong>ثبت ADR</strong></li>
+    <li><strong>راهنمای اجرا</strong></li>
+    <li><strong>بازبینی مستند</strong></li>
   </ol>
-  <p class="diagram-note">نمایهٔ ADR مرجع وضعیت تصمیم‌های عمومی است. تصمیم‌های خاص برنامه یا ماژول در همان دامنه نگهداری می‌شوند.</p>
 </figure>
-<figure class="card diagram ">
-  <figcaption><h3>تاریخچهٔ قابل ردیابی</h3><p>در GitHub می‌توان مسیر تغییر را تا نسخهٔ کد دید.</p></figcaption>
-  <ol class="flow">
-    <li><strong>Issue</strong><small>مسئله و نتیجهٔ مورد انتظار</small></li>
-    <li><strong>Pull Request</strong><small>شرح و بازبینی تغییر</small></li>
-    <li><strong>Commit</strong><small>تفاوت فایل‌ها و شناسهٔ تغییر</small></li>
-    <li><strong>اجرای CI</strong><small>نتیجهٔ بررسی همان تغییر</small></li>
+<figure class="card diagram">
+  <figcaption><h3>ردیابی تغییر در GitHub</h3></figcaption>
+  <ol class="flow" role="list">
+    <li><strong>Issue</strong></li>
+    <li><strong>Pull Request</strong></li>
+    <li><strong>Commit</strong></li>
+    <li><strong>اجرای CI</strong></li>
   </ol>
-  <p class="diagram-note">پیوندها امکان بررسی شواهد را می‌دهند. وجود گردش‌کار به‌تنهایی نتیجهٔ یک اجرای خاص را ثابت نمی‌کند.</p>
 </figure>
-<figure class="card diagram ">
-  <figcaption><h3>یکپارچه‌سازی و کنترل کیفیت</h3><p>گردش‌کار متناسب با فایل‌های تغییرکرده، مصرف‌کنندگان را انتخاب می‌کند.</p></figcaption>
-  <ol class="flow">
-    <li><strong>تشخیص دامنهٔ تغییر</strong><small>انتخاب مؤلفه‌های متأثر</small></li>
-    <li><strong>ساخت و آزمون</strong><small>آزمون .NET و بررسی Web حسب تغییر</small></li>
-    <li><strong>بررسی مرزها</strong><small>تحلیل معماری، امنیت و قراردادها</small></li>
-    <li><strong>نتیجهٔ CI</strong><small>ثبت خروجی بررسی‌های اجراشده</small></li>
+<figure class="card diagram">
+  <figcaption><h3>یکپارچه‌سازی پیوسته</h3></figcaption>
+  <ol class="flow" role="list">
+    <li><strong>تشخیص دامنهٔ تغییر</strong></li>
+    <li><strong>ساخت و آزمون</strong></li>
+    <li><strong>بررسی مرزها</strong></li>
+    <li><strong>نتیجهٔ CI</strong></li>
   </ol>
-  <p class="diagram-note">آزمون واحد، یکپارچه و مرورگر هدف‌های متفاوت دارند. میزبان E2E ترکیب مشترک را با محیط آزمون اجرا می‌کند.</p>
 </figure>
 <figure class="card diagram parallel">
-  <figcaption><h3>کیفیت در چند سطح</h3><p>رفتار در نزدیک‌ترین مرز به مالک آن بررسی می‌شود.</p></figcaption>
-  <ol class="flow">
-    <li><strong>واحد</strong><small>قواعد دامنه و موارد کاربرد</small></li>
-    <li><strong>یکپارچه</strong><small>قرارداد و اتصال مؤلفه‌ها</small></li>
-    <li><strong>مرورگر / E2E</strong><small>رفتار از دید کاربر</small></li>
-    <li><strong>بازبینی امنیتی</strong><small>بررسی مرزها و آزمون بازگشت</small></li>
+  <figcaption><h3>سطوح کنترل کیفیت</h3></figcaption>
+  <ol class="flow" role="list">
+    <li><strong>واحد</strong><small>قواعد دامنه</small></li>
+    <li><strong>یکپارچه</strong><small>اتصال مؤلفه‌ها</small></li>
+    <li><strong>مرورگر / E2E</strong><small>رفتار کاربر</small></li>
+    <li><strong>امنیت</strong><small>مرزها و آزمون بازگشت</small></li>
   </ol>
-  <p class="diagram-note">این نما انواع شاهد را نشان می‌دهد. درصد پوشش سراسری در این سایت منتشر نشده است.</p>
 </figure>
-<figure class="card diagram ">
-  <figcaption><h3>ساخت، انتشار و بررسی استقرار</h3><p>گردش‌کار تولید انتشار را به شناسهٔ تغییر و تصویر مرتبط می‌کند.</p></figcaption>
-  <ol class="flow">
-    <li><strong>Commit در main</strong><small>شناسهٔ نسخهٔ منبع</small></li>
-    <li><strong>ساخت تصویر</strong><small>انتشار تصاویر منتخب در GHCR</small></li>
-    <li><strong>استقرار</strong><small>حل و انتقال digest همان اجرا</small></li>
-    <li><strong>شاهد پس از استقرار</strong><small>بررسی‌های تعریف‌شده و خروجی مرورگر</small></li>
+<figure class="card diagram">
+  <figcaption><h3>انتشار و استقرار</h3></figcaption>
+  <ol class="flow" role="list">
+    <li><strong>Commit در main</strong><small>SHA</small></li>
+    <li><strong>ساخت تصویر</strong><small>GHCR</small></li>
+    <li><strong>استقرار</strong><small>digest تصویر</small></li>
+    <li><strong>بررسی پس از استقرار</strong><small>شاهد مرورگر</small></li>
   </ol>
-  <p class="diagram-note">گردش‌کار تولید شناسهٔ SHA و digest را ثبت می‌کند. وضعیت هر انتشار از اجرای همان گردش‌کار قابل بررسی است.</p>
 </figure>
-<figure class="card diagram ">
-  <figcaption><h3>رسیدگی به اشکال و بازگشت به توسعه</h3><p>فرایند پیگیری از نشانهٔ قابل بازتولید شروع می‌شود.</p></figcaption>
-  <ol class="flow">
-    <li><strong>ثبت نشانه</strong><small>زمان، مسیر و اثر مشکل</small></li>
-    <li><strong>بررسی اولیه</strong><small>تعیین دامنه و اولویت</small></li>
-    <li><strong>بازتولید امن</strong><small>نمونهٔ آزمایشی و بررسی شواهد</small></li>
-    <li><strong>اصلاح و پیگیری</strong><small>آزمون بازگشت و به‌روزرسانی راهنما</small></li>
+<figure class="card diagram">
+  <figcaption><h3>رسیدگی به اشکال</h3></figcaption>
+  <ol class="flow" role="list">
+    <li><strong>ثبت نشانه</strong></li>
+    <li><strong>تعیین اولویت</strong></li>
+    <li><strong>بازتولید امن</strong></li>
+    <li><strong>اصلاح و آزمون بازگشت</strong></li>
   </ol>
-  <p class="diagram-note">راهنمای تیم مطب مسیر گزارش را توضیح می‌دهد. گزارش عمومی باید بدون دادهٔ بیمار و اطلاعات ورود باشد.</p>
+  <p class="diagram-note">گزارش عمومی باید بدون دادهٔ بیمار و اطلاعات ورود باشد.</p>
 </figure></div>
   </section>
   <section class="band" id="decisions">
