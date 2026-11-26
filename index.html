@@ -41,7 +41,7 @@
         <li><a href="#architecture">نیازمندی‌ها و معماری</a></li>
         <li><a href="#decisions">مدیریت دانش</a></li>
         <li><a href="#development">ابزارها و تاریخچه</a></li>
-        <li><a href="#delivery">ساخت و انتشار</a></li>
+        <li><a href="#delivery">یکپارچه‌سازی و استقرار</a></li>
         <li><a href="#quality">کیفیت و پوشش آزمون</a></li>
         <li><a href="#support">پشتیبانی</a></li>
         <li><a href="#domain">دامنه و کاربران هدف</a></li>
@@ -317,7 +317,7 @@
   </section>
   <section class="band topic" id="development">
     <h2>ابزارهای توسعه و تاریخچهٔ کد</h2>
-    <p class="topic-lead">ساخت محلی به کمک ابزارهای ‎.NET و Web انجام می‌شود. Git و GitHub مسیر تغییر را از مسئله و درخواست ادغام تا commit و اجرای CI قابل پیگیری می‌کنند.</p>
+    <p class="topic-lead">برای ساخت و آزمون محلی از ابزارهای ‎.NET و وب استفاده می‌شود. در GitHub می‌توان ارتباط هر مسئله را با درخواست ادغام و تاریخچهٔ تغییرات دنبال کرد.</p>
     <div class="diagrams">
       <figure class="card diagram">
         <figcaption><h3>ردیابی تغییر در GitHub</h3></figcaption>
@@ -325,7 +325,6 @@
           <li><strong>Issue</strong></li>
           <li><strong>Pull Request</strong></li>
           <li><strong>Commit</strong></li>
-          <li><strong>اجرای CI</strong></li>
         </ol>
       </figure>
     </div>
@@ -339,25 +338,24 @@
     </footer>
   </section>
   <section class="band topic" id="delivery">
-    <h2>ساخت خودکار، نسخه‌بندی و DevOps</h2>
-    <p class="topic-lead">GitHub Actions آزمون‌ها و ساخت‌های مرتبط با تغییر را اجرا می‌کند. تصویرهای کانتینر در GHCR با شناسهٔ commit منتشر و با digest همان اجرا مستقر می‌شوند. گزارش گردش‌کار نتیجهٔ مرحله‌های اجراشده، از ساخت تا بررسی پس از استقرار، را نشان می‌دهد.</p>
+    <h2>یکپارچه‌سازی و استقرار در GitHub Actions</h2>
     <div class="diagrams">
       <figure class="card diagram">
-        <figcaption><h3>یکپارچه‌سازی پیوسته</h3></figcaption>
+        <figcaption><h3>یکپارچه‌سازی پیوسته (CI)</h3></figcaption>
         <ol class="flow" role="list">
-          <li><strong>تشخیص دامنهٔ تغییر</strong></li>
-          <li><strong>ساخت و آزمون</strong></li>
-          <li><strong>بررسی مرزها</strong></li>
-          <li><strong>نتیجهٔ CI</strong></li>
+          <li><strong>شروع بررسی‌ها</strong><small>درخواست ادغام آمادهٔ بازبینی، ارسال تغییر به <bdi>main</bdi> یا اجرای دستی</small></li>
+          <li><strong>تشخیص دامنهٔ تغییر</strong><small>انتخاب بررسی‌های مرتبط با فایل‌های تغییرکرده</small></li>
+          <li><strong>اجرای بررسی‌های مرتبط</strong><small>ساخت و آزمون ‎.NET، بررسی‌های وب، معماری و امنیت</small></li>
+          <li><strong>نتیجهٔ بررسی‌های الزامی</strong><small>شرط لازم برای استقرار</small></li>
         </ol>
       </figure>
       <figure class="card diagram">
-        <figcaption><h3>انتشار و استقرار</h3></figcaption>
+        <figcaption><h3>تحویل پیوسته (CD)</h3></figcaption>
         <ol class="flow" role="list">
-          <li><strong>Commit در main</strong><small>SHA</small></li>
-          <li><strong>ساخت تصویر</strong><small>GHCR</small></li>
-          <li><strong>استقرار</strong><small>digest تصویر</small></li>
-          <li><strong>بررسی پس از استقرار</strong><small>شاهد مرورگر</small></li>
+          <li><strong>آغاز دستی از <bdi>main</bdi></strong><small>تعیین سرویس‌های متأثر از تغییر</small></li>
+          <li><strong>آماده‌سازی تصویرها</strong><small>ساخت و انتشار در GHCR در صورت نیاز، هم‌زمان با بررسی‌های CI</small></li>
+          <li><strong>استقرار سرویس‌ها</strong><small>پس از موفقیت بررسی‌های الزامی CI، با شناسهٔ محتوای تصویر (digest)</small></li>
+          <li><strong>بررسی پس از استقرار</strong><small>ثبت شواهد مرورگر در محیط عملیاتی</small></li>
         </ol>
       </figure>
     </div>
