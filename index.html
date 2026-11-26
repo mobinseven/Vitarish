@@ -52,28 +52,10 @@
     <h2>نیازمندی‌ها و معماری</h2>
     <p class="topic-lead">نیازها در فهرست کارها ثبت می‌شوند. سفرهای کاربر، درخت‌های تصمیم و طرح‌های آزمون، رفتار مورد انتظار را مشخص می‌کنند. نمودارها اجزای سامانه و مرزهای آن‌ها را نشان می‌دهند.</p>
     <div class="diagrams">
-      <figure class="card diagram">
-        <figcaption><h3>از نیاز تا آزمون</h3></figcaption>
-        <ol class="flow" role="list">
-          <li><strong>نیاز یا مسئله</strong></li>
-          <li><strong>سفر کاربر و درخت تصمیم</strong></li>
-          <li><strong>پیاده‌سازی</strong></li>
-          <li><strong>طرح آزمون</strong></li>
-        </ol>
-      </figure>
-      <figure class="card diagram">
-        <figcaption><h3>نقشهٔ سامانه</h3></figcaption>
-        <ol class="flow" role="list">
-          <li><strong>مرورگر</strong></li>
-          <li><strong>میزبان وب</strong></li>
-          <li><strong>میزبان API</strong><small>ماژول‌های ‎.NET</small></li>
-          <li><strong>زیرساخت</strong><small>داده و خدمات بیرونی</small></li>
-        </ol>
-      </figure>
+
       <figure class="card diagram platform-topology" id="platform-topology">
         <figcaption>
-          <h3>معماری فنی پلتفرم</h3>
-          <p>ورودی مشترک وب و API، میزبان‌های برنامه و سرویس‌های پشتیبان.</p>
+          <h3>معماری فنی پلتفرم ویتاریش</h3>
         </figcaption>
         <div class="topology-map">
           <div class="topology-entry">
@@ -84,7 +66,6 @@
               <span>ورودی عمومی و مسیریابی درخواست</span>
             </div>
           </div>
-
           <div class="topology-routes">
             <div class="topology-route">
               <p class="topology-label">مسیر درخواست صفحه</p>
@@ -98,9 +79,9 @@
               </div>
             </div>
             <div class="topology-route">
-              <p class="topology-label">مسیر <bdi>API</bdi> هم‌مبدأ با کلاینت تولیدشده از <bdi>OpenAPI</bdi></p>
+              <p class="topology-label"><bdi>OpenAPI</bdi></p>
               <div class="topology-node">
-                <h4>میزبان اصلی <bdi>ASP.NET Core</bdi></h4>
+                <h4>میزبان اصلی <bdi>.NET</bdi></h4>
                 <ol class="topology-tiles topology-layers" role="list">
                   <li><bdi>API / Contracts</bdi><small>اعتبارسنجی ورودی و نگاشت</small></li>
                   <li><bdi>Application</bdi><small>مورد کاربرد و کنترل دسترسی</small></li>
@@ -192,17 +173,20 @@
     <p class="topic-lead">تصمیم‌های معماری، راهنماهای اجرا و مستندات ماژول‌ها در کنار کد نگهداری می‌شوند. تغییر تصمیم در ADR و تغییر روش اجرا در راهنمای همان بخش ثبت می‌شود.</p>
     <div class="diagrams">
       <figure class="card diagram">
-        <figcaption><h3>ثبت و انتقال دانش</h3></figcaption>
+        <figcaption><h3>معماری و دانش</h3></figcaption>
         <ol class="flow" role="list">
-          <li><strong>بررسی تغییر</strong></li>
-          <li><strong>ثبت ADR</strong></li>
+          <li><strong>طراحی ADR</strong></li>
           <li><strong>راهنمای اجرا</strong></li>
-          <li><strong>بازبینی مستند</strong></li>
+          <li><strong>پیاده‌سازی</strong></li>
+        </ol>
+        <ol class="flow" role="list">
+          <li><strong>طراحی نقشه راه کاربر</strong></li>
+          <li><strong>راهنمای اجرا</strong></li>
+          <li><strong>پیاده‌سازی</strong></li>
         </ol>
       </figure>
     </div>
     <h3 class="adr-heading" id="accepted-adrs">جدول خلاصهٔ ADRها</h3>
-    <p>خط تیره نشانهٔ تاریخ ثبت‌نشده است.</p>
     <form class="filters" hidden>
       <label>جست‌وجوی تصمیم <input class="input" type="search" placeholder="شناسه، عنوان یا موضوع" aria-controls="adr-table"></label>
       <output aria-live="polite"></output>
