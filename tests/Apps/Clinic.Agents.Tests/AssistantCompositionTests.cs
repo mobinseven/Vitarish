@@ -104,6 +104,25 @@ public sealed class AssistantCompositionTests
         switched.Definition.Instructions.Should().Contain("\"localeFallback\":\"fa-IR\"").And.Contain("\"calendarFallback\":\"persian\"");
     }
 
+    [Fact]
+    public void Practice_relative_dates_follow_local_midnight_while_the_utc_day_is_unchanged()
+    {
+        AssistantContext context = Context("practice") with { Locale = "fa-IR", TimeZone = "Asia/Tehran", Calendar = "persian" };
+        AgentProfileComposer<AssistantCompositionContext> composer = new(
+            new AgentCapabilityCatalog<AssistantCompositionContext>(Packs([])), GenericTools());
+        AssistantCompositionContext beforeMidnight = new(context, [], DateTimeOffset.Parse("2030-01-01T20:00:00Z"));
+        AssistantCompositionContext afterMidnight = beforeMidnight with { CurrentUtc = DateTimeOffset.Parse("2030-01-01T21:00:00Z") };
+
+        ComposedAgentManifest<AssistantCompositionContext> before = composer.Compose(
+            new ClinicOperationsAssistantProfile(beforeMidnight, new("test-model")), beforeMidnight, _ => new(true, "enabled"));
+        ComposedAgentManifest<AssistantCompositionContext> after = composer.Compose(
+            new ClinicOperationsAssistantProfile(afterMidnight, new("test-model")), afterMidnight, _ => new(true, "enabled"));
+
+        before.Definition.Instructions.Should().Contain("\"tomorrow\":\"2030-01-02\"");
+        after.Definition.Instructions.Should().Contain("\"today\":\"2030-01-02\"").And.Contain("\"tomorrow\":\"2030-01-03\"");
+        after.CompatibilityKey.Should().Be(before.CompatibilityKey);
+    }
+
     private static ComposedAgentManifest<AssistantCompositionContext> Compose(
         AssistantContext context,
         IReadOnlyCollection<IAssistantCapability> capabilities,

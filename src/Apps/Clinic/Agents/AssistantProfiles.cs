@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using Vitarish.Clinic.Application.Assistant;
 using Vitarish.Clinic.Application.Assistant.Capabilities;
@@ -98,6 +99,21 @@ internal sealed class ClinicOperationsAssistantProfile(
     protected override string DisplayName => "Clinic operations workspace";
     protected override string ProfileLayerKey => "clinic.assistant.operations";
     protected override string ResultSchema => AssistantRuntime.OperationsResultSchema;
+
+    protected override string PolicyInstructions(AssistantCompositionContext composition, bool dynamicTime)
+    {
+        TimeZoneInfo timeZone = TimeZoneInfo.FindSystemTimeZoneById(composition.Context.TimeZone);
+        DateOnly localDate = DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(composition.CurrentUtc, timeZone).DateTime);
+        string relativeDates = JsonSerializer.Serialize(new
+        {
+            yesterday = dynamicTime ? localDate.AddDays(-1).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) : "<local-yesterday>",
+            today = dynamicTime ? localDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) : "<local-today>",
+            tomorrow = dynamicTime ? localDate.AddDays(1).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) : "<local-tomorrow>"
+        });
+        return base.PolicyInstructions(composition, dynamicTime) +
+            "\nPractice-local Gregorian dates: " + relativeDates +
+            "\nFor yesterday, today, or tomorrow, pass the corresponding Gregorian date above directly to scheduling tools. Use the calendar tool only to convert an exact date between calendars.";
+    }
 }
 
 /// <summary>

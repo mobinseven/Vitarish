@@ -14,15 +14,14 @@ public sealed class AssistantConversationEndpoint(
     ISender sender) : IAgentConversationEndpoint
 {
     private static readonly JsonSerializerOptions WebJson = new(JsonSerializerDefaults.Web);
-    // Streaming stays disabled on every Clinic entry (one rollout decision for the canonical, legacy and help
-    // routes); enabling it is a per-route flag here and nowhere else.
+    // The canonical and legacy practice operations routes share the rollout decision with operations help.
     public IReadOnlyCollection<AgentConversationRoute> Routes { get; } =
     [
         new(AssistantSubjects.PatientAgentKey, AssistantSubjects.PatientKind),
-        new(AssistantSubjects.OperationsAgentKey, AssistantSubjects.PracticeKind),
-        new(AssistantSubjects.OperationsHelpAgentKey, AssistantSubjects.PracticeKind),
+        new(AssistantSubjects.OperationsAgentKey, AssistantSubjects.PracticeKind, StreamingEnabled: true),
+        new(AssistantSubjects.OperationsHelpAgentKey, AssistantSubjects.PracticeKind, StreamingEnabled: true),
         new(AssistantSubjects.LegacyPatientAgentKey, AssistantSubjects.PatientKind),
-        new(AssistantSubjects.LegacyOperationsAgentKey, AssistantSubjects.PracticeKind)
+        new(AssistantSubjects.LegacyOperationsAgentKey, AssistantSubjects.PracticeKind, StreamingEnabled: true)
     ];
 
     public async Task<AgentConversationEndpointResult> RunAsync(
