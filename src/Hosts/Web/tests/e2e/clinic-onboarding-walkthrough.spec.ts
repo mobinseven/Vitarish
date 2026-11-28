@@ -463,14 +463,14 @@ test("a new phone number signs up, creates a clinic, lands signed in on it, and 
     const tenantBPage = await tenantBContext.newPage();
     await tenantBPage.goto(`${tenantBOrigin}${Routes.Home}`, { waitUntil: "domcontentloaded" });
     const tenantBSessionStatus = await tenantBPage.evaluate(
-      async (tenantHostHeader) =>
+      async ({ tenantHostHeader, sessionPath }) =>
         (
           await fetch(sessionPath, {
             credentials: "include",
             headers: { [tenantHostHeader]: window.location.host },
           })
         ).status,
-      TENANT_HOST_HEADER,
+      { tenantHostHeader: TENANT_HOST_HEADER, sessionPath },
     );
     expect(tenantBSessionStatus).toBe(401);
     expect(await postPatientsCount(tenantBPage, tenantBHost)).toBe(401);

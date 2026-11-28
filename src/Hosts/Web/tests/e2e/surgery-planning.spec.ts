@@ -3,6 +3,7 @@ import { existsSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
 import { clinicMessageCatalogs } from "../../shared/clinic/src/localization/catalogs";
+import { clinicPresentedKinds } from "../../shared/clinic/src/features/clinic-assistant/presentedKinds";
 import { twoHostE2eApiOriginEnvironmentKey, twoHostE2eProofScreenshotEnvironmentKey } from "../../scripts/two-host-e2e-artifacts.mjs";
 import { forwardedForHeaderName, signInToClinic } from "./signInHost";
 import { agentToolCallbackPath, signAgentCallback } from "./agentCallback";
@@ -171,6 +172,13 @@ test("plans, lists, and cancels a surgery through the real Web and Main hosts", 
   expect(assistantCalendarBody.isError).toBe(false);
   expect(JSON.parse(assistantCalendarBody.output)).toEqual({
     surgeries: expect.arrayContaining([expect.objectContaining({ id: surgery.id, patientDisplayName: seededPatientName, status: "Planned" })]),
+    presentation: {
+      fields: ["status", "scheduledAt", "durationMinutes", "location", "patient"],
+      handle: expect.any(String),
+      isList: true,
+      kind: clinicPresentedKinds.surgery,
+      records: 1,
+    },
   });
   expect(assistantCalendarBody.output).not.toContain(seededPatientId);
 
