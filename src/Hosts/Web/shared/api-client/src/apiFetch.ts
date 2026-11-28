@@ -1,11 +1,11 @@
 import { TENANT_HOST_HEADER } from "./tenantHostHeader";
+import { REQUEST_ID_HEADER } from "./requestIdHeader";
 
-export { TENANT_HOST_HEADER };
+export { REQUEST_ID_HEADER, TENANT_HOST_HEADER };
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
 export const ACCEPT_LANGUAGE_HEADER = "Accept-Language";
 export const ANTIFORGERY_VALIDATION_FAILED_CODE = "AntiforgeryValidationFailed";
-export const REQUEST_ID_HEADER = "X-Request-Id";
 
 export interface ProblemDetails {
   type?: string;

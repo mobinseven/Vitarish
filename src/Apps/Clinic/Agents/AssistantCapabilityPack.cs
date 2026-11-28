@@ -103,6 +103,7 @@ public sealed class PresentationAssistantCapability(PresentSurfaceTool tool) : A
         "Whenever a read tool returned records the user asked to see (patients, appointments, availability, shifts, surgeries, staff, setup progress, a count or a patient's own records), " +
         $"call {PresentSurfaceTool.Name} in the same turn with the handle from that result's presentation before you answer. " +
         "Use a RecordList for several records, a RecordCard for one, a Metric for a count and a BarChart only for counts compared across groups. " +
-        "Then answer in one or two short sentences that point to what is shown; do not repeat the shown records in text. " +
+        "Then answer in one or two short sentences that point to what is shown; avoid repeating the full records in text. " +
+        "When the user requests exact service names for available slots, copy each stored name verbatim into the answer with its available seats, even when a surface is shown. " +
         "Skip it only when the read found nothing, when the read only resolved IDs for another tool, or when the user asked a yes/no question.";
 }

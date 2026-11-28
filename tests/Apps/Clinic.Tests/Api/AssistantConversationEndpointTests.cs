@@ -110,13 +110,18 @@ public sealed class AssistantConversationEndpointTests
     }
 
     [Fact]
-    public void Streaming_stays_disabled_on_every_clinic_entry_including_the_help_entry()
+    public void Streaming_is_enabled_for_practice_operations_and_help_only()
     {
         AssistantConversationEndpoint endpoint = new(new Mock<IAssistantContextFactory>().Object, new Mock<ISender>().Object);
 
-        endpoint.Routes.Should().OnlyContain(route => !route.StreamingEnabled);
-        endpoint.Routes.Single(route => route.AgentKey == AssistantSubjects.OperationsHelpAgentKey).SubjectKind
-            .Should().Be(AssistantSubjects.PracticeKind);
+        endpoint.Routes.Should().BeEquivalentTo(new AgentConversationRoute[]
+        {
+            new(AssistantSubjects.PatientAgentKey, AssistantSubjects.PatientKind, StreamingEnabled: false),
+            new(AssistantSubjects.LegacyPatientAgentKey, AssistantSubjects.PatientKind, StreamingEnabled: false),
+            new(AssistantSubjects.OperationsAgentKey, AssistantSubjects.PracticeKind, StreamingEnabled: true),
+            new(AssistantSubjects.LegacyOperationsAgentKey, AssistantSubjects.PracticeKind, StreamingEnabled: true),
+            new(AssistantSubjects.OperationsHelpAgentKey, AssistantSubjects.PracticeKind, StreamingEnabled: true)
+        });
     }
 
     [Fact]

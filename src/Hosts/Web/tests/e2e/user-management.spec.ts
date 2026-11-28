@@ -1,14 +1,12 @@
 import { AuthenticationWebRoutes } from "../../shared/auth/src/routes";
 import { expect, test, type Page } from "@playwright/test";
-import { execFile } from "node:child_process";
 import { existsSync } from "node:fs";
-import { rm } from "node:fs/promises";
-import { promisify } from "node:util";
-import { dirname, extname, join, parse, resolve } from "node:path";
+import { dirname, extname, join, parse } from "node:path";
 import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
 import { Routes as PlatformRoutes } from "../../apps/platform-admin/src/app/routes";
 import { forwardedForHeaderName, signInToClinic, submitPasswordOnSignInHost } from "./signInHost";
-import { authenticationLogoutPost } from "../../shared/auth/src/api/generated/authentication/authentication";
+import { generatedOperationPath } from "./generatedOperationPath";
+import { authenticationAuthenticationPolicyGet, authenticationLogoutPost } from "../../shared/auth/src/api/generated/authentication/authentication";
 import type { SecurityAuthenticationPolicyDto } from "../../shared/auth/src/api/generated/authentication/model";
 import { getUsersAdministrationGetUserSecurityQueryKey } from "../../shared/auth/src/api/generated/users/users";
 import type { UpdateManagedUserRequest, UserSecurityDetailsResponse } from "../../shared/auth/src/api/generated/users/model";
@@ -20,7 +18,6 @@ import {
   twoHostE2eApiOriginEnvironmentKey,
   twoHostE2eProofScreenshotEnvironmentKey,
   twoHostE2eSecurityPolicyScreenshotEnvironmentKey,
-  twoHostE2eProofStorageStateEnvironmentKey,
   twoHostE2eSignInOrigin,
 } from "../../scripts/two-host-e2e-artifacts.mjs";
 
@@ -33,35 +30,7 @@ const platformUsername = process.env.VITARISH_E2E_USER_MANAGEMENT_PLATFORM_ADMIN
 const apiOrigin = process.env[twoHostE2eApiOriginEnvironmentKey] ?? "https://localhost:7272";
 // In-page requests use the web origin's same-origin /api, as in production.
 const browserApiOrigin = "";
-const execFileAsync = promisify(execFile);
-
-async function captureAuthenticatedScreenshot(page: Page, outputPath: string): Promise<void> {
-  const storageStatePath = process.env[twoHostE2eProofStorageStateEnvironmentKey];
-  expect(storageStatePath, `${twoHostE2eProofStorageStateEnvironmentKey} must be supplied by the two-host runner`).toBeTruthy();
-  expect(existsSync(outputPath), `refusing to overwrite retained evidence at ${outputPath}`).toBe(false);
-  try {
-    await page.context().storageState({ path: storageStatePath! });
-    await execFileAsync("powershell.exe", [
-      "-NoProfile",
-      "-File",
-      resolve(process.cwd(), "scripts", "screenshot.ps1"),
-      "-Url",
-      page.url(),
-      "-OutputPath",
-      outputPath,
-      "-StorageStatePath",
-      storageStatePath!,
-      // The restored session must actually render the authenticated detail
-      // page (this test's fixture name); never retain a login-page capture.
-      "-WaitForSelector",
-      "text=Security Evidence",
-      "-IgnoreHttpsErrors",
-    ], { cwd: process.cwd(), timeout: 45_000, windowsHide: true });
-    expect(existsSync(outputPath), `the screenshot script did not create ${outputPath}`).toBe(true);
-  } finally {
-    await rm(storageStatePath!, { force: true });
-  }
-}
+const authPolicyPath = generatedOperationPath(authenticationAuthenticationPolicyGet);
 
 async function signOutThroughPublicApi(page: Page): Promise<void> {
   const tenantHost = new URL(page.url()).host;
@@ -98,13 +67,13 @@ async function signOutThroughPublicApi(page: Page): Promise<void> {
 }
 
 async function putAuthenticationPolicy(page: Page, request: Record<string, unknown>): Promise<number> {
-  return page.evaluate(async ({ origin, body, tenantHost }) => {
+  return page.evaluate(async ({ origin, body, tenantHost, policyPath }) => {
     const antiforgeryResponse = await fetch(`${origin}/api/modules/authentication/antiforgery`, {
       credentials: "include",
       headers: { ["X-Vitarish-Tenant-Host"]: tenantHost },
     });
     const antiforgery = await antiforgeryResponse.json() as { headerName: string; requestToken: string };
-    const response = await fetch(`${origin}/api/modules/authentication/security/authentication-policy`, {
+    const response = await fetch(`${origin}${policyPath}`, {
       method: "PUT",
       credentials: "include",
       headers: {
@@ -115,7 +84,7 @@ async function putAuthenticationPolicy(page: Page, request: Record<string, unkno
       body: JSON.stringify(body),
     });
     return response.status;
-  }, { origin: browserApiOrigin, body: request, tenantHost: new URL(page.url()).host });
+  }, { origin: browserApiOrigin, body: request, tenantHost: new URL(page.url()).host, policyPath: authPolicyPath });
 }
 
 async function login(page: Page, username: string, origin = ""): Promise<void> {
@@ -361,62 +330,69 @@ test("platform administrator ends a signed-in user's sessions and the user's nex
 
 test("platform administrator manages profile-constrained authentication policy through Settings", async ({ page }) => {
   await login(page, platformUsername, platformOrigin);
-  await page.goto(`${platformOrigin}${PlatformRoutes.Security}`, { waitUntil: "networkidle" });
+  await page.goto(`${platformOrigin}${PlatformRoutes.Settings.Security}`, { waitUntil: "networkidle" });
   await expect(page.getByRole("heading", { name: "Authentication policy", exact: true })).toBeVisible({ timeout: 30_000 });
   await expect(page.getByRole("spinbutton", { name: "Failed authentication threshold", exact: true })).toHaveValue("5");
   await expect(page.getByText("Required by deployment profile").first()).toBeVisible();
 
-  const loadedPolicyResponse = await page.request.get(`${platformOrigin}/api/modules/authentication/security/authentication-policy`, {
+  const loadedPolicyResponse = await page.request.get(`${platformOrigin}${authPolicyPath}`, {
     headers: { [TENANT_HOST_HEADER]: new URL(platformOrigin).host },
     ignoreHTTPSErrors: true,
   });
   expect(loadedPolicyResponse.status()).toBe(200);
   const originalPolicy = await loadedPolicyResponse.json() as SecurityAuthenticationPolicyDto;
   const threshold = page.getByRole("spinbutton", { name: "Failed authentication threshold", exact: true });
-  await threshold.fill("6");
-  const [policyResponse] = await Promise.all([
-    page.waitForResponse((response) => response.request().method() === "PUT" && response.url().endsWith("/api/modules/authentication/security/authentication-policy")),
-    page.getByRole("button", { name: "Save authentication policy" }).click(),
-  ]);
-  expect(policyResponse.status()).toBe(200);
-  const updatedPolicy = await policyResponse.json() as SecurityAuthenticationPolicyDto;
-  expect(updatedPolicy.failedAttemptThreshold).toBe(6);
-  await expect(page.getByRole("status").filter({ hasText: "Security policy saved." })).toBeVisible();
+  try {
+    await threshold.fill("6");
+    const [policyResponse] = await Promise.all([
+      page.waitForResponse((response) => response.request().method() === "PUT" && response.url().endsWith(authPolicyPath)),
+      page.getByRole("button", { name: "Save authentication policy" }).click(),
+    ]);
+    expect(policyResponse.status()).toBe(200);
+    const updatedPolicy = await policyResponse.json() as SecurityAuthenticationPolicyDto;
+    expect(updatedPolicy.failedAttemptThreshold).toBe(6);
+    await expect(page.getByRole("status").filter({ hasText: "Security policy saved." })).toBeVisible();
 
-  const securityPolicyScreenshot = process.env[twoHostE2eSecurityPolicyScreenshotEnvironmentKey];
-  if (securityPolicyScreenshot) {
-    // The page above is already authenticated and saved; capture it in place.
-    expect(existsSync(securityPolicyScreenshot), `refusing to overwrite retained evidence at ${securityPolicyScreenshot}`).toBe(false);
-    await page.screenshot({ path: securityPolicyScreenshot, fullPage: true });
+    const securityPolicyScreenshot = process.env[twoHostE2eSecurityPolicyScreenshotEnvironmentKey];
+    if (securityPolicyScreenshot) {
+      // The page above is already authenticated and saved; capture it in place.
+      expect(existsSync(securityPolicyScreenshot), `refusing to overwrite retained evidence at ${securityPolicyScreenshot}`).toBe(false);
+      await page.screenshot({ path: securityPolicyScreenshot, fullPage: true });
+    }
+
+    await page.reload({ waitUntil: "domcontentloaded" });
+    const reloadedThreshold = page.getByRole("spinbutton", { name: "Failed authentication threshold", exact: true });
+    await expect(reloadedThreshold).toHaveValue("6");
+    const invalidUpdateStatus = await putAuthenticationPolicy(page, {
+      minimumPasswordLength: originalPolicy.minimumPasswordLength,
+      requirePasswordLowercase: originalPolicy.requirePasswordLowercase,
+      requirePasswordUppercase: originalPolicy.requirePasswordUppercase,
+      requirePasswordNumber: originalPolicy.requirePasswordNumber,
+      requirePasswordSpecialCharacter: originalPolicy.requirePasswordSpecialCharacter,
+      failedAttemptThreshold: 0,
+      failedAttemptDenialDurationSeconds: originalPolicy.failedAttemptDenialDurationSeconds,
+      failedAttemptResponse: originalPolicy.failedAttemptResponse,
+      enabledAuthenticationMechanisms: originalPolicy.enabledAuthenticationMechanisms,
+      permittedPreAuthenticationActions: originalPolicy.permittedPreAuthenticationActions,
+      expectedVersion: updatedPolicy.version,
+    });
+    expect(invalidUpdateStatus).toBe(400);
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await expect(page.getByRole("spinbutton", { name: "Failed authentication threshold", exact: true })).toHaveValue("6");
+  } finally {
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await expect(threshold).toHaveValue(/^\d+$/);
+    const originalThreshold = String(originalPolicy.failedAttemptThreshold);
+    if ((await threshold.inputValue()) !== originalThreshold) {
+      await threshold.fill(originalThreshold);
+      const [restoreResponse] = await Promise.all([
+        page.waitForResponse((response) => response.request().method() === "PUT" && response.url().endsWith(authPolicyPath)),
+        page.getByRole("button", { name: "Save authentication policy" }).click(),
+      ]);
+      expect(restoreResponse.status()).toBe(200);
+      await expect(threshold).toHaveValue(originalThreshold);
+    }
   }
-
-  await page.reload({ waitUntil: "domcontentloaded" });
-  const reloadedThreshold = page.getByRole("spinbutton", { name: "Failed authentication threshold", exact: true });
-  await expect(reloadedThreshold).toHaveValue("6");
-  const invalidUpdateStatus = await putAuthenticationPolicy(page, {
-    minimumPasswordLength: originalPolicy.minimumPasswordLength,
-    requirePasswordLowercase: originalPolicy.requirePasswordLowercase,
-    requirePasswordUppercase: originalPolicy.requirePasswordUppercase,
-    requirePasswordNumber: originalPolicy.requirePasswordNumber,
-    requirePasswordSpecialCharacter: originalPolicy.requirePasswordSpecialCharacter,
-    failedAttemptThreshold: 0,
-    failedAttemptDenialDurationSeconds: originalPolicy.failedAttemptDenialDurationSeconds,
-    failedAttemptResponse: originalPolicy.failedAttemptResponse,
-    enabledAuthenticationMechanisms: originalPolicy.enabledAuthenticationMechanisms,
-    permittedPreAuthenticationActions: originalPolicy.permittedPreAuthenticationActions,
-    expectedVersion: updatedPolicy.version,
-  });
-  expect(invalidUpdateStatus).toBe(400);
-  await page.reload({ waitUntil: "domcontentloaded" });
-  await expect(page.getByRole("spinbutton", { name: "Failed authentication threshold", exact: true })).toHaveValue("6");
-
-  await page.getByRole("spinbutton", { name: "Failed authentication threshold", exact: true }).fill(String(originalPolicy.failedAttemptThreshold));
-  const [restoreResponse] = await Promise.all([
-    page.waitForResponse((response) => response.request().method() === "PUT" && response.url().endsWith("/api/modules/authentication/security/authentication-policy")),
-    page.getByRole("button", { name: "Save authentication policy" }).click(),
-  ]);
-  expect(restoreResponse.status()).toBe(200);
-  await expect(page.getByRole("spinbutton", { name: "Failed authentication threshold", exact: true })).toHaveValue(String(originalPolicy.failedAttemptThreshold));
 
   await page.goto(`${platformOrigin}${PlatformRoutes.Audit}`, { waitUntil: "networkidle" });
   await expect(page.getByRole("heading", { name: "Security event stream", exact: true })).toBeVisible({ timeout: 30_000 });
@@ -639,7 +615,9 @@ test("platform administrator creates, edits, assigns access, and reviews a user'
     const proofScreenshot = existsSync(configuredProofScreenshot)
       ? join(dirname(configuredProofScreenshot), `${parse(configuredProofScreenshot).name}-user-management${extname(configuredProofScreenshot)}`)
       : configuredProofScreenshot;
-    await captureAuthenticatedScreenshot(page, proofScreenshot);
+    await expect(page.getByText("Security Evidence", { exact: true }).first()).toBeVisible();
+    expect(existsSync(proofScreenshot), `refusing to overwrite retained evidence at ${proofScreenshot}`).toBe(false);
+    await page.screenshot({ path: proofScreenshot, fullPage: true });
   }
 
   // The security history pages on its own: the request moves only its page, and the

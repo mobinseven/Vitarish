@@ -184,7 +184,22 @@ public sealed class AppointmentSchedulingAgentCapability(
     public async Task<AgentSchedulingResult<IReadOnlyList<BookableShiftSlot>>> GetAvailabilityAsync(AgentSchedulingContext context, AgentAvailabilityRequest request, CancellationToken cancellationToken)
     {
         if (!ValidContext(context) || !ValidDateRange(request.DateFrom, request.DateTo)) return new(AgentSchedulingStatus.ValidationFailure, Message: "A valid date range is required.");
-        return new(AgentSchedulingStatus.Succeeded, await bookableSlots.GetBookableSlotsAsync(ToShiftDescriptor(request.ShiftId), new() { DateFrom = request.DateFrom, DateTo = request.DateTo }, cancellationToken));
+        IReadOnlyList<BookableShiftSlot> slots = await bookableSlots.GetBookableSlotsAsync(ToShiftDescriptor(request.ShiftId),
+            new() { DateFrom = request.DateFrom, DateTo = request.DateTo }, cancellationToken);
+        Dictionary<Guid, string> serviceNames = [];
+        foreach (Guid serviceId in slots.Select(slot => slot.Shift.ServiceId).OfType<Guid>().Distinct())
+        {
+            AgentSchedulingResult<ServiceReadDto> service = Map(await services.GetAsync(serviceId, cancellationToken));
+            if (service.Value is { } value)
+                serviceNames.Add(serviceId, value.Name);
+            else if (service.Status is not (AgentSchedulingStatus.Succeeded or AgentSchedulingStatus.NotFound))
+                return new(service.Status, Message: service.Message);
+        }
+
+        return new(AgentSchedulingStatus.Succeeded, [.. slots.Select(slot =>
+            slot.Shift.ServiceId is { } serviceId && serviceNames.TryGetValue(serviceId, out string? name)
+                ? slot with { ServiceName = name }
+                : slot)]);
     }
 
     public async Task<AgentSchedulingResult<IReadOnlyList<ShiftReadDto>>> ListShiftsAsync(AgentSchedulingContext context, AgentShiftListRequest request, CancellationToken cancellationToken)

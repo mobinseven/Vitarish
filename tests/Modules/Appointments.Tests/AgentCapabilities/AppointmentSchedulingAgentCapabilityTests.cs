@@ -310,6 +310,29 @@ public sealed class AppointmentSchedulingAgentCapabilityTests
     }
 
     [Fact]
+    public async Task Availability_includes_the_stored_name_for_each_bookable_service()
+    {
+        Mock<IShiftBookableDateQueryService> bookableSlots = new();
+        Mock<IServiceManager> services = new();
+        Guid serviceId = Guid.NewGuid();
+        ShiftReadDto shift = new() { Id = Guid.NewGuid(), ServiceId = serviceId };
+        bookableSlots.Setup(x => x.GetBookableSlotsAsync(It.IsAny<ShiftDescriptorDto>(),
+                It.IsAny<ShiftDateRangeQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync([new(shift, null), new(shift, null), new(new() { Id = Guid.NewGuid() }, null)]);
+        services.Setup(x => x.GetAsync(serviceId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(EntityResult<ServiceReadDto>.Success(new() { Id = serviceId, Name = "Consultation" }));
+        AppointmentSchedulingAgentCapability sut = Create(bookableSlots: bookableSlots.Object, services: services.Object);
+        DateOnly date = new(2026, 8, 3);
+
+        AgentSchedulingResult<IReadOnlyList<BookableShiftSlot>> result = await sut.GetAvailabilityAsync(
+            Context(), new AgentAvailabilityRequest(date, date), default);
+
+        result.Status.Should().Be(AgentSchedulingStatus.Succeeded);
+        result.Value!.Select(slot => slot.ServiceName).Should().Equal("Consultation", "Consultation", null);
+        services.Verify(x => x.GetAsync(serviceId, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
     public async Task Read_queries_delegate_to_access_controlled_appointments_and_shifts()
     {
         Mock<IAccessControlledReservationManager> reservations = new();

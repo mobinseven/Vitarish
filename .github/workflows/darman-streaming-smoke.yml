@@ -1,0 +1,62 @@
+name: Darman production streaming smoke
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_sha:
+        description: Commit deployed by the production workflow
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  deployments: read
+
+concurrency:
+  group: vitarish-production-deploy
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    if: ${{ github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Verify release identity
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_SHA: ${{ inputs.release_sha }}
+        run: |
+          set -euo pipefail
+          [[ "$RELEASE_SHA" =~ ^[0-9a-f]{40}$ && "$RELEASE_SHA" == "$GITHUB_SHA" ]]
+          deployment="$(gh api "repos/$GITHUB_REPOSITORY/deployments?environment=production&per_page=1" --jq '.[0]')"
+          [[ "$(jq -r .sha <<< "$deployment")" == "$RELEASE_SHA" ]]
+          deployment_id="$(jq -er .id <<< "$deployment")"
+          state="$(gh api "repos/$GITHUB_REPOSITORY/deployments/$deployment_id/statuses?per_page=1" --jq '.[0].state')"
+          [[ "$state" == success ]]
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: src/Hosts/Web/package-lock.json
+      - name: Install Web dependencies
+        working-directory: src/Hosts/Web
+        env:
+          HEROUI_AUTH_TOKEN: ${{ secrets.HEROUI_AUTH_TOKEN }}
+        run: npm ci
+      - name: Install Chromium
+        working-directory: src/Hosts/Web
+        run: npx playwright install --with-deps chromium
+      - name: Verify authenticated Darman streaming through production ingress
+        working-directory: src/Hosts/Web
+        env:
+          VITARISH_SMOKE_PASSWORD_ONE_CLINIC: ${{ secrets.VITARISH_SMOKE_PASSWORD_ONE_CLINIC }}
+        run: node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/verify-darman-production-streaming.mjs "$GITHUB_SHA" "$RUNNER_TEMP/darman-streaming-smoke.json"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: darman-streaming-smoke-${{ github.sha }}
+          path: ${{ runner.temp }}/darman-streaming-smoke.json
+          if-no-files-found: error
