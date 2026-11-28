@@ -1,10 +1,7 @@
 import { AuthenticationWebRoutes } from "../../shared/auth/src/routes";
 import { expect, test, type Page } from "@playwright/test";
-import { execFile } from "node:child_process";
 import { existsSync } from "node:fs";
-import { rm } from "node:fs/promises";
-import { promisify } from "node:util";
-import { dirname, extname, join, parse, resolve } from "node:path";
+import { dirname, extname, join, parse } from "node:path";
 import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
 import { Routes as PlatformRoutes } from "../../apps/platform-admin/src/app/routes";
 import { forwardedForHeaderName, signInToClinic, submitPasswordOnSignInHost } from "./signInHost";
@@ -21,7 +18,6 @@ import {
   twoHostE2eApiOriginEnvironmentKey,
   twoHostE2eProofScreenshotEnvironmentKey,
   twoHostE2eSecurityPolicyScreenshotEnvironmentKey,
-  twoHostE2eProofStorageStateEnvironmentKey,
   twoHostE2eSignInOrigin,
 } from "../../scripts/two-host-e2e-artifacts.mjs";
 
@@ -35,35 +31,6 @@ const apiOrigin = process.env[twoHostE2eApiOriginEnvironmentKey] ?? "https://loc
 // In-page requests use the web origin's same-origin /api, as in production.
 const browserApiOrigin = "";
 const authPolicyPath = generatedOperationPath(authenticationAuthenticationPolicyGet);
-const execFileAsync = promisify(execFile);
-
-async function captureAuthenticatedScreenshot(page: Page, outputPath: string): Promise<void> {
-  const storageStatePath = process.env[twoHostE2eProofStorageStateEnvironmentKey];
-  expect(storageStatePath, `${twoHostE2eProofStorageStateEnvironmentKey} must be supplied by the two-host runner`).toBeTruthy();
-  expect(existsSync(outputPath), `refusing to overwrite retained evidence at ${outputPath}`).toBe(false);
-  try {
-    await page.context().storageState({ path: storageStatePath! });
-    await execFileAsync("powershell.exe", [
-      "-NoProfile",
-      "-File",
-      resolve(process.cwd(), "scripts", "screenshot.ps1"),
-      "-Url",
-      page.url(),
-      "-OutputPath",
-      outputPath,
-      "-StorageStatePath",
-      storageStatePath!,
-      // The restored session must actually render the authenticated detail
-      // page (this test's fixture name); never retain a login-page capture.
-      "-WaitForSelector",
-      "text=Security Evidence",
-      "-IgnoreHttpsErrors",
-    ], { cwd: process.cwd(), timeout: 45_000, windowsHide: true });
-    expect(existsSync(outputPath), `the screenshot script did not create ${outputPath}`).toBe(true);
-  } finally {
-    await rm(storageStatePath!, { force: true });
-  }
-}
 
 async function signOutThroughPublicApi(page: Page): Promise<void> {
   const tenantHost = new URL(page.url()).host;
@@ -648,7 +615,9 @@ test("platform administrator creates, edits, assigns access, and reviews a user'
     const proofScreenshot = existsSync(configuredProofScreenshot)
       ? join(dirname(configuredProofScreenshot), `${parse(configuredProofScreenshot).name}-user-management${extname(configuredProofScreenshot)}`)
       : configuredProofScreenshot;
-    await captureAuthenticatedScreenshot(page, proofScreenshot);
+    await expect(page.getByText("Security Evidence", { exact: true }).first()).toBeVisible();
+    expect(existsSync(proofScreenshot), `refusing to overwrite retained evidence at ${proofScreenshot}`).toBe(false);
+    await page.screenshot({ path: proofScreenshot, fullPage: true });
   }
 
   // The security history pages on its own: the request moves only its page, and the
